@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Epilepsy Data Uploader — Prototype</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          'penn-blue': '#011F5B',
+          'penn-blue-light': '#1e3a8a',
+        },
+        fontFamily: {
+          sans: ['Inter', 'system-ui', 'sans-serif'],
+        }
+      }
+    }
+  }
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body { font-family: 'Inter', system-ui, sans-serif; }
+  .screen { display: none; }
+  .screen.active { display: block; }
+  .step-dot { transition: all 0.2s; }
+  .fade-in { animation: fadeIn 0.3s ease-in; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  .progress-bar-fill {
+    animation: fillProgress 4s ease-in-out forwards;
+  }
+  @keyframes fillProgress {
+    from { width: 0%; }
+    to { width: 100%; }
+  }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+
+<!-- =========== HEADER =========== -->
+<header class="bg-white border-b border-slate-200">
+  <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 bg-penn-blue rounded-lg flex items-center justify-center">
+        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+        </svg>
+      </div>
+      <div>
+        <div class="font-semibold text-slate-900">Epilepsy Data Uploader</div>
+        <div class="text-xs text-slate-500">Multi-site BIDS + Pennsieve</div>
+      </div>
+    </div>
+    <div class="flex items-center gap-4 text-sm text-slate-600">
+      <span id="user-display" class="hidden">
+        <span class="font-medium text-slate-900" id="user-name">bach2@seas.upenn.edu</span>
+        <span class="text-slate-400 mx-2">·</span>
+        <span id="user-workspace">CHOP Workspace</span>
+      </span>
+      <button class="text-slate-500 hover:text-slate-900 text-sm">Help</button>
+    </div>
+  </div>
+
+  <!-- Step progress bar -->
+  <div id="stepper" class="hidden max-w-6xl mx-auto px-6 pb-4">
+    <div class="flex items-center justify-between">
+      <div class="step-item flex items-center gap-2" data-step="1">
+        <div class="step-dot w-6 h-6 rounded-full bg-slate-200 text-slate-500 text-xs font-semibold flex items-center justify-center">1</div>
+        <span class="text-xs text-slate-500">Setup</span>
+      </div>
+      <div class="flex-1 h-px bg-slate-200 mx-2"></div>
+      <div class="step-item flex items-center gap-2" data-step="2">
+        <div class="step-dot w-6 h-6 rounded-full bg-slate-200 text-slate-500 text-xs font-semibold flex items-center justify-center">2</div>
+        <span class="text-xs text-slate-500">Drop files</span>
+      </div>
+      <div class="flex-1 h-px bg-slate-200 mx-2"></div>
+      <div class="step-item flex items-center gap-2" data-step="3">
+        <div class="step-dot w-6 h-6 rounded-full bg-slate-200 text-slate-500 text-xs font-semibold flex items-center justify-center">3</div>
+        <span class="text-xs text-slate-500">Review mapping</span>
+      </div>
+      <div class="flex-1 h-px bg-slate-200 mx-2"></div>
+      <div class="step-item flex items-center gap-2" data-step="4">
+        <div class="step-dot w-6 h-6 rounded-full bg-slate-200 text-slate-500 text-xs font-semibold flex items-center justify-center">4</div>
+        <span class="text-xs text-slate-500">Metadata</span>
+      </div>
+      <div class="flex-1 h-px bg-slate-200 mx-2"></div>
+      <div class="step-item flex items-center gap-2" data-step="5">
+        <div class="step-dot w-6 h-6 rounded-full bg-slate-200 text-slate-500 text-xs font-semibold flex items-center justify-center">5</div>
+        <span class="text-xs text-slate-500">Validate</span>
+      </div>
+      <div class="flex-1 h-px bg-slate-200 mx-2"></div>
+      <div class="step-item flex items-center gap-2" data-step="6">
+        <div class="step-dot w-6 h-6 rounded-full bg-slate-200 text-slate-500 text-xs font-semibold flex items-center justify-center">6</div>
+        <span class="text-xs text-slate-500">Upload</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-6 py-10">
+
+<!-- =========== SCREEN 1: LANDING =========== -->
+<section id="screen-landing" class="screen active fade-in">
+  <div class="max-w-2xl mx-auto text-center py-12">
+    <div class="w-16 h-16 bg-penn-blue rounded-2xl mx-auto mb-6 flex items-center justify-center">
+      <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+      </svg>
+    </div>
+    <h1 class="text-3xl font-semibold text-slate-900 mb-3">Upload epilepsy imaging data to Pennsieve</h1>
+    <p class="text-slate-600 mb-8 leading-relaxed">
+      This tool helps you organize your patient imaging data into the BIDS standard, validate it against the governance framework, and upload it to your site's Pennsieve workspace.
+    </p>
+    <div class="bg-white border border-slate-200 rounded-xl p-6 mb-6 text-left">
+      <div class="text-sm font-medium text-slate-900 mb-3">Before you start, confirm:</div>
+      <div class="space-y-2.5 text-sm text-slate-700">
+        <div class="flex gap-2.5"><span class="text-emerald-500 mt-0.5">✓</span> DICOM and CT scans have been converted to NIfTI (.nii.gz)</div>
+        <div class="flex gap-2.5"><span class="text-emerald-500 mt-0.5">✓</span> Structural MRI has been defaced / de-identified</div>
+        <div class="flex gap-2.5"><span class="text-emerald-500 mt-0.5">✓</span> Filenames do not contain PHI (names, DOBs, MRNs)</div>
+        <div class="flex gap-2.5"><span class="text-emerald-500 mt-0.5">✓</span> Your data covers the 3 clinical sessions: pre-implant, post-implant, post-surgery</div>
+        <div class="flex gap-2.5"><span class="text-emerald-500 mt-0.5">✓</span> You have your Pennsieve API credentials ready</div>
+      </div>
+    </div>
+    <button onclick="show('screen-auth')" class="w-full bg-penn-blue hover:bg-penn-blue-light text-white font-medium py-3 px-6 rounded-lg transition">
+      Get started →
+    </button>
+    <p class="text-xs text-slate-500 mt-4">
+      Need the governance framework? <a href="#" class="text-penn-blue hover:underline">View requirements</a>
+    </p>
+  </div>
+</section>
+
+<!-- =========== SCREEN 2: AUTHENTICATE =========== -->
+<section id="screen-auth" class="screen fade-in">
+  <div class="max-w-xl mx-auto py-6">
+    <div class="mb-6">
+      <button onclick="show('screen-landing')" class="text-sm text-slate-500 hover:text-slate-900 flex items-center gap-1">← Back</button>
+    </div>
+    <h2 class="text-2xl font-semibold text-slate-900 mb-2">Connect to Pennsieve</h2>
+    <p class="text-slate-600 mb-6">Enter your API credentials. These are stored only in this browser session and are cleared when you close the tab.</p>
+
+    <div class="bg-white border border-slate-200 rounded-xl p-6 space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1.5">API Key</label>
+        <input type="text" placeholder="Paste your Pennsieve API key" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-penn-blue focus:border-transparent">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1.5">API Secret</label>
+        <input type="password" placeholder="••••••••••••••••" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-penn-blue focus:border-transparent">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1.5">Workspace</label>
+        <select class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-penn-blue focus:border-transparent">
+          <option>CHOP Workspace</option>
+          <option>Penn Workspace</option>
+        </select>
+      </div>
+      <div class="pt-2 text-xs text-slate-500">
+        Don't have an API key? <a href="#" class="text-penn-blue hover:underline">How to create one in Pennsieve →</a>
+      </div>
+    </div>
+
+    <button onclick="authenticate()" class="w-full mt-5 bg-penn-blue hover:bg-penn-blue-light text-white font-medium py-3 px-6 rounded-lg transition">
+      Connect
+    </button>
+  </div>
+</section>
+
+<!-- =========== SCREEN 3: PROJECT SETUP =========== -->
+<section id="screen-setup" class="screen fade-in">
+  <div class="max-w-2xl mx-auto py-6">
+    <h2 class="text-2xl font-semibold text-slate-900 mb-2">Project setup</h2>
+    <p class="text-slate-600 mb-6">Confirm the target dataset and subject numbering for this upload batch.</p>
+
+    <div class="bg-white border border-slate-200 rounded-xl p-6 space-y-5">
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1.5">Target Pennsieve dataset</label>
+        <select class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+          <option>CHOP Epilepsy Study 2026</option>
+          <option>CHOP Epilepsy Study 2025 (archived)</option>
+        </select>
+        <p class="text-xs text-slate-500 mt-1">Patients will be added as subjects inside this dataset's <code class="bg-slate-100 px-1 rounded">primary/</code> folder.</p>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1.5">Institution prefix</label>
+        <input type="text" value="CHOP" class="w-40 border border-slate-300 rounded-lg px-3 py-2 text-sm">
+        <p class="text-xs text-slate-500 mt-1">Used to form subject IDs like <code class="bg-slate-100 px-1 rounded">sub-CHOP042</code></p>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1.5">Starting subject number</label>
+        <div class="flex items-center gap-3">
+          <input type="number" value="16" class="w-28 border border-slate-300 rounded-lg px-3 py-2 text-sm">
+          <span class="text-sm text-slate-600">Next subject will be <code class="bg-slate-100 px-1.5 py-0.5 rounded">sub-CHOP016</code></span>
+        </div>
+        <p class="text-xs text-slate-500 mt-1">Your site's last uploaded subject was <code class="bg-slate-100 px-1 rounded">sub-CHOP015</code>.</p>
+      </div>
+    </div>
+
+    <div class="mt-6 bg-white border border-slate-200 rounded-xl p-6 space-y-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-sm font-medium text-slate-900">Dataset description</div>
+          <div class="text-xs text-slate-500 mt-0.5">Used to generate <code class="bg-slate-100 px-1 rounded">dataset_description.json</code> — only filled out on first upload.</div>
+        </div>
+        <span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-xs font-medium">First time setup</span>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1.5">Study name</label>
+          <input type="text" value="CHOP Epilepsy Surgical Outcomes Study" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1.5">Authors (institution contacts)</label>
+          <input type="text" value="CHOP Epilepsy Research Team" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1.5">Funding source (optional)</label>
+          <input type="text" placeholder="e.g., NIH R01 NS123456" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1.5">BIDS version</label>
+          <input type="text" value="1.8.0" disabled class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-slate-50 text-slate-500">
+        </div>
+      </div>
+    </div>
+
+    <div class="flex justify-between mt-6">
+      <button onclick="show('screen-auth')" class="px-4 py-2 text-sm text-slate-600 hover:text-slate-900">← Back</button>
+      <button onclick="show('screen-drop'); setStep(2)" class="bg-penn-blue hover:bg-penn-blue-light text-white font-medium py-2.5 px-6 rounded-lg">Continue →</button>
+    </div>
+  </div>
+</section>
+
+<!-- =========== SCREEN 4: FILE DROP =========== -->
+<section id="screen-drop" class="screen fade-in">
+  <div class="max-w-3xl mx-auto py-6">
+    <h2 class="text-2xl font-semibold text-slate-900 mb-2">Drop your imaging data</h2>
+    <p class="text-slate-600 mb-6">Drag a folder containing all your patient subfolders. The tool will scan and auto-detect modalities and sessions.</p>
+
+    <div onclick="startScan()" class="bg-white border-2 border-dashed border-slate-300 hover:border-penn-blue rounded-xl p-16 text-center cursor-pointer transition">
+      <svg class="w-16 h-16 mx-auto text-slate-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+      </svg>
+      <div class="text-lg font-medium text-slate-900 mb-1">Drop a folder here</div>
+      <div class="text-sm text-slate-500">or click to browse your computer</div>
+      <div class="text-xs text-slate-400 mt-4">Supports multiple patients · Up to 50 GB per batch</div>
+    </div>
+
+    <div class="mt-6 text-sm text-slate-600 bg-blue-50 border border-blue-100 rounded-lg p-4">
+      <div class="font-medium text-slate-900 mb-1">Expected folder structure</div>
+      <div>One parent folder containing one subfolder per patient. Each patient folder should include their 3 clinical sessions: pre-implant (baseline MRI/EEG), post-implant (CT + iEEG), and post-surgery (post-op MRI).</div>
+    </div>
+
+    <div class="flex justify-between mt-6">
+      <button onclick="show('screen-setup'); setStep(1)" class="px-4 py-2 text-sm text-slate-600 hover:text-slate-900">← Back</button>
+    </div>
+  </div>
+</section>
+
+<!-- =========== SCREEN 5: SCANNING =========== -->
+<section id="screen-scan" class="screen fade-in">
+  <div class="max-w-xl mx-auto py-16 text-center">
+    <div class="w-16 h-16 mx-auto mb-6 relative">
+      <div class="w-16 h-16 rounded-full border-4 border-slate-200"></div>
+      <div class="w-16 h-16 rounded-full border-4 border-penn-blue border-t-transparent absolute inset-0 animate-spin"></div>
+    </div>
+    <h2 class="text-xl font-semibold text-slate-900 mb-2">Scanning your files...</h2>
+    <p class="text-slate-600 mb-8">Detecting modalities and building a BIDS mapping. This usually takes a few seconds.</p>
+    <div class="text-sm text-slate-500 space-y-1 text-left bg-white border border-slate-200 rounded-lg p-4 max-w-sm mx-auto">
+      <div>✓ Found <span class="font-medium text-slate-900">20 patient folders</span></div>
+      <div>✓ Scanned <span class="font-medium text-slate-900">2,847 files</span></div>
+      <div class="text-penn-blue">⋯ Detecting modalities...</div>
+    </div>
+  </div>
+</section>
+
+<!-- =========== SCREEN 6: MAPPING TABLE =========== -->
+<section id="screen-mapping" class="screen fade-in">
+  <div class="py-6">
+    <div class="flex items-start justify-between mb-6">
+      <div>
+        <h2 class="text-2xl font-semibold text-slate-900 mb-1">Review file mapping</h2>
+        <p class="text-slate-600">20 patients · pre-implant / post-implant / post-surgery · 2,847 files · click any cell to edit</p>
+      </div>
+      <div class="flex gap-2">
+        <button class="text-sm px-3 py-2 border border-slate-300 rounded-lg hover:bg-slate-50">Bulk edit</button>
+        <button class="text-sm px-3 py-2 border border-slate-300 rounded-lg hover:bg-slate-50">Filter</button>
+      </div>
+    </div>
+
+    <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+      <div class="grid grid-cols-12 gap-3 px-4 py-3 bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-600 uppercase tracking-wide">
+        <div class="col-span-1">Patient</div>
+        <div class="col-span-4">Original filename</div>
+        <div class="col-span-3">BIDS name</div>
+        <div class="col-span-2">Modality (detected)</div>
+        <div class="col-span-1">Session</div>
+        <div class="col-span-1">Status</div>
+      </div>
+
+      <!-- Sample rows -->
+      <div class="divide-y divide-slate-100">
+        <div class="grid grid-cols-12 gap-3 px-4 py-3 items-center text-sm hover:bg-slate-50">
+          <div class="col-span-1 font-medium">CHOP016</div>
+          <div class="col-span-4 text-slate-600 truncate">Patient_001_PreOp/T1_MPRAGE.nii.gz</div>
+          <div class="col-span-3 font-mono text-xs">sub-CHOP016_ses-preimplant_T1w.nii.gz</div>
+          <div class="col-span-2">
+            <select class="text-xs border border-slate-200 rounded px-2 py-1 w-full">
+              <option>T1w (anat)</option>
+              <option>T2w (anat)</option>
+              <option>FLAIR (anat)</option>
+            </select>
+          </div>
+          <div class="col-span-1">preimplant</div>
+          <div class="col-span-1"><span class="inline-flex w-2 h-2 rounded-full bg-emerald-500"></span></div>
+        </div>
+        <div class="grid grid-cols-12 gap-3 px-4 py-3 items-center text-sm hover:bg-slate-50">
+          <div class="col-span-1 font-medium">CHOP016</div>
+          <div class="col-span-4 text-slate-600 truncate">Patient_001_PreOp/DTI_64dir.nii.gz</div>
+          <div class="col-span-3 font-mono text-xs">sub-CHOP016_ses-preimplant_dwi.nii.gz</div>
+          <div class="col-span-2">
+            <select class="text-xs border border-slate-200 rounded px-2 py-1 w-full">
+              <option>DWI (dwi)</option>
+            </select>
+          </div>
+          <div class="col-span-1">preimplant</div>
+          <div class="col-span-1"><span class="inline-flex w-2 h-2 rounded-full bg-emerald-500"></span></div>
+        </div>
+        <div class="grid grid-cols-12 gap-3 px-4 py-3 items-center text-sm hover:bg-slate-50">
+          <div class="col-span-1 font-medium">CHOP016</div>
+          <div class="col-span-4 text-slate-600 truncate">Patient_001_PreOp/scalp_EEG_rest.edf</div>
+          <div class="col-span-3 font-mono text-xs">sub-CHOP016_ses-preimplant_task-rest_eeg.edf</div>
+          <div class="col-span-2">
+            <select class="text-xs border border-slate-200 rounded px-2 py-1 w-full">
+              <option>EEG (scalp)</option>
+            </select>
+          </div>
+          <div class="col-span-1">preimplant</div>
+          <div class="col-span-1"><span class="inline-flex w-2 h-2 rounded-full bg-emerald-500"></span></div>
+        </div>
+        <div class="grid grid-cols-12 gap-3 px-4 py-3 items-center text-sm bg-amber-50 hover:bg-amber-100">
+          <div class="col-span-1 font-medium">CHOP016</div>
+          <div class="col-span-4 text-slate-600 truncate">Patient_001_PreOp/unknown_scan.nii.gz</div>
+          <div class="col-span-3 font-mono text-xs text-amber-700">(please set modality)</div>
+          <div class="col-span-2">
+            <select class="text-xs border border-amber-400 bg-white rounded px-2 py-1 w-full">
+              <option>— select modality —</option>
+              <option>T1w (anat)</option>
+              <option>T2w (anat)</option>
+              <option>fmap (field map)</option>
+              <option>BOLD (func)</option>
+            </select>
+          </div>
+          <div class="col-span-1">preimplant</div>
+          <div class="col-span-1"><span class="inline-flex w-2 h-2 rounded-full bg-amber-500"></span></div>
+        </div>
+        <div class="grid grid-cols-12 gap-3 px-4 py-3 items-center text-sm hover:bg-slate-50">
+          <div class="col-span-1 font-medium">CHOP016</div>
+          <div class="col-span-4 text-slate-600 truncate">Patient_001_PostImplant/CT_electrodes.nii.gz</div>
+          <div class="col-span-3 font-mono text-xs">sub-CHOP016_ses-postimplant_ct.nii.gz</div>
+          <div class="col-span-2">
+            <select class="text-xs border border-slate-200 rounded px-2 py-1 w-full">
+              <option>CT</option>
+            </select>
+          </div>
+          <div class="col-span-1">postimplant</div>
+          <div class="col-span-1"><span class="inline-flex w-2 h-2 rounded-full bg-emerald-500"></span></div>
+        </div>
+        <div class="grid grid-cols-12 gap-3 px-4 py-3 items-center text-sm hover:bg-slate-50">
+          <div class="col-span-1 font-medium">CHOP016</div>
+          <div class="col-span-4 text-slate-600 truncate">Patient_001_PostImplant/ieeg_monitoring.edf</div>
+          <div class="col-span-3 font-mono text-xs">sub-CHOP016_ses-postimplant_task-monitor_ieeg.edf</div>
+          <div class="col-span-2">
+            <select class="text-xs border border-slate-200 rounded px-2 py-1 w-full">
+              <option>iEEG</option>
+            </select>
+          </div>
+          <div class="col-span-1">postimplant</div>
+          <div class="col-span-1"><span class="inline-flex w-2 h-2 rounded-full bg-emerald-500"></span></div>
+        </div>
+        <div class="grid grid-cols-12 gap-3 px-4 py-3 items-center text-sm hover:bg-slate-50">
+          <div class="col-span-1 font-medium">CHOP016</div>
+          <div class="col-span-4 text-slate-600 truncate">Patient_001_PostImplant/electrodes_coords.tsv</div>
+          <div class="col-span-3 font-mono text-xs">sub-CHOP016_ses-postimplant_electrodes.tsv</div>
+          <div class="col-span-2">
+            <select class="text-xs border border-slate-200 rounded px-2 py-1 w-full">
+              <option>Electrodes (ieeg)</option>
+            </select>
+          </div>
+          <div class="col-span-1">postimplant</div>
+          <div class="col-span-1"><span class="inline-flex w-2 h-2 rounded-full bg-emerald-500"></span></div>
+        </div>
+        <div class="grid grid-cols-12 gap-3 px-4 py-3 items-center text-sm hover:bg-slate-50">
+          <div class="col-span-1 font-medium">CHOP016</div>
+          <div class="col-span-4 text-slate-600 truncate">Patient_001_PostSurgery/T1_postop.nii.gz</div>
+          <div class="col-span-3 font-mono text-xs">sub-CHOP016_ses-postsurgery_T1w.nii.gz</div>
+          <div class="col-span-2">
+            <select class="text-xs border border-slate-200 rounded px-2 py-1 w-full">
+              <option>T1w (anat)</option>
+            </select>
+          </div>
+          <div class="col-span-1">postsurgery</div>
+          <div class="col-span-1"><span class="inline-flex w-2 h-2 rounded-full bg-emerald-500"></span></div>
+        </div>
+        <div class="px-4 py-3 text-center text-sm text-slate-400">
+          … 2,839 more rows
+        </div>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-between mt-6 text-sm">
+      <div class="flex gap-4 text-slate-600">
+        <span><span class="inline-flex w-2 h-2 rounded-full bg-emerald-500 mr-1.5"></span> 2,839 detected</span>
+        <span><span class="inline-flex w-2 h-2 rounded-full bg-amber-500 mr-1.5"></span> 8 need attention</span>
+      </div>
+      <div class="flex gap-3">
+        <button onclick="show('screen-drop'); setStep(2)" class="px-4 py-2 text-sm text-slate-600 hover:text-slate-900">← Back</button>
+        <button onclick="show('screen-metadata'); setStep(4)" class="bg-penn-blue hover:bg-penn-blue-light text-white font-medium py-2.5 px-6 rounded-lg">Continue to metadata →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =========== SCREEN 7: METADATA =========== -->
+<section id="screen-metadata" class="screen fade-in">
+  <div class="max-w-4xl mx-auto py-6">
+    <h2 class="text-2xl font-semibold text-slate-900 mb-1">Enter required metadata</h2>
+    <p class="text-slate-600 mb-6">Required fields per the governance framework. Apply to all subjects or edit individually.</p>
+
+    <div class="bg-white border border-slate-200 rounded-xl p-6 mb-4">
+      <div class="flex items-center gap-3 mb-5">
+        <div class="px-2.5 py-1 bg-blue-100 text-blue-800 rounded-md text-xs font-medium">Bulk apply</div>
+        <div class="text-sm text-slate-600">These values will apply to all 20 subjects. You can override per-subject below.</div>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1.5">Manufacturer</label>
+          <input type="text" value="Siemens" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1.5">Model</label>
+          <input type="text" value="Prisma_fit" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1.5">Field strength (T)</label>
+          <input type="text" value="3" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1.5">Institution</label>
+          <input type="text" value="Children's Hospital of Philadelphia" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white border border-slate-200 rounded-xl p-6">
+      <div class="flex items-center justify-between mb-4">
+        <div class="font-medium text-slate-900">Per-subject overrides</div>
+        <button class="text-sm text-penn-blue hover:underline">Expand all</button>
+      </div>
+      <div class="divide-y divide-slate-100">
+        <div class="py-3 flex items-center justify-between">
+          <div>
+            <div class="font-medium text-sm">sub-CHOP016</div>
+            <div class="text-xs text-slate-500">3 sessions · all required fields complete</div>
+          </div>
+          <span class="text-xs text-emerald-600 font-medium">✓ Ready</span>
+        </div>
+        <div class="py-3 flex items-center justify-between">
+          <div>
+            <div class="font-medium text-sm">sub-CHOP017</div>
+            <div class="text-xs text-slate-500">3 sessions · all required fields complete</div>
+          </div>
+          <span class="text-xs text-emerald-600 font-medium">✓ Ready</span>
+        </div>
+        <div class="py-3 flex items-center justify-between bg-amber-50 -mx-6 px-6">
+          <div>
+            <div class="font-medium text-sm">sub-CHOP018</div>
+            <div class="text-xs text-amber-700">Missing: AcquisitionDateTime on ses-postimplant</div>
+          </div>
+          <button class="text-xs text-penn-blue hover:underline font-medium">Fix →</button>
+        </div>
+        <div class="py-3 text-center text-sm text-slate-400">… 17 more subjects</div>
+      </div>
+    </div>
+
+    <div class="flex justify-between mt-6">
+      <button onclick="show('screen-mapping'); setStep(3)" class="px-4 py-2 text-sm text-slate-600 hover:text-slate-900">← Back</button>
+      <button onclick="show('screen-defacing')" class="bg-penn-blue hover:bg-penn-blue-light text-white font-medium py-2.5 px-6 rounded-lg">Continue →</button>
+    </div>
+  </div>
+</section>
+
+<!-- =========== SCREEN 8: DEFACING ATTESTATION =========== -->
+<section id="screen-defacing" class="screen fade-in">
+  <div class="max-w-2xl mx-auto py-6">
+    <h2 class="text-2xl font-semibold text-slate-900 mb-1">Confirm de-identification</h2>
+    <p class="text-slate-600 mb-6">Structural MRI must be defaced before upload. Please confirm and log the tool you used.</p>
+
+    <div class="bg-white border border-slate-200 rounded-xl p-6 space-y-5">
+      <div class="flex gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+        <svg class="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.515 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
+        </svg>
+        <div class="text-sm text-amber-900">
+          <div class="font-medium mb-1">This cannot be undone once uploaded.</div>
+          <div>Faces in structural MRI are PHI. Pennsieve datasets, even private ones, may be audited. Please confirm defacing was performed correctly.</div>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1.5">Defacing tool used</label>
+        <select class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+          <option>pydeface 2.0.2</option>
+          <option>mri_deface (FreeSurfer)</option>
+          <option>Defacer (AFNI)</option>
+          <option>Other (specify below)</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1.5">Date defacing was performed</label>
+        <input type="date" value="2026-04-10" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+      </div>
+
+      <label class="flex items-start gap-3 p-3 border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer">
+        <input type="checkbox" class="mt-0.5 w-4 h-4 text-penn-blue">
+        <div class="text-sm text-slate-700">
+          <div class="font-medium text-slate-900">I attest that all structural MRI files in this batch have been defaced.</div>
+          <div class="text-slate-500 mt-0.5">My name, timestamp, and tool used will be recorded in the audit log.</div>
+        </div>
+      </label>
+    </div>
+
+    <div class="flex justify-between mt-6">
+      <button onclick="show('screen-metadata')" class="px-4 py-2 text-sm text-slate-600 hover:text-slate-900">← Back</button>
+      <button onclick="show('screen-validate'); setStep(5)" class="bg-penn-blue hover:bg-penn-blue-light text-white font-medium py-2.5 px-6 rounded-lg">Run validation →</button>
+    </div>
+  </div>
+</section>
+
+<!-- =========== SCREEN 9: VALIDATION =========== -->
+<section id="screen-validate" class="screen fade-in">
+  <div class="max-w-4xl mx-auto py-6">
+    <h2 class="text-2xl font-semibold text-slate-900 mb-1">Validation results</h2>
+    <p class="text-slate-600 mb-6">All checks against BIDS spec + governance framework.</p>
+
+    <div class="grid grid-cols-4 gap-3 mb-6">
+      <div class="bg-white border border-slate-200 rounded-lg p-4">
+        <div class="text-xs text-slate-500 uppercase tracking-wide mb-1">Subjects</div>
+        <div class="text-2xl font-semibold text-slate-900">20</div>
+      </div>
+      <div class="bg-white border border-slate-200 rounded-lg p-4">
+        <div class="text-xs text-slate-500 uppercase tracking-wide mb-1">Files</div>
+        <div class="text-2xl font-semibold text-slate-900">2,847</div>
+      </div>
+      <div class="bg-white border border-red-200 rounded-lg p-4">
+        <div class="text-xs text-red-600 uppercase tracking-wide mb-1">Errors</div>
+        <div class="text-2xl font-semibold text-red-700">2</div>
+      </div>
+      <div class="bg-white border border-amber-200 rounded-lg p-4">
+        <div class="text-xs text-amber-600 uppercase tracking-wide mb-1">Warnings</div>
+        <div class="text-2xl font-semibold text-amber-700">5</div>
+      </div>
+    </div>
+
+    <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+      <div class="px-4 py-3 bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-600 uppercase tracking-wide">
+        Issues
+      </div>
+      <div class="divide-y divide-slate-100">
+        <div class="p-4 flex items-start gap-3 hover:bg-slate-50">
+          <span class="px-2 py-0.5 bg-red-100 text-red-800 rounded text-xs font-medium flex-shrink-0 mt-0.5">ERROR</span>
+          <div class="flex-1">
+            <div class="text-sm font-medium text-slate-900">Missing required metadata field</div>
+            <div class="text-sm text-slate-600 mt-0.5"><code class="text-xs bg-slate-100 px-1 rounded">sub-CHOP018/ses-postimplant</code> — AcquisitionDateTime missing on ct.json</div>
+          </div>
+          <button class="text-sm text-penn-blue hover:underline font-medium flex-shrink-0">Fix →</button>
+        </div>
+        <div class="p-4 flex items-start gap-3 hover:bg-slate-50">
+          <span class="px-2 py-0.5 bg-red-100 text-red-800 rounded text-xs font-medium flex-shrink-0 mt-0.5">ERROR</span>
+          <div class="flex-1">
+            <div class="text-sm font-medium text-slate-900">Possible PHI in filename</div>
+            <div class="text-sm text-slate-600 mt-0.5"><code class="text-xs bg-slate-100 px-1 rounded">Patient_SmithJ_MRI.nii.gz</code> — contains apparent name</div>
+          </div>
+          <button class="text-sm text-penn-blue hover:underline font-medium flex-shrink-0">Fix →</button>
+        </div>
+        <div class="p-4 flex items-start gap-3 hover:bg-slate-50">
+          <span class="px-2 py-0.5 bg-amber-100 text-amber-800 rounded text-xs font-medium flex-shrink-0 mt-0.5">WARN</span>
+          <div class="flex-1">
+            <div class="text-sm font-medium text-slate-900">Session date out of order</div>
+            <div class="text-sm text-slate-600 mt-0.5"><code class="text-xs bg-slate-100 px-1 rounded">sub-CHOP021</code> — ses-postimplant date precedes ses-preimplant date</div>
+          </div>
+          <button class="text-sm text-penn-blue hover:underline font-medium flex-shrink-0">Review →</button>
+        </div>
+        <div class="p-4 flex items-start gap-3 hover:bg-slate-50">
+          <span class="px-2 py-0.5 bg-amber-100 text-amber-800 rounded text-xs font-medium flex-shrink-0 mt-0.5">WARN</span>
+          <div class="flex-1">
+            <div class="text-sm font-medium text-slate-900">Unusual image dimensions</div>
+            <div class="text-sm text-slate-600 mt-0.5"><code class="text-xs bg-slate-100 px-1 rounded">sub-CHOP023/ses-preimplant/anat/T2w.nii.gz</code> — 32×32×32, likely corrupted</div>
+          </div>
+          <button class="text-sm text-penn-blue hover:underline font-medium flex-shrink-0">Review →</button>
+        </div>
+        <div class="px-4 py-3 text-center text-sm text-slate-400">
+          … 3 more warnings
+        </div>
+      </div>
+    </div>
+
+    <div class="flex justify-between items-center mt-6">
+      <button onclick="show('screen-defacing')" class="px-4 py-2 text-sm text-slate-600 hover:text-slate-900">← Back</button>
+      <div class="flex gap-3 items-center">
+        <span class="text-sm text-red-700 font-medium">Cannot upload while errors exist</span>
+        <button onclick="show('screen-upload'); setStep(6)" class="bg-slate-200 text-slate-500 font-medium py-2.5 px-6 rounded-lg cursor-not-allowed" title="Resolve errors first">Upload →</button>
+        <button onclick="show('screen-upload'); setStep(6)" class="bg-penn-blue hover:bg-penn-blue-light text-white font-medium py-2.5 px-6 rounded-lg text-sm">Skip (demo) →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =========== SCREEN 10: UPLOAD PROGRESS =========== -->
+<section id="screen-upload" class="screen fade-in">
+  <div class="max-w-2xl mx-auto py-12 text-center">
+    <h2 class="text-2xl font-semibold text-slate-900 mb-2">Uploading to Pennsieve</h2>
+    <p class="text-slate-600 mb-8">Streaming to CHOP Workspace → CHOP Epilepsy Study 2026. Do not close this tab.</p>
+
+    <div class="bg-white border border-slate-200 rounded-xl p-8">
+      <div class="mb-6">
+        <div class="flex justify-between text-sm mb-2">
+          <span class="font-medium text-slate-900">Overall progress</span>
+          <span class="text-slate-600" id="overall-pct">Uploading…</span>
+        </div>
+        <div class="h-2.5 bg-slate-100 rounded-full overflow-hidden">
+          <div class="h-full bg-penn-blue progress-bar-fill rounded-full"></div>
+        </div>
+      </div>
+
+      <div class="text-left space-y-2 text-sm">
+        <div class="flex justify-between py-1.5 border-b border-slate-100">
+          <span class="text-slate-700">sub-CHOP016 (preimplant, postimplant, postsurgery)</span>
+          <span class="text-emerald-600 font-medium">✓ Uploaded</span>
+        </div>
+        <div class="flex justify-between py-1.5 border-b border-slate-100">
+          <span class="text-slate-700">sub-CHOP017 (preimplant, postimplant, postsurgery)</span>
+          <span class="text-emerald-600 font-medium">✓ Uploaded</span>
+        </div>
+        <div class="flex justify-between py-1.5 border-b border-slate-100">
+          <span class="text-slate-700">sub-CHOP018 (preimplant, postimplant, postsurgery)</span>
+          <span class="text-penn-blue font-medium">⋯ Uploading</span>
+        </div>
+        <div class="flex justify-between py-1.5 text-slate-400">
+          <span>sub-CHOP019 – sub-CHOP035</span>
+          <span>Pending</span>
+        </div>
+      </div>
+    </div>
+
+    <button onclick="show('screen-success')" class="mt-6 text-sm text-penn-blue hover:underline">Skip to success screen (demo)</button>
+  </div>
+</section>
+
+<!-- =========== SCREEN 11: SUCCESS =========== -->
+<section id="screen-success" class="screen fade-in">
+  <div class="max-w-xl mx-auto py-12 text-center">
+    <div class="w-16 h-16 bg-emerald-100 rounded-full mx-auto mb-6 flex items-center justify-center">
+      <svg class="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+      </svg>
+    </div>
+    <h2 class="text-2xl font-semibold text-slate-900 mb-2">Upload complete</h2>
+    <p class="text-slate-600 mb-8">20 subjects successfully uploaded to CHOP Epilepsy Study 2026.</p>
+
+    <div class="bg-white border border-slate-200 rounded-xl p-6 text-left space-y-3 mb-6">
+      <div class="flex justify-between text-sm pb-3 border-b border-slate-100">
+        <span class="text-slate-600">Subjects uploaded</span>
+        <span class="font-medium text-slate-900">20</span>
+      </div>
+      <div class="flex justify-between text-sm pb-3 border-b border-slate-100">
+        <span class="text-slate-600">Sessions (preimplant + postimplant + postsurgery)</span>
+        <span class="font-medium text-slate-900">60</span>
+      </div>
+      <div class="flex justify-between text-sm pb-3 border-b border-slate-100">
+        <span class="text-slate-600">Total files</span>
+        <span class="font-medium text-slate-900">2,847</span>
+      </div>
+      <div class="flex justify-between text-sm pb-3 border-b border-slate-100">
+        <span class="text-slate-600">Total size</span>
+        <span class="font-medium text-slate-900">47.2 GB</span>
+      </div>
+      <div class="flex justify-between text-sm">
+        <span class="text-slate-600">Upload duration</span>
+        <span class="font-medium text-slate-900">38 min</span>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+      <button class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-900 font-medium py-2.5 px-4 rounded-lg text-sm">
+        📄 Download audit log
+      </button>
+      <button class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-900 font-medium py-2.5 px-4 rounded-lg text-sm">
+        🔗 View on Pennsieve
+      </button>
+    </div>
+
+    <button onclick="resetApp()" class="mt-6 text-sm text-penn-blue hover:underline">
+      Upload another batch →
+    </button>
+  </div>
+</section>
+
+</main>
+
+<footer class="max-w-6xl mx-auto px-6 py-6 text-center text-xs text-slate-400 border-t border-slate-200 mt-12">
+  Epilepsy Data Uploader — UPenn MRA Capstone · Prototype v0.1 · <span class="text-slate-300">This is a visual mockup. No data is actually uploaded.</span>
+</footer>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(id);
+  el.classList.add('active');
+  window.scrollTo(0, 0);
+
+  // show/hide stepper and user bar
+  const stepScreens = ['screen-setup', 'screen-drop', 'screen-scan', 'screen-mapping', 'screen-metadata', 'screen-defacing', 'screen-validate', 'screen-upload', 'screen-success'];
+  const authedScreens = ['screen-setup', 'screen-drop', 'screen-scan', 'screen-mapping', 'screen-metadata', 'screen-defacing', 'screen-validate', 'screen-upload', 'screen-success'];
+  document.getElementById('stepper').classList.toggle('hidden', !stepScreens.includes(id));
+  document.getElementById('user-display').classList.toggle('hidden', !authedScreens.includes(id));
+}
+
+function setStep(n) {
+  document.querySelectorAll('.step-item').forEach(item => {
+    const step = parseInt(item.dataset.step);
+    const dot = item.querySelector('.step-dot');
+    const label = item.querySelector('span');
+    if (step < n) {
+      dot.className = 'step-dot w-6 h-6 rounded-full bg-emerald-500 text-white text-xs font-semibold flex items-center justify-center';
+      dot.innerHTML = '✓';
+      label.className = 'text-xs text-slate-700';
+    } else if (step === n) {
+      dot.className = 'step-dot w-6 h-6 rounded-full bg-penn-blue text-white text-xs font-semibold flex items-center justify-center';
+      dot.innerHTML = step;
+      label.className = 'text-xs text-penn-blue font-medium';
+    } else {
+      dot.className = 'step-dot w-6 h-6 rounded-full bg-slate-200 text-slate-500 text-xs font-semibold flex items-center justify-center';
+      dot.innerHTML = step;
+      label.className = 'text-xs text-slate-500';
+    }
+  });
+}
+
+function authenticate() {
+  show('screen-setup');
+  setStep(1);
+}
+
+function startScan() {
+  show('screen-scan');
+  setStep(2);
+  setTimeout(() => { show('screen-mapping'); setStep(3); }, 2500);
+}
+
+function resetApp() {
+  show('screen-landing');
+  setStep(1);
+}
+</script>
+
+</body>
+</html>
