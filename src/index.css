@@ -1,0 +1,7 @@
+@import "tailwindcss";
+
+/* Penn Blue theme */
+:root {
+  --penn-blue: #011F5B;
+  --penn-red: #990000;
+}
