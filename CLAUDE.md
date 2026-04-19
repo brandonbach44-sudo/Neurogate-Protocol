@@ -163,31 +163,62 @@ The tool's validation is its primary differentiator. Be thorough here.
 
 ---
 
-## File Structure (proposed)
+## File Structure (current)
 
 ```
 /
   src/
-    components/      # React components
-    hooks/           # Custom React hooks
+    components/
+      FileDropZone.tsx   # Drag-and-drop folder input (BUILT)
+      FileList.tsx       # Scanned file table display (BUILT)
+    hooks/               # Custom React hooks
     lib/
-      bids/          # BIDS tree construction & validation
-      pennsieve/     # Upload abstraction (swap implementations here)
-      audit/         # ALCOA+ audit log generator
-      validation/    # PHI scan, metadata rules, custom checks
-    types/           # TypeScript types for BIDS, metadata, etc.
-    App.tsx
+      bids/              # BIDS tree construction & validation
+      pennsieve/         # Upload abstraction (swap implementations here)
+      audit/             # ALCOA+ audit log generator
+      validation/        # PHI scan, metadata rules, custom checks
+    types/
+      files.ts           # ScannedFile type + formatFileSize util (BUILT)
+    App.tsx              # Main app shell with header + drop zone flow (BUILT)
     main.tsx
+    index.css            # Tailwind import + Penn Blue theme vars
   docs/
     governance-requirements.md
     architecture.md
   public/
-  CLAUDE.md          # This file
+  CLAUDE.md              # This file
   README.md
+  prototype.html         # 11-screen clickable HTML mockup
   package.json
   vite.config.ts
   tsconfig.json
 ```
+
+---
+
+## Build Status & Next Steps
+
+**Completed (April 2026):**
+- [x] Project scaffolded: React 19 + Vite + TypeScript + TailwindCSS
+- [x] Folder structure created per architecture plan
+- [x] FileDropZone component: drag-and-drop + click-to-browse folder input
+- [x] FileList component: displays scanned files with path and size
+- [x] App shell with Penn Blue header
+- [x] GitHub repo live: github.com/brandonbach44-sudo/Epilepsy_GUI
+- [x] Clickable HTML prototype (11 screens)
+- [x] Governance requirements extracted from SOP-BIDS-001
+
+**Next up:**
+- [ ] Auto-detection engine: infer session (preimplant/postimplant/postsurgery) and modality (anat/ct/ieeg/eeg/dwi) from file extensions, filename keywords, and folder name clues
+- [ ] Mapping table UI: show detected files with editable session/modality dropdowns, pre-filled by auto-detection, user corrects inline
+- [ ] Metadata forms: per-subject and bulk-apply metadata entry
+- [ ] Validation engine: BIDS structure, PHI scan, required files, cross-file consistency
+- [ ] Defacing attestation screen
+- [ ] Upload path (pending Pennsieve team meeting outcome)
+- [ ] ALCOA+ audit log export
+
+**Key design decision (auto-detection):**
+Site data will NOT arrive in BIDS-compliant format. Folder names and file names vary wildly between sites. The auto-detection engine must handle arbitrary folder structures by scoring multiple clues (file extension, filename keywords, folder name keywords, co-located file types) and always falling back to "unclassified" when confidence is low. The mapping table is the safety net — the detector saves time, the user has final say.
 
 ---
 
