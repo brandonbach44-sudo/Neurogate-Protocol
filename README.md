@@ -44,7 +44,7 @@ npm run dev
 
 ## Project Lead
 
-Brandon Bach — bach2@seas.upenn.edu
+Brandon Bach — brandon.bach44@gmail.com
 UPenn MRA Capstone, advised by Nishant Sinha, PhD
 
 ## License
