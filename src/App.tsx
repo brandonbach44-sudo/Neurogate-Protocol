@@ -3,10 +3,13 @@ import FileDropZone from './components/FileDropZone';
 import MappingTable from './components/MappingTable';
 import MetadataStep from './components/MetadataStep';
 import ValidationStep from './components/ValidationStep';
+import AuditLogPanel from './components/AuditLogPanel';
 import type { MetadataOutput } from './components/MetadataStep';
 import type { ScannedFile } from './types/files';
 import type { DetectionResult, DetectionSummary, Session, Modality } from './types/detection';
+import { getEffectiveSession, getEffectiveModality } from './types/detection';
 import { runDetection, generateSummary } from './lib/detection';
+import { useAudit, downloadAuditJson } from './lib/audit';
 
 type AppStep = 'drop' | 'scanning' | 'mapping' | 'metadata' | 'validation';
 
@@ -16,11 +19,18 @@ function App() {
   const [detectionResults, setDetectionResults] = useState<DetectionResult[]>([]);
   const [summary, setSummary] = useState<DetectionSummary | null>(null);
   const [metadataOutput, setMetadataOutput] = useState<MetadataOutput | null>(null);
+  const [auditPanelOpen, setAuditPanelOpen] = useState(false);
+
+  const audit = useAudit();
 
   // ── Handle files from the drop zone ───────────────────────────
   const handleFilesScanned = useCallback((files: ScannedFile[]) => {
     setScannedFiles(files);
     setStep('scanning');
+
+    // Log file scan
+    const totalSize = files.reduce((sum, f) => sum + f.size, 0);
+    audit.logFilesScanned(files.length, totalSize);
 
     // Run detection engine (small delay so the UI shows the scanning state)
     setTimeout(() => {
@@ -29,19 +39,42 @@ function App() {
       setDetectionResults(results);
       setSummary(sum);
       setStep('mapping');
+
+      // Log detection results
+      audit.logDetectionCompleted(
+        sum.totalFiles,
+        sum.highConfidence,
+        sum.mediumConfidence,
+        sum.lowConfidence,
+        sum.unclassified,
+        sum.subjectGroups,
+      );
     }, 500);
-  }, []);
+  }, [audit]);
 
   // ── Update a single detection result (user correction) ────────
   const handleUpdateResult = useCallback((index: number, updates: Partial<DetectionResult>) => {
     setDetectionResults(prev => {
       const next = [...prev];
-      next[index] = { ...next[index], ...updates };
+      const old = next[index];
+      next[index] = { ...old, ...updates };
+
+      // Log corrections
+      if (updates.userSession && updates.userSession !== getEffectiveSession(old)) {
+        audit.logSessionCorrected(old.fileName, getEffectiveSession(old), updates.userSession);
+      }
+      if (updates.userModality && updates.userModality !== getEffectiveModality(old)) {
+        audit.logModalityCorrected(old.fileName, getEffectiveModality(old), updates.userModality);
+      }
+      if (updates.userSubjectGroup && updates.userSubjectGroup !== old.subjectGroup) {
+        audit.logSubjectCorrected(old.fileName, old.subjectGroup, updates.userSubjectGroup);
+      }
+
       const newSummary = generateSummary(next);
       setSummary(newSummary);
       return next;
     });
-  }, []);
+  }, [audit]);
 
   // ── Bulk update session for selected files ────────────────────
   const handleBulkUpdateSession = useCallback((indices: number[], session: Session) => {
@@ -53,7 +86,8 @@ function App() {
       setSummary(generateSummary(next));
       return next;
     });
-  }, []);
+    audit.logBulkSessionApplied(indices.length, session);
+  }, [audit]);
 
   // ── Bulk update modality for selected files ───────────────────
   const handleBulkUpdateModality = useCallback((indices: number[], modality: Modality) => {
@@ -65,13 +99,32 @@ function App() {
       setSummary(generateSummary(next));
       return next;
     });
-  }, []);
+    audit.logBulkModalityApplied(indices.length, modality);
+  }, [audit]);
 
   // ── Handle metadata completion ────────────────────────────────
   const handleMetadataComplete = useCallback((metadata: MetadataOutput) => {
     setMetadataOutput(metadata);
     setStep('validation');
-  }, []);
+
+    // Log metadata entries
+    audit.logInstitutionConfigured(metadata.institutionConfig.prefix, metadata.institutionConfig.startingNumber);
+
+    for (const subject of metadata.subjects) {
+      audit.logSubjectMetadataEntered(subject.bidsSubjectId, subject.sessions.length);
+    }
+
+    const filledAuthors = metadata.datasetDescription.authors.filter(a => a.trim()).length;
+    audit.logDatasetDescriptionEntered(metadata.datasetDescription.name, filledAuthors);
+
+    if (metadata.defacingAttestation.confirmed) {
+      audit.logDefacingAttested(
+        metadata.defacingAttestation.toolName,
+        metadata.defacingAttestation.toolVersion,
+        metadata.defacingAttestation.attestedBy,
+      );
+    }
+  }, [audit]);
 
   // ── Reset to start ───────────────────────────────────────────
   const handleStartOver = useCallback(() => {
@@ -129,6 +182,21 @@ function App() {
                 </span>
               ))}
             </div>
+
+            {/* Audit log button */}
+            <button
+              onClick={() => setAuditPanelOpen(true)}
+              className="relative px-3 py-1.5 text-xs font-medium bg-white/10 rounded-lg
+                hover:bg-white/20 transition-colors"
+            >
+              Audit Log
+              {audit.getEntryCount() > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-blue-400 text-white
+                  text-xs rounded-full flex items-center justify-center font-semibold">
+                  {audit.getEntryCount()}
+                </span>
+              )}
+            </button>
           </div>
         </div>
       </header>
@@ -193,13 +261,29 @@ function App() {
             defacingAttestation={metadataOutput.defacingAttestation}
             institutionConfig={metadataOutput.institutionConfig}
             onContinue={() => {
-              // TODO: Upload step
-              alert('Upload step coming soon!');
+              // Log the upload action (last entry before auto-download)
+              audit.addEntry('upload-started', 'Upload initiated — upload integration pending Pennsieve meeting', {
+                subjectCount: metadataOutput!.subjects.length,
+                fileCount: detectionResults.length,
+              }, 'system');
+
+              // Auto-download the audit log
+              const exportedBy = metadataOutput!.defacingAttestation.attestedBy || 'user';
+              downloadAuditJson(audit, exportedBy);
+
+              // TODO: Actual Pennsieve upload
+              alert('Upload integration pending Pennsieve meeting. Your audit log has been downloaded.');
             }}
             onBack={() => setStep('metadata')}
           />
         )}
       </main>
+
+      {/* Audit Log Panel (slide-out) */}
+      <AuditLogPanel
+        isOpen={auditPanelOpen}
+        onClose={() => setAuditPanelOpen(false)}
+      />
     </div>
   );
 }
