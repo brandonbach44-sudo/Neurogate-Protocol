@@ -169,26 +169,45 @@ The tool's validation is its primary differentiator. Be thorough here.
 /
   src/
     components/
-      FileDropZone.tsx   # Drag-and-drop folder input (BUILT)
-      FileList.tsx       # Scanned file table display (BUILT)
-    hooks/               # Custom React hooks
+      FileDropZone.tsx          # Drag-and-drop folder input
+      FileList.tsx              # Scanned file table display
+      MappingTable.tsx          # Detection results review table
+      MetadataStep.tsx          # Tabbed metadata interface
+      SubjectMetadataForm.tsx   # Per-subject session date/age form
+      DatasetDescriptionForm.tsx # BIDS dataset_description.json form
+      DefacingAttestation.tsx   # HIPAA defacing confirmation
+      ValidationStep.tsx        # Validation results display
+    hooks/                     # Custom React hooks
     lib/
-      bids/              # BIDS tree construction & validation
-      pennsieve/         # Upload abstraction (swap implementations here)
-      audit/             # ALCOA+ audit log generator
-      validation/        # PHI scan, metadata rules, custom checks
+      detection/
+        extensionDetector.ts   # Layer 1: file extension mapping
+        filenameDetector.ts    # Layer 2: filename keyword patterns
+        folderDetector.ts      # Layer 3: folder path analysis
+        neighborInference.ts   # Layer 4: co-located file context
+        subjectGrouping.ts     # Layer 5: subject group detection
+        engine.ts              # Detection pipeline orchestrator
+        index.ts               # Public exports
+      metadata/
+        tsvReader.ts           # TSV/JSON metadata auto-fill
+        index.ts               # Public exports
+      validation/
+        bidsValidator.ts       # BIDS structure checks
+        phiScanner.ts          # PHI pattern detection
+        requiredFilesChecker.ts # Per-session required files
+        crossSessionChecker.ts # Cross-session consistency
+        engine.ts              # Validation orchestrator
+        index.ts               # Public exports
+      pennsieve/               # Upload abstraction (TBD)
+      audit/                   # ALCOA+ audit log generator (TBD)
     types/
-      files.ts           # ScannedFile type + formatFileSize util (BUILT)
-    App.tsx              # Main app shell with header + drop zone flow (BUILT)
+      files.ts                 # ScannedFile type + formatFileSize util
+      detection.ts             # Detection engine types
+      metadata.ts              # Metadata types & defaults
+      validation.ts            # Validation types & report
+    App.tsx                    # Main app shell & wizard state machine
     main.tsx
-    index.css            # Tailwind import + Penn Blue theme vars
-  docs/
-    governance-requirements.md
-    architecture.md
-  public/
-  CLAUDE.md              # This file
-  README.md
-  prototype.html         # 11-screen clickable HTML mockup
+    index.css                  # Tailwind import + Penn Blue theme vars
+  CLAUDE.md                    # This file
   package.json
   vite.config.ts
   tsconfig.json
@@ -203,18 +222,19 @@ The tool's validation is its primary differentiator. Be thorough here.
 - [x] Folder structure created per architecture plan
 - [x] FileDropZone component: drag-and-drop + click-to-browse folder input
 - [x] FileList component: displays scanned files with path and size
-- [x] App shell with Penn Blue header
+- [x] App shell with Penn Blue header + 5-step wizard indicator
 - [x] GitHub repo live: github.com/brandonbach44-sudo/Epilepsy_GUI
 - [x] Clickable HTML prototype (11 screens)
 - [x] Governance requirements extracted from SOP-BIDS-001
+- [x] Auto-detection engine (5-layer scoring pipeline): extension → filename → folder → neighbor → subject grouping
+- [x] MappingTable component: editable session/modality dropdowns, confidence badges, bulk operations, expandable detection reasons
+- [x] Metadata forms (4 tabs): Institution Setup, Subject Sessions, Dataset Description, Defacing Attestation
+- [x] TSV/JSON auto-fill: reads sessions.tsv and dataset_description.json from dropped files
+- [x] Validation engine (4 checkers): BIDS structure, PHI scanning, required files, cross-session consistency
+- [x] ValidationStep UI: pass/fail banner, category cards, severity filters, expandable issues, dismissable warnings
 
 **Next up:**
-- [ ] Auto-detection engine: infer session (preimplant/postimplant/postsurgery) and modality (anat/ct/ieeg/eeg/dwi) from file extensions, filename keywords, and folder name clues
-- [ ] Mapping table UI: show detected files with editable session/modality dropdowns, pre-filled by auto-detection, user corrects inline
-- [ ] Metadata forms: per-subject and bulk-apply metadata entry
-- [ ] Validation engine: BIDS structure, PHI scan, required files, cross-file consistency
-- [ ] Defacing attestation screen
-- [ ] Upload path (pending Pennsieve team meeting outcome)
+- [ ] Upload to Pennsieve (pending Pennsieve team meeting outcome)
 - [ ] ALCOA+ audit log export
 
 **Key design decision (auto-detection):**
