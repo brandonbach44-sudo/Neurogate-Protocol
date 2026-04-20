@@ -2,18 +2,20 @@ import { useState, useCallback } from 'react';
 import FileDropZone from './components/FileDropZone';
 import MappingTable from './components/MappingTable';
 import MetadataStep from './components/MetadataStep';
+import ValidationStep from './components/ValidationStep';
 import type { MetadataOutput } from './components/MetadataStep';
 import type { ScannedFile } from './types/files';
 import type { DetectionResult, DetectionSummary, Session, Modality } from './types/detection';
 import { runDetection, generateSummary } from './lib/detection';
 
-type AppStep = 'drop' | 'scanning' | 'mapping' | 'metadata';
+type AppStep = 'drop' | 'scanning' | 'mapping' | 'metadata' | 'validation';
 
 function App() {
   const [step, setStep] = useState<AppStep>('drop');
   const [scannedFiles, setScannedFiles] = useState<ScannedFile[]>([]);
   const [detectionResults, setDetectionResults] = useState<DetectionResult[]>([]);
   const [summary, setSummary] = useState<DetectionSummary | null>(null);
+  const [metadataOutput, setMetadataOutput] = useState<MetadataOutput | null>(null);
 
   // ── Handle files from the drop zone ───────────────────────────
   const handleFilesScanned = useCallback((files: ScannedFile[]) => {
@@ -67,9 +69,8 @@ function App() {
 
   // ── Handle metadata completion ────────────────────────────────
   const handleMetadataComplete = useCallback((metadata: MetadataOutput) => {
-    // TODO: Next step — validation
-    console.log('Metadata collected:', metadata);
-    alert('Validation step coming soon!');
+    setMetadataOutput(metadata);
+    setStep('validation');
   }, []);
 
   // ── Reset to start ───────────────────────────────────────────
@@ -78,6 +79,7 @@ function App() {
     setScannedFiles([]);
     setDetectionResults([]);
     setSummary(null);
+    setMetadataOutput(null);
   }, []);
 
   // ── Get current step number for the indicator ─────────────────
@@ -86,6 +88,7 @@ function App() {
       case 'drop': case 'scanning': return 1;
       case 'mapping': return 2;
       case 'metadata': return 3;
+      case 'validation': return 4;
     }
   };
 
@@ -178,6 +181,22 @@ function App() {
             scannedFiles={scannedFiles}
             onContinue={handleMetadataComplete}
             onBack={() => setStep('mapping')}
+          />
+        )}
+
+        {/* Step 4: Validation */}
+        {step === 'validation' && metadataOutput && (
+          <ValidationStep
+            detectionResults={detectionResults}
+            subjects={metadataOutput.subjects}
+            datasetDescription={metadataOutput.datasetDescription}
+            defacingAttestation={metadataOutput.defacingAttestation}
+            institutionConfig={metadataOutput.institutionConfig}
+            onContinue={() => {
+              // TODO: Upload step
+              alert('Upload step coming soon!');
+            }}
+            onBack={() => setStep('metadata')}
           />
         )}
       </main>
