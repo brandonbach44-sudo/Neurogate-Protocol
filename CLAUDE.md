@@ -198,12 +198,17 @@ The tool's validation is its primary differentiator. Be thorough here.
         engine.ts              # Validation orchestrator
         index.ts               # Public exports
       pennsieve/               # Upload abstraction (TBD)
-      audit/                   # ALCOA+ audit log generator (TBD)
+      audit/
+        auditLogger.ts         # In-memory audit collector
+        auditExporter.ts       # JSON + CSV export & download
+        AuditContext.tsx        # React context provider (AuditProvider + useAudit)
+        index.ts               # Public exports
     types/
       files.ts                 # ScannedFile type + formatFileSize util
       detection.ts             # Detection engine types
       metadata.ts              # Metadata types & defaults
       validation.ts            # Validation types & report
+      audit.ts                 # Audit log types (AuditAction, AuditEntry, AuditLog)
     App.tsx                    # Main app shell & wizard state machine
     main.tsx
     index.css                  # Tailwind import + Penn Blue theme vars
@@ -232,10 +237,12 @@ The tool's validation is its primary differentiator. Be thorough here.
 - [x] TSV/JSON auto-fill: reads sessions.tsv and dataset_description.json from dropped files
 - [x] Validation engine (4 checkers): BIDS structure, PHI scanning, required files, cross-session consistency
 - [x] ValidationStep UI: pass/fail banner, category cards, severity filters, expandable issues, dismissable warnings
+- [x] ALCOA+ audit log: in-memory logger, JSON + CSV export, slide-out panel, React Context, auto-download on upload
+- [x] Demo test datasets: 5 fake patient datasets (3 clean, 2 with issues) in `demo_patient_data/`
 
 **Next up:**
 - [ ] Upload to Pennsieve (pending Pennsieve team meeting outcome)
-- [ ] ALCOA+ audit log export
+- [ ] UI polish & appearance
 
 **Key design decision (auto-detection):**
 Site data will NOT arrive in BIDS-compliant format. Folder names and file names vary wildly between sites. The auto-detection engine must handle arbitrary folder structures by scoring multiple clues (file extension, filename keywords, folder name keywords, co-located file types) and always falling back to "unclassified" when confidence is low. The mapping table is the safety net — the detector saves time, the user has final say.
