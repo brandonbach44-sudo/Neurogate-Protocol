@@ -97,40 +97,6 @@ export function checkCrossSessionConsistency(
     }
   }
 
-  // ── Check: Session dates are chronologically ordered ──────
-  const sessionOrder = ['ses-preimplant', 'ses-postimplant', 'ses-postsurgery'];
-
-  for (const subject of subjects) {
-    const datedSessions = subject.sessions
-      .filter(s => s.acqTime)
-      .map(s => ({
-        sessionId: s.sessionId,
-        date: new Date(s.acqTime),
-        orderIndex: sessionOrder.indexOf(s.sessionId),
-      }))
-      .sort((a, b) => a.orderIndex - b.orderIndex);
-
-    for (let i = 1; i < datedSessions.length; i++) {
-      const prev = datedSessions[i - 1];
-      const curr = datedSessions[i];
-
-      if (curr.date <= prev.date) {
-        issues.push({
-          id: nextId(),
-          category: 'cross-session',
-          severity: 'warning',
-          title: 'Session dates out of order',
-          description: `${subject.bidsSubjectId}: ${curr.sessionId} (${curr.date.toLocaleDateString()}) is dated on or before ${prev.sessionId} (${prev.date.toLocaleDateString()}). Clinical sessions should be in chronological order: preimplant → postimplant → postsurgery. Check that the dates are correct.`,
-          affectedFiles: results
-            .filter(r => getEffectiveSubjectGroup(r) === subject.subjectGroup)
-            .map(r => r.relativePath),
-          subjectGroup: subject.subjectGroup,
-          dismissable: true,
-        });
-      }
-    }
-  }
-
   // ── Check: Duplicate BIDS subject IDs ─────────────────────
   const bidsIdMap = new Map<string, string[]>();
   for (const subject of subjects) {

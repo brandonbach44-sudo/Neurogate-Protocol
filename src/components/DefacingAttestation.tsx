@@ -89,57 +89,10 @@ export default function DefacingAttestation({
           </label>
         </div>
 
-        {/* Tool details (shown when confirmed) */}
-        {attestation.confirmed && (
-          <div className="ml-8 space-y-3 border-l-2 border-green-200 pl-4">
-            <div className="flex gap-4">
-              <div className="flex-1">
-                <label className="block text-xs font-medium text-gray-500 mb-1">
-                  Defacing Tool Used <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={attestation.toolName}
-                  onChange={(e) => onUpdate({ ...attestation, toolName: e.target.value })}
-                  placeholder="e.g., pydeface, mri_deface, FreeSurfer mri_deface"
-                  className="w-full text-sm border border-gray-200 rounded px-3 py-1.5
-                    hover:border-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
-                />
-              </div>
-              <div className="w-40">
-                <label className="block text-xs font-medium text-gray-500 mb-1">
-                  Tool Version <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={attestation.toolVersion}
-                  onChange={(e) => onUpdate({ ...attestation, toolVersion: e.target.value })}
-                  placeholder="e.g., 2.0.2"
-                  className="w-full text-sm border border-gray-200 rounded px-3 py-1.5
-                    hover:border-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">
-                Attested By <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={attestation.attestedBy}
-                onChange={(e) => onUpdate({ ...attestation, attestedBy: e.target.value })}
-                placeholder="Your name or Pennsieve username"
-                className="w-full text-sm border border-gray-200 rounded px-3 py-1.5
-                  hover:border-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
-              />
-            </div>
-
-            {attestation.timestamp && (
-              <div className="text-xs text-gray-400">
-                Attested at: {new Date(attestation.timestamp).toLocaleString()}
-              </div>
-            )}
+        {/* Confirmation timestamp */}
+        {attestation.confirmed && attestation.timestamp && (
+          <div className="ml-8 text-xs text-green-600">
+            Confirmed at: {new Date(attestation.timestamp).toLocaleString()}
           </div>
         )}
       </div>

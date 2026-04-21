@@ -133,48 +133,6 @@ function validateMetadata(input: ValidationInput): ValidationIssue[] {
           .map(r => r.relativePath),
         dismissable: false,
       });
-    } else {
-      if (!input.defacingAttestation.toolName.trim()) {
-        issues.push({
-          id: nextMetaId(),
-          category: 'defacing',
-          severity: 'error',
-          title: 'Defacing tool name missing',
-          description: 'You confirmed defacing but didn\'t specify which tool was used. This is required for the ALCOA+ audit trail.',
-          affectedFiles: [],
-          dismissable: false,
-        });
-      }
-      if (!input.defacingAttestation.toolVersion.trim()) {
-        issues.push({
-          id: nextMetaId(),
-          category: 'defacing',
-          severity: 'error',
-          title: 'Defacing tool version missing',
-          description: 'You confirmed defacing but didn\'t specify the tool version. This is required for the ALCOA+ audit trail.',
-          affectedFiles: [],
-          dismissable: false,
-        });
-      }
-    }
-  }
-
-  // Session metadata checks
-  for (const subject of input.subjects) {
-    for (const session of subject.sessions) {
-      if (!session.acqTime) {
-        issues.push({
-          id: nextMetaId(),
-          category: 'metadata',
-          severity: 'warning',
-          title: `Missing acquisition date: ${subject.bidsSubjectId} / ${session.sessionId}`,
-          description: `No acquisition date was provided for ${subject.bidsSubjectId} ${session.sessionId}. While not strictly required, acquisition dates help with data provenance and are recommended.`,
-          affectedFiles: [],
-          subjectGroup: subject.subjectGroup,
-          session: session.sessionId,
-          dismissable: true,
-        });
-      }
     }
   }
 
