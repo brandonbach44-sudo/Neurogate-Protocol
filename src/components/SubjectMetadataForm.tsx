@@ -9,23 +9,17 @@ interface SubjectMetadataFormProps {
 }
 
 /**
- * Per-subject metadata form.
+ * Per-subject metadata card.
  *
- * Shows the subject's BIDS ID and a row for each detected session
- * with fields for acquisition date and age. If a sessions.tsv was
- * found in the dropped data, fields are pre-filled.
+ * Shows the subject's BIDS ID and which sessions were detected.
+ * Metadata like age and acquisition dates are expected to come
+ * from participants.tsv / sessions.tsv files included in the upload.
  */
 export default function SubjectMetadataForm({
   subject,
   onUpdate,
   autoFilled,
 }: SubjectMetadataFormProps) {
-
-  const updateSession = (index: number, field: keyof SessionMetadata, value: string) => {
-    const newSessions = [...subject.sessions];
-    newSessions[index] = { ...newSessions[index], [field]: value };
-    onUpdate({ ...subject, sessions: newSessions });
-  };
 
   const getSessionLabel = (sessionId: string): string => {
     return SESSIONS.find(s => s.value === sessionId)?.label || sessionId;
@@ -50,51 +44,17 @@ export default function SubjectMetadataForm({
         )}
       </div>
 
-      {/* Session rows */}
+      {/* Session list */}
       <div className="divide-y divide-gray-100">
-        {subject.sessions.map((session, i) => (
-          <div key={session.sessionId} className="px-5 py-3 flex items-center gap-6">
-            {/* Session label */}
-            <div className="w-36 shrink-0">
-              <span className="text-sm font-medium text-gray-700">
-                {getSessionLabel(session.sessionId)}
-              </span>
-              <div className="text-xs text-gray-400 mt-0.5">
-                {session.sessionId}
-              </div>
-            </div>
-
-            {/* Acquisition date */}
-            <div className="flex-1">
-              <label className="block text-xs font-medium text-gray-500 mb-1">
-                Acquisition Date
-              </label>
-              <input
-                type="date"
-                value={session.acqTime}
-                onChange={(e) => updateSession(i, 'acqTime', e.target.value)}
-                className="w-full text-sm border border-gray-200 rounded px-3 py-1.5
-                  hover:border-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
-              />
-            </div>
-
-            {/* Age at visit */}
-            <div className="w-32 shrink-0">
-              <label className="block text-xs font-medium text-gray-500 mb-1">
-                Age (years)
-              </label>
-              <input
-                type="number"
-                min="0"
-                max="120"
-                step="0.1"
-                placeholder="e.g., 34"
-                value={session.age}
-                onChange={(e) => updateSession(i, 'age', e.target.value)}
-                className="w-full text-sm border border-gray-200 rounded px-3 py-1.5
-                  hover:border-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
-              />
-            </div>
+        {subject.sessions.map((session) => (
+          <div key={session.sessionId} className="px-5 py-3 flex items-center gap-3">
+            <span className="w-2 h-2 rounded-full bg-blue-400 shrink-0" />
+            <span className="text-sm font-medium text-gray-700">
+              {getSessionLabel(session.sessionId)}
+            </span>
+            <span className="text-xs text-gray-400">
+              {session.sessionId}
+            </span>
           </div>
         ))}
 

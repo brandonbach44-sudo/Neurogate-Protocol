@@ -198,10 +198,6 @@ export default function MetadataStep({
     if (hasStructuralMri) {
       if (!attestation.confirmed) {
         errors.push('Defacing attestation is required for structural MRI data');
-      } else {
-        if (!attestation.toolName.trim()) errors.push('Defacing tool name is required');
-        if (!attestation.toolVersion.trim()) errors.push('Defacing tool version is required');
-        if (!attestation.attestedBy.trim()) errors.push('Attested by name is required');
       }
     }
 
@@ -333,7 +329,7 @@ export default function MetadataStep({
             ) : (
               <>
                 <p className="text-sm text-gray-500">
-                  Enter the acquisition date and patient age for each session.
+                  Review the detected subjects and sessions below.
                   {autoFilledSubjects.size > 0 && ' Some fields were auto-filled from metadata files found in your data.'}
                 </p>
                 {subjects.map((subject, i) => (

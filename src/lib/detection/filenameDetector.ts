@@ -25,7 +25,7 @@ export interface FilenameResult {
 
 const MODALITY_PATTERNS: [RegExp, Modality, string][] = [
   // Anatomical — T1-weighted (most common MRI type)
-  [/\b(t1w|t1_w|t1[-_]?weighted|t1[-_]?mprage|mprage|t1[-_]?space|t1_sag|t1_ax|t1_cor)\b/i, 'anat-T1w', 'T1-weighted MRI keyword'],
+  [/\b(t1w|t1_w|t1[-_]?weighted|t1[-_]?mprage|mprage|t1[-_]?space|t1_sag|t1_ax|t1_cor|structural)\b/i, 'anat-T1w', 'T1-weighted MRI keyword'],
   [/\bt1\b/i, 'anat-T1w', 'T1 keyword (assumed T1-weighted)'],
 
   // Anatomical — T2-weighted
@@ -88,9 +88,14 @@ export function detectFromFilename(fileName: string): FilenameResult {
     .replace(/\.nii\.gz$/i, '')
     .replace(/\.[^.]+$/i, '');
 
+  // Replace underscores and hyphens with spaces so \b word boundaries
+  // work correctly (regex treats _ as a word character, so \bflair\b
+  // won't match "flair_followup" without this normalization)
+  const normalized = nameWithoutExt.replace(/[-_]/g, ' ');
+
   // ── Check modality patterns ───────────────────────────────
   for (const [pattern, mod, description] of MODALITY_PATTERNS) {
-    if (pattern.test(nameWithoutExt)) {
+    if (pattern.test(normalized)) {
       if (modality === null) {
         modality = mod;
       }
@@ -105,7 +110,7 @@ export function detectFromFilename(fileName: string): FilenameResult {
 
   // ── Check session patterns ────────────────────────────────
   for (const [pattern, ses, description] of SESSION_PATTERNS) {
-    if (pattern.test(nameWithoutExt)) {
+    if (pattern.test(normalized)) {
       if (session === null) {
         session = ses;
       }
