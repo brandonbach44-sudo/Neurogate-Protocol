@@ -40,6 +40,8 @@ export type AuditAction =
   | 'upload-completed'        // Upload finished successfully
   | 'upload-failed'           // Upload failed
   // Export
+  | 'validation-passed'       // Validation passed, moving to export
+  | 'export-completed'        // BIDS dataset exported as ZIP
   | 'audit-log-exported';     // User exported the audit log itself
 
 // ── Single Audit Entry ────────────────────────────────────────
