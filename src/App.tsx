@@ -3,6 +3,7 @@ import FileDropZone from './components/FileDropZone';
 import MappingTable from './components/MappingTable';
 import MetadataStep from './components/MetadataStep';
 import ValidationStep from './components/ValidationStep';
+import ExportStep from './components/ExportStep';
 import AuditLogPanel from './components/AuditLogPanel';
 import type { MetadataOutput } from './components/MetadataStep';
 import type { ScannedFile } from './types/files';
@@ -11,7 +12,7 @@ import { getEffectiveSession, getEffectiveModality } from './types/detection';
 import { runDetection, generateSummary } from './lib/detection';
 import { useAudit, downloadAuditJson } from './lib/audit';
 
-type AppStep = 'drop' | 'scanning' | 'mapping' | 'metadata' | 'validation';
+type AppStep = 'drop' | 'scanning' | 'mapping' | 'metadata' | 'validation' | 'export';
 
 function App() {
   const [step, setStep] = useState<AppStep>('drop');
@@ -142,6 +143,7 @@ function App() {
       case 'mapping': return 2;
       case 'metadata': return 3;
       case 'validation': return 4;
+      case 'export': return 5;
     }
   };
 
@@ -166,7 +168,7 @@ function App() {
                 { num: 2, label: 'Review Mapping' },
                 { num: 3, label: 'Metadata' },
                 { num: 4, label: 'Validate' },
-                { num: 5, label: 'Upload' },
+                { num: 5, label: 'Export' },
               ].map((s, i) => (
                 <span key={s.num} className="flex items-center gap-2">
                   {i > 0 && <span className="text-blue-400">&rarr;</span>}
@@ -261,20 +263,33 @@ function App() {
             defacingAttestation={metadataOutput.defacingAttestation}
             institutionConfig={metadataOutput.institutionConfig}
             onContinue={() => {
-              // Log the upload action (last entry before auto-download)
-              audit.addEntry('upload-started', 'Upload initiated — upload integration pending Pennsieve meeting', {
+              audit.addEntry('validation-passed', 'Validation passed, proceeding to export', {
                 subjectCount: metadataOutput!.subjects.length,
                 fileCount: detectionResults.length,
               }, 'system');
-
-              // Auto-download the audit log
+              setStep('export');
+            }}
+            onBack={() => setStep('metadata')}
+          />
+        )}
+        {/* Step 5: Export */}
+        {step === 'export' && metadataOutput && (
+          <ExportStep
+            detectionResults={detectionResults}
+            subjects={metadataOutput.subjects}
+            datasetDescription={metadataOutput.datasetDescription}
+            institutionConfig={metadataOutput.institutionConfig}
+            onBack={() => setStep('validation')}
+            onExportComplete={() => {
+              // Auto-download audit log with the export
               const exportedBy = metadataOutput!.defacingAttestation.attestedBy || 'user';
               downloadAuditJson(audit, exportedBy);
 
-              // TODO: Actual Pennsieve upload
-              alert('Upload integration pending Pennsieve meeting. Your audit log has been downloaded.');
+              audit.addEntry('export-completed', 'BIDS dataset exported as ZIP', {
+                subjectCount: metadataOutput!.subjects.length,
+                fileCount: detectionResults.length,
+              }, 'system');
             }}
-            onBack={() => setStep('metadata')}
           />
         )}
       </main>
