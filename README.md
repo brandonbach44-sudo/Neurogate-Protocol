@@ -38,7 +38,6 @@ npm run dev
 
 ## Documentation
 
-- [`CLAUDE.md`](./CLAUDE.md) — Project context for Claude Code
 - [`docs/governance-requirements.md`](./docs/governance-requirements.md) — Validation rules from the governance framework
 - [`docs/architecture.md`](./docs/architecture.md) — Architecture decisions and open questions
 
