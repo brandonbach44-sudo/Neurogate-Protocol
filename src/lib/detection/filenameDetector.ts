@@ -28,8 +28,11 @@ const MODALITY_PATTERNS: [RegExp, Modality, string][] = [
   [/\b(t1w|t1_w|t1[-_]?weighted|t1[-_]?mprage|mprage|t1[-_]?space|t1_sag|t1_ax|t1_cor|structural)\b/i, 'anat-T1w', 'T1-weighted MRI keyword'],
   [/\bt1\b/i, 'anat-T1w', 'T1 keyword (assumed T1-weighted)'],
 
+  // Anatomical — FLAIR (check before T2 since FLAIR is a specific T2 variant)
+  [/\b(flair|t2[-_]?flair|flair[-_]?3d|flair[-_]?sag|flair[-_]?ax|flair[-_]?cor)\b/i, 'anat-FLAIR', 'FLAIR MRI keyword'],
+
   // Anatomical — T2-weighted
-  [/\b(t2w|t2_w|t2[-_]?weighted|t2[-_]?flair|flair|t2[-_]?space|t2_sag|t2_ax|t2_cor)\b/i, 'anat-T2w', 'T2-weighted MRI keyword'],
+  [/\b(t2w|t2_w|t2[-_]?weighted|t2[-_]?space|t2_sag|t2_ax|t2_cor)\b/i, 'anat-T2w', 'T2-weighted MRI keyword'],
   [/\bt2\b/i, 'anat-T2w', 'T2 keyword (assumed T2-weighted)'],
 
   // CT scan

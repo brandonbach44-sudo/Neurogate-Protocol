@@ -249,7 +249,7 @@ export default function ValidationStep({
         >
           {activeErrors > 0
             ? `Fix ${activeErrors} Error${activeErrors !== 1 ? 's' : ''} to Continue`
-            : 'Continue to Upload'}
+            : 'Continue to Export'}
         </button>
       </div>
     </div>

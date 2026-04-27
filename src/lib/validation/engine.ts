@@ -114,7 +114,7 @@ function validateMetadata(input: ValidationInput): ValidationIssue[] {
   // Defacing attestation (only if structural MRI present)
   const hasStructuralMri = input.detectionResults.some(r => {
     const mod = getEffectiveModality(r);
-    return mod === 'anat-T1w' || mod === 'anat-T2w';
+    return mod === 'anat-T1w' || mod === 'anat-T2w' || mod === 'anat-FLAIR';
   });
 
   if (hasStructuralMri) {
@@ -128,7 +128,7 @@ function validateMetadata(input: ValidationInput): ValidationIssue[] {
         affectedFiles: input.detectionResults
           .filter(r => {
             const mod = getEffectiveModality(r);
-            return mod === 'anat-T1w' || mod === 'anat-T2w';
+            return mod === 'anat-T1w' || mod === 'anat-T2w' || mod === 'anat-FLAIR';
           })
           .map(r => r.relativePath),
         dismissable: false,

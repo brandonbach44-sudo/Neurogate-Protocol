@@ -26,6 +26,7 @@ export const SESSIONS: { value: Session; label: string; description: string }[] 
 export type Modality =
   | 'anat-T1w'
   | 'anat-T2w'
+  | 'anat-FLAIR'
   | 'ct'
   | 'dwi'
   | 'eeg'
@@ -42,6 +43,7 @@ export type Modality =
 export const MODALITIES: { value: Modality; label: string; bidsFolder: string }[] = [
   { value: 'anat-T1w', label: 'Anatomical MRI (T1w)', bidsFolder: 'anat' },
   { value: 'anat-T2w', label: 'Anatomical MRI (T2w)', bidsFolder: 'anat' },
+  { value: 'anat-FLAIR', label: 'Anatomical MRI (FLAIR)', bidsFolder: 'anat' },
   { value: 'ct', label: 'CT Scan', bidsFolder: 'ct' },
   { value: 'dwi', label: 'Diffusion MRI', bidsFolder: 'dwi' },
   { value: 'eeg', label: 'Scalp EEG', bidsFolder: 'eeg' },
