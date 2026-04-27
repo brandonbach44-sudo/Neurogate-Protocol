@@ -53,8 +53,12 @@ function extractSubjectIdFromFilename(fileName: string): string | null {
     .replace(/\.nii\.gz$/i, '')
     .replace(/\.[^.]+$/i, '');
 
+  // Normalize underscores to spaces so \b word boundaries work correctly.
+  // Without this, "_001_" won't match \b(\d{3,4})\b because _ is a word char.
+  const normalized = nameWithoutExt.replace(/_/g, ' ');
+
   for (const pattern of SUBJECT_ID_PATTERNS) {
-    const match = nameWithoutExt.match(pattern);
+    const match = normalized.match(pattern);
     if (match) {
       return match[1];
     }
@@ -76,6 +80,46 @@ function getTopLevelFolder(relativePath: string): string | null {
 }
 
 /**
+ * Determine the second-level subfolder for a file.
+ * Given "StudyFolder/Patient_001/session/modality/file.nii.gz", returns "Patient_001".
+ */
+function getSecondLevelFolder(relativePath: string): string | null {
+  const parts = relativePath.split('/').filter(s => s.length > 0);
+  // Need at least 3 parts (parent + patient folder + filename)
+  if (parts.length >= 3) {
+    return parts[1];
+  }
+  return null;
+}
+
+/**
+ * Check the third-level folder for session info.
+ * Given "StudyFolder/Patient_001/Session_preimplant/modality/file.nii.gz",
+ * checks "Session_preimplant".
+ */
+function getSessionFromThirdLevel(relativePath: string): { session: Session | null; folderName: string | null } {
+  const parts = relativePath.split('/').filter(s => s.length > 0);
+  if (parts.length < 4) {
+    return { session: null, folderName: null };
+  }
+
+  // Normalize underscores to spaces for word boundary matching
+  const subfolder = parts[2].replace(/_/g, ' ').toLowerCase();
+
+  if (/\b(pre[-\s]?implant|preimplant|pre[-\s]?op|preop|pre[-\s]?surg|baseline|phase[-\s]?1|session[-\s]?1|ses[-\s]?1)\b/i.test(subfolder)) {
+    return { session: 'ses-preimplant', folderName: parts[2] };
+  }
+  if (/\b(post[-\s]?implant|postimplant|implant|monitoring|ictal|phase[-\s]?2|session[-\s]?2|ses[-\s]?2)\b/i.test(subfolder)) {
+    return { session: 'ses-postimplant', folderName: parts[2] };
+  }
+  if (/\b(post[-\s]?surg|postsurg|post[-\s]?op|postop|resection|post[-\s]?surgery|phase[-\s]?3|session[-\s]?3|ses[-\s]?3)\b/i.test(subfolder)) {
+    return { session: 'ses-postsurgery', folderName: parts[2] };
+  }
+
+  return { session: null, folderName: null };
+}
+
+/**
  * Check if the second-level folder suggests a session.
  * Given "Patient01/PreOp/MRI/file.nii.gz", checks "PreOp".
  */
@@ -85,20 +129,21 @@ function getSessionFromSubfolder(relativePath: string): { session: Session | nul
     return { session: null, folderName: null };
   }
 
-  const subfolder = parts[1].toLowerCase();
+  // Normalize underscores to spaces so \b word boundaries work correctly
+  const subfolder = parts[1].replace(/_/g, ' ').toLowerCase();
 
   // Pre-implant patterns
-  if (/\b(pre[-_]?implant|preimplant|pre[-_]?op|preop|pre[-_]?surg|baseline|phase[-_]?1|session[-_]?1|ses[-_]?1)\b/i.test(subfolder)) {
+  if (/\b(pre[-\s]?implant|preimplant|pre[-\s]?op|preop|pre[-\s]?surg|baseline|phase[-\s]?1|session[-\s]?1|ses[-\s]?1)\b/i.test(subfolder)) {
     return { session: 'ses-preimplant', folderName: parts[1] };
   }
 
   // Post-implant patterns
-  if (/\b(post[-_]?implant|postimplant|implant|monitoring|ictal|phase[-_]?2|session[-_]?2|ses[-_]?2)\b/i.test(subfolder)) {
+  if (/\b(post[-\s]?implant|postimplant|implant|monitoring|ictal|phase[-\s]?2|session[-\s]?2|ses[-\s]?2)\b/i.test(subfolder)) {
     return { session: 'ses-postimplant', folderName: parts[1] };
   }
 
   // Post-surgery patterns
-  if (/\b(post[-_]?surg|postsurg|post[-_]?op|postop|resection|post[-_]?surgery|phase[-_]?3|session[-_]?3|ses[-_]?3)\b/i.test(subfolder)) {
+  if (/\b(post[-\s]?surg|postsurg|post[-\s]?op|postop|resection|post[-\s]?surgery|phase[-\s]?3|session[-\s]?3|ses[-\s]?3)\b/i.test(subfolder)) {
     return { session: 'ses-postsurgery', folderName: parts[1] };
   }
 
@@ -151,7 +196,40 @@ export function groupIntoSubject(
       return { groupName, session, reasons };
     }
 
-    // Only one top-level folder — files might be organized by session under it
+    // Only one top-level folder (the dropped parent, e.g., "EpilepsyStudy_Raw").
+    // Check if there are multiple SECOND-level folders (patient subfolders).
+    const secondLevelFolders = new Set(
+      allFiles
+        .map(f => getSecondLevelFolder(f.relativePath))
+        .filter((f): f is string => f !== null)
+    );
+
+    if (secondLevelFolders.size > 1) {
+      // Multiple second-level folders → likely patient folders under a study parent
+      const secondFolder = getSecondLevelFolder(file.relativePath);
+      if (secondFolder) {
+        groupName = secondFolder;
+        reasons.push({
+          layer: 'subject-grouping',
+          message: `Grouped by patient folder: "${secondFolder}" (under "${topFolder}")`,
+          weight: 0.6,
+        });
+
+        // Check third-level folder for session info (Patient_001/Session_preimplant/...)
+        const thirdLevelSession = getSessionFromThirdLevel(file.relativePath);
+        if (thirdLevelSession.session) {
+          session = thirdLevelSession.session;
+          reasons.push({
+            layer: 'subject-grouping',
+            message: `Session inferred from subfolder: "${thirdLevelSession.folderName}"`,
+            weight: 0.4,
+          });
+        }
+
+        return { groupName, session, reasons };
+      }
+    }
+
     // Try to find subject IDs in filenames
     const subjectId = extractSubjectIdFromFilename(file.name);
     if (subjectId) {

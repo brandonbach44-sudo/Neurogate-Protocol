@@ -32,7 +32,7 @@ export function detectFromExtension(fileName: string, relativePath: string): Ext
   // Extension alone can't tell which — other layers will refine.
   if (lower.endsWith('.nii.gz')) {
     return {
-      possibleModalities: ['anat-T1w', 'anat-T2w', 'ct', 'dwi', 'func', 'fmap'],
+      possibleModalities: ['anat-T1w', 'anat-T2w', 'anat-FLAIR', 'ct', 'dwi', 'func', 'fmap'],
       bestGuess: null, // need filename/folder keywords to narrow down
       reason: {
         layer: 'extension',
@@ -46,7 +46,7 @@ export function detectFromExtension(fileName: string, relativePath: string): Ext
   // Per governance framework, must be .nii.gz, never .nii
   if (lower.endsWith('.nii') && !lower.endsWith('.nii.gz')) {
     return {
-      possibleModalities: ['anat-T1w', 'anat-T2w', 'ct', 'dwi', 'func', 'fmap'],
+      possibleModalities: ['anat-T1w', 'anat-T2w', 'anat-FLAIR', 'ct', 'dwi', 'func', 'fmap'],
       bestGuess: null,
       reason: {
         layer: 'extension',

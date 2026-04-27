@@ -36,7 +36,8 @@ const FOLDER_SESSION_PATTERNS: [RegExp, Session, string][] = [
 const FOLDER_MODALITY_PATTERNS: [RegExp, Modality, string][] = [
   // Anatomical MRI
   [/\b(anat|anatomical|structural|mri[-_]?structural|t1|t1w|mprage)\b/i, 'anat-T1w', 'Folder suggests anatomical MRI'],
-  [/\b(t2|t2w|flair)\b/i, 'anat-T2w', 'Folder suggests T2-weighted MRI'],
+  [/\b(flair)\b/i, 'anat-FLAIR', 'Folder suggests FLAIR MRI'],
+  [/\b(t2|t2w)\b/i, 'anat-T2w', 'Folder suggests T2-weighted MRI'],
 
   // CT
   [/\b(ct|ct[-_]?scan|computed[-_]?tomography)\b/i, 'ct', 'Folder suggests CT scan'],
@@ -84,8 +85,13 @@ export function detectFromFolderPath(relativePath: string): FolderResult {
   for (const segment of segments) {
     if (session !== null) break; // Already found a session
 
+    // Normalize underscores to spaces so \b word boundaries work correctly.
+    // Without this, "Session_preimplant" won't match \bpreimplant\b because
+    // underscore is a word character in regex.
+    const normalized = segment.replace(/_/g, ' ');
+
     for (const [pattern, ses, description] of FOLDER_SESSION_PATTERNS) {
-      if (pattern.test(segment)) {
+      if (pattern.test(normalized)) {
         session = ses;
         reasons.push({
           layer: 'folder',
@@ -101,8 +107,10 @@ export function detectFromFolderPath(relativePath: string): FolderResult {
   for (const segment of segments) {
     if (modality !== null) break; // Already found a modality
 
+    const normalized = segment.replace(/_/g, ' ');
+
     for (const [pattern, mod, description] of FOLDER_MODALITY_PATTERNS) {
-      if (pattern.test(segment)) {
+      if (pattern.test(normalized)) {
         modality = mod;
         reasons.push({
           layer: 'folder',

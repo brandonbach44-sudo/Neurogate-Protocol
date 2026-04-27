@@ -73,7 +73,7 @@ export default function MetadataStep({
   const hasStructuralMri = useMemo(() => {
     return detectionResults.some(r => {
       const mod = getEffectiveModality(r);
-      return mod === 'anat-T1w' || mod === 'anat-T2w';
+      return mod === 'anat-T1w' || mod === 'anat-T2w' || mod === 'anat-FLAIR';
     });
   }, [detectionResults]);
 

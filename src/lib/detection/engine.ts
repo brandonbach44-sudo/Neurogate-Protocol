@@ -54,6 +54,7 @@ function generateBidsFilename(
   const suffixMap: Record<string, string> = {
     'anat-T1w': 'T1w',
     'anat-T2w': 'T2w',
+    'anat-FLAIR': 'FLAIR',
     'ct': 'ct',
     'dwi': 'dwi',
     'eeg': 'eeg',

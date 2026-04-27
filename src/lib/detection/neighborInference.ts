@@ -196,7 +196,7 @@ export function inferFromNeighbors(
   // ── Rule: Standalone T1w with no iEEG/CT neighbors → preimplant ──
   if (!session) {
     const currentModality = modality || knownModalities.get(file.name);
-    if (currentModality === 'anat-T1w' || currentModality === 'anat-T2w') {
+    if (currentModality === 'anat-T1w' || currentModality === 'anat-T2w' || currentModality === 'anat-FLAIR') {
       if (!ieegInGroup && !ctInGroup) {
         session = 'ses-preimplant';
         reasons.push({
