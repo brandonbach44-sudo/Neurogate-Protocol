@@ -5,6 +5,8 @@ import MetadataStep from './components/MetadataStep';
 import ValidationStep from './components/ValidationStep';
 import ExportStep from './components/ExportStep';
 import AuditLogPanel from './components/AuditLogPanel';
+import { NeuronIcon } from './components/Icons';
+import NeuralParticles from './components/NeuralParticles';
 import type { MetadataOutput } from './components/MetadataStep';
 import type { ScannedFile } from './types/files';
 import type { DetectionResult, DetectionSummary, Session, Modality } from './types/detection';
@@ -148,53 +150,95 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen relative" style={{ background: 'linear-gradient(180deg, #f8fafc 0%, #ffffff 40%, #f1f5f9 100%)' }}>
+      {/* Neural network background animation */}
+      <NeuralParticles />
+
       {/* Header */}
-      <header className="bg-[#011F5B] text-white py-4 px-6 shadow-md">
+      <header
+        className="relative z-10 text-white py-4 px-6 border-b bg-gradient-to-r from-[#011F5B] to-[#01326e]"
+      >
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-semibold tracking-tight">
-              Epilepsy Data Uploader
-            </h1>
-            <p className="text-blue-200 text-sm mt-0.5">
-              BIDS-compliant data organization &amp; upload
-            </p>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-white/10">
+              <NeuronIcon size={28} color="#6DD3CE" />
+            </div>
+            <div>
+              <h1 className="text-xl font-semibold tracking-tight text-white">
+                NeuroGate
+              </h1>
+              <p className="text-sm mt-0.5 text-blue-200">
+                Multi-site epilepsy data compliance tool
+              </p>
+            </div>
           </div>
           <div className="flex items-center gap-6">
             {/* Step indicator */}
-            <div className="flex items-center gap-2 text-sm">
+            <div className="flex items-center text-sm">
               {[
                 { num: 1, label: 'Drop Files' },
-                { num: 2, label: 'Review Mapping' },
+                { num: 2, label: 'Mapping' },
                 { num: 3, label: 'Metadata' },
                 { num: 4, label: 'Validate' },
                 { num: 5, label: 'Export' },
-              ].map((s, i) => (
-                <span key={s.num} className="flex items-center gap-2">
-                  {i > 0 && <span className="text-blue-400">&rarr;</span>}
-                  <span className={
-                    stepNumber(step) === s.num
-                      ? 'text-white font-medium'
-                      : stepNumber(step) > s.num
-                        ? 'text-blue-200'
-                        : 'text-blue-400'
-                  }>
-                    {s.num}. {s.label}
+              ].map((s, i) => {
+                const current = stepNumber(step);
+                const isCompleted = current > s.num;
+                const isActive = current === s.num;
+                return (
+                  <span key={s.num} className="flex items-center">
+                    {i > 0 && (
+                      <span
+                        className="w-8 h-0.5 mx-1"
+                        style={{
+                          backgroundColor: isCompleted ? '#6DD3CE' : 'rgba(255,255,255,0.2)',
+                        }}
+                      />
+                    )}
+                    <span className="flex flex-col items-center gap-1">
+                      <span
+                        className="flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold transition-all duration-300"
+                        style={{
+                          backgroundColor: isCompleted
+                            ? '#6DD3CE'
+                            : isActive
+                              ? '#6DD3CE'
+                              : 'transparent',
+                          color: isCompleted
+                            ? '#011F5B'
+                            : isActive
+                              ? '#011F5B'
+                              : 'rgba(255,255,255,0.5)',
+                          border: isCompleted || isActive
+                            ? 'none'
+                            : '1.5px solid rgba(255,255,255,0.3)',
+                        }}
+                      >
+                        {isCompleted ? '✓' : s.num}
+                      </span>
+                      <span
+                        className="text-[10px] whitespace-nowrap"
+                        style={{
+                          color: isCompleted || isActive ? '#6DD3CE' : 'rgba(255,255,255,0.5)',
+                          fontWeight: isActive ? 600 : 400,
+                        }}
+                      >
+                        {s.label}
+                      </span>
+                    </span>
                   </span>
-                </span>
-              ))}
+                );
+              })}
             </div>
 
             {/* Audit log button */}
             <button
               onClick={() => setAuditPanelOpen(true)}
-              className="relative px-3 py-1.5 text-xs font-medium bg-white/10 rounded-lg
-                hover:bg-white/20 transition-colors"
+              className="relative px-3 py-1.5 text-xs font-medium rounded-lg transition-all bg-white/15 text-white hover:bg-white/25"
             >
               Audit Log
               {audit.getEntryCount() > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-blue-400 text-white
-                  text-xs rounded-full flex items-center justify-center font-semibold">
+                <span className="absolute -top-1.5 -right-1.5 w-5 h-5 text-xs rounded-full flex items-center justify-center font-semibold bg-[#6DD3CE] text-[#011F5B]">
                   {audit.getEntryCount()}
                 </span>
               )}
@@ -204,28 +248,67 @@ function App() {
       </header>
 
       {/* Main content */}
-      <main className="max-w-7xl mx-auto px-6 py-10">
+      <main className="relative z-10 max-w-7xl mx-auto px-6 py-10">
         {/* Step 1: Drop zone */}
         {step === 'drop' && (
           <div>
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-semibold text-gray-800">
-                Get Started
+            {/* Hero section */}
+            <div className="text-center mb-10">
+              <h2 className="text-3xl font-bold tracking-tight text-gray-900">
+                Organize your neuroimaging data
               </h2>
-              <p className="text-gray-500 mt-2">
-                Drop your patient data folder below to begin organizing for BIDS upload
+              <p className="mt-3 max-w-lg mx-auto text-base leading-relaxed text-gray-500">
+                Drop your patient data folder to auto-detect sessions and modalities,
+                validate BIDS compliance, and export a ready-to-upload dataset.
               </p>
             </div>
             <FileDropZone onFilesScanned={handleFilesScanned} />
+
+            {/* Feature cards below drop zone */}
+            <div className="grid grid-cols-3 gap-4 mt-10 max-w-3xl mx-auto">
+              {[
+                {
+                  title: 'Auto-Detection',
+                  desc: '5-layer engine identifies sessions, modalities, and subject groups',
+                  accent: '#00d4ff',
+                },
+                {
+                  title: 'PHI Scanning',
+                  desc: 'Flags potential patient identifiers before data leaves your site',
+                  accent: '#ff6b6b',
+                },
+                {
+                  title: 'ALCOA+ Audit Trail',
+                  desc: 'Every correction and decision is logged for regulatory compliance',
+                  accent: '#00d4ff',
+                },
+              ].map((feat) => (
+                <div key={feat.title}
+                  className="rounded-xl p-5 border border-gray-100 bg-white shadow-sm transition-all hover:shadow-md"
+                >
+                  <div className="w-8 h-8 rounded-lg mb-3 flex items-center justify-center"
+                    style={{ backgroundColor: feat.accent + '15' }}>
+                    <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: feat.accent }} />
+                  </div>
+                  <h3 className="text-sm font-semibold text-gray-800">{feat.title}</h3>
+                  <p className="text-xs mt-1 leading-relaxed text-gray-500">{feat.desc}</p>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
         {/* Scanning animation */}
         {step === 'scanning' && (
           <div className="flex flex-col items-center justify-center py-24">
-            <div className="w-12 h-12 border-4 border-[#011F5B] border-t-transparent rounded-full animate-spin mb-6" />
-            <h2 className="text-xl font-semibold text-gray-800">Analyzing your files...</h2>
-            <p className="text-gray-500 mt-2">
+            <div className="relative w-16 h-16 mb-6">
+              <div className="absolute inset-0 border-4 rounded-full border-[#011F5B]/15" />
+              <div className="absolute inset-0 border-4 border-t-transparent rounded-full animate-spin border-[#011F5B]" style={{ borderTopColor: 'transparent' }} />
+              <div className="absolute inset-2 border-4 border-b-transparent rounded-full animate-spin border-[#011F5B]/30"
+                style={{ borderBottomColor: 'transparent', animationDirection: 'reverse', animationDuration: '1.5s' }} />
+            </div>
+            <h2 className="text-xl font-semibold text-gray-900">Analyzing your files...</h2>
+            <p className="mt-2 text-gray-500">
               Detecting sessions, modalities, and subject groups from {scannedFiles.length} files
             </p>
           </div>

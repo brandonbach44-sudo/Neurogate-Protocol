@@ -24,7 +24,7 @@ export interface ExtensionResult {
 /**
  * Analyze a file's extension and return possible modalities.
  */
-export function detectFromExtension(fileName: string, relativePath: string): ExtensionResult {
+export function detectFromExtension(fileName: string, _relativePath: string): ExtensionResult {
   const lower = fileName.toLowerCase();
 
   // ── NIfTI (gzipped) — imaging file ──────────────────────────

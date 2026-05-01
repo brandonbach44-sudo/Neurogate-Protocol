@@ -58,7 +58,7 @@ export default function AuditLogPanel({ isOpen, onClose }: AuditLogPanelProps) {
       {/* Panel */}
       <div className="relative w-full max-w-md bg-white shadow-xl flex flex-col">
         {/* Header */}
-        <div className="bg-[#011F5B] text-white px-5 py-4 flex items-center justify-between shrink-0">
+        <div className="px-5 py-4 flex items-center justify-between shrink-0 bg-[#011F5B] text-white">
           <div>
             <h2 className="text-sm font-semibold">ALCOA+ Audit Log</h2>
             <p className="text-blue-200 text-xs mt-0.5">
@@ -79,7 +79,7 @@ export default function AuditLogPanel({ isOpen, onClose }: AuditLogPanelProps) {
             onClick={handleExportJson}
             disabled={entries.length === 0}
             className="px-3 py-1.5 text-xs font-medium bg-[#011F5B] text-white rounded
-              hover:bg-[#012a7a] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              hover:bg-[#01326e] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Export JSON
           </button>

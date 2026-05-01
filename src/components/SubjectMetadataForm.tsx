@@ -1,4 +1,4 @@
-import type { SubjectMetadata, SessionMetadata } from '../types/metadata';
+import type { SubjectMetadata } from '../types/metadata';
 import { SESSIONS } from '../types/detection';
 
 interface SubjectMetadataFormProps {
@@ -17,9 +17,10 @@ interface SubjectMetadataFormProps {
  */
 export default function SubjectMetadataForm({
   subject,
-  onUpdate,
+  onUpdate: _onUpdate,
   autoFilled,
 }: SubjectMetadataFormProps) {
+  void _onUpdate; // reserved for future per-field editing
 
   const getSessionLabel = (sessionId: string): string => {
     return SESSIONS.find(s => s.value === sessionId)?.label || sessionId;

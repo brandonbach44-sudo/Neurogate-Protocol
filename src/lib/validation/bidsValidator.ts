@@ -20,7 +20,8 @@ import type { ValidationIssue } from '../../types/validation';
 const ILLEGAL_CHARS = /[^a-zA-Z0-9\-_./]/;
 
 // Valid BIDS filename pattern: sub-<label>[_ses-<label>][_key-value]*_<suffix>.<ext>
-const BIDS_FILENAME_PATTERN = /^sub-[a-zA-Z0-9]+_ses-[a-zA-Z0-9]+.*\.[a-zA-Z0-9.]+$/;
+// Reserved for future per-file BIDS naming validation
+export const BIDS_FILENAME_PATTERN = /^sub-[a-zA-Z0-9]+_ses-[a-zA-Z0-9]+.*\.[a-zA-Z0-9.]+$/;
 
 let issueCounter = 0;
 function nextId(): string {
@@ -47,7 +48,7 @@ export function validateBidsStructure(
     const session = getEffectiveSession(result);
     const modality = getEffectiveModality(result);
     const group = getEffectiveSubjectGroup(result);
-    const bidsId = subjectIdMap.get(group) || group;
+    const bidsId = subjectIdMap.get(group) || group; void bidsId;
 
     // ── Check: File has no session assigned ──────────────────
     if (!session && modality !== 'other' && modality !== 'sidecar-json' && modality !== 'sidecar-tsv') {
