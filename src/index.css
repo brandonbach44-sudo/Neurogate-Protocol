@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
-/* Penn Blue theme */
+/* Theme variables */
 :root {
   --penn-blue: #011F5B;
-  --penn-red: #990000;
+  --accent: #00d4ff;
 }

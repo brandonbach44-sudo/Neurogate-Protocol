@@ -108,7 +108,7 @@ function nextId(): string {
 
 export function scanForPhi(
   results: DetectionResult[],
-  subjects: SubjectMetadata[],
+  _subjects: SubjectMetadata[],
 ): ValidationIssue[] {
   issueCounter = 0;
   const issues: ValidationIssue[] = [];
@@ -135,7 +135,7 @@ export function scanForPhi(
           .map(r => r.relativePath);
 
         // Deduplicate: don't flag the same pattern on the same set of files twice
-        const key = `${phiPattern.name}:${affected.sort().join(',')}`;
+        const _key = `${phiPattern.name}:${affected.sort().join(',')}`; void _key;
         const alreadyFlagged = issues.some(i =>
           i.title === `Potential ${phiPattern.name}` &&
           i.affectedFiles.sort().join(',') === affected.sort().join(',')

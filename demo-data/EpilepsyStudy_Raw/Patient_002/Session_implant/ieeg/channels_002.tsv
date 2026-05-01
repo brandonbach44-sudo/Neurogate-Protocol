@@ -1,0 +1,4 @@
+name	type	units	sampling_frequency
+LA1	ECoG	uV	512
+LA2	ECoG	uV	512
+LA3	ECoG	uV	512

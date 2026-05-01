@@ -163,8 +163,8 @@ export default function ExportStep({
           <button
             onClick={handleExport}
             disabled={isExporting}
-            className="px-6 py-2.5 text-sm font-medium text-white bg-[#011F5B] rounded-lg
-              hover:bg-[#012a7a] transition-colors flex items-center gap-2
+            className="px-6 py-2.5 text-sm font-medium bg-[#011F5B] text-white rounded-lg
+              hover:bg-[#01326e] transition-colors flex items-center gap-2
               disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {isExporting ? (

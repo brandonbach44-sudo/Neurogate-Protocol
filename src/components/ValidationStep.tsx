@@ -1,8 +1,9 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, type ReactNode } from 'react';
 import type { DetectionResult } from '../types/detection';
 import type { SubjectMetadata, DatasetDescription, DefacingAttestation, InstitutionConfig } from '../types/metadata';
 import type { ValidationReport, ValidationIssue, ValidationCategory, ValidationSeverity } from '../types/validation';
 import { runValidation } from '../lib/validation';
+import { FolderIcon, ShieldIcon, ClipboardIcon, LinkIcon, FileIcon, TagIcon, BrainIcon, CheckCircleIcon, XCircleIcon } from './Icons';
 
 interface ValidationStepProps {
   detectionResults: DetectionResult[];
@@ -16,14 +17,14 @@ interface ValidationStepProps {
 
 // ── Category display config ─────────────────────────────────────
 
-const CATEGORY_INFO: Record<ValidationCategory, { label: string; icon: string }> = {
-  'bids-structure': { label: 'BIDS Structure', icon: '📁' },
-  'phi-risk': { label: 'PHI / Privacy', icon: '🔒' },
-  'required-files': { label: 'Required Files', icon: '📋' },
-  'cross-session': { label: 'Cross-Session', icon: '🔗' },
-  'file-format': { label: 'File Format', icon: '📄' },
-  'metadata': { label: 'Metadata', icon: '📝' },
-  'defacing': { label: 'Defacing', icon: '🧠' },
+const CATEGORY_INFO: Record<ValidationCategory, { label: string; icon: ReactNode }> = {
+  'bids-structure': { label: 'BIDS Structure', icon: <FolderIcon size={18} /> },
+  'phi-risk': { label: 'PHI / Privacy', icon: <ShieldIcon size={18} /> },
+  'required-files': { label: 'Required Files', icon: <ClipboardIcon size={18} /> },
+  'cross-session': { label: 'Cross-Session', icon: <LinkIcon size={18} /> },
+  'file-format': { label: 'File Format', icon: <FileIcon size={18} /> },
+  'metadata': { label: 'Metadata', icon: <TagIcon size={18} /> },
+  'defacing': { label: 'Defacing', icon: <BrainIcon size={18} /> },
 };
 
 const SEVERITY_STYLES: Record<ValidationSeverity, { bg: string; text: string; label: string; border: string }> = {
@@ -138,7 +139,7 @@ export default function ValidationStep({
       <div className={`rounded-lg p-5 mb-6 ${report.passed ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-3xl">{report.passed ? '✅' : '❌'}</span>
+            <span>{report.passed ? <CheckCircleIcon size={32} color="#16a34a" /> : <XCircleIcon size={32} color="#dc2626" />}</span>
             <div>
               <h2 className={`text-lg font-semibold ${report.passed ? 'text-green-800' : 'text-red-800'}`}>
                 {report.passed ? 'Validation Passed' : 'Validation Failed'}
@@ -243,8 +244,8 @@ export default function ValidationStep({
         <button
           onClick={onContinue}
           disabled={activeErrors > 0}
-          className="px-5 py-2.5 text-sm font-medium text-white bg-[#011F5B] rounded-lg
-            hover:bg-[#012a7a] transition-colors
+          className="px-5 py-2.5 text-sm font-medium bg-[#011F5B] text-white rounded-lg
+            hover:bg-[#00bde0] transition-colors
             disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {activeErrors > 0

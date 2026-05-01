@@ -1,6 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
 import type { ScannedFile } from '../types/files';
-import { formatFileSize } from '../types/files';
 
 interface FileDropZoneProps {
   onFilesScanned: (files: ScannedFile[]) => void;
@@ -123,38 +122,60 @@ export default function FileDropZone({ onFilesScanned }: FileDropZoneProps) {
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onClick={() => inputRef.current?.click()}
-        className={`
-          border-2 border-dashed rounded-xl p-16 text-center cursor-pointer
-          transition-all duration-200
-          ${isDragging
-            ? 'border-[#011F5B] bg-blue-50 scale-[1.01]'
-            : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
-          }
-        `}
+        className="relative overflow-hidden border-2 border-dashed rounded-2xl p-16 text-center cursor-pointer transition-all duration-300"
+        style={{
+          backgroundColor: isDragging ? 'rgba(1,31,91,0.03)' : 'rgba(249,250,251,0.8)',
+          borderColor: isDragging ? '#011F5B' : '#d1d5db',
+          transform: isDragging ? 'scale(1.01)' : 'scale(1)',
+        }}
+        onMouseEnter={(e) => { if (!isDragging) e.currentTarget.style.borderColor = '#011F5B'; }}
+        onMouseLeave={(e) => { if (!isDragging) e.currentTarget.style.borderColor = '#d1d5db'; }}
       >
         {isScanning ? (
-          <div className="flex flex-col items-center gap-3">
-            <div className="w-8 h-8 border-3 border-[#011F5B] border-t-transparent rounded-full animate-spin" />
-            <p className="text-gray-600 text-lg">Scanning files...</p>
+          <div className="relative flex flex-col items-center gap-3">
+            <div className="w-10 h-10 border-3 border-t-transparent rounded-full animate-spin border-[#011F5B]" style={{ borderTopColor: 'transparent' }} />
+            <p className="text-lg text-gray-500">Scanning files...</p>
           </div>
         ) : (
-          <div className="flex flex-col items-center gap-4">
-            {/* Folder icon */}
-            <svg className="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-            </svg>
+          <div className="relative flex flex-col items-center gap-4">
+            {/* Upload icon */}
+            <div
+              className="w-20 h-20 rounded-2xl flex items-center justify-center transition-colors duration-300"
+              style={{ backgroundColor: isDragging ? 'rgba(1,31,91,0.08)' : 'rgba(1,31,91,0.04)' }}
+            >
+              <svg className="w-10 h-10 transition-colors duration-300" fill="none" stroke={isDragging ? '#011F5B' : '#9ca3af'} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+            </div>
             <div>
-              <p className="text-xl font-medium text-gray-700">
-                Drop your patient data folder here
+              <p className="text-xl font-medium text-gray-800">
+                {isDragging ? 'Release to upload' : 'Drop your patient data folder here'}
               </p>
-              <p className="text-gray-500 mt-1">
-                or click to browse
+              <p className="mt-1.5 text-gray-500">
+                or <span className="font-medium underline underline-offset-2 text-[#011F5B]">click to browse</span>
               </p>
             </div>
-            <p className="text-sm text-gray-400 mt-2">
-              Supports folders with multiple patient directories
-            </p>
+            <div className="flex items-center gap-4 mt-2 text-xs text-gray-400">
+              <span className="flex items-center gap-1">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                </svg>
+                Multi-subject folders
+              </span>
+              <span className="flex items-center gap-1">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Auto-detection
+              </span>
+              <span className="flex items-center gap-1">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                PHI scanning
+              </span>
+            </div>
           </div>
         )}
       </div>

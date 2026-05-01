@@ -48,6 +48,7 @@ export default function MetadataStep({
   const [datasetDescription, setDatasetDescription] = useState<DatasetDescription>(createDefaultDatasetDescription());
   const [attestation, setAttestation] = useState<DefacingAttestationType>(createDefaultAttestation());
   const [autoFilledSubjects, setAutoFilledSubjects] = useState<Set<string>>(new Set());
+  const [showErrors, setShowErrors] = useState(false);
   const [autoFilledDataset, setAutoFilledDataset] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -214,7 +215,7 @@ export default function MetadataStep({
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-24">
-        <div className="w-10 h-10 border-4 border-[#011F5B] border-t-transparent rounded-full animate-spin mb-4" />
+        <div className="w-10 h-10 border-4 border-t-transparent rounded-full animate-spin mb-4" style={{ borderColor: '#011F5B', borderTopColor: 'transparent' }} />
         <p className="text-gray-500">Loading metadata forms...</p>
       </div>
     );
@@ -364,13 +365,13 @@ export default function MetadataStep({
         )}
       </div>
 
-      {/* Validation errors */}
-      {validationErrors.length > 0 && (
-        <div className="mt-6 bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-sm font-medium text-red-800 mb-1">Required before continuing:</p>
+      {/* Validation errors (only shown after user tries to continue) */}
+      {showErrors && validationErrors.length > 0 && (
+        <div className="mt-6 rounded-lg p-4" style={{ backgroundColor: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)' }}>
+          <p className="text-sm font-medium mb-1" style={{ color: '#f87171' }}>Please complete the following before continuing:</p>
           <ul className="space-y-0.5">
             {validationErrors.map((err, i) => (
-              <li key={i} className="text-sm text-red-600 flex items-start gap-1.5">
+              <li key={i} className="text-sm flex items-start gap-1.5" style={{ color: '#fca5a5' }}>
                 <span className="mt-0.5">&bull;</span>
                 <span>{err}</span>
               </li>
@@ -388,16 +389,20 @@ export default function MetadataStep({
           Back to Mapping
         </button>
         <button
-          onClick={() => onContinue({
-            subjects,
-            datasetDescription,
-            defacingAttestation: attestation,
-            institutionConfig,
-          })}
-          disabled={validationErrors.length > 0}
-          className="px-5 py-2.5 text-sm font-medium text-white bg-[#011F5B] rounded-lg
-            hover:bg-[#012a7a] transition-colors
-            disabled:opacity-40 disabled:cursor-not-allowed"
+          onClick={() => {
+            if (validationErrors.length > 0) {
+              setShowErrors(true);
+            } else {
+              onContinue({
+                subjects,
+                datasetDescription,
+                defacingAttestation: attestation,
+                institutionConfig,
+              });
+            }
+          }}
+          className="px-5 py-2.5 text-sm font-medium bg-[#011F5B] text-white rounded-lg
+            hover:bg-[#01326e] transition-colors"
         >
           Continue to Validation
         </button>

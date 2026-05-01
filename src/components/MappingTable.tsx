@@ -27,10 +27,17 @@ interface MappingTableProps {
 
 // ── Confidence badge colors ───────────────────────────────────────
 const CONFIDENCE_STYLES: Record<Confidence, { bg: string; text: string; label: string }> = {
-  high: { bg: 'bg-green-100', text: 'text-green-800', label: 'High' },
-  medium: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Medium' },
-  low: { bg: 'bg-orange-100', text: 'text-orange-800', label: 'Low' },
-  unclassified: { bg: 'bg-red-100', text: 'text-red-800', label: 'Needs Review' },
+  high: { bg: '', text: '', label: 'High' },
+  medium: { bg: '', text: '', label: 'Medium' },
+  low: { bg: '', text: '', label: 'Low' },
+  unclassified: { bg: '', text: '', label: 'Needs Review' },
+};
+
+const CONFIDENCE_COLORS: Record<Confidence, { bg: string; color: string }> = {
+  high: { bg: 'rgba(34,197,94,0.12)', color: '#16a34a' },
+  medium: { bg: 'rgba(234,179,8,0.12)', color: '#a16207' },
+  low: { bg: 'rgba(249,115,22,0.12)', color: '#c2410c' },
+  unclassified: { bg: 'rgba(239,68,68,0.2)', color: '#f87171' },
 };
 
 type FilterMode = 'all' | 'high' | 'medium' | 'low' | 'unclassified';
@@ -109,41 +116,51 @@ export default function MappingTable({
         <div className="flex gap-3 mb-3">
           <button
             onClick={() => setFilterMode('all')}
-            className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-              filterMode === 'all' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
+            className="px-3 py-1.5 rounded-full text-sm font-medium transition-colors"
+            style={filterMode === 'all'
+              ? { backgroundColor: '#011F5B', color: '#ffffff' }
+              : { backgroundColor: '#f1f5f9', color: '#64748b' }
+            }
           >
             All ({summary.totalFiles})
           </button>
           <button
             onClick={() => setFilterMode('high')}
-            className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-              filterMode === 'high' ? 'bg-green-600 text-white' : 'bg-green-50 text-green-700 hover:bg-green-100'
-            }`}
+            className="px-3 py-1.5 rounded-full text-sm font-medium transition-colors"
+            style={filterMode === 'high'
+              ? { backgroundColor: '#22c55e', color: '#ffffff' }
+              : { backgroundColor: 'rgba(34,197,94,0.1)', color: '#16a34a' }
+            }
           >
             High ({summary.highConfidence})
           </button>
           <button
             onClick={() => setFilterMode('medium')}
-            className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-              filterMode === 'medium' ? 'bg-yellow-600 text-white' : 'bg-yellow-50 text-yellow-700 hover:bg-yellow-100'
-            }`}
+            className="px-3 py-1.5 rounded-full text-sm font-medium transition-colors"
+            style={filterMode === 'medium'
+              ? { backgroundColor: '#eab308', color: '#ffffff' }
+              : { backgroundColor: 'rgba(234,179,8,0.1)', color: '#ca8a04' }
+            }
           >
             Medium ({summary.mediumConfidence})
           </button>
           <button
             onClick={() => setFilterMode('low')}
-            className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-              filterMode === 'low' ? 'bg-orange-600 text-white' : 'bg-orange-50 text-orange-700 hover:bg-orange-100'
-            }`}
+            className="px-3 py-1.5 rounded-full text-sm font-medium transition-colors"
+            style={filterMode === 'low'
+              ? { backgroundColor: '#f97316', color: '#ffffff' }
+              : { backgroundColor: 'rgba(249,115,22,0.1)', color: '#ea580c' }
+            }
           >
             Low ({summary.lowConfidence})
           </button>
           <button
             onClick={() => setFilterMode('unclassified')}
-            className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-              filterMode === 'unclassified' ? 'bg-red-600 text-white' : 'bg-red-50 text-red-700 hover:bg-red-100'
-            }`}
+            className="px-3 py-1.5 rounded-full text-sm font-medium transition-colors"
+            style={filterMode === 'unclassified'
+              ? { backgroundColor: '#ef4444', color: '#ffffff' }
+              : { backgroundColor: 'rgba(239,68,68,0.15)', color: '#f87171' }
+            }
           >
             Needs Review ({summary.unclassified})
           </button>
@@ -335,7 +352,13 @@ export default function MappingTable({
 
                   {/* Confidence badge */}
                   <div className="flex items-center justify-center">
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${confStyle.bg} ${confStyle.text}`}>
+                    <span
+                      className="px-2 py-0.5 rounded-full text-xs font-medium"
+                      style={{
+                        backgroundColor: CONFIDENCE_COLORS[result.confidence].bg,
+                        color: CONFIDENCE_COLORS[result.confidence].color,
+                      }}
+                    >
                       {confStyle.label}
                     </span>
                   </div>
@@ -388,7 +411,7 @@ export default function MappingTable({
         </button>
         <button
           onClick={onContinue}
-          className="px-5 py-2.5 text-sm font-medium text-white bg-[#011F5B] rounded-lg hover:bg-[#012a7a] transition-colors"
+          className="px-5 py-2.5 text-sm font-medium bg-[#011F5B] text-white rounded-lg hover:bg-[#01326e] transition-colors"
         >
           Continue to Metadata
         </button>
