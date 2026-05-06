@@ -1,4 +1,4 @@
-# Standard Operating Procedure: BIDS Data Structure for Penn Epilepsy Dataset
+# Standard Operating Procedure: BIDS Data Structure for Multi-Site Epilepsy Data Sharing
 
 | Field | Value |
 |---|---|
@@ -15,7 +15,7 @@
 
 ## 1. Purpose
 
-This Standard Operating Procedure (SOP) describes the required data structure for contributing neuroimaging and electrophysiology data to the Penn Epilepsy Dataset on Pennsieve. The structure follows the Brain Imaging Data Structure (BIDS) specification to ensure consistency, interoperability, and compliance with data sharing standards.
+This Standard Operating Procedure (SOP) defines a standardized data structure that all participating sites must follow when organizing neuroimaging and electrophysiology data for cross-site sharing. By adopting a common BIDS-compliant structure, each site's data remains consistent and interoperable, making it straightforward to share with Penn and other collaborators while meeting data sharing compliance standards.
 
 ## 2. Governance Traceability
 
@@ -33,7 +33,7 @@ This SOP implements specific requirements from the Regulatory and Governance Fra
 
 ## 3. Scope
 
-This SOP applies to all sites contributing data to the Penn Epilepsy Dataset. It covers:
+This SOP applies to all sites participating in the multi-site epilepsy data sharing initiative. It covers:
 
 - Required folder hierarchy and naming conventions
 - File formats for each modality (MRI, CT, DWI, EEG, iEEG)
@@ -64,7 +64,7 @@ Subject IDs must contain only alphanumeric characters (no spaces, hyphens, under
 
 ## 5. Dataset Structure Overview
 
-The Penn Epilepsy Dataset follows a BIDS-compliant structure with three clinical sessions per subject. Each session corresponds to a phase in the patient's surgical evaluation and treatment.
+The standardized dataset structure follows a BIDS-compliant layout with three clinical sessions per subject. Each session corresponds to a phase in the patient's surgical evaluation and treatment.
 
 ### 5.1 Root Directory Structure
 
