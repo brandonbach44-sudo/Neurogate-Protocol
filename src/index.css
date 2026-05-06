@@ -5,3 +5,194 @@
   --penn-blue: #011F5B;
   --accent: #00d4ff;
 }
+
+/* ═══ Document content (rendered markdown) ═══════════════════ */
+.doc-content {
+  color: #1f2937;
+  line-height: 1.75;
+  font-size: 0.935rem;
+}
+
+.doc-content h1 {
+  font-size: 1.875rem;
+  font-weight: 800;
+  color: #011F5B;
+  margin-top: 0;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid rgba(1, 31, 91, 0.08);
+  letter-spacing: -0.02em;
+}
+
+.doc-content h2 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #111827;
+  margin-top: 2.5rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.doc-content h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-top: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.doc-content h4 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #374151;
+  margin-top: 1.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.doc-content p {
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.doc-content a {
+  color: #011F5B;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.15s;
+}
+
+.doc-content a:hover {
+  color: #0d3a7a;
+}
+
+/* Lists */
+.doc-content ul {
+  list-style: disc;
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.doc-content ol {
+  list-style: decimal;
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.doc-content li {
+  margin-bottom: 0.35rem;
+}
+
+.doc-content li > ul,
+.doc-content li > ol {
+  margin-top: 0.35rem;
+  margin-bottom: 0;
+}
+
+/* Tables */
+.doc-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.85rem;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+}
+
+.doc-content thead {
+  background: rgba(1, 31, 91, 0.04);
+}
+
+.doc-content th {
+  text-align: left;
+  font-weight: 600;
+  color: #011F5B;
+  padding: 0.65rem 0.85rem;
+  border-bottom: 2px solid rgba(1, 31, 91, 0.12);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.doc-content td {
+  padding: 0.6rem 0.85rem;
+  border-bottom: 1px solid #f3f4f6;
+  vertical-align: top;
+}
+
+.doc-content tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.doc-content tbody tr:hover {
+  background: rgba(1, 31, 91, 0.015);
+}
+
+/* Code */
+.doc-content code {
+  font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+  font-size: 0.82rem;
+  background: rgba(1, 31, 91, 0.05);
+  color: #011F5B;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.doc-content pre {
+  background: #1e293b;
+  color: #e2e8f0;
+  padding: 1.25rem 1.5rem;
+  border-radius: 10px;
+  overflow-x: auto;
+  margin-top: 1rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.82rem;
+  line-height: 1.7;
+  border: 1px solid #334155;
+}
+
+.doc-content pre code {
+  background: none;
+  color: inherit;
+  padding: 0;
+  border-radius: 0;
+  font-weight: 400;
+}
+
+/* Blockquotes */
+.doc-content blockquote {
+  border-left: 3px solid rgba(1, 31, 91, 0.2);
+  padding: 0.75rem 1.25rem;
+  margin: 1.25rem 0;
+  background: rgba(1, 31, 91, 0.02);
+  border-radius: 0 8px 8px 0;
+  color: #4b5563;
+}
+
+.doc-content blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+/* Horizontal rules */
+.doc-content hr {
+  border: none;
+  height: 1px;
+  background: #e5e7eb;
+  margin: 2rem 0;
+}
+
+/* Strong / emphasis */
+.doc-content strong {
+  font-weight: 650;
+  color: #111827;
+}
+
+/* Images */
+.doc-content img {
+  max-width: 100%;
+  border-radius: 8px;
+  margin: 1rem 0;
+}
