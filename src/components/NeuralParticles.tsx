@@ -44,8 +44,8 @@ export default function NeuralParticles() {
         particles.push({
           x: Math.random() * canvas.width,
           y: Math.random() * canvas.height,
-          vx: (Math.random() - 0.5) * 0.35,
-          vy: (Math.random() - 0.5) * 0.35,
+          vx: (Math.random() - 0.5) * 0.15,
+          vy: (Math.random() - 0.5) * 0.15,
           radius: Math.random() * 2.5 + 1.2,
           opacity: Math.random() * 0.4 + 0.3, // 0.3 - 0.7 range
         });

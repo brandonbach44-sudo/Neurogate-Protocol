@@ -75,7 +75,6 @@ export default function HomePage() {
               >
                 Beta
               </span>
-              <span className="text-xs text-gray-400">University of Pennsylvania</span>
             </div>
             <h1 className="text-5xl font-bold tracking-tight leading-[1.1] text-gray-900">
               Standardized
@@ -125,53 +124,33 @@ export default function HomePage() {
               }}
             />
             {/* BIDS folder preview card */}
-            <div className="relative bg-white rounded-2xl border border-gray-100 shadow-lg p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <div
-                    className="w-8 h-8 rounded-lg flex items-center justify-center"
-                    style={{ backgroundColor: 'rgba(1,31,91,0.08)' }}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#011F5B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-                    </svg>
-                  </div>
-                  <span className="text-sm font-semibold text-gray-800">BIDS output preview</span>
+            <div className="relative rounded-2xl shadow-lg p-6" style={{ backgroundColor: '#011F5B' }}>
+              <div className="flex items-center gap-2 mb-4">
+                <div
+                  className="w-8 h-8 rounded-lg flex items-center justify-center"
+                  style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6DD3CE" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                  </svg>
                 </div>
-                <span className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(34,197,94,0.1)', color: '#16a34a' }}>
-                  Valid
-                </span>
+                <span className="text-sm font-semibold text-white">BIDS output preview</span>
               </div>
               {/* Mock folder tree */}
-              <div className="font-mono text-xs leading-6 text-gray-600 bg-gray-50 rounded-xl p-4">
-                <div className="text-gray-900 font-semibold">dataset/</div>
-                <div className="ml-4 text-gray-400">dataset_description.json</div>
-                <div className="ml-4 text-gray-400">participants.tsv</div>
-                <div className="ml-4 text-gray-900 font-medium">sub-PENN001/</div>
-                <div className="ml-8 text-gray-900 font-medium">ses-preimplant/</div>
-                <div className="ml-12 text-gray-400">anat/</div>
-                <div className="ml-16" style={{ color: '#011F5B' }}>sub-PENN001_ses-preimplant_T1w.nii.gz</div>
-                <div className="ml-16" style={{ color: '#011F5B' }}>sub-PENN001_ses-preimplant_T2w.nii.gz</div>
-                <div className="ml-12 text-gray-400">eeg/</div>
-                <div className="ml-16" style={{ color: '#011F5B' }}>sub-PENN001_ses-preimplant_eeg.edf</div>
+              <div className="font-mono text-xs leading-6 rounded-xl p-4" style={{ backgroundColor: 'rgba(255,255,255,0.07)' }}>
+                <div className="text-white font-semibold">dataset/</div>
+                <div className="ml-4 text-blue-300/60">dataset_description.json</div>
+                <div className="ml-4 text-blue-300/60">participants.tsv</div>
+                <div className="ml-4 text-white font-medium">sub-PENN001/</div>
+                <div className="ml-8 text-white font-medium">ses-preimplant/</div>
+                <div className="ml-12 text-blue-300/60">anat/</div>
+                <div className="ml-16" style={{ color: '#6DD3CE' }}>sub-PENN001_ses-preimplant_T1w.nii.gz</div>
+                <div className="ml-16" style={{ color: '#6DD3CE' }}>sub-PENN001_ses-preimplant_T2w.nii.gz</div>
+                <div className="ml-12 text-blue-300/60">eeg/</div>
+                <div className="ml-16" style={{ color: '#6DD3CE' }}>sub-PENN001_ses-preimplant_eeg.edf</div>
               </div>
             </div>
 
-            {/* Floating audit badge */}
-            <div
-              className="absolute -bottom-4 -left-4 bg-white rounded-xl border border-gray-100 shadow-md px-4 py-3 flex items-center gap-3"
-            >
-              <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(109,211,206,0.15)' }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0F6E56" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="9 11 12 14 22 4" />
-                  <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
-                </svg>
-              </div>
-              <div>
-                <div className="text-xs font-semibold text-gray-800">Audit trail exported</div>
-                <div className="text-[10px] text-gray-400">ALCOA+ compliant</div>
-              </div>
-            </div>
           </div>
         </div>
       </section>
