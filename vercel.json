@@ -1,5 +1,6 @@
 {
   "rewrites": [
+    { "source": "/docs/:docId.md", "destination": "/docs/:docId.md" },
     { "source": "/(.*)", "destination": "/" }
   ]
 }

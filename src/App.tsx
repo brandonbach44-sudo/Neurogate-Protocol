@@ -3,6 +3,7 @@ import Layout from './components/Layout';
 import HomePage from './pages/HomePage';
 import ToolPage from './pages/ToolPage';
 import DocsPage from './pages/DocsPage';
+import DocViewerPage from './pages/DocViewerPage';
 import PreProcessingPage from './pages/PreProcessingPage';
 import OnboardingPage from './pages/OnboardingPage';
 
@@ -14,6 +15,7 @@ function App() {
         <Route element={<Layout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/docs" element={<DocsPage />} />
+          <Route path="/docs/:docId" element={<DocViewerPage />} />
           <Route path="/tools" element={<PreProcessingPage />} />
           <Route path="/onboarding" element={<OnboardingPage />} />
         </Route>
