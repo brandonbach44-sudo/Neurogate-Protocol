@@ -85,7 +85,7 @@ export default function DocViewerPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-12">
+    <div className="max-w-4xl mx-auto px-6 py-12 relative z-10">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-xs text-gray-400 mb-8">
         <Link to="/docs" className="no-underline hover:text-gray-600 transition-colors" style={{ color: '#9ca3af' }}>
@@ -124,7 +124,7 @@ export default function DocViewerPage() {
 
       {/* Document content */}
       {!loading && !error && (
-        <article className="doc-content">
+        <article className="doc-content bg-white rounded-2xl border border-gray-100 shadow-sm p-8 md:p-10">
           <Markdown remarkPlugins={[remarkGfm]}>{content}</Markdown>
         </article>
       )}
