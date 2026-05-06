@@ -99,39 +99,26 @@ export default function DocsPage() {
           to="/docs/gov-001"
           className="no-underline group block rounded-2xl border border-gray-100 bg-white shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
         >
-          <div className="grid grid-cols-3">
-            <div className="col-span-2 p-8">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">GOV-001</span>
-                <span className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(1,31,91,0.06)', color: '#011F5B' }}>v1.3</span>
-                <span className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(234,179,8,0.1)', color: '#a16207' }}>Draft</span>
-              </div>
-              <h2 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-[#011F5B] transition-colors">
-                Regulatory Governance Framework
-              </h2>
-              <p className="text-sm text-gray-500 leading-relaxed max-w-md">
-                The foundational document defining regulatory requirements, data standards,
-                compliance mechanisms, and QMS structure for multi-site neuroimaging data sharing.
-                All SOPs trace back to this framework.
-              </p>
-              <div className="mt-5 flex items-center gap-1 text-sm font-medium" style={{ color: '#011F5B' }}>
-                Read framework
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                  <polyline points="12 5 19 12 12 19" />
-                </svg>
-              </div>
+          <div className="p-8">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">GOV-001</span>
+              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(1,31,91,0.06)', color: '#011F5B' }}>v1.3</span>
+              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(234,179,8,0.1)', color: '#a16207' }}>Draft</span>
             </div>
-            <div className="flex items-center justify-center" style={{ backgroundColor: 'rgba(1,31,91,0.03)' }}>
-              <div className="text-center">
-                <div className="flex flex-wrap justify-center gap-2 max-w-[180px]">
-                  {['FAIR', 'ALCOA+', 'HIPAA', 'NIH DMSP', 'BIDS', 'QMS'].map((tag) => (
-                    <span key={tag} className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(1,31,91,0.08)', color: '#011F5B' }}>
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-[#011F5B] transition-colors">
+              Regulatory Governance Framework
+            </h2>
+            <p className="text-sm text-gray-500 leading-relaxed max-w-lg">
+              The foundational document defining regulatory requirements, data standards,
+              compliance mechanisms, and QMS structure for multi-site neuroimaging data sharing.
+              All SOPs trace back to this framework.
+            </p>
+            <div className="mt-5 flex items-center gap-1 text-sm font-medium" style={{ color: '#011F5B' }}>
+              Read framework
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+              </svg>
             </div>
           </div>
         </Link>
