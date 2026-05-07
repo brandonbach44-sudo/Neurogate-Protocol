@@ -28,8 +28,8 @@ This onboarding procedure implements specific requirements from the Regulatory a
 | Phase 1 (Agreements, IRB, Roles) | 5 (Roles), 7.3 (Onboarding Verification) | Site PI and Site Data Manager designated; IRB approval and data use agreement on file before any data work begins |
 | Phase 2 (Accounts, Keys, Tools) | 2.1 (FAIR Accessible), 2.3 (PHI Key Management) | Authenticated platform access; secure local storage for the BIDS-ID-to-patient-ID key |
 | Phase 3 (Training) | 2.5 (Training Records) | Site personnel must complete onboarding training before contributing data |
-| Phase 4 (Test Upload) | 2.2 (ALCOA+), 7.3 (Test Dataset) | Successful end-to-end upload and validation of a test dataset before any real patient data is touched |
-| Phase 5 (First Subject + Independent Operation) | 2.2 (ALCOA+ Complete, Consistent), 7.1 (Pre-Upload Checklist) | First real subject upload supervised; subsequent uploads independent with quality audit |
+| Phase 4 (First Subject, Supervised) | 2.2 (ALCOA+), 7.1 (Pre-Upload Checklist), 7.3 (Test Dataset) | The site's first real subject is uploaded under direct Penn supervision; this IS the validation upload required by GOV-001 7.3 |
+| Phase 5 (Independent Operation) | 2.2 (ALCOA+ Complete, Consistent), 7.2 (Periodic Audits) | Subjects 2 and 3 uploaded independently and reviewed by the Quality Auditor before sign-off |
 | Sign-off + Ongoing Audits | 2.5 (Training Records), 7.2 (Periodic Audits) | Onboarding completion is a documented training record; site enters quarterly audit cadence |
 
 ## 3. Scope
@@ -155,41 +155,40 @@ The Onboarding Lead runs a training session covering the framework, the four ope
 | ☐ | Training session recording shared with site (if applicable) | Onboarding Lead | |
 | ☐ | Site Data Manager confirms readiness to attempt a test upload | Site Data Manager | |
 
-## 9. Phase 4: Test Upload (Supervised, Test Data Only)
+## 9. Phase 4: First Subject (Supervised)
 
-Before any real patient data is touched, the site completes a full end-to-end run with a test dataset (dummy or fully de-identified shared sample). This satisfies GOV-001 Section 7.3 ("successfully upload and validate a test dataset"). The Quality Auditor reviews the result.
-
-| Done | Task | Responsible | Notes / Date |
-|---|---|---|---|
-| ☐ | Test dataset selected (dummy data or sample provided by Penn team; never real patient data at this phase) | Site | |
-| ☐ | dcm2niix conversion run on test data; output and JSON sidecars verified | Site | |
-| ☐ | pydeface run on test anatomical scans; visual QA confirms face removed and brain intact | Site | |
-| ☐ | NeuroGate tool used to organize, validate, and export the test dataset | Site | |
-| ☐ | NeuroGate validation step shows zero errors | Site | |
-| ☐ | Defacing attestation confirmed in NeuroGate metadata step | Site Data Manager | |
-| ☐ | Test BIDS export uploaded to Pennsieve (web or CLI) | Site | |
-| ☐ | ALCOA+ audit log downloaded and saved with the test export | Site Data Manager | |
-| ☐ | Pennsieve upload verified by Onboarding Lead and Quality Auditor | Penn team | |
-| ☐ | Issues identified during the test run logged and resolved | Both | |
-
-## 10. Phase 5: First Real Subject and Independent Operation
-
-The site uploads its first real subject under direct supervision, then completes two more independently. The Quality Auditor reviews each.
+The site uploads its first real subject end-to-end under direct Penn supervision. This is the validation run that satisfies GOV-001 Section 7.3 ("successfully upload and validate a test dataset"); the site's first real subject serves as the test case. Sites are not expected to generate synthetic data; this phase exists to catch problems with the live workflow before the site is trusted to upload independently.
 
 | Done | Task | Responsible | Notes / Date |
 |---|---|---|---|
-| ☐ | First real subject selected and consented per local IRB | Site | |
+| ☐ | First subject selected and consented per local IRB | Site | |
 | ☐ | Subject ID assigned per institution prefix and starting number | Site Data Manager | |
 | ☐ | Subject ID-to-patient mapping recorded in the local key store (Section 7.4) | Site Data Manager | |
-| ☐ | DICOM stripped, anatomical scans defaced, EEG headers cleaned per SOP-BIDS-001 Section 8 | Site | |
-| ☐ | NeuroGate tool used end-to-end; validation passes with zero errors | Site | |
+| ☐ | dcm2niix conversion completed; JSON sidecars verified PHI-free | Site | |
+| ☐ | pydeface applied to all anatomical scans (T1w, T2w, FLAIR); visual QA confirms face removed and brain intact | Site | |
+| ☐ | EEG/iEEG headers cleaned per SOP-BIDS-001 Section 8.3 | Site | |
+| ☐ | NeuroGate tool used end-to-end (drop, mapping, metadata, validation, export) | Site | |
+| ☐ | NeuroGate validation step shows zero errors | Site | |
+| ☐ | Defacing attestation confirmed in NeuroGate metadata step | Site Data Manager | |
 | ☐ | PHI Clearance Form signed for this subject (per GOV-001 Section 2.3 and 6) | Site Data Manager | |
-| ☐ | First real subject uploaded to Pennsieve under supervision | Site (with Penn watching) | |
+| ☐ | First subject uploaded to Pennsieve under supervision (Penn team on call or screen-share) | Site (with Penn watching) | |
+| ☐ | ALCOA+ audit log downloaded and archived alongside the BIDS export | Site Data Manager | |
 | ☐ | REDCap metadata entered for first subject | Site Data Manager | |
 | ☐ | First subject upload + REDCap entry validated by Quality Auditor | Quality Auditor | |
-| ☐ | Second subject uploaded independently | Site | |
-| ☐ | Third subject uploaded independently | Site | |
-| ☐ | Quality audit performed on the second and third uploads | Quality Auditor | |
+| ☐ | Issues identified during the supervised run logged and resolved | Both | |
+
+## 10. Phase 5: Independent Operation
+
+The site uploads two more subjects independently. The Quality Auditor reviews each. Once both pass review, the site is ready for sign-off.
+
+| Done | Task | Responsible | Notes / Date |
+|---|---|---|---|
+| ☐ | Second subject prepared, uploaded, and REDCap entry completed independently | Site | |
+| ☐ | PHI Clearance Form signed for second subject | Site Data Manager | |
+| ☐ | Quality audit performed on second subject | Quality Auditor | |
+| ☐ | Third subject prepared, uploaded, and REDCap entry completed independently | Site | |
+| ☐ | PHI Clearance Form signed for third subject | Site Data Manager | |
+| ☐ | Quality audit performed on third subject | Quality Auditor | |
 | ☐ | Any non-conformances classified (Critical / Major / Minor per GOV-001 Section 7.2) and resolved | Both | |
 
 ---
@@ -249,9 +248,9 @@ This section summarizes the onboarding workflow for day-to-day use during an act
 |---|---|---|
 | 1. Pre-Onboarding | Agreements, IRB, roles, doc review | Site PI and Data Manager named; IRB and DUA on file; institution prefix assigned; all 5 docs reviewed |
 | 2. Account and Tooling Setup | Pennsieve, REDCap, API key, pre-processing tools, subject ID key store | Site can log in to both platforms; dcm2niix and pydeface installed; secure local key store ready |
-| 3. Training | Walk through framework, SOPs, and tool | Site Data Manager confirms readiness for test upload |
-| 4. Test Upload | End-to-end run with test data only | Test dataset uploaded and validated; audit log archived; Quality Auditor signs off |
-| 5. First Real Subject + Independent Operation | One supervised real upload, then two independent | Three real subjects uploaded; quality audit passed |
+| 3. Training | Walk through framework, SOPs, and tool | Site Data Manager confirms readiness for the supervised first upload |
+| 4. First Subject (Supervised) | First real subject uploaded end-to-end with Penn watching | Subject 1 uploaded and validated; PHI Clearance Form signed; ALCOA+ audit log archived |
+| 5. Independent Operation | Subjects 2 and 3 uploaded independently | Both reviewed by Quality Auditor; non-conformances resolved |
 
 ### Critical Hard Stops
 
@@ -260,8 +259,8 @@ The following must be true before moving past each gate. Do not advance otherwis
 - **Before Phase 2:** Site PI confirmed, Site Data Manager designated, IRB approval and Data Use Agreement on file.
 - **Before Phase 3:** Both platform accounts working; subject ID key store ready; both pre-processing tools verified.
 - **Before Phase 4:** Training session held and Site Data Manager confirms readiness.
-- **Before Phase 5:** Test upload validated end-to-end; ALCOA+ audit log archived.
-- **Before Sign-Off:** First three real subjects uploaded; PHI Clearance Form signed for each; Quality Auditor has reviewed.
+- **Before Phase 5:** First subject uploaded under supervision and validated end-to-end; PHI Clearance Form signed; ALCOA+ audit log archived.
+- **Before Sign-Off:** All three subjects uploaded; PHI Clearance Form signed for each; Quality Auditor has reviewed subjects 2 and 3.
 
 ### Documents the Site Receives in Phase 1
 
@@ -289,4 +288,4 @@ The following must be true before moving past each gate. Do not advance otherwis
 |---|---|---|---|
 | 1.0 | February 2026 | Brandon Bach | Initial 5-phase checklist template |
 | 1.1 | April 2026 | Brandon Bach | Converted to markdown, added document ID header, added institution prefix field, referenced related SOPs by ID |
-| 2.0 | May 6, 2026 | Brandon Bach | Major revision: added Purpose, Governance Traceability, Scope, and Roles sections to match sibling SOPs; added Site PI / Site Data Manager designation; added institution prefix and starting subject number coordination; added pre-processing tools (dcm2niix, pydeface) install to Phase 2; added subject ID key storage setup (GOV-001 2.3); added API key handling per SOP-PENNSIEVE-001 5.2; split test upload (Phase 4, test data only) from first real subject (Phase 5) per GOV-001 7.3; added PHI Clearance Form sign-off; added Ongoing Site Support and Quarterly Audit Cadence sections (GOV-001 7.2); added Quick Reference section to match sibling SOPs; expanded documentation package to include GOV-001 and SOP-GUI-001 |
+| 2.0 | May 6, 2026 | Brandon Bach | Major revision: added Purpose, Governance Traceability, Scope, and Roles sections to match sibling SOPs; added Site PI / Site Data Manager designation; added institution prefix and starting subject number coordination; added pre-processing tools (dcm2niix, pydeface) install to Phase 2; added subject ID key storage setup (GOV-001 2.3); added API key handling per SOP-PENNSIEVE-001 5.2; reframed Phase 4 as the supervised first real-subject upload (this serves as the GOV-001 7.3 validation upload; sites are not expected to produce synthetic test data) and Phase 5 as independent operation for subjects 2 and 3; added PHI Clearance Form sign-off per subject; added Ongoing Site Support and Quarterly Audit Cadence sections (GOV-001 7.2); added Quick Reference section to match sibling SOPs; expanded documentation package to include GOV-001 and SOP-GUI-001 |
