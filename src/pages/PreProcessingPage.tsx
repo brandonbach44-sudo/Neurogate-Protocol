@@ -420,8 +420,8 @@ dcm2niix \\
         {/* Quick start */}
         <div className="mt-8">
           <h3 className="text-sm font-semibold text-gray-900 mb-3">Quick start</h3>
-          <CodeBlock label="Deface a single anatomical scan">{`# Produces sub-PENN001_ses-preimplant_T1w_defaced.nii.gz next to the input
-pydeface sub-PENN001_ses-preimplant_T1w.nii.gz
+          <CodeBlock label="Deface a single anatomical scan">{`# Produces sub-ID001_ses-01_T1w_defaced.nii.gz next to the input
+pydeface sub-ID001_ses-01_T1w.nii.gz
 
 # Loop over every T1w / T2w / FLAIR in a folder
 for f in *_T1w.nii.gz *_T2w.nii.gz *_FLAIR.nii.gz; do
