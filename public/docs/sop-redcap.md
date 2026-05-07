@@ -15,9 +15,9 @@
 
 ## 1. Purpose
 
-This Standard Operating Procedure (SOP) defines the metadata requirements for contributing neuroimaging and electrophysiology data to the Penn Epilepsy Dataset, and provides step-by-step instructions for entering that metadata into REDCap. Complete, standardized metadata ensures that datasets are findable, interpretable, and reusable across sites per FAIR principles and ALCOA+ data integrity standards.
+This Standard Operating Procedure (SOP) defines the metadata requirements for sites participating in the multi-site epilepsy data sharing initiative, and provides step-by-step instructions for entering that metadata into REDCap. Complete, standardized metadata ensures that datasets are findable, interpretable, and reusable across sites per FAIR principles and ALCOA+ data integrity standards.
 
-This document covers three categories of metadata: clinical and demographic data (entered in REDCap), imaging acquisition parameters (stored in BIDS JSON sidecars), and dataset-level metadata (stored in BIDS TSV and JSON files). Together, these form the complete metadata package required for each subject contribution.
+This document covers three categories of metadata: clinical and demographic data (entered in REDCap), imaging acquisition parameters (stored in BIDS JSON sidecars), and dataset-level metadata (stored in BIDS TSV and JSON files). Together, these form the complete metadata package required for each subject shared through the initiative.
 
 ## 2. Governance Traceability
 
@@ -36,7 +36,7 @@ This SOP implements specific requirements from the Regulatory and Governance Fra
 
 ## 3. Scope
 
-This SOP applies to all sites contributing data to the Penn Epilepsy Dataset. It covers:
+This SOP applies to all sites participating in the multi-site epilepsy data sharing initiative. It covers:
 
 - Required clinical and demographic metadata for each subject
 - Imaging acquisition parameters stored in BIDS JSON sidecars (MRI, CT, DWI, EEG, iEEG)
@@ -251,7 +251,7 @@ Provided by the Penn team for the root dataset. Sites do not need to create this
 
 | Field | Description |
 |---|---|
-| Name | Dataset name (e.g., "Penn Epilepsy Dataset") |
+| Name | Dataset name (e.g., your site's dataset name) |
 | BIDSVersion | BIDS specification version (e.g., "1.8.0") |
 | License | Data license (e.g., "CC BY 4.0") |
 | Authors | List of contributing authors |
@@ -270,7 +270,7 @@ Channel names in `channels.tsv` must exactly match electrode names in `electrode
 
 ## 7. REDCap Project Setup
 
-REDCap (Research Electronic Data Capture) serves as the centralized metadata registry for the Penn Epilepsy Dataset. It provides structured data entry, validation rules, and a complete audit trail per ALCOA+ requirements.
+REDCap (Research Electronic Data Capture) serves as the centralized metadata registry for the multi-site epilepsy data sharing initiative. It provides structured data entry, validation rules, and a complete audit trail per ALCOA+ requirements.
 
 ### 7.1 Project Structure
 
@@ -278,7 +278,7 @@ The REDCap project is organized into the following instruments (forms):
 
 | Instrument | Fields | When Completed |
 |---|---|---|
-| Subject Registration | participant_id, contributing_site, date_registered, registered_by | When subject is first enrolled |
+| Subject Registration | participant_id, participating_site, date_registered, registered_by | When subject is first enrolled |
 | Demographics | age, sex, handedness | With registration |
 | Epilepsy History | epilepsy_diagnosis, seizure_type, epilepsy_duration_years, age_at_onset, seizure_frequency, lateralization, localization, etiology, prior_surgery, current_aeds, num_aeds_tried | Before data upload |
 | Pre-Implant Session | session date, modalities collected, scan parameters summary, EEG recording details | After pre-implant data organized |
@@ -301,19 +301,19 @@ Access is granted after completing site onboarding (ONBOARD-001) and signing the
 
 ### 7.3 Data Access Groups (DAGs)
 
-Each contributing site is assigned a Data Access Group in REDCap. This ensures that site personnel can only view and edit records from their own institution. The Penn team can view all records for coordination and quality oversight.
+Each participating site is assigned a Data Access Group in REDCap. This ensures that site personnel can only view and edit records from their own institution. The Penn team can view all records for coordination and quality oversight.
 
 ## 8. REDCap Data Entry Workflow
 
 ### 8.1 Step 1: Register a New Subject
 
 1. Log in to REDCap at the URL provided during site onboarding
-2. Navigate to the Penn Epilepsy Dataset project
+2. Navigate to the multi-site epilepsy project
 3. Click **Add new record**
 4. REDCap will assign a record ID automatically
 5. Open the **Subject Registration** instrument
 6. Enter the BIDS `participant_id` (e.g., `sub-CHOP016`) -- this must match the folder name in your BIDS dataset exactly
-7. Select your contributing site from the dropdown
+7. Select your site from the dropdown
 8. Enter the registration date and your name
 9. Click **Save & Go To Next Instrument**
 

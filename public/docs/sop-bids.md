@@ -338,7 +338,7 @@ File names must never contain patient names, medical record numbers, dates of bi
 
 ## 9. Using the GUI Tool
 
-The Penn Epilepsy BIDS GUI tool can automate much of this process. Instead of manually organizing files:
+The NeuroGate tool can automate much of this process. Instead of manually organizing files:
 
 1. **Drop your files** into the GUI (any folder structure is accepted)
 2. **Review auto-detection** of sessions and modalities in the mapping table
