@@ -15,7 +15,7 @@
 
 ## 1. Purpose
 
-This Standard Operating Procedure (SOP) provides step-by-step instructions for uploading BIDS-formatted neuroimaging data to the Pennsieve platform. It covers two upload methods: the Pennsieve web interface (drag and drop) and the Pennsieve Agent command-line interface (CLI). This document is intended for researchers and data managers at sites contributing to the Penn Epilepsy Dataset.
+This Standard Operating Procedure (SOP) provides step-by-step instructions for uploading BIDS-formatted neuroimaging data to the Pennsieve platform. It covers two upload methods: the Pennsieve web interface (drag and drop) and the Pennsieve Agent command-line interface (CLI). This document is intended for researchers and data managers at sites participating in the multi-site epilepsy data sharing initiative.
 
 ## 2. Governance Traceability
 
@@ -47,7 +47,7 @@ Before beginning, ensure you have:
 - Data organized in BIDS format per SOP-BIDS-001, either manually or using the GUI tool
 - BIDS validation passed with zero errors (see Section 7)
 - De-identification completed per SOP-BIDS-001 Section 8 (DICOM headers stripped, defacing applied, EEG headers cleaned)
-- A Pennsieve account with access to the Penn Epilepsy workspace (see Section 5)
+- A Pennsieve account with access to your site's workspace (see Section 5)
 - A signed data use agreement on file with the Penn team (per GOV-001 Section 7.3)
 - Stable internet connection (neuroimaging uploads can be large, often several GB per subject)
 
@@ -90,7 +90,7 @@ This is the simplest upload method and requires no software installation.
 ### 6.1 Navigate to the Dataset
 
 1. Log in to https://app.pennsieve.io
-2. Navigate to the Penn Epilepsy workspace
+2. Navigate to your site's workspace
 3. Open the target dataset
 
 ### 6.2 Prepare Your Folder Structure
@@ -209,7 +209,7 @@ pennsieve dataset list
 pennsieve dataset use <dataset-node-id>
 ```
 
-The Penn team will provide you with the dataset node ID for the Penn Epilepsy workspace.
+The Penn team will provide you with the dataset node ID for your site's workspace.
 
 ### 7.5 Create an Upload Manifest
 
@@ -352,7 +352,7 @@ This section summarizes the key steps from this SOP for day-to-day use.
 ### Web Upload (Simple)
 
 1. Log in at https://app.pennsieve.io
-2. Navigate to Penn Epilepsy workspace, open the target dataset
+2. Navigate to your site's workspace, open the target dataset
 3. Go to `primary/` folder
 4. Drag your `sub-<ID>/` folder into the file browser
 5. Click **Start Upload**

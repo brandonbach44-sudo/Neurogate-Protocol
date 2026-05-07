@@ -34,7 +34,7 @@ This SOP implements the following GOV-001 requirements:
 
 ## 3. Scope
 
-This SOP applies to all personnel at participating research sites who are responsible for preparing neuroimaging data files for submission to the Penn Epilepsy dataset on Pennsieve. This includes research coordinators, data managers, imaging technologists, and principal investigators.
+This SOP applies to all personnel at participating research sites who are responsible for preparing neuroimaging data files for sharing through the multi-site epilepsy data sharing initiative on Pennsieve. This includes research coordinators, data managers, imaging technologists, and principal investigators.
 
 **In scope:**
 - Organizing raw neuroimaging files (NIfTI, EDF, JSON) into BIDS-compliant folder structures
@@ -376,7 +376,7 @@ The audit log satisfies ALCOA+ requirements:
 | **Internet required** | Only for initial page load. Once loaded, the tool works offline. |
 | **Data persistence** | The tool does not save state between sessions. If you close the browser, you must start over. Complete the full workflow in one sitting. |
 | **Supported modalities** | T1w, T2w, FLAIR, CT, DWI, EEG (scalp), iEEG (intracranial) |
-| **Sessions** | Pre-implant, Post-implant, Post-surgery (per Penn Epilepsy protocol) |
+| **Sessions** | Pre-implant, Post-implant, Post-surgery (per the project protocol) |
 
 ---
 
