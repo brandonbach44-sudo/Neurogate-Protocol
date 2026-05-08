@@ -384,7 +384,7 @@ The audit log satisfies ALCOA+ requirements:
 
 | Role | Contact |
 |---|---|
-| Tool developer / Capstone lead | Brandon Bach (bach2@seas.upenn.edu) |
+| Tool developer | Brandon Bach (bach2@seas.upenn.edu) |
 | Project advisor | Nishant Sinha |
 | Bug reports | GitHub Issues: github.com/brandonbach44-sudo/Epilepsy_GUI |
 
