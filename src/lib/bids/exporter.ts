@@ -72,7 +72,7 @@ function generateDatasetDescription(desc: DatasetDescription): string {
   }
 
   obj.GeneratedBy = [{
-    Name: 'Penn Epilepsy BIDS GUI',
+    Name: 'NeuroGate',
     Version: '1.0.0',
   }];
 

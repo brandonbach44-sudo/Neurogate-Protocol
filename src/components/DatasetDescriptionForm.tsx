@@ -85,7 +85,7 @@ export default function DatasetDescriptionForm({
             type="text"
             value={description.name}
             onChange={(e) => updateField('name', e.target.value)}
-            placeholder="e.g., Penn Epilepsy Multi-Site Dataset"
+            placeholder="e.g., Multi-Site Epilepsy Imaging Dataset"
             className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2
               hover:border-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
           />

@@ -1,4 +1,4 @@
-# Penn Epilepsy BIDS Tools - Windows Installer
+# NeuroGate Pre-Processing Tools - Windows Installer
 # Run this script in PowerShell as Administrator
 #
 # Installs:
@@ -7,7 +7,7 @@
 #   - Python dependencies
 
 Write-Host "================================================" -ForegroundColor Cyan
-Write-Host "  Penn Epilepsy BIDS Tools - Windows Installer" -ForegroundColor Cyan
+Write-Host "  NeuroGate Pre-Processing Tools - Windows Installer" -ForegroundColor Cyan
 Write-Host "================================================" -ForegroundColor Cyan
 Write-Host ""
 

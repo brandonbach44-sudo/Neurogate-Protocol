@@ -486,8 +486,8 @@ done`}</CodeBlock>
             <p className="mt-3 text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.7)' }}>
               The Regulatory Governance Framework (GOV-001) defines two pre-upload obligations: any imaging
               data leaving a site must be in an open, non-proprietary format (NIfTI), and any full-face anatomical
-              scan must have facial features removed. dcm2niix and pydeface are the reference implementations
-              the project uses to satisfy both obligations. Sites are free to substitute equivalent tools, but the
+              scan must have facial features removed. dcm2niix and pydeface are the open-source defaults the
+              project uses to satisfy both obligations. Sites are free to substitute equivalent tools, but the
               attestation step in NeuroGate still requires a tool name and version for the audit trail.
             </p>
           </div>

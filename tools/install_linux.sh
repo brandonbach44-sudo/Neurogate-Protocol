@@ -1,5 +1,5 @@
 #!/bin/bash
-# Penn Epilepsy BIDS Tools - Linux Installer (Debian/Ubuntu)
+# NeuroGate Pre-Processing Tools - Linux Installer (Debian/Ubuntu)
 #
 # Installs:
 #   - dcm2niix (DICOM to NIfTI converter)
@@ -7,7 +7,7 @@
 #   - Python dependencies
 
 echo "================================================"
-echo "  Penn Epilepsy BIDS Tools - Linux Installer"
+echo "  NeuroGate Pre-Processing Tools - Linux Installer"
 echo "================================================"
 echo ""
 
