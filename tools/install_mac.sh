@@ -1,5 +1,5 @@
 #!/bin/bash
-# Penn Epilepsy BIDS Tools - macOS Installer
+# NeuroGate Pre-Processing Tools - macOS Installer
 #
 # Installs:
 #   - dcm2niix (DICOM to NIfTI converter)
@@ -7,7 +7,7 @@
 #   - Python dependencies
 
 echo "================================================"
-echo "  Penn Epilepsy BIDS Tools - macOS Installer"
+echo "  NeuroGate Pre-Processing Tools - macOS Installer"
 echo "================================================"
 echo ""
 
