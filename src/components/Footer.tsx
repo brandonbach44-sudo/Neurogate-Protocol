@@ -49,6 +49,7 @@ export default function Footer() {
                 { to: '/docs', label: 'Documentation' },
                 { to: '/tools', label: 'Pre-Processing' },
                 { to: '/onboarding', label: 'Onboarding' },
+                { to: '/about', label: 'About' },
                 { to: '/tool', label: 'Open Tool' },
               ].map((link) => (
                 <li key={link.to}>
