@@ -3,8 +3,8 @@
 | Field | Value |
 |---|---|
 | **Document ID** | SOP-BIDS-001 |
-| **Version** | 2.0 |
-| **Effective Date** | April 28, 2026 |
+| **Version** | 2.1 |
+| **Effective Date** | May 7, 2026 |
 | **Author** | Brandon Bach |
 | **Advisor** | Nishant Sinha |
 | **Status** | Draft -- Pending Advisor Review |
@@ -48,8 +48,8 @@ Before organizing your data, ensure you have:
 - DICOM to NIfTI conversion tool installed (dcm2niix recommended, see [install scripts](gui-project-starter/tools/))
 - Defacing tool installed (pydeface recommended, see [install scripts](gui-project-starter/tools/))
 - Text editor for editing JSON and TSV files
-- Institution prefix assigned by Penn team (2-6 uppercase letters, e.g., CHOP, PENN, HUP)
-- Starting subject number confirmed with Penn team to avoid ID collisions
+- Institution prefix assigned by the project lead (2-6 uppercase letters, e.g., CHOP, PENN, HUP)
+- Starting subject number confirmed with the project lead to avoid ID collisions
 - All source data collected (MRI, CT, DWI, EEG/iEEG recordings)
 
 ### 4.1 Subject ID Format
@@ -445,3 +445,4 @@ dcm2niix -z y -f sub-<ID>_ses-<session>_<modality> -o ./output/ /path/to/dicom/
 | 1.1 | April 22, 2026 | Brandon Bach | Converted to markdown, added GUI section, added FLAIR modality, added defacing section, added participants/sessions metadata |
 | 1.2 | April 28, 2026 | Brandon Bach | Added quick-reference section (replaces separate quick-reference guide) |
 | 2.0 | April 28, 2026 | Brandon Bach | Major update: added GOV-001 traceability section, added subject ID format definition, added dataset_description.json required fields, added JSON sidecar required fields per modality, expanded de-identification section (DICOM stripping, EEG header cleaning, filename PHI checks), added cross-validation rule for channels/electrodes, added FLAIR to post-surgery, added PHI warnings to metadata sections, added date-shifting guidance, updated section numbering |
+| 2.1 | May 7, 2026 | Brandon Bach | Replaced "Penn team" references with project-role labels (institution prefix and starting subject number coordination now attributed to the project lead) for consistency with the multi-site framing; renamed in-text reference to "Penn Epilepsy BIDS GUI tool" as "NeuroGate tool" |

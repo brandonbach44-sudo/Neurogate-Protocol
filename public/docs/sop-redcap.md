@@ -3,8 +3,8 @@
 | Field | Value |
 |---|---|
 | **Document ID** | SOP-REDCAP-001 |
-| **Version** | 1.0 |
-| **Effective Date** | May 1, 2026 |
+| **Version** | 1.1 |
+| **Effective Date** | May 7, 2026 |
 | **Author** | Brandon Bach |
 | **Advisor** | Nishant Sinha |
 | **Status** | Draft -- Pending Advisor Review |
@@ -247,7 +247,7 @@ One row per session, stored at `sub-<ID>/sub-<ID>_sessions.tsv`.
 
 ### 6.3 dataset_description.json
 
-Provided by the Penn team for the root dataset. Sites do not need to create this file but should be aware of its contents:
+Provided by the project team for the root dataset. Sites do not need to create this file but should be aware of its contents:
 
 | Field | Description |
 |---|---|
@@ -292,7 +292,7 @@ The REDCap project is organized into the following instruments (forms):
 
 | Role | REDCap Rights | Assigned To |
 |---|---|---|
-| Project Admin | Full access; design rights; user management | Penn team (REDCap Administrator per GOV-001) |
+| Project Admin | Full access; design rights; user management | REDCap Administrator (project team, per GOV-001) |
 | Site Data Manager | Data entry for own site records; export for own site; no design rights | Site data managers completing onboarding |
 | Site PI | Read-only access to own site records | Site PIs for oversight |
 | Quality Auditor | Read-only access to all records; export rights | Designated auditor per GOV-001 |
@@ -301,7 +301,7 @@ Access is granted after completing site onboarding (ONBOARD-001) and signing the
 
 ### 7.3 Data Access Groups (DAGs)
 
-Each participating site is assigned a Data Access Group in REDCap. This ensures that site personnel can only view and edit records from their own institution. The Penn team can view all records for coordination and quality oversight.
+Each participating site is assigned a Data Access Group in REDCap. This ensures that site personnel can only view and edit records from their own institution. The REDCap Administrator and Quality Auditor can view all records for coordination and quality oversight.
 
 ## 8. REDCap Data Entry Workflow
 
@@ -492,9 +492,9 @@ To export the audit trail: navigate to **Logging** in the REDCap left menu. The 
 
 | Issue | Cause | Resolution |
 |---|---|---|
-| Cannot add a new record | Insufficient permissions | Contact Penn team to verify your Data Access Group assignment |
+| Cannot add a new record | Insufficient permissions | Contact the REDCap Administrator to verify your Data Access Group assignment |
 | participant_id validation fails | Format does not match `sub-[A-Z]{2,6}[0-9]{3}` | Check prefix is uppercase letters only and number is 3 digits zero-padded |
-| Cannot see other site records | Data Access Groups restrict visibility | This is expected behavior; contact Penn team if cross-site access is needed for auditing |
+| Cannot see other site records | Data Access Groups restrict visibility | This is expected behavior; contact the project team if cross-site access is needed for auditing |
 | Form shows "Incomplete" after saving | Form status not set manually | Set status dropdown to "Unverified" or "Complete" before saving |
 | Uploaded subject not in REDCap | REDCap entry was skipped | Create the record immediately; note the delay in the registration date |
 | REDCap and BIDS age values differ | Different age calculation or rounding | Reconcile to use the same value; age at pre-implant session is the standard |
@@ -566,3 +566,4 @@ Before saving any record, verify:
 | Version | Date | Author | Changes |
 |---|---|---|---|
 | 1.0 | May 1, 2026 | Brandon Bach | Initial release: clinical metadata requirements, imaging acquisition metadata, BIDS dataset-level metadata, REDCap project structure and entry workflow, de-identification guidance, quality checks, quick-reference section |
+| 1.1 | May 7, 2026 | Brandon Bach | Reframed sites as "participating in the multi-site epilepsy data sharing initiative" rather than "contributing to the Penn Epilepsy Dataset"; renamed `contributing_site` field to `participating_site`; replaced "Penn team" references with project-role labels (REDCap Administrator for permissions issues, project team for the dataset_description.json and cross-site auditing); reframed REDCap as the centralized metadata registry for the initiative; replaced "your contributing site" with "your site" in DAG selection step |

@@ -3,8 +3,8 @@
 | Field | Value |
 |---|---|
 | **Document ID** | SOP-PENNSIEVE-001 |
-| **Version** | 2.0 |
-| **Effective Date** | April 28, 2026 |
+| **Version** | 2.1 |
+| **Effective Date** | May 7, 2026 |
 | **Author** | Brandon Bach |
 | **Advisor** | Nishant Sinha |
 | **Status** | Draft -- Pending Advisor Review |
@@ -48,7 +48,7 @@ Before beginning, ensure you have:
 - BIDS validation passed with zero errors (see Section 7)
 - De-identification completed per SOP-BIDS-001 Section 8 (DICOM headers stripped, defacing applied, EEG headers cleaned)
 - A Pennsieve account with access to your site's workspace (see Section 5)
-- A signed data use agreement on file with the Penn team (per GOV-001 Section 7.3)
+- A signed data use agreement on file with the project team (per GOV-001 Section 7.3)
 - Stable internet connection (neuroimaging uploads can be large, often several GB per subject)
 
 For CLI uploads only:
@@ -64,7 +64,7 @@ For CLI uploads only:
 2. Click **Sign Up**
 3. Enter your institutional email address and create a password
 4. Complete email verification
-5. Notify the Penn team (Brandon Bach, bach2@seas.upenn.edu) with your registered email to be added to the workspace
+5. Notify the project lead (Brandon Bach, bach2@seas.upenn.edu) with your registered email to be added to the workspace
 
 ### 5.2 Generate API Key (Required for CLI Uploads Only)
 
@@ -81,7 +81,7 @@ An API key is required to authenticate the Pennsieve Agent. If you plan to uploa
 
 ### 5.3 Locate Your Workspace Node ID
 
-The workspace node ID identifies the target dataset on Pennsieve. The Penn team will provide this ID when you are granted workspace access. You can also find it in the Pennsieve web app by navigating to the dataset and checking the URL or dataset settings.
+The workspace node ID identifies the target dataset on Pennsieve. The project administrator will provide this ID when you are granted workspace access. You can also find it in the Pennsieve web app by navigating to the dataset and checking the URL or dataset settings.
 
 ## 6. Method 1: Upload via Web Interface (Drag and Drop)
 
@@ -209,7 +209,7 @@ pennsieve dataset list
 pennsieve dataset use <dataset-node-id>
 ```
 
-The Penn team will provide you with the dataset node ID for your site's workspace.
+The project administrator will provide you with the dataset node ID for your site's workspace.
 
 ### 7.5 Create an Upload Manifest
 
@@ -292,7 +292,7 @@ After uploading (by either method), complete this checklist:
 - [ ] CT file and JSON sidecar in ses-postimplant/ct/
 - [ ] iEEG files, channels.tsv, and electrodes.tsv in ses-postimplant/ieeg/
 - [ ] File sizes match local files (no truncation during upload)
-- [ ] Notify the Penn team (bach2@seas.upenn.edu) that upload is complete
+- [ ] Notify the project lead (bach2@seas.upenn.edu) that upload is complete
 
 ## 10. Audit and Logging Requirements
 
@@ -321,7 +321,7 @@ All audit records should be stored locally at your site and a copy provided to P
 | Issue | Solution |
 |---|---|
 | "Authentication failed" | Verify API key and secret are correct. Regenerate if necessary. |
-| "Permission denied" | Contact the Penn team to verify workspace access permissions. |
+| "Permission denied" | Contact the project administrator to verify workspace access permissions. |
 | Upload stalls or times out | Check internet connection. For large files, try uploading in smaller batches or use the CLI method. |
 | "Dataset not found" | Verify dataset node ID. Run `pennsieve dataset list` to see available datasets. |
 | Files missing after upload | Re-upload missing files. Use the CLI with `--verbose` flag to monitor progress. |
@@ -383,7 +383,7 @@ Best for: multi-subject uploads, large files, unreliable connections (supports r
 - [ ] CT + JSON in ses-postimplant/ct/
 - [ ] iEEG files + channels.tsv + electrodes.tsv in ses-postimplant/ieeg/
 - [ ] File sizes match local files
-- [ ] Notify Penn team at bach2@seas.upenn.edu
+- [ ] Notify the project lead at bach2@seas.upenn.edu
 
 ### Key Links
 
@@ -404,3 +404,4 @@ Best for: multi-subject uploads, large files, unreliable connections (supports r
 | 1.1 | April 22, 2026 | Brandon Bach | Converted to markdown, added web upload method, updated CLI to manifest-based workflow, added method comparison table, removed Dataset 49 references |
 | 1.2 | April 28, 2026 | Brandon Bach | Added quick-reference section (replaces separate quick-reference guide) |
 | 2.0 | April 28, 2026 | Brandon Bach | Major update: added GOV-001 traceability section, added pre-upload validation section (GUI and manual workflows), added audit and logging requirements section (ALCOA+ records), added data use agreement to prerequisites, expanded post-upload verification, updated section numbering |
+| 2.1 | May 7, 2026 | Brandon Bach | Replaced "Penn team" references with project-role labels (project lead for site notifications, project administrator for workspace access and node ID delivery, project team for the data use agreement) for consistency with the multi-site framing; updated workspace references from "Penn Epilepsy workspace" to "your site's workspace" so each site uploads to their own dataset |
