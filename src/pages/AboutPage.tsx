@@ -197,13 +197,13 @@ export default function AboutPage() {
       {/* ─── CAPSTONE CONTEXT + AUTHOR ───────────────────── */}
       <section className="grid grid-cols-2 gap-8 mb-14">
         <div className="rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
-          <Eyebrow>Capstone context</Eyebrow>
-          <h2 className="text-xl font-bold text-gray-900 mt-3 mb-3">UPenn MRA Capstone, 2026</h2>
+          <Eyebrow>Project status</Eyebrow>
+          <h2 className="text-xl font-bold text-gray-900 mt-3 mb-3">Currently in beta</h2>
           <p className="text-sm text-gray-500 leading-relaxed">
-            NeuroGate is a UPenn capstone project running through 2026. The framework and SOPs are
-            being validated internally first, then with one external partner site before broader
-            adoption. The site is currently in beta; the tool is functional and the documentation
-            is in draft, pending review.
+            The framework and SOPs are being validated internally first, then with one external
+            partner site before broader adoption. The tool is functional and the documentation is
+            in draft, pending review. NeuroGate is in active development and intended to be a
+            long-lived resource for the multi-site epilepsy data sharing community.
           </p>
           <div className="mt-5 inline-flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-full" style={{ backgroundColor: 'rgba(109,211,206,0.15)', color: TEAL_TEXT }}>
             <span style={{ color: TEAL }}>&#9679;</span>

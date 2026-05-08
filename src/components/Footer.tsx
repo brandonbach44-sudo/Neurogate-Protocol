@@ -76,9 +76,6 @@ export default function Footer() {
               Project
             </div>
             <ul className="space-y-2.5">
-              <li className="text-xs" style={{ color: 'rgba(255,255,255,0.7)' }}>
-                UPenn MRA Capstone
-              </li>
               <li>
                 <a
                   href="https://github.com/brandonbach44-sudo/Epilepsy_GUI"
