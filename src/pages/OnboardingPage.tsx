@@ -184,9 +184,9 @@ export default function OnboardingPage() {
             to independent operation.
           </h1>
           <p className="mt-4 text-sm text-gray-500 leading-relaxed max-w-lg">
-            Every external research site contributing to the Penn Epilepsy Dataset completes a
-            five-phase onboarding workflow. Phases gate one another: a site cannot move forward
-            until the previous phase's criteria are met. The full checklist (ONBOARD-001) is
+            Every external research site joining the multi-site epilepsy data sharing initiative
+            completes a five-phase onboarding workflow. Phases gate one another: a site cannot move
+            forward until the previous phase's criteria are met. The full checklist (ONBOARD-001) is
             below as a downloadable document; this page summarizes the workflow.
           </p>
           <div className="mt-6 flex items-center gap-3">
@@ -249,8 +249,9 @@ export default function OnboardingPage() {
         </div>
         <div className="mt-5 pt-4 border-t border-gray-100 text-xs text-gray-500 leading-relaxed">
           The site's first real subject (Phase 4) is the validation upload required by GOV-001
-          Section 7.3. Penn supervises that upload directly; subsequent uploads in Phase 5 are
-          done independently and reviewed by the Quality Auditor before sign-off.
+          Section 7.3. The project lead supervises that upload directly; subsequent uploads in
+          Phase 5 are done independently and reviewed by the Quality Auditor before the site is
+          marked fully onboarded.
         </div>
       </div>
 
@@ -266,9 +267,9 @@ export default function OnboardingPage() {
         </div>
         <div className="grid grid-cols-3 gap-5">
           <RoleCard
-            who="Penn Team"
+            who="Project Team"
             role="Onboarding Lead"
-            desc="Owns the workflow end-to-end, runs training, signs off completion."
+            desc="Owns the workflow end-to-end, runs training, documents completion."
             accent={PENN_BLUE}
             bg="rgba(1,31,91,0.04)"
           />
@@ -287,21 +288,21 @@ export default function OnboardingPage() {
             bg="rgba(109,211,206,0.10)"
           />
           <RoleCard
-            who="Penn Team"
+            who="Project Team"
             role="Pennsieve Workspace Admin"
             desc="Grants Pennsieve workspace access and shares the dataset node ID."
             accent={PENN_BLUE}
             bg="rgba(1,31,91,0.04)"
           />
           <RoleCard
-            who="Penn Team"
+            who="Project Team"
             role="REDCap Administrator"
             desc="Grants REDCap project access and shares the data dictionary."
             accent={PENN_BLUE}
             bg="rgba(1,31,91,0.04)"
           />
           <RoleCard
-            who="Penn Team"
+            who="Project Team"
             role="Quality Auditor"
             desc="Reviews the supervised first subject and the first independent uploads."
             accent="#7c3aed"
@@ -394,7 +395,7 @@ export default function OnboardingPage() {
           <PhaseCard
             number="4"
             title="First Subject (Supervised)"
-            goal="The site's first real subject is uploaded under direct Penn supervision. This is the validation run for GOV-001 7.3."
+            goal="The site's first real subject is uploaded under direct supervision from the project lead. This is the validation run for GOV-001 7.3."
             accent={TEAL_TEXT}
             iconBg="rgba(109,211,206,0.16)"
             icon={
@@ -409,7 +410,7 @@ export default function OnboardingPage() {
               'Conversion, defacing, and EEG header cleaning completed',
               'NeuroGate validation passes with zero errors',
               'PHI Clearance Form signed for this subject',
-              'Upload run while Penn is on call or screen-shares',
+              'Upload run while the project lead is on call or screen-shares',
               'ALCOA+ audit log archived alongside the BIDS export',
             ]}
           />
@@ -435,7 +436,7 @@ export default function OnboardingPage() {
             ]}
           />
 
-          {/* Sign-off card */}
+          {/* Completion card */}
           <div
             className="rounded-2xl border border-gray-100 p-7 transition-shadow duration-300 hover:shadow-md"
             style={{
@@ -454,22 +455,23 @@ export default function OnboardingPage() {
                   className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full"
                   style={{ backgroundColor: 'rgba(109,211,206,0.18)', color: TEAL }}
                 >
-                  Sign-Off
+                  Completion
                 </span>
                 <h3 className="text-base font-semibold text-white mt-2">Onboarding complete</h3>
                 <p className="text-xs mt-1 leading-relaxed" style={{ color: 'rgba(255,255,255,0.65)' }}>
-                  Onboarding Lead, Site PI, and Site Data Manager sign the completed checklist. The
-                  signed record is filed as evidence of training per GOV-001 Section 2.5.
+                  Once Phase 5 reviews pass, the Onboarding Lead documents completion in the project
+                  training records per GOV-001 Section 2.5. The site is fully onboarded and shares
+                  data independently.
                 </p>
               </div>
             </div>
             <div className="border-t pt-4" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
               <div className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: 'rgba(255,255,255,0.45)' }}>
-                After sign-off
+                After completion
               </div>
               <ul className="space-y-1.5">
                 {[
-                  'Site contributes data independently',
+                  'Site shares data independently',
                   'Site enters the quarterly audit cycle',
                   'Onboarding Lead remains primary contact for support',
                 ].map((t) => (
@@ -522,7 +524,7 @@ export default function OnboardingPage() {
                 criteria="First subject uploaded under supervision and validated end-to-end; PHI Clearance Form signed; ALCOA+ audit log archived."
               />
               <GateRow
-                before="Sign-Off"
+                before="Fully Onboarded"
                 criteria="All three subjects uploaded; PHI Clearance Form signed for each; Quality Auditor has reviewed subjects 2 and 3."
               />
             </tbody>
@@ -603,11 +605,11 @@ export default function OnboardingPage() {
               Why every site goes through this
             </h3>
             <p className="mt-3 text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.7)' }}>
-              GOV-001 Section 7.3 requires that before any site contributes data, they must
-              designate and train a site data manager, obtain local IRB approval, sign a data use
-              agreement, successfully upload and validate a real subject under supervision, and
-              demonstrate de-identification procedures. ONBOARD-001 is how that happens. The signed
-              checklist is the training record per GOV-001 Section 2.5.
+              GOV-001 Section 7.3 requires that before any site shares data, they must designate
+              and train a site data manager, obtain local IRB approval, sign a data use agreement,
+              successfully upload and validate a real subject under supervision, and demonstrate
+              de-identification procedures. ONBOARD-001 is how that happens. Onboarding completion
+              is recorded in the project training records per GOV-001 Section 2.5.
             </p>
           </div>
           <div className="flex justify-end">
