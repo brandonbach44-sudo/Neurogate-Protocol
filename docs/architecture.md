@@ -19,7 +19,7 @@ User browser
 
 **Status as of 2026-04-14:** Pending guidance from the Pennsieve team (meeting scheduled for week of 2026-04-14).
 
-Pennsieve's documented upload path uses their desktop **Pennsieve Agent**. There is no officially documented browser-based upload API, and CORS support for direct browser calls is not documented. See `Pennsieve_Upload_Architecture_Options.docx` in the main capstone folder for full discussion.
+Pennsieve's documented upload path uses their desktop **Pennsieve Agent**. There is no officially documented browser-based upload API, and CORS support for direct browser calls is not documented. See `Pennsieve_Upload_Architecture_Options.md` in the main project folder for full discussion.
 
 ### Three options, ordered by preference
 
