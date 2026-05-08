@@ -2,7 +2,6 @@ import { Link } from 'react-router-dom';
 
 const PENN_BLUE = '#011F5B';
 const PENN_BLUE_HOVER = '#01326e';
-const TEAL = '#6DD3CE';
 const TEAL_TEXT = '#0F6E56';
 
 /* ─── Quick-link card ────────────────────────────────────────── */
