@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import FileDropZone from '../components/FileDropZone';
 import MappingTable from '../components/MappingTable';
 import MetadataStep from '../components/MetadataStep';
@@ -159,19 +160,24 @@ function ToolPage() {
         className="relative z-10 text-white py-4 px-6 border-b bg-gradient-to-r from-[#011F5B] to-[#01326e]"
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-white/10">
+          <Link
+            to="/"
+            className="no-underline flex items-center gap-3 group"
+            aria-label="Back to NeuroGate home"
+            title="Back to NeuroGate home"
+          >
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-white/10 group-hover:bg-white/20 transition-colors">
               <NeuronIcon size={28} color="#6DD3CE" />
             </div>
             <div>
-              <h1 className="text-xl font-semibold tracking-tight text-white">
+              <h1 className="text-xl font-semibold tracking-tight text-white group-hover:text-[#6DD3CE] transition-colors">
                 NeuroGate
               </h1>
               <p className="text-sm mt-0.5 text-blue-200">
                 Multi-site epilepsy data compliance tool
               </p>
             </div>
-          </div>
+          </Link>
           <div className="flex items-center gap-6">
             {/* Step indicator */}
             <div className="flex items-center text-sm">
