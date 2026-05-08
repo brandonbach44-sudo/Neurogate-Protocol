@@ -6,6 +6,7 @@ import DocsPage from './pages/DocsPage';
 import DocViewerPage from './pages/DocViewerPage';
 import PreProcessingPage from './pages/PreProcessingPage';
 import OnboardingPage from './pages/OnboardingPage';
+import NotFoundPage from './pages/NotFoundPage';
 
 function App() {
   return (
@@ -18,6 +19,8 @@ function App() {
           <Route path="/docs/:docId" element={<DocViewerPage />} />
           <Route path="/tools" element={<PreProcessingPage />} />
           <Route path="/onboarding" element={<OnboardingPage />} />
+          {/* Catch-all 404 inside Layout so it gets the navbar */}
+          <Route path="*" element={<NotFoundPage />} />
         </Route>
 
         {/* Tool has its own header with step indicator */}
