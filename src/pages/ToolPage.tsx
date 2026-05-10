@@ -8,6 +8,7 @@ import ExportStep from '../components/ExportStep';
 import AuditLogPanel from '../components/AuditLogPanel';
 import { NeuronIcon } from '../components/Icons';
 import NeuralParticles from '../components/NeuralParticles';
+import Wordmark from '../components/Wordmark';
 import type { MetadataOutput } from '../components/MetadataStep';
 import type { ScannedFile } from '../types/files';
 import type { DetectionResult, DetectionSummary, Session, Modality } from '../types/detection';
@@ -217,17 +218,15 @@ function ToolPage() {
           <Link
             to="/"
             className="no-underline flex items-center gap-3 group"
-            aria-label="Back to NeuroGate home"
-            title="Back to NeuroGate home"
+            aria-label="Back to NeuroGate Protocol home"
+            title="Back to NeuroGate Protocol home"
           >
             <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-white/10 group-hover:bg-white/20 transition-colors">
               <NeuronIcon size={28} color="#6DD3CE" />
             </div>
             <div>
-              <h1 className="text-xl font-semibold tracking-tight text-white group-hover:text-[#6DD3CE] transition-colors">
-                NeuroGate
-              </h1>
-              <p className="text-sm mt-0.5 text-blue-200">
+              <Wordmark size="lg" />
+              <p className="text-sm mt-1 text-blue-200">
                 Multi-site epilepsy data compliance tool
               </p>
             </div>

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { NeuronIcon } from './Icons';
+import Wordmark from './Wordmark';
 
 const TEAL = '#6DD3CE';
 
@@ -22,9 +23,7 @@ export default function Footer() {
               >
                 <NeuronIcon size={22} color={TEAL} />
               </div>
-              <span className="text-white font-semibold text-base tracking-tight">
-                NeuroGate
-              </span>
+              <Wordmark size="sm" />
             </Link>
             <p
               className="mt-4 text-xs leading-relaxed max-w-xs"
