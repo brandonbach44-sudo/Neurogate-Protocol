@@ -246,30 +246,6 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* ─── TECH STACK ─────────────────────────────────── */}
-      <section className="rounded-2xl border border-gray-100 bg-white p-8 shadow-sm mb-14">
-        <Eyebrow>Under the hood</Eyebrow>
-        <h2 className="text-xl font-bold text-gray-900 mt-3 mb-4">How the site is built</h2>
-        <p className="text-sm text-gray-500 leading-relaxed mb-5 max-w-3xl">
-          The site and tool are a single React + Vite + TypeScript app deployed on Vercel. All
-          file processing, validation, and BIDS export happens in the browser; nothing is uploaded
-          to a server, and no data ever leaves the user's machine. The documentation pages render
-          markdown sourced directly from the repo, so the docs stay in version control next to the
-          code they describe.
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {['React', 'Vite', 'TypeScript', 'Tailwind', 'react-router-dom', 'react-markdown', 'Vercel'].map((tech) => (
-            <span
-              key={tech}
-              className="text-xs font-medium px-3 py-1 rounded-full"
-              style={{ backgroundColor: 'rgba(1,31,91,0.06)', color: PENN_BLUE }}
-            >
-              {tech}
-            </span>
-          ))}
-        </div>
-      </section>
-
       {/* ─── CTA BANNER ─────────────────────────────────── */}
       <div
         className="rounded-2xl px-10 py-10"

@@ -19,14 +19,6 @@ Research staff at participating epilepsy study sites drag a folder of patient da
 
 Users are assumed to have already converted DICOM to NIfTI and de-identified structural MRI. The tool validates and attests; it does not perform those steps. Pennsieve upload is performed by the user separately following SOP-PENNSIEVE-001.
 
-## Tech Stack
-
-- React + Vite + TypeScript
-- Tailwind CSS
-- `bids-validator` for BIDS compliance
-- `nifti-reader-js` for NIfTI header inspection
-- Hosted on Vercel
-
 ## Development
 
 ```bash
