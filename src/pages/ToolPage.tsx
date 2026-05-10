@@ -212,12 +212,12 @@ function ToolPage() {
 
       {/* Header */}
       <header
-        className="relative z-10 text-white py-4 px-6 border-b bg-gradient-to-r from-[#011F5B] to-[#01326e]"
+        className="relative z-10 text-white py-4 px-4 sm:px-6 border-b bg-gradient-to-r from-[#011F5B] to-[#01326e]"
       >
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
           <Link
             to="/"
-            className="no-underline flex items-center gap-3 group"
+            className="no-underline flex items-center gap-3 group flex-shrink-0"
             aria-label="Back to NeuroGate Protocol home"
             title="Back to NeuroGate Protocol home"
           >
@@ -226,14 +226,28 @@ function ToolPage() {
             </div>
             <div>
               <Wordmark size="lg" />
-              <p className="text-sm mt-1 text-blue-200">
+              <p className="hidden md:block text-sm mt-1 text-blue-200">
                 Multi-site epilepsy data compliance tool
               </p>
             </div>
           </Link>
-          <div className="flex items-center gap-6">
-            {/* Step indicator */}
-            <div className="flex items-center text-sm">
+
+          {/* Mobile-only compact step label */}
+          <div className="flex md:hidden flex-col items-end text-right">
+            <span className="text-[10px] uppercase tracking-widest text-blue-200">
+              Step {stepNumber(step)} of 5
+            </span>
+            <span className="text-xs font-semibold text-[#6DD3CE]">
+              {step === 'drop' || step === 'scanning' ? 'Drop Files' :
+                step === 'mapping' ? 'Mapping' :
+                step === 'metadata' ? 'Metadata' :
+                step === 'validation' ? 'Validate' :
+                'Export'}
+            </span>
+          </div>
+
+          {/* Desktop-only step indicator */}
+          <div className="hidden md:flex items-center text-sm">
               {[
                 { num: 1, label: 'Drop Files' },
                 { num: 2, label: 'Mapping' },
@@ -288,21 +302,26 @@ function ToolPage() {
                   </span>
                 );
               })}
-            </div>
-
-            {/* Audit log button */}
-            <button
-              onClick={() => setAuditPanelOpen(true)}
-              className="relative px-3 py-1.5 text-xs font-medium rounded-lg transition-all bg-white/15 text-white hover:bg-white/25"
-            >
-              Audit Log
-              {audit.getEntryCount() > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 w-5 h-5 text-xs rounded-full flex items-center justify-center font-semibold bg-[#6DD3CE] text-[#011F5B]">
-                  {audit.getEntryCount()}
-                </span>
-              )}
-            </button>
           </div>
+
+          {/* Audit log button (always visible) */}
+          <button
+            onClick={() => setAuditPanelOpen(true)}
+            className="relative flex-shrink-0 px-3 py-1.5 text-xs font-medium rounded-lg transition-all bg-white/15 text-white hover:bg-white/25"
+          >
+            <span className="hidden sm:inline">Audit Log</span>
+            <svg className="sm:hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-label="Audit Log">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="9" y1="13" x2="15" y2="13" />
+              <line x1="9" y1="17" x2="13" y2="17" />
+            </svg>
+            {audit.getEntryCount() > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 w-5 h-5 text-xs rounded-full flex items-center justify-center font-semibold bg-[#6DD3CE] text-[#011F5B]">
+                {audit.getEntryCount()}
+              </span>
+            )}
+          </button>
         </div>
       </header>
 
@@ -371,7 +390,7 @@ function ToolPage() {
             <FileDropZone onFilesScanned={handleFilesScanned} />
 
             {/* Feature cards below drop zone */}
-            <div className="grid grid-cols-3 gap-4 mt-10 max-w-3xl mx-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-10 max-w-3xl mx-auto">
               {[
                 {
                   title: 'Auto-Detection',

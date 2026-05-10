@@ -79,7 +79,7 @@ export default function NotFoundPage() {
       </div>
 
       {/* Quick links to common destinations */}
-      <div className="mt-12 grid grid-cols-3 gap-4 text-left">
+      <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-4 text-left">
         <QuickLink
           to="/tool"
           label="NeuroGate Tool"

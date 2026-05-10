@@ -64,10 +64,10 @@ function DocCard({
 /* ═══ MAIN PAGE ═══════════════════════════════════════════════ */
 export default function DocsPage() {
   return (
-    <div className="max-w-7xl mx-auto px-6 py-16">
+    <div className="max-w-7xl mx-auto px-6 py-12 md:py-16">
       {/* Header */}
-      <div className="grid grid-cols-3 gap-12 mb-14">
-        <div className="col-span-2">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 mb-14">
+        <div className="md:col-span-2">
           <span
             className="text-[11px] font-semibold uppercase tracking-widest px-3 py-1 rounded-full"
             style={{ backgroundColor: 'rgba(1,31,91,0.06)', color: '#011F5B' }}
@@ -85,7 +85,7 @@ export default function DocsPage() {
             quick-reference guide.
           </p>
         </div>
-        <div className="flex items-end justify-end">
+        <div className="flex items-end md:justify-end">
           <div className="text-right">
             <div className="text-3xl font-bold" style={{ color: '#011F5B' }}>6</div>
             <div className="text-xs text-gray-400 uppercase tracking-wide mt-1">Documents</div>
@@ -125,7 +125,7 @@ export default function DocsPage() {
       </div>
 
       {/* SOP grid */}
-      <div className="grid grid-cols-2 gap-5 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
         <DocCard
           id="SOP-BIDS-001"
           title="BIDS Data Structure"

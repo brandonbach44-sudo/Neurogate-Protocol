@@ -68,10 +68,10 @@ function PillarCard({
 /* ═══ MAIN PAGE ═══════════════════════════════════════════════ */
 export default function AboutPage() {
   return (
-    <div className="max-w-7xl mx-auto px-6 py-16">
+    <div className="max-w-7xl mx-auto px-6 py-12 md:py-16">
       {/* ─── HERO ────────────────────────────────────────── */}
-      <div className="grid grid-cols-3 gap-12 mb-14">
-        <div className="col-span-2">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 mb-14">
+        <div className="md:col-span-2">
           <Eyebrow>About NeuroGate</Eyebrow>
           <h1 className="text-3xl font-bold text-gray-900 mt-4 leading-tight">
             A governance framework
@@ -111,8 +111,8 @@ export default function AboutPage() {
             </Link>
           </div>
         </div>
-        <div className="flex items-end justify-end">
-          <div className="text-right">
+        <div className="flex items-end md:justify-end">
+          <div className="md:text-right">
             <div className="text-3xl font-bold" style={{ color: PENN_BLUE }}>2026</div>
             <div className="text-xs text-gray-400 uppercase tracking-wide mt-1">In development</div>
           </div>
@@ -139,7 +139,7 @@ export default function AboutPage() {
           <Eyebrow>What NeuroGate is</Eyebrow>
           <h2 className="text-2xl font-bold text-gray-900 mt-3">Three things, working together</h2>
         </div>
-        <div className="grid grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           <PillarCard
             title="A governance framework"
             body="GOV-001 defines the regulatory pillars (FAIR, ALCOA+, HIPAA, NIH DMSP) and the QMS structure all SOPs trace back to. Every operational deliverable maps to a specific framework requirement."
@@ -183,19 +183,19 @@ export default function AboutPage() {
 
       {/* ─── STATS BAR ───────────────────────────────────── */}
       <section className="rounded-2xl border border-gray-100 bg-white py-8 px-6 mb-14 shadow-sm">
-        <div className="flex items-center justify-around">
+        <div className="grid grid-cols-2 md:flex md:items-center md:justify-around gap-6 md:gap-0">
           <StatBlock value="5" label="Modalities" />
-          <div className="w-px h-10 bg-gray-200" />
+          <div className="hidden md:block w-px h-10 bg-gray-200" />
           <StatBlock value="3" label="Clinical sessions" />
-          <div className="w-px h-10 bg-gray-200" />
+          <div className="hidden md:block w-px h-10 bg-gray-200" />
           <StatBlock value="6" label="Documents" />
-          <div className="w-px h-10 bg-gray-200" />
+          <div className="hidden md:block w-px h-10 bg-gray-200" />
           <StatBlock value="100%" label="Client-side" />
         </div>
       </section>
 
-      {/* ─── CAPSTONE CONTEXT + AUTHOR ───────────────────── */}
-      <section className="grid grid-cols-2 gap-8 mb-14">
+      {/* ─── PROJECT STATUS + AUTHOR ─────────────────────── */}
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-14">
         <div className="rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
           <Eyebrow>Project status</Eyebrow>
           <h2 className="text-xl font-bold text-gray-900 mt-3 mb-3">Currently in beta</h2>
@@ -248,11 +248,11 @@ export default function AboutPage() {
 
       {/* ─── CTA BANNER ─────────────────────────────────── */}
       <div
-        className="rounded-2xl px-10 py-10"
+        className="rounded-2xl px-6 md:px-10 py-8 md:py-10"
         style={{ background: `linear-gradient(135deg, ${PENN_BLUE} 0%, ${PENN_BLUE_HOVER} 100%)` }}
       >
-        <div className="grid grid-cols-3 gap-8 items-center">
-          <div className="col-span-2">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 items-start md:items-center">
+          <div className="md:col-span-2">
             <Eyebrow color={TEAL} bg="rgba(109,211,206,0.15)">Get started</Eyebrow>
             <h3 className="text-2xl font-bold text-white mt-3">
               Try the tool or read the framework.
@@ -262,7 +262,7 @@ export default function AboutPage() {
               the governance framework, four SOPs, and the site onboarding workflow.
             </p>
           </div>
-          <div className="flex flex-col gap-3 items-end">
+          <div className="flex flex-col gap-3 md:items-end">
             <Link
               to="/tool"
               className="no-underline inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all w-full justify-center"
