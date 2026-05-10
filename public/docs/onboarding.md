@@ -5,8 +5,8 @@
 | Field | Value |
 |---|---|
 | **Document ID** | ONBOARD-001 |
-| **Version** | 2.1 |
-| **Effective Date** | May 7, 2026 |
+| **Version** | 2.2 |
+| **Effective Date** | May 8, 2026 |
 | **Author** | Brandon Bach |
 | **Advisor** | Nishant Sinha |
 | **Status** | Draft -- Pending Advisor Review |
@@ -15,7 +15,7 @@
 
 ---
 
-> **How to use this document.** This is a procedural reference. It describes the structure of site onboarding but is not a fillable form. The actual tracking (subject IDs, dates, validation status, sign-offs) happens in the NeuroGate tool's audit log, in REDCap, and in the project's training records. The checkbox symbols (☐) in the phase tables mark tasks visually; they cannot be checked off in the rendered view.
+> **How to use this document.** This is a procedural reference. It lists what happens in each phase of site onboarding and who is responsible. Actual tracking (subject IDs, dates, validation status, sign-offs) happens in the NeuroGate tool's audit log, in REDCap, and in the project's training records.
 
 ---
 
@@ -60,22 +60,22 @@ The following roles are referenced throughout this checklist. Before Phase 1 clo
 
 Before any account is created or any data is touched, the legal and governance prerequisites must be in place and the site must have read the framework.
 
-| Done | Task | Responsible |
-|---|---|---|
-| ☐ | Initial contact email sent | Onboarding Lead |
-| ☐ | Kickoff call scheduled and held | Onboarding Lead |
-| ☐ | Site PI confirmed | Site |
-| ☐ | Site Data Manager designated and confirmed | Site PI |
-| ☐ | Local IRB approval verified (copy on file with the project) | Site |
-| ☐ | Data Use Agreement signed and on file | Site PI / Legal |
-| ☐ | Institution prefix assigned (2-6 uppercase letters, e.g., CHOP, HUP) | Onboarding Lead |
-| ☐ | Starting subject number confirmed to avoid ID collisions | Onboarding Lead |
-| ☐ | Documentation package sent to site: GOV-001, SOP-BIDS-001, SOP-PENNSIEVE-001, SOP-REDCAP-001, SOP-GUI-001 | Onboarding Lead |
-| ☐ | Site reviews GOV-001 (Regulatory Governance Framework) | Site |
-| ☐ | Site reviews SOP-BIDS-001 (BIDS Data Structure) | Site |
-| ☐ | Site reviews SOP-PENNSIEVE-001 (Pennsieve Upload) | Site |
-| ☐ | Site reviews SOP-REDCAP-001 (REDCap Metadata Entry) | Site |
-| ☐ | Site reviews SOP-GUI-001 (NeuroGate Tool User Guide) | Site |
+| Task | Responsible |
+|---|---|
+| Initial contact email sent | Onboarding Lead |
+| Kickoff call scheduled and held | Onboarding Lead |
+| Site PI confirmed | Site |
+| Site Data Manager designated and confirmed | Site PI |
+| Local IRB approval verified (copy on file with the project) | Site |
+| Data Use Agreement signed and on file | Site PI / Legal |
+| Institution prefix assigned (2-6 uppercase letters, e.g., CHOP, HUP) | Onboarding Lead |
+| Starting subject number confirmed to avoid ID collisions | Onboarding Lead |
+| Documentation package sent to site: GOV-001, SOP-BIDS-001, SOP-PENNSIEVE-001, SOP-REDCAP-001, SOP-GUI-001 | Onboarding Lead |
+| Site reviews GOV-001 (Regulatory Governance Framework) | Site |
+| Site reviews SOP-BIDS-001 (BIDS Data Structure) | Site |
+| Site reviews SOP-PENNSIEVE-001 (Pennsieve Upload) | Site |
+| Site reviews SOP-REDCAP-001 (REDCap Metadata Entry) | Site |
+| Site reviews SOP-GUI-001 (NeuroGate Tool User Guide) | Site |
 
 ## 6. Phase 2: Account and Tooling Setup
 
@@ -83,96 +83,96 @@ The site provisions accounts, secures credentials, sets up the local subject ID 
 
 ### 6.1 Pennsieve and REDCap Accounts
 
-| Done | Task | Responsible |
-|---|---|---|
-| ☐ | Pennsieve account requested for Site Data Manager (and any backups) | Onboarding Lead |
-| ☐ | Pennsieve workspace access granted | Pennsieve Workspace Admin |
-| ☐ | Pennsieve dataset node ID shared with site | Onboarding Lead |
-| ☐ | Site can log in to Pennsieve and see the target dataset | Site |
-| ☐ | REDCap project access granted | REDCap Administrator |
-| ☐ | Site can log in to REDCap and view the data dictionary | Site |
+| Task | Responsible |
+|---|---|
+| Pennsieve account requested for Site Data Manager (and any backups) | Onboarding Lead |
+| Pennsieve workspace access granted | Pennsieve Workspace Admin |
+| Pennsieve dataset node ID shared with site | Onboarding Lead |
+| Site can log in to Pennsieve and see the target dataset | Site |
+| REDCap project access granted | REDCap Administrator |
+| Site can log in to REDCap and view the data dictionary | Site |
 
 ### 6.2 API Key (only required if site will use the Pennsieve Agent CLI)
 
-| Done | Task | Responsible |
-|---|---|---|
-| ☐ | Pennsieve API key and secret generated (per SOP-PENNSIEVE-001 Section 5.2) | Site |
-| ☐ | API key and secret stored securely (the secret is shown only once) | Site Data Manager |
-| ☐ | `pennsieve whoami` returns the site account from the Site Data Manager's machine | Site |
+| Task | Responsible |
+|---|---|
+| Pennsieve API key and secret generated (per SOP-PENNSIEVE-001 Section 5.2) | Site |
+| API key and secret stored securely (the secret is shown only once) | Site Data Manager |
+| `pennsieve whoami` returns the site account from the Site Data Manager's machine | Site |
 
 ### 6.3 Pre-Processing Tools
 
 The site must install dcm2niix and pydeface before they can convert and de-identify data. Install instructions are on the NeuroGate site at `/tools` and in SOP-BIDS-001 Section 4.
 
-| Done | Task | Responsible |
-|---|---|---|
-| ☐ | dcm2niix installed; `dcm2niix --version` succeeds | Site |
-| ☐ | pydeface installed (with FSL FLIRT available on PATH); `pydeface --help` succeeds | Site |
-| ☐ | Site has reviewed `/tools` page on the NeuroGate site for usage examples | Site |
+| Task | Responsible |
+|---|---|
+| dcm2niix installed; `dcm2niix --version` succeeds | Site |
+| pydeface installed (with FSL FLIRT available on PATH); `pydeface --help` succeeds | Site |
+| Site has reviewed `/tools` page on the NeuroGate site for usage examples | Site |
 
 ### 6.4 Subject ID Key Storage
 
 Per GOV-001 Section 2.3, the key linking BIDS subject IDs to real patient identifiers must live only at the originating institution in a secure, access-controlled system. It is never uploaded to Pennsieve or shared externally.
 
-| Done | Task | Responsible |
-|---|---|---|
-| ☐ | Secure local storage location for subject ID key identified (e.g., institutional REDCap, encrypted spreadsheet on access-controlled share) | Site Data Manager |
-| ☐ | Access list for the key documented (Site PI + Site Data Manager only, plus any institutional backups) | Site Data Manager |
-| ☐ | First test entry written and read back to confirm the system works | Site Data Manager |
+| Task | Responsible |
+|---|---|
+| Secure local storage location for subject ID key identified (e.g., institutional REDCap, encrypted spreadsheet on access-controlled share) | Site Data Manager |
+| Access list for the key documented (Site PI + Site Data Manager only, plus any institutional backups) | Site Data Manager |
+| First test entry written and read back to confirm the system works | Site Data Manager |
 
 ## 7. Phase 3: Training Session
 
 The Onboarding Lead runs a training session covering the framework, the four operational SOPs, and a live demonstration of the NeuroGate tool. Completion of this phase is the formal training record per GOV-001 Section 2.5.
 
-| Done | Task | Responsible |
-|---|---|---|
-| ☐ | Training session scheduled | Onboarding Lead |
-| ☐ | Project overview and governance framework presented | Onboarding Lead |
-| ☐ | BIDS folder structure and naming walked through with examples | Onboarding Lead |
-| ☐ | De-identification workflow demonstrated end-to-end (DICOM strip, defacing, EEG header cleaning, filename PHI check) | Onboarding Lead |
-| ☐ | NeuroGate tool demonstration (drop, mapping, metadata, validation, export, audit log) | Onboarding Lead |
-| ☐ | Pennsieve upload walkthrough (web and CLI methods) | Onboarding Lead |
-| ☐ | REDCap data entry walkthrough (controlled vocabularies, required fields) | Onboarding Lead |
-| ☐ | Q and A completed | Both |
-| ☐ | Training session recording shared with site (if applicable) | Onboarding Lead |
-| ☐ | Site Data Manager confirms readiness to attempt the first supervised upload | Site Data Manager |
+| Task | Responsible |
+|---|---|
+| Training session scheduled | Onboarding Lead |
+| Project overview and governance framework presented | Onboarding Lead |
+| BIDS folder structure and naming walked through with examples | Onboarding Lead |
+| De-identification workflow demonstrated end-to-end (DICOM strip, defacing, EEG header cleaning, filename PHI check) | Onboarding Lead |
+| NeuroGate tool demonstration (drop, mapping, metadata, validation, export, audit log) | Onboarding Lead |
+| Pennsieve upload walkthrough (web and CLI methods) | Onboarding Lead |
+| REDCap data entry walkthrough (controlled vocabularies, required fields) | Onboarding Lead |
+| Q and A completed | Both |
+| Training session recording shared with site (if applicable) | Onboarding Lead |
+| Site Data Manager confirms readiness to attempt the first supervised upload | Site Data Manager |
 
 ## 8. Phase 4: First Subject (Supervised)
 
 The site uploads its first real subject end-to-end under direct supervision from the project lead. This is the validation run that satisfies GOV-001 Section 7.3 ("successfully upload and validate a test dataset"); the site's first real subject serves as the test case. Sites are not expected to generate synthetic data; this phase exists to catch problems with the live workflow before the site is trusted to upload independently. Subjects do not need a separate consent step here because consent for sharing was obtained at the original IRB protocol.
 
-| Done | Task | Responsible |
-|---|---|---|
-| ☐ | First subject selected for upload | Site |
-| ☐ | Subject ID assigned per institution prefix and starting number | Site Data Manager |
-| ☐ | Subject ID-to-patient mapping recorded in the local key store (Section 6.4) | Site Data Manager |
-| ☐ | dcm2niix conversion completed; JSON sidecars verified PHI-free | Site |
-| ☐ | pydeface applied to all anatomical scans (T1w, T2w, FLAIR); visual QA confirms face removed and brain intact | Site |
-| ☐ | EEG/iEEG headers cleaned per SOP-BIDS-001 Section 8.3 | Site |
-| ☐ | NeuroGate tool used end-to-end (drop, mapping, metadata, validation, export) | Site |
-| ☐ | NeuroGate validation step shows zero errors | Site |
-| ☐ | Defacing attestation confirmed in NeuroGate metadata step | Site Data Manager |
-| ☐ | PHI Clearance Form signed for this subject (per GOV-001 Section 2.3 and 6) | Site Data Manager |
-| ☐ | First subject uploaded to Pennsieve under supervision (project lead on call or screen-share) | Site (with project lead watching) |
-| ☐ | ALCOA+ audit log downloaded and archived alongside the BIDS export | Site Data Manager |
-| ☐ | REDCap metadata entered for first subject | Site Data Manager |
-| ☐ | First subject upload + REDCap entry validated by Quality Auditor | Quality Auditor |
-| ☐ | Issues identified during the supervised run logged and resolved | Both |
+| Task | Responsible |
+|---|---|
+| First subject selected for upload | Site |
+| Subject ID assigned per institution prefix and starting number | Site Data Manager |
+| Subject ID-to-patient mapping recorded in the local key store (Section 6.4) | Site Data Manager |
+| dcm2niix conversion completed; JSON sidecars verified PHI-free | Site |
+| pydeface applied to all anatomical scans (T1w, T2w, FLAIR); visual QA confirms face removed and brain intact | Site |
+| EEG/iEEG headers cleaned per SOP-BIDS-001 Section 8.3 | Site |
+| NeuroGate tool used end-to-end (drop, mapping, metadata, validation, export) | Site |
+| NeuroGate validation step shows zero errors | Site |
+| Defacing attestation confirmed in NeuroGate metadata step | Site Data Manager |
+| PHI Clearance Form signed for this subject (per GOV-001 Section 2.3 and 6) | Site Data Manager |
+| First subject uploaded to Pennsieve under supervision (project lead on call or screen-share) | Site (with project lead watching) |
+| ALCOA+ audit log downloaded and archived alongside the BIDS export | Site Data Manager |
+| REDCap metadata entered for first subject | Site Data Manager |
+| First subject upload + REDCap entry validated by Quality Auditor | Quality Auditor |
+| Issues identified during the supervised run logged and resolved | Both |
 
 ## 9. Phase 5: Independent Operation
 
 The site uploads two more subjects independently. The Quality Auditor reviews each. Once both pass review, the site is marked fully onboarded.
 
-| Done | Task | Responsible |
-|---|---|---|
-| ☐ | Second subject prepared, uploaded, and REDCap entry completed independently | Site |
-| ☐ | PHI Clearance Form signed for second subject | Site Data Manager |
-| ☐ | Quality audit performed on second subject | Quality Auditor |
-| ☐ | Third subject prepared, uploaded, and REDCap entry completed independently | Site |
-| ☐ | PHI Clearance Form signed for third subject | Site Data Manager |
-| ☐ | Quality audit performed on third subject | Quality Auditor |
-| ☐ | Any non-conformances classified (Critical / Major / Minor per GOV-001 Section 7.2) and resolved | Both |
-| ☐ | Onboarding Lead documents completion in the project training records (per GOV-001 Section 2.5) | Onboarding Lead |
+| Task | Responsible |
+|---|---|
+| Second subject prepared, uploaded, and REDCap entry completed independently | Site |
+| PHI Clearance Form signed for second subject | Site Data Manager |
+| Quality audit performed on second subject | Quality Auditor |
+| Third subject prepared, uploaded, and REDCap entry completed independently | Site |
+| PHI Clearance Form signed for third subject | Site Data Manager |
+| Quality audit performed on third subject | Quality Auditor |
+| Any non-conformances classified (Critical / Major / Minor per GOV-001 Section 7.2) and resolved | Both |
+| Onboarding Lead documents completion in the project training records (per GOV-001 Section 2.5) | Onboarding Lead |
 
 ---
 
@@ -192,12 +192,12 @@ Once Phase 5 reviews pass and onboarding completion is documented, the site is f
 
 Per GOV-001 Section 7.2, every active site is included in a quarterly audit. A sample of uploaded datasets is reviewed for BIDS validity, metadata completeness, de-identification, and audit trail integrity. Findings are classified Critical / Major / Minor and tracked to closure.
 
-| Done | Task | Responsible |
-|---|---|---|
-| ☐ | Site notified of inclusion in quarterly audit cycle | Onboarding Lead |
-| ☐ | First post-onboarding quarterly audit scheduled | Quality Auditor |
-| ☐ | Audit findings reviewed with site | Both |
-| ☐ | Corrective actions (if any) tracked to closure | Both |
+| Task | Responsible |
+|---|---|
+| Site notified of inclusion in quarterly audit cycle | Onboarding Lead |
+| First post-onboarding quarterly audit scheduled | Quality Auditor |
+| Audit findings reviewed with site | Both |
+| Corrective actions (if any) tracked to closure | Both |
 
 ---
 
@@ -253,3 +253,4 @@ The following must be true before advancing to each phase. Onboarding does not m
 | 1.1 | April 2026 | Brandon Bach | Converted to markdown, added document ID header, added institution prefix field, referenced related SOPs by ID |
 | 2.0 | May 6, 2026 | Brandon Bach | Major revision: added Purpose, Governance Traceability, Scope, and Roles sections to match sibling SOPs; added Site PI / Site Data Manager designation; added institution prefix and starting subject number coordination; added pre-processing tools (dcm2niix, pydeface) install to Phase 2; added subject ID key storage setup (GOV-001 2.3); added API key handling per SOP-PENNSIEVE-001 5.2; reframed Phase 4 as the supervised first real-subject upload (this serves as the GOV-001 7.3 validation upload; sites are not expected to produce synthetic test data) and Phase 5 as independent operation for subjects 2 and 3; added PHI Clearance Form sign-off per subject; added Ongoing Site Support and Quarterly Audit Cadence sections (GOV-001 7.2); added Quick Reference section to match sibling SOPs; expanded documentation package to include GOV-001 and SOP-GUI-001 |
 | 2.1 | May 7, 2026 | Brandon Bach | Removed Penn-team affiliation from project roles (Onboarding Lead, Pennsieve Workspace Admin, REDCap Administrator, Quality Auditor) since the tool is project-owned, not Penn-affiliated; removed Site Information block, Onboarding Sign-Off section, Notes and Issues Log, and the Notes/Date columns from phase tables (these implied fillability the rendered doc cannot support, and the tool already captures the actual data); added a "How to use this document" preamble clarifying that the doc is a procedural reference; removed consent line from Phase 4 (consent for sharing was obtained at the original IRB protocol; no separate consent step is needed for the upload); replaced sign-off mechanic with documenting completion in the project training records (Phase 5 final task) |
+| 2.2 | May 8, 2026 | Brandon Bach | Removed the "Done" column and unicode checkbox markers (☐) from every phase table; the boxes were visual decoration only since the rendered doc cannot be interacted with, and they implied a fillability that does not exist. Tables now read as straightforward "Task | Responsible" lists. Updated the "How to use this document" preamble to drop the checkbox mention. Updated contact email in Section 10 to brandon.bach44@gmail.com to match the rest of the public site. |
