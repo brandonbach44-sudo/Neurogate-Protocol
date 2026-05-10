@@ -1,4 +1,4 @@
-import { Component, ErrorInfo, ReactNode } from 'react';
+import { Component, type ErrorInfo, type ReactNode } from 'react';
 
 const PENN_BLUE = '#011F5B';
 const PENN_BLUE_HOVER = '#01326e';
