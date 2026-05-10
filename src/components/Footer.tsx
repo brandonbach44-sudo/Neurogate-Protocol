@@ -116,7 +116,7 @@ export default function Footer() {
             &copy; {year} Brandon Bach
           </span>
           <span style={{ color: 'rgba(255,255,255,0.45)' }}>
-            Built with React, Vite, and Tailwind &middot; Hosted on Vercel
+            Browser-based &middot; Client-side processing &middot; No data leaves your machine
           </span>
           <span style={{ color: 'rgba(255,255,255,0.45)' }}>
             <span style={{ color: TEAL }}>&#9679;</span> Beta
