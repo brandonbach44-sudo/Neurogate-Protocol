@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { NeuronIcon } from './Icons';
+import Wordmark from './Wordmark';
 
 export default function Navbar() {
   const location = useLocation();
@@ -20,9 +21,7 @@ export default function Navbar() {
           <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-white/10">
             <NeuronIcon size={24} color="#6DD3CE" />
           </div>
-          <span className="text-white font-semibold text-base tracking-tight">
-            NeuroGate
-          </span>
+          <Wordmark size="sm" />
         </Link>
 
         {/* Center: Nav links */}
