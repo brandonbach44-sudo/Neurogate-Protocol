@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import FileDropZone from '../components/FileDropZone';
 import MappingTable from '../components/MappingTable';
@@ -14,6 +14,14 @@ import type { DetectionResult, DetectionSummary, Session, Modality } from '../ty
 import { getEffectiveSession, getEffectiveModality } from '../types/detection';
 import { runDetection, generateSummary } from '../lib/detection';
 import { useAudit, downloadAuditJson } from '../lib/audit';
+import {
+  saveToolSession,
+  loadToolSession,
+  clearToolSession,
+  trySessionRestore,
+  formatSavedAt,
+  type PersistedSession,
+} from '../lib/session/toolSession';
 
 type AppStep = 'drop' | 'scanning' | 'mapping' | 'metadata' | 'validation' | 'export';
 
@@ -24,13 +32,57 @@ function ToolPage() {
   const [summary, setSummary] = useState<DetectionSummary | null>(null);
   const [metadataOutput, setMetadataOutput] = useState<MetadataOutput | null>(null);
   const [auditPanelOpen, setAuditPanelOpen] = useState(false);
+  const [savedSession, setSavedSession] = useState<PersistedSession | null>(null);
 
   const audit = useAudit();
+
+  // ── Save/resume: on mount, check for a sessionStorage-saved session ──
+  useEffect(() => {
+    const saved = loadToolSession();
+    if (saved) setSavedSession(saved);
+  }, []);
+
+  // ── Save/resume: persist on every detection-state change ──────────────
+  // Only file mappings and detection results are persisted, never metadata
+  // step contents. SessionStorage clears when the tab closes.
+  useEffect(() => {
+    if (detectionResults.length > 0 && summary) {
+      saveToolSession(detectionResults, summary);
+    }
+  }, [detectionResults, summary]);
+
+  const handleDiscardSavedSession = useCallback(() => {
+    clearToolSession();
+    setSavedSession(null);
+  }, []);
 
   // ── Handle files from the drop zone ───────────────────────────
   const handleFilesScanned = useCallback((files: ScannedFile[]) => {
     setScannedFiles(files);
     setStep('scanning');
+
+    // Save/resume: if a saved session exists and the dropped files match
+    // its file signatures, skip detection and restore the prior mapping
+    // state directly.
+    if (savedSession) {
+      const restored = trySessionRestore(files, savedSession);
+      if (restored) {
+        setDetectionResults(restored);
+        setSummary(savedSession.summary);
+        setStep('mapping');
+        setSavedSession(null);
+        audit.addEntry(
+          'session-restored',
+          `Resumed prior session: ${restored.length} files restored from saved state`,
+          { fileCount: restored.length },
+          'system',
+        );
+        return;
+      }
+      // Files do not match the saved session; discard it and proceed fresh.
+      clearToolSession();
+      setSavedSession(null);
+    }
 
     // Log file scan
     const totalSize = files.reduce((sum, f) => sum + f.size, 0);
@@ -54,7 +106,7 @@ function ToolPage() {
         sum.subjectGroups,
       );
     }, 500);
-  }, [audit]);
+  }, [audit, savedSession]);
 
   // ── Update a single detection result (user correction) ────────
   const handleUpdateResult = useCallback((index: number, updates: Partial<DetectionResult>) => {
@@ -137,6 +189,8 @@ function ToolPage() {
     setDetectionResults([]);
     setSummary(null);
     setMetadataOutput(null);
+    clearToolSession();
+    setSavedSession(null);
   }, []);
 
   // ── Get current step number for the indicator ─────────────────
@@ -268,6 +322,53 @@ function ToolPage() {
                 validate BIDS compliance, and export a ready-to-upload dataset.
               </p>
             </div>
+
+            {/* Saved-session banner (shown when sessionStorage has a prior run) */}
+            {savedSession && (
+              <div
+                className="max-w-3xl mx-auto mb-6 rounded-xl border p-4 flex items-start gap-3"
+                style={{
+                  borderColor: '#6DD3CE',
+                  backgroundColor: 'rgba(109,211,206,0.10)',
+                }}
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#0F6E56"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="flex-shrink-0 mt-0.5"
+                  aria-hidden="true"
+                >
+                  <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                  <polyline points="21 4 21 10 15 10" />
+                </svg>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-semibold text-gray-900">
+                    Saved progress from {formatSavedAt(savedSession.savedAt)}
+                  </div>
+                  <p className="text-xs text-gray-600 mt-1 leading-relaxed">
+                    You had {savedSession.fileSignatures.length}{' '}
+                    {savedSession.fileSignatures.length === 1 ? 'file' : 'files'} mapped.
+                    Re-drop the same folder to pick up where you left off, or click Discard to
+                    start fresh. Subject metadata is not saved and will need to be re-entered.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleDiscardSavedSession}
+                  className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors flex-shrink-0"
+                  style={{ color: '#0F6E56', backgroundColor: 'rgba(255,255,255,0.6)' }}
+                >
+                  Discard
+                </button>
+              </div>
+            )}
+
             <FileDropZone onFilesScanned={handleFilesScanned} />
 
             {/* Feature cards below drop zone */}

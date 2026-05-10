@@ -18,6 +18,7 @@
 export type AuditAction =
   // File scanning
   | 'files-scanned'           // User dropped files, scanning completed
+  | 'session-restored'        // Tool restored a saved session from sessionStorage
   // Detection
   | 'detection-completed'     // Auto-detection engine finished
   // User corrections in mapping table
