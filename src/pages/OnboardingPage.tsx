@@ -173,10 +173,10 @@ function DocRow({ id, title, to }: { id: string; title: string; to: string }) {
 /* ═══ MAIN PAGE ═══════════════════════════════════════════════ */
 export default function OnboardingPage() {
   return (
-    <div className="max-w-7xl mx-auto px-6 py-16">
+    <div className="max-w-7xl mx-auto px-6 py-12 md:py-16">
       {/* ─── HEADER ──────────────────────────────────────── */}
-      <div className="grid grid-cols-3 gap-12 mb-14">
-        <div className="col-span-2">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 mb-14">
+        <div className="md:col-span-2">
           <Eyebrow>Site Onboarding</Eyebrow>
           <h1 className="text-3xl font-bold text-gray-900 mt-4 leading-tight">
             From first contact
@@ -214,8 +214,8 @@ export default function OnboardingPage() {
             </Link>
           </div>
         </div>
-        <div className="flex items-end justify-end">
-          <div className="text-right">
+        <div className="flex items-end md:justify-end">
+          <div className="md:text-right">
             <div className="text-3xl font-bold" style={{ color: PENN_BLUE }}>5</div>
             <div className="text-xs text-gray-400 uppercase tracking-wide mt-1">Phases</div>
           </div>
@@ -224,7 +224,7 @@ export default function OnboardingPage() {
 
       {/* ─── WORKFLOW STRIP ──────────────────────────────── */}
       <div className="rounded-2xl border border-gray-100 bg-white p-6 mb-14 shadow-sm">
-        <div className="grid grid-cols-5 gap-4 items-center">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 items-center">
           {[
             { num: '1', label: 'Pre-Onboarding', sub: 'Agreements + Roles' },
             { num: '2', label: 'Setup', sub: 'Accounts + Tools' },
@@ -265,7 +265,7 @@ export default function OnboardingPage() {
             Phase 1 closes, every named role below must be confirmed for the new site.
           </p>
         </div>
-        <div className="grid grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           <RoleCard
             who="Project Team"
             role="Onboarding Lead"
@@ -322,7 +322,7 @@ export default function OnboardingPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {/* Phase 1 */}
           <PhaseCard
             number="1"
@@ -533,7 +533,7 @@ export default function OnboardingPage() {
       </section>
 
       {/* ─── DOCUMENTS + TOOLS ───────────────────────────── */}
-      <section className="grid grid-cols-2 gap-8 mb-14">
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-14">
         {/* Documentation package */}
         <div>
           <Eyebrow>Documentation package</Eyebrow>
@@ -595,11 +595,11 @@ export default function OnboardingPage() {
 
       {/* ─── GOVERNANCE BANNER ───────────────────────────── */}
       <div
-        className="rounded-2xl px-10 py-10 mb-12"
+        className="rounded-2xl px-6 md:px-10 py-8 md:py-10 mb-12"
         style={{ background: `linear-gradient(135deg, ${PENN_BLUE} 0%, ${PENN_BLUE_HOVER} 100%)` }}
       >
-        <div className="grid grid-cols-3 gap-8 items-center">
-          <div className="col-span-2">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 items-start md:items-center">
+          <div className="md:col-span-2">
             <Eyebrow color={TEAL} bg="rgba(109,211,206,0.15)">Governance</Eyebrow>
             <h3 className="text-2xl font-bold text-white mt-3">
               Why every site goes through this
@@ -612,7 +612,7 @@ export default function OnboardingPage() {
               is recorded in the project training records per GOV-001 Section 2.5.
             </p>
           </div>
-          <div className="flex justify-end">
+          <div className="flex md:justify-end">
             <Link
               to="/docs/onboarding"
               className="no-underline inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all"

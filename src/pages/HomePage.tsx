@@ -64,8 +64,8 @@ export default function HomePage() {
   return (
     <div className="overflow-hidden">
       {/* ─── HERO ─────────────────────────────────────────── */}
-      <section className="max-w-7xl mx-auto px-6 pt-20 pb-16">
-        <div className="grid grid-cols-2 gap-16 items-center">
+      <section className="max-w-7xl mx-auto px-6 pt-12 md:pt-20 pb-12 md:pb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-center">
           {/* Left: copy */}
           <div>
             <div className="flex items-center gap-2 mb-5">
@@ -76,7 +76,7 @@ export default function HomePage() {
                 Beta
               </span>
             </div>
-            <h1 className="text-5xl font-bold tracking-tight leading-[1.1] text-gray-900">
+            <h1 className="text-3xl md:text-5xl font-bold tracking-tight leading-[1.1] text-gray-900">
               Standardized
               <br />
               neuroimaging data,
@@ -157,22 +157,22 @@ export default function HomePage() {
 
       {/* ─── STATS BAR ────────────────────────────────────── */}
       <section className="border-y border-gray-100 bg-white/60 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-6 py-8 flex items-center justify-around">
+        <div className="max-w-7xl mx-auto px-6 py-8 grid grid-cols-2 md:flex md:items-center md:justify-around gap-6 md:gap-0">
           <StatBlock value="5" label="Workflow steps" />
-          <div className="w-px h-10 bg-gray-200" />
+          <div className="hidden md:block w-px h-10 bg-gray-200" />
           <StatBlock value="7" label="Modalities supported" />
-          <div className="w-px h-10 bg-gray-200" />
+          <div className="hidden md:block w-px h-10 bg-gray-200" />
           <StatBlock value="3" label="Clinical sessions" />
-          <div className="w-px h-10 bg-gray-200" />
+          <div className="hidden md:block w-px h-10 bg-gray-200" />
           <StatBlock value="100%" label="Client-side processing" />
         </div>
       </section>
 
       {/* ─── HOW IT WORKS ─────────────────────────────────── */}
-      <section className="max-w-7xl mx-auto px-6 py-20">
-        <div className="grid grid-cols-5 gap-12 items-start">
+      <section className="max-w-7xl mx-auto px-6 py-12 md:py-20">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-8 md:gap-12 items-start">
           {/* Left label */}
-          <div className="col-span-2">
+          <div className="md:col-span-2">
             <span
               className="text-[11px] font-semibold uppercase tracking-widest px-3 py-1 rounded-full"
               style={{ backgroundColor: 'rgba(1,31,91,0.06)', color: '#011F5B' }}
@@ -204,7 +204,7 @@ export default function HomePage() {
           </div>
 
           {/* Right: step cards */}
-          <div className="col-span-3 space-y-3">
+          <div className="md:col-span-3 space-y-3">
             <StepCard
               number="1"
               title="Drop your files"
@@ -241,7 +241,7 @@ export default function HomePage() {
 
       {/* ─── FEATURES (3-col offset grid) ─────────────────── */}
       <section className="bg-white/60 border-y border-gray-100">
-        <div className="max-w-7xl mx-auto px-6 py-20">
+        <div className="max-w-7xl mx-auto px-6 py-12 md:py-20">
           <div className="text-center mb-12">
             <span
               className="text-[11px] font-semibold uppercase tracking-widest px-3 py-1 rounded-full"
@@ -249,12 +249,12 @@ export default function HomePage() {
             >
               Built for compliance
             </span>
-            <h2 className="text-3xl font-bold text-gray-900 mt-4">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mt-4">
               Governance at every layer
             </h2>
           </div>
 
-          <div className="grid grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Card 1 — taller */}
             <div className="rounded-2xl border border-gray-100 bg-white p-7 shadow-sm hover:shadow-md transition-shadow duration-300">
               <div
@@ -279,8 +279,8 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Card 2 — offset up */}
-            <div className="rounded-2xl border border-gray-100 bg-white p-7 shadow-sm hover:shadow-md transition-shadow duration-300 -mt-4">
+            {/* Card 2 — offset up on desktop only */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-7 shadow-sm hover:shadow-md transition-shadow duration-300 md:-mt-4">
               <div
                 className="w-12 h-12 rounded-xl flex items-center justify-center mb-5"
                 style={{ backgroundColor: 'rgba(239,68,68,0.08)' }}
@@ -331,8 +331,8 @@ export default function HomePage() {
       </section>
 
       {/* ─── COMPLIANCE FRAMEWORKS ────────────────────────── */}
-      <section className="max-w-7xl mx-auto px-6 py-20">
-        <div className="grid grid-cols-2 gap-16 items-center">
+      <section className="max-w-7xl mx-auto px-6 py-12 md:py-20">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-center">
           {/* Left: compliance grid */}
           <div className="grid grid-cols-2 gap-4">
             {[
@@ -406,9 +406,9 @@ export default function HomePage() {
       </section>
 
       {/* ─── CTA BANNER ───────────────────────────────────── */}
-      <section className="max-w-7xl mx-auto px-6 pb-20">
+      <section className="max-w-7xl mx-auto px-6 pb-12 md:pb-20">
         <div
-          className="rounded-2xl px-12 py-14 flex items-center justify-between"
+          className="rounded-2xl px-6 md:px-12 py-10 md:py-14 flex flex-col md:flex-row items-start md:items-center justify-between gap-6"
           style={{
             background: 'linear-gradient(135deg, #011F5B 0%, #01326e 50%, #011F5B 100%)',
           }}
@@ -420,7 +420,7 @@ export default function HomePage() {
               and export a BIDS-compliant dataset in minutes.
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <Link
               to="/tool"
               className="no-underline inline-flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold transition-all"

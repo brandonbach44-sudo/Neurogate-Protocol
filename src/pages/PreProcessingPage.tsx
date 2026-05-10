@@ -133,7 +133,7 @@ function ToolHeader({
 /* ─── Two-column "what / why" block ──────────────────────────── */
 function WhatWhy({ what, why }: { what: string; why: string }) {
   return (
-    <div className="grid grid-cols-2 gap-5 mt-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mt-6">
       <div className="rounded-xl p-5 border border-gray-100" style={{ backgroundColor: 'rgba(1,31,91,0.04)' }}>
         <div className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: PENN_BLUE }}>
           What it does
@@ -198,10 +198,10 @@ export default function PreProcessingPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-16">
+    <div className="max-w-7xl mx-auto px-6 py-12 md:py-16">
       {/* ─── HEADER ──────────────────────────────────────── */}
-      <div className="grid grid-cols-3 gap-12 mb-14">
-        <div className="col-span-2">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 mb-14">
+        <div className="md:col-span-2">
           <Eyebrow>Pre-Processing Tools</Eyebrow>
           <h1 className="text-3xl font-bold text-gray-900 mt-4 leading-tight">
             Convert and de-identify
@@ -238,8 +238,8 @@ export default function PreProcessingPage() {
             </Link>
           </div>
         </div>
-        <div className="flex items-end justify-end">
-          <div className="text-right">
+        <div className="flex items-end md:justify-end">
+          <div className="md:text-right">
             <div className="text-3xl font-bold" style={{ color: PENN_BLUE }}>2</div>
             <div className="text-xs text-gray-400 uppercase tracking-wide mt-1">Required tools</div>
           </div>
@@ -250,7 +250,7 @@ export default function PreProcessingPage() {
       <div
         className="rounded-2xl border border-gray-100 bg-white p-6 mb-14 shadow-sm"
       >
-        <div className="grid grid-cols-5 gap-4 items-center">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 items-center">
           {[
             { num: '1', label: 'Raw DICOM', sub: 'From scanner' },
             { num: '2', label: 'dcm2niix', sub: 'DICOM to NIfTI', accent: true },
@@ -474,11 +474,11 @@ done`}</CodeBlock>
 
       {/* ─── COMPLIANCE TIE-IN ──────────────────────────── */}
       <div
-        className="rounded-2xl px-10 py-10 mb-12"
+        className="rounded-2xl px-6 md:px-10 py-8 md:py-10 mb-12"
         style={{ background: `linear-gradient(135deg, ${PENN_BLUE} 0%, ${PENN_BLUE_HOVER} 100%)` }}
       >
-        <div className="grid grid-cols-3 gap-8 items-center">
-          <div className="col-span-2">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 items-start md:items-center">
+          <div className="md:col-span-2">
             <Eyebrow color={TEAL} bg="rgba(109,211,206,0.15)">Governance</Eyebrow>
             <h3 className="text-2xl font-bold text-white mt-3">
               Why we require these two tools
@@ -491,7 +491,7 @@ done`}</CodeBlock>
               attestation step in NeuroGate still requires a tool name and version for the audit trail.
             </p>
           </div>
-          <div className="flex justify-end">
+          <div className="flex md:justify-end">
             <Link
               to="/docs/gov-001"
               className="no-underline inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all"
@@ -512,7 +512,7 @@ done`}</CodeBlock>
       {/* ─── EXTERNAL RESOURCES ─────────────────────────── */}
       <div>
         <h3 className="text-sm font-semibold text-gray-900 mb-4">Further reading</h3>
-        <div className="grid grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {[
             {
               title: 'dcm2niix on GitHub',

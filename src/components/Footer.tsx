@@ -12,8 +12,8 @@ export default function Footer() {
       className="relative z-10 mt-20 border-t bg-gradient-to-r from-[#011F5B] to-[#01326e]"
       style={{ borderColor: 'rgba(255,255,255,0.08)' }}
     >
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        <div className="grid grid-cols-3 gap-12">
+      <div className="max-w-7xl mx-auto px-6 py-10 md:py-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
           {/* ─── Brand + tagline ─────────────────────────── */}
           <div>
             <Link to="/" className="flex items-center gap-3 no-underline">
@@ -108,7 +108,7 @@ export default function Footer() {
 
         {/* ─── Bottom row ──────────────────────────────────── */}
         <div
-          className="mt-10 pt-6 flex items-center justify-between text-xs"
+          className="mt-10 pt-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs"
           style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}
         >
           <span style={{ color: 'rgba(255,255,255,0.45)' }}>
