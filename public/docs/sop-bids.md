@@ -377,7 +377,7 @@ bids-validator /path/to/dataset/
 
 For questions or assistance with data organization:
 
-- **Primary Contact:** Brandon Bach (bach2@seas.upenn.edu)
+- **Primary Contact:** Brandon Bach (brandon.bach44@gmail.com)
 - **BIDS Specification:** https://bids-specification.readthedocs.io/
 - **iEEG-BIDS Extension:** https://bids-specification.readthedocs.io/en/stable/modality-specific-files/intracranial-electroencephalography.html
 

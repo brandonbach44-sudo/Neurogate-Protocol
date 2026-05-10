@@ -94,7 +94,7 @@ export default function Footer() {
               </li>
               <li>
                 <a
-                  href="mailto:bach2@seas.upenn.edu"
+                  href="mailto:brandon.bach44@gmail.com"
                   className="no-underline text-sm transition-colors"
                   style={{ color: 'rgba(255,255,255,0.7)' }}
                   onMouseEnter={(e) => (e.currentTarget.style.color = TEAL)}

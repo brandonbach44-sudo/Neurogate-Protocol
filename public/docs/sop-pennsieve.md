@@ -64,7 +64,7 @@ For CLI uploads only:
 2. Click **Sign Up**
 3. Enter your institutional email address and create a password
 4. Complete email verification
-5. Notify the project lead (Brandon Bach, bach2@seas.upenn.edu) with your registered email to be added to the workspace
+5. Notify the project lead (Brandon Bach, brandon.bach44@gmail.com) with your registered email to be added to the workspace
 
 ### 5.2 Generate API Key (Required for CLI Uploads Only)
 
@@ -292,7 +292,7 @@ After uploading (by either method), complete this checklist:
 - [ ] CT file and JSON sidecar in ses-postimplant/ct/
 - [ ] iEEG files, channels.tsv, and electrodes.tsv in ses-postimplant/ieeg/
 - [ ] File sizes match local files (no truncation during upload)
-- [ ] Notify the project lead (bach2@seas.upenn.edu) that upload is complete
+- [ ] Notify the project lead (brandon.bach44@gmail.com) that upload is complete
 
 ## 10. Audit and Logging Requirements
 
@@ -340,7 +340,7 @@ All audit records should be stored locally at your site and a copy provided to P
 
 ## 13. Contact and Support
 
-- **Primary Contact:** Brandon Bach (bach2@seas.upenn.edu)
+- **Primary Contact:** Brandon Bach (brandon.bach44@gmail.com)
 - **Pennsieve Documentation:** https://docs.pennsieve.io
 - **Pennsieve Agent GitHub:** https://github.com/Pennsieve/pennsieve-agent
 - **Pennsieve Support:** support@pennsieve.io
@@ -383,7 +383,7 @@ Best for: multi-subject uploads, large files, unreliable connections (supports r
 - [ ] CT + JSON in ses-postimplant/ct/
 - [ ] iEEG files + channels.tsv + electrodes.tsv in ses-postimplant/ieeg/
 - [ ] File sizes match local files
-- [ ] Notify the project lead at bach2@seas.upenn.edu
+- [ ] Notify the project lead at brandon.bach44@gmail.com
 
 ### Key Links
 

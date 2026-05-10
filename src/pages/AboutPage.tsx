@@ -220,7 +220,7 @@ export default function AboutPage() {
           </p>
           <div className="mt-5 flex flex-wrap items-center gap-3">
             <a
-              href="mailto:bach2@seas.upenn.edu"
+              href="mailto:brandon.bach44@gmail.com"
               className="no-underline inline-flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
               style={{ backgroundColor: 'rgba(1,31,91,0.06)', color: PENN_BLUE }}
             >
@@ -228,7 +228,7 @@ export default function AboutPage() {
                 <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
                 <polyline points="22,6 12,13 2,6" />
               </svg>
-              bach2@seas.upenn.edu
+              brandon.bach44@gmail.com
             </a>
             <a
               href="https://github.com/brandonbach44-sudo/Epilepsy_GUI"

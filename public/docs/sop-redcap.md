@@ -506,7 +506,7 @@ To export the audit trail: navigate to **Logging** in the REDCap left menu. The 
 
 For questions or assistance with metadata entry or REDCap:
 
-- **Primary Contact:** Brandon Bach (bach2@seas.upenn.edu)
+- **Primary Contact:** Brandon Bach (brandon.bach44@gmail.com)
 - **REDCap Documentation:** https://projectredcap.org/resources/
 - **BIDS Specification:** https://bids-specification.readthedocs.io/
 - **ILAE Classification:** https://www.ilae.org/guidelines/definition-and-classification
