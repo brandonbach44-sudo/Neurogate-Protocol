@@ -8,6 +8,7 @@ import PreProcessingPage from './pages/PreProcessingPage';
 import OnboardingPage from './pages/OnboardingPage';
 import AboutPage from './pages/AboutPage';
 import NotFoundPage from './pages/NotFoundPage';
+import ContactButton from './components/ContactButton';
 
 function App() {
   return (
@@ -28,6 +29,9 @@ function App() {
         {/* Tool has its own header with step indicator */}
         <Route path="/tool" element={<ToolPage />} />
       </Routes>
+
+      {/* Persistent floating contact button on every route */}
+      <ContactButton />
     </BrowserRouter>
   );
 }
