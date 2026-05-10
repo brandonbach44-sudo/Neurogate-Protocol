@@ -23,15 +23,11 @@ interface WordmarkProps {
 const SIZE_CONFIG = {
   sm: {
     topClass: 'font-semibold tracking-tight text-base',
-    bottomClass: 'font-semibold uppercase text-[9px] mt-[2px]',
-    bottomLetterSpacing: '0.36em',
-    bottomPaddingLeft: '0.18em', // pull the leading P right so the cluster centers
+    bottomClass: 'font-semibold uppercase text-[7px] tracking-[0.18em] text-center -mt-[1px]',
   },
   lg: {
     topClass: 'font-semibold tracking-tight text-xl',
-    bottomClass: 'font-semibold uppercase text-[10px] mt-[2px]',
-    bottomLetterSpacing: '0.46em',
-    bottomPaddingLeft: '0.23em',
+    bottomClass: 'font-semibold uppercase text-[9px] tracking-[0.18em] text-center -mt-[1px]',
   },
 } as const;
 
@@ -45,7 +41,7 @@ export default function Wordmark({
 
   return (
     <span
-      className={`inline-flex flex-col leading-none ${className}`}
+      className={`inline-flex flex-col items-stretch leading-none ${className}`}
       aria-label="NeuroGate Protocol"
     >
       <span className={cfg.topClass} style={{ color: topColor }} aria-hidden="true">
@@ -53,11 +49,7 @@ export default function Wordmark({
       </span>
       <span
         className={cfg.bottomClass}
-        style={{
-          color: bottomColor,
-          letterSpacing: cfg.bottomLetterSpacing,
-          paddingLeft: cfg.bottomPaddingLeft,
-        }}
+        style={{ color: bottomColor }}
         aria-hidden="true"
       >
         Protocol
