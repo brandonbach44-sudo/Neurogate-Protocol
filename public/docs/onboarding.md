@@ -182,7 +182,7 @@ Once Phase 5 reviews pass and onboarding completion is documented, the site is f
 
 | Item | Detail |
 |---|---|
-| Primary contact | Brandon Bach (bach2@seas.upenn.edu) |
+| Primary contact | Brandon Bach (brandon.bach44@gmail.com) |
 | Reference docs (always-current versions) | NeuroGate site `/docs` page (GOV-001, SOP-BIDS-001, SOP-PENNSIEVE-001, SOP-REDCAP-001, SOP-GUI-001) |
 | Pre-processing tool guides | NeuroGate site `/tools` page (dcm2niix and pydeface install + usage) |
 | Issue reporting | Email Onboarding Lead; track in site's local issues log |
