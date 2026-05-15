@@ -1,11 +1,24 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { NeuronIcon } from './Icons';
 import Wordmark from './Wordmark';
 
 const TEAL = '#6DD3CE';
+const EMAIL = 'brandon.bach44@gmail.com';
 
 export default function Footer() {
   const year = new Date().getFullYear();
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyEmail = async () => {
+    try {
+      await navigator.clipboard.writeText(EMAIL);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Clipboard API unavailable; fall back silently
+    }
+  };
 
   return (
     <footer
@@ -92,15 +105,30 @@ export default function Footer() {
                 </a>
               </li>
               <li>
-                <a
-                  href="mailto:brandon.bach44@gmail.com"
-                  className="no-underline text-sm transition-colors"
-                  style={{ color: 'rgba(255,255,255,0.7)' }}
-                  onMouseEnter={(e) => (e.currentTarget.style.color = TEAL)}
-                  onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.7)')}
+                <button
+                  type="button"
+                  onClick={handleCopyEmail}
+                  className="no-underline inline-flex items-center gap-2 text-sm transition-colors text-left"
+                  style={{ color: copied ? TEAL : 'rgba(255,255,255,0.7)' }}
+                  onMouseEnter={(e) => {
+                    if (!copied) e.currentTarget.style.color = TEAL;
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!copied) e.currentTarget.style.color = 'rgba(255,255,255,0.7)';
+                  }}
+                  title={copied ? 'Email copied to clipboard' : 'Click to copy email'}
                 >
-                  Contact
-                </a>
+                  {copied ? (
+                    <>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                      Email copied
+                    </>
+                  ) : (
+                    'Contact (copy email)'
+                  )}
+                </button>
               </li>
             </ul>
           </div>
