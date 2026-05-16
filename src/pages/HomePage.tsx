@@ -84,9 +84,9 @@ export default function HomePage() {
               <span style={{ color: '#011F5B' }}>ready to share.</span>
             </h1>
             <p className="mt-5 text-base leading-relaxed text-gray-500 max-w-md">
-              NeuroGate helps epilepsy research sites organize, validate, and export
-              BIDS-compliant neuroimaging data for multi-site collaboration on the
-              Pennsieve platform.
+              NeuroGate Protocol helps epilepsy research sites organize, validate, and export
+              BIDS-compliant neuroimaging data, ready to share through whichever platform the
+              site chooses.
             </p>
             <div className="flex items-center gap-3 mt-8">
               <Link
@@ -184,7 +184,7 @@ export default function HomePage() {
               <br />
               raw files to
               <br />
-              Pennsieve-ready data.
+              share-ready BIDS data.
             </h2>
             <p className="mt-4 text-sm text-gray-500 leading-relaxed max-w-sm">
               NeuroGate walks you through the entire data preparation workflow.

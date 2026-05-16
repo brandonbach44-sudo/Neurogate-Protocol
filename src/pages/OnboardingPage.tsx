@@ -289,13 +289,6 @@ export default function OnboardingPage() {
           />
           <RoleCard
             who="Project Team"
-            role="Pennsieve Workspace Admin"
-            desc="Grants Pennsieve workspace access and shares the dataset node ID."
-            accent={PENN_BLUE}
-            bg="rgba(1,31,91,0.04)"
-          />
-          <RoleCard
-            who="Project Team"
             role="REDCap Administrator"
             desc="Grants REDCap project access and shares the data dictionary."
             accent={PENN_BLUE}
@@ -304,7 +297,7 @@ export default function OnboardingPage() {
           <RoleCard
             who="Project Team"
             role="Quality Auditor"
-            desc="Reviews the supervised first subject and the first independent uploads."
+            desc="Reviews the supervised first BIDS export and the first independent exports."
             accent="#7c3aed"
             bg="rgba(124,58,237,0.06)"
           />
@@ -362,7 +355,7 @@ export default function OnboardingPage() {
               </svg>
             }
             tasks={[
-              'Pennsieve and REDCap accounts created and verified',
+              'REDCap account and chosen sharing platform credentials in place',
               'API key generated and stored securely (only shown once)',
               'dcm2niix and pydeface installed at the site',
               'Secure local storage set up for the BIDS-ID-to-patient-ID key',
@@ -386,7 +379,7 @@ export default function OnboardingPage() {
               'Project overview and governance framework presented',
               'BIDS structure and de-identification workflow walked through',
               'NeuroGate tool demonstrated end-to-end',
-              'Pennsieve and REDCap walkthroughs completed',
+              'REDCap walkthrough and sharing platform overview completed',
               'Site Data Manager confirms readiness for the supervised upload',
             ]}
           />
@@ -513,7 +506,7 @@ export default function OnboardingPage() {
               />
               <GateRow
                 before="Phase 3"
-                criteria="Pennsieve and REDCap accounts working; subject ID key store ready; dcm2niix and pydeface installed and verified."
+                criteria="REDCap access working; site has provisioned its own sharing platform; subject ID key store ready; dcm2niix and pydeface installed and verified."
               />
               <GateRow
                 before="Phase 4"
@@ -544,7 +537,7 @@ export default function OnboardingPage() {
           <div className="space-y-2.5">
             <DocRow id="GOV-001" title="Regulatory Governance Framework" to="/docs/gov-001" />
             <DocRow id="SOP-BIDS-001" title="BIDS Data Structure" to="/docs/sop-bids" />
-            <DocRow id="SOP-PENNSIEVE-001" title="Pennsieve Upload Procedures" to="/docs/sop-pennsieve" />
+            <DocRow id="SOP-PENNSIEVE-001" title="Pennsieve Upload Procedures (optional reference)" to="/docs/sop-pennsieve" />
             <DocRow id="SOP-REDCAP-001" title="REDCap Metadata Entry" to="/docs/sop-redcap" />
             <DocRow id="SOP-GUI-001" title="NeuroGate Compliance Tool User Guide" to="/docs/sop-gui" />
           </div>
@@ -574,7 +567,7 @@ export default function OnboardingPage() {
           </div>
           <div className="rounded-xl border border-gray-100 bg-white p-5 mb-5">
             <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Optional</div>
-            <div className="text-sm font-semibold text-gray-900">Pennsieve Agent</div>
+            <div className="text-sm font-semibold text-gray-900">Pennsieve Agent (only if site uses Pennsieve)</div>
             <p className="text-xs text-gray-500 mt-1 leading-relaxed">
               CLI uploads with resume support; recommended for large or multi-subject datasets.
             </p>

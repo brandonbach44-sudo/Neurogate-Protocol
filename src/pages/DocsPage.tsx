@@ -142,10 +142,10 @@ export default function DocsPage() {
         />
         <DocCard
           id="SOP-PENNSIEVE-001"
-          title="Pennsieve Upload Procedures"
-          description="Step-by-step upload workflows via Pennsieve Agent CLI and web interface, pre-upload validation, post-upload verification, and audit logging requirements."
+          title="Pennsieve Upload Procedures (optional reference)"
+          description="Worked example for sites that choose Pennsieve as their sharing platform. Covers Agent CLI and web interface upload, pre-upload validation, post-upload verification, and audit logging. Sites using a different platform should produce an equivalent SOP."
           status="Draft"
-          version="v2.0"
+          version="v2.1"
           to="/docs/sop-pennsieve"
           accent="rgba(1,31,91)"
           icon={

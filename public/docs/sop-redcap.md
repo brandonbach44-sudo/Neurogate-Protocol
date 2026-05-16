@@ -3,8 +3,8 @@
 | Field | Value |
 |---|---|
 | **Document ID** | SOP-REDCAP-001 |
-| **Version** | 1.1 |
-| **Effective Date** | May 7, 2026 |
+| **Version** | 1.2 |
+| **Effective Date** | May 9, 2026 |
 | **Author** | Brandon Bach |
 | **Advisor** | Nishant Sinha |
 | **Status** | Draft -- Pending Advisor Review |
@@ -45,7 +45,7 @@ This SOP applies to all sites participating in the multi-site epilepsy data shar
 - De-identification requirements specific to metadata fields
 - Quality checks, validation rules, and periodic data review
 
-This SOP does not cover BIDS folder structure or file naming (see SOP-BIDS-001), Pennsieve upload procedures (see SOP-PENNSIEVE-001), or DICOM conversion and facial defacing (see SOP-BIDS-001 Section 8).
+This SOP does not cover BIDS folder structure or file naming (see SOP-BIDS-001), platform upload procedures (Pennsieve worked example is in SOP-PENNSIEVE-001; sites using other platforms produce their own equivalents), or DICOM conversion and facial defacing (see SOP-BIDS-001 Section 8).
 
 ## 4. Clinical and Demographic Metadata
 
@@ -286,7 +286,7 @@ The REDCap project is organized into the following instruments (forms):
 | Post-Surgery Session | session date, surgical_procedure, modalities collected | After post-surgery data organized |
 | Clinical Outcomes | surgical_outcome (Engel class), follow_up_duration_months, seizure_freedom_status | When outcome data available |
 | Additional Assessments | mri_lesion, mri_lesion_location, pet_result, neuropsych_iq, wada_result | When available |
-| Upload Tracking | upload_date, upload_method, bids_validation_status, pennsieve_dataset_id, uploaded_by | After each Pennsieve upload |
+| Upload Tracking | upload_date, upload_method, bids_validation_status, platform_dataset_id, uploaded_by | After each upload to the site's sharing platform |
 
 ### 7.2 Access and Permissions
 
@@ -317,7 +317,7 @@ Each participating site is assigned a Data Access Group in REDCap. This ensures 
 8. Enter the registration date and your name
 9. Click **Save & Go To Next Instrument**
 
-> **Important:** The `participant_id` entered here is the link between REDCap and the BIDS dataset on Pennsieve. Double-check that it matches your BIDS folder name exactly, including the `sub-` prefix.
+> **Important:** The `participant_id` entered here is the link between REDCap and the BIDS dataset on the site's sharing platform. Double-check that it matches your BIDS folder name exactly, including the `sub-` prefix.
 
 ### 8.2 Step 2: Enter Demographics
 
@@ -359,13 +359,13 @@ Complete one session instrument for each session with available data.
 
 ### 8.5 Step 5: Track Upload Status
 
-After uploading data to Pennsieve per SOP-PENNSIEVE-001:
+After uploading data to the site's sharing platform (if using Pennsieve, per SOP-PENNSIEVE-001):
 
 1. Open the **Upload Tracking** instrument
 2. Enter the upload date
-3. Select the upload method (web interface or Pennsieve Agent CLI)
+3. Select the upload method (e.g., web interface, agent CLI, programmatic API)
 4. Record the BIDS validation status (pass, pass with warnings, or fail with details)
-5. Enter the Pennsieve dataset node ID
+5. Enter the platform dataset ID (Pennsieve node ID, S3 key, internal record ID, etc.)
 6. Enter the name of the person who performed the upload
 
 ### 8.6 Step 6: Enter Outcomes (When Available)
@@ -415,7 +415,7 @@ Dates require special attention because they appear in multiple locations:
 | REDCap session dates | Enter shifted dates (same offset), or store actual dates only if your REDCap instance is behind institutional firewall with appropriate access controls |
 | File modification timestamps | Not controlled by BIDS; do not rely on these for provenance |
 
-> **Important:** If using date shifting, apply the same random offset (e.g., +/- 30-365 days) consistently to all dates for a given subject across all files. Document the offset in your local, secure records. Never upload the offset value to Pennsieve or REDCap.
+> **Important:** If using date shifting, apply the same random offset (e.g., +/- 30-365 days) consistently to all dates for a given subject across all files. Document the offset in your local, secure records. Never upload the offset value to any sharing platform or REDCap.
 
 ### 9.3 Pre-Upload Metadata PHI Checklist
 
@@ -455,19 +455,19 @@ The following logical checks should be verified manually or via REDCap data qual
 |---|---|---|
 | Age consistency | `age_at_onset` <= `age` | Correct the entry |
 | Duration consistency | `epilepsy_duration_years` approximately equals `age` minus `age_at_onset` | Verify and correct |
-| Session completeness | Each session marked in REDCap has corresponding BIDS data on Pennsieve | Upload missing data or correct REDCap |
-| ID match | `participant_id` in REDCap matches the BIDS folder name on Pennsieve | Correct before upload |
+| Session completeness | Each session marked in REDCap has corresponding BIDS data on the sharing platform | Upload missing data or correct REDCap |
+| ID match | `participant_id` in REDCap matches the BIDS folder name on the sharing platform | Correct before upload |
 | Outcome timeline | `follow_up_duration_months` > 0 if `surgical_outcome` is entered | Verify follow-up period |
 
 ### 10.3 Periodic Data Quality Review
 
 Per GOV-001 Section 7.2, metadata quality is reviewed as part of quarterly audits:
 
-1. Export REDCap data and compare `participant_id` values against Pennsieve folder names
+1. Export REDCap data and compare `participant_id` values against the sharing platform's folder names
 2. Check for records missing required fields (REDCap Missing Data report)
 3. Verify that all uploaded subjects have corresponding REDCap records
 4. Review free-text fields for potential PHI
-5. Cross-check `participants.tsv` on Pennsieve against REDCap demographics for consistency
+5. Cross-check `participants.tsv` on the sharing platform against REDCap demographics for consistency
 6. Flag any discrepancies as Major non-conformances per GOV-001 Section 7.2
 
 ## 11. Audit Trail
@@ -524,7 +524,7 @@ This section provides a condensed reference for day-to-day use. For full details
 | Session Info | session_id, acq_time (optional), age at session (optional) | sessions.tsv |
 | MRI Params | Manufacturer, MagneticFieldStrength, RepetitionTime, EchoTime, FlipAngle, SliceThickness | JSON sidecars (auto from dcm2niix) |
 | EEG/iEEG Params | SamplingFrequency, Reference, PowerLineFrequency, TaskName | JSON sidecars (manual entry) |
-| Upload Record | upload_date, method, validation_status, pennsieve_id | REDCap |
+| Upload Record | upload_date, method, validation_status, platform_id | REDCap |
 
 ### REDCap Entry Checklist (Per Subject)
 
@@ -567,3 +567,4 @@ Before saving any record, verify:
 |---|---|---|---|
 | 1.0 | May 1, 2026 | Brandon Bach | Initial release: clinical metadata requirements, imaging acquisition metadata, BIDS dataset-level metadata, REDCap project structure and entry workflow, de-identification guidance, quality checks, quick-reference section |
 | 1.1 | May 7, 2026 | Brandon Bach | Reframed sites as "participating in the multi-site epilepsy data sharing initiative" rather than "contributing to the Penn Epilepsy Dataset"; renamed `contributing_site` field to `participating_site`; replaced "Penn team" references with project-role labels (REDCap Administrator for permissions issues, project team for the dataset_description.json and cross-site auditing); reframed REDCap as the centralized metadata registry for the initiative; replaced "your contributing site" with "your site" in DAG selection step |
+| 1.2 | May 9, 2026 | Brandon Bach | Decoupled REDCap workflow from Pennsieve as the assumed sharing platform. Renamed `pennsieve_dataset_id` and `pennsieve_id` fields to `platform_dataset_id` and `platform_id`. Reframed every "data on Pennsieve" / "uploaded to Pennsieve" reference to "sharing platform" / "your platform." Upload Tracking workflow now accepts any platform (Pennsieve, S3, internal archive, etc.) with method examples broadened from "web interface or Pennsieve Agent CLI" to "e.g., web interface, agent CLI, programmatic API." |

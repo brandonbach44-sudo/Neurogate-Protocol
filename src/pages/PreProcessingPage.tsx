@@ -256,7 +256,7 @@ export default function PreProcessingPage() {
             { num: '2', label: 'dcm2niix', sub: 'DICOM to NIfTI', accent: true },
             { num: '3', label: 'pydeface', sub: 'Remove face', accent: true },
             { num: '4', label: 'NeuroGate', sub: 'BIDS export' },
-            { num: '5', label: 'Pennsieve', sub: 'Multi-site share' },
+            { num: '5', label: 'Share', sub: 'Your chosen platform' },
           ].map((step, i) => (
             <div key={step.num} className="relative flex flex-col items-center text-center">
               <div

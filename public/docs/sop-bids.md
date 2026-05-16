@@ -60,7 +60,7 @@ All subjects are identified using a BIDS-compliant ID with the format:
 
 Where `{INSTITUTION_PREFIX}` is 2-6 uppercase letters assigned to your site, and `{###}` is a three-digit zero-padded number scoped per institution. Examples: `sub-CHOP016`, `sub-PENN042`, `sub-HUP003`.
 
-Subject IDs must contain only alphanumeric characters (no spaces, hyphens, underscores, or special characters after the `sub-` prefix). The key linking subject IDs to real patient identifiers must be stored only at your institution in a secure, access-controlled system per GOV-001 Section 2.3. It is never uploaded to Pennsieve or shared externally.
+Subject IDs must contain only alphanumeric characters (no spaces, hyphens, underscores, or special characters after the `sub-` prefix). The key linking subject IDs to real patient identifiers must be stored only at your institution in a secure, access-controlled system per GOV-001 Section 2.3. It is never uploaded to any sharing platform or shared externally.
 
 ## 5. Dataset Structure Overview
 

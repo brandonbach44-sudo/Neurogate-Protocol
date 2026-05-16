@@ -81,10 +81,10 @@ export default function AboutPage() {
             <span style={{ color: PENN_BLUE }}>neuroimaging data.</span>
           </h1>
           <p className="mt-4 text-sm text-gray-500 leading-relaxed max-w-lg">
-            NeuroGate combines a regulatory governance framework with a browser-based tool that
-            helps research sites organize, validate, and prepare BIDS-compliant neuroimaging data
-            for sharing through Pennsieve. The framework is the spine; the tool is one of its
-            implementations.
+            NeuroGate Protocol combines a regulatory governance framework with a browser-based
+            tool that helps research sites organize, validate, and prepare BIDS-compliant
+            neuroimaging data ready for multi-site sharing. The framework is the spine; the tool
+            is one of its implementations. The site chooses its own sharing platform.
           </p>
           <div className="mt-6 flex items-center gap-3">
             <Link
@@ -153,7 +153,7 @@ export default function AboutPage() {
           />
           <PillarCard
             title="Four operational SOPs"
-            body="BIDS data structure, Pennsieve uploads, REDCap metadata entry, and the tool user guide. Each SOP is procedural step-by-step, with quick-reference sections for day-to-day use."
+            body="BIDS data structure, REDCap metadata entry, the tool user guide, and an optional Pennsieve upload reference. Each SOP is procedural step-by-step, with quick-reference sections for day-to-day use."
             accent={TEAL_TEXT}
             bg="rgba(109,211,206,0.16)"
             icon={
