@@ -1,6 +1,6 @@
 # NeuroGate
 
-A browser-based tool and governance framework for organizing multi-site epilepsy neuroimaging data into BIDS-compliant format for sharing through Pennsieve.
+A browser-based tool and governance framework for organizing multi-site epilepsy neuroimaging data into BIDS-compliant format, ready for sharing through whichever platform a site chooses.
 
 ## Status
 
@@ -14,10 +14,10 @@ Research staff at participating epilepsy study sites drag a folder of patient da
 2. Lets users correct the mapping inline
 3. Collects required metadata per modality
 4. Validates the dataset against BIDS plus a governance framework (PHI scan, metadata completeness, session consistency)
-5. Exports a BIDS-organized folder ready for upload to Pennsieve
+5. Exports a BIDS-organized folder ready for upload
 6. Generates an ALCOA+ compliant audit log
 
-Users are assumed to have already converted DICOM to NIfTI and de-identified structural MRI. The tool validates and attests; it does not perform those steps. Pennsieve upload is performed by the user separately following SOP-PENNSIEVE-001.
+Users are assumed to have already converted DICOM to NIfTI and de-identified structural MRI. The tool validates and attests; it does not perform those steps. After the tool exports the BIDS folder, the site uploads it to whichever sharing platform they have chosen. SOP-PENNSIEVE-001 is a worked example for sites using Pennsieve.
 
 ## Development
 
@@ -32,7 +32,7 @@ User-facing documentation lives on the deployed site under `/docs` and is source
 
 - GOV-001: Regulatory Governance Framework
 - SOP-BIDS-001: BIDS Data Structure
-- SOP-PENNSIEVE-001: Pennsieve Upload Procedures
+- SOP-PENNSIEVE-001: Pennsieve Upload Procedures (optional reference for sites using Pennsieve)
 - SOP-REDCAP-001: REDCap Metadata Entry
 - SOP-GUI-001: NeuroGate Compliance Tool User Guide
 - ONBOARD-001: Site Onboarding Checklist

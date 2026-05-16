@@ -14,7 +14,7 @@
 
 ## 1. Purpose
 
-This SOP provides instructions for using the NeuroGate web-based compliance tool to organize, validate, and export neuroimaging data in Brain Imaging Data Structure (BIDS) format for upload to Pennsieve. The tool automates file classification, enforces BIDS naming conventions, scans for protected health information (PHI), and generates an audit trail compliant with ALCOA+ data integrity principles.
+This SOP provides instructions for using the NeuroGate web-based compliance tool to organize, validate, and export neuroimaging data in Brain Imaging Data Structure (BIDS) format. The tool automates file classification, enforces BIDS naming conventions, scans for protected health information (PHI), and generates an audit trail compliant with ALCOA+ data integrity principles. The exported BIDS folder is then uploaded by the site to whatever sharing platform they have chosen (Pennsieve, institutional cloud, etc.); platform upload is out of scope for this SOP.
 
 ---
 
@@ -34,7 +34,7 @@ This SOP implements the following GOV-001 requirements:
 
 ## 3. Scope
 
-This SOP applies to all personnel at participating research sites who are responsible for preparing neuroimaging data files for sharing through the multi-site epilepsy data sharing initiative on Pennsieve. This includes research coordinators, data managers, imaging technologists, and principal investigators.
+This SOP applies to all personnel at participating research sites who are responsible for preparing neuroimaging data files for sharing through the multi-site epilepsy data sharing initiative. This includes research coordinators, data managers, imaging technologists, and principal investigators.
 
 **In scope:**
 - Organizing raw neuroimaging files (NIfTI, EDF, JSON) into BIDS-compliant folder structures
@@ -46,7 +46,7 @@ This SOP applies to all personnel at participating research sites who are respon
 **Out of scope:**
 - DICOM-to-NIfTI conversion (install scripts packaged in the same repository at `tools/dcm2niix/`)
 - Defacing of anatomical images (install scripts packaged in the same repository at `tools/pydeface/`)
-- Uploading the exported ZIP to Pennsieve (see SOP-PENNSIEVE-001)
+- Uploading the exported ZIP to a sharing platform (SOP-PENNSIEVE-001 is a worked example for sites using Pennsieve)
 - Entering clinical metadata into REDCap (see SOP-REDCAP-001)
 
 ---
@@ -260,7 +260,7 @@ Once all failures are resolved, the "Continue to Export" button becomes active.
 
 ### 10.1 Overview
 
-The Export step generates a BIDS-compliant ZIP archive ready for upload to Pennsieve via the methods described in SOP-PENNSIEVE-001.
+The Export step generates a BIDS-compliant ZIP archive ready for upload to the site's chosen sharing platform. SOP-PENNSIEVE-001 is provided as a worked example for sites using Pennsieve.
 
 ### 10.2 Export Contents
 
@@ -312,7 +312,7 @@ After downloading:
 
 1. **Verify the ZIP:** Extract and inspect the contents to confirm structure.
 2. **Run bids-validator (optional):** For additional assurance, run the official BIDS validator against the extracted folder (`npx bids-validator ./dataset/`).
-3. **Upload to Pennsieve:** Follow SOP-PENNSIEVE-001 to upload the dataset.
+3. **Upload to your sharing platform:** Use whatever platform your site has chosen. SOP-PENNSIEVE-001 is a worked example if your site uses Pennsieve.
 4. **Enter metadata in REDCap:** Follow SOP-REDCAP-001 to enter clinical and demographic metadata.
 5. **Archive the audit log:** Store the audit JSON with your site's study records for compliance documentation.
 
@@ -400,7 +400,7 @@ The audit log satisfies ALCOA+ requirements:
 4. **Enter metadata:** Site prefix, subject info, dataset name, defacing attestation
 5. **Validate:** Resolve any failures, review warnings
 6. **Export:** Download BIDS ZIP + audit log
-7. **Upload:** Follow SOP-PENNSIEVE-001 to upload to Pennsieve
+7. **Upload:** Upload to your site's chosen sharing platform (SOP-PENNSIEVE-001 covers Pennsieve as an example)
 
 ### Key Rules
 
