@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { NeuronIcon } from './Icons';
 import Wordmark from './Wordmark';
 
 const TEAL = '#6DD3CE';
@@ -30,12 +29,11 @@ export default function Footer() {
           {/* ─── Brand + tagline ─────────────────────────── */}
           <div>
             <Link to="/" className="flex items-center gap-3 no-underline">
-              <div
-                className="w-9 h-9 rounded-lg flex items-center justify-center"
-                style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
-              >
-                <NeuronIcon size={22} color={TEAL} />
-              </div>
+              <img
+                src="/logo.png"
+                alt="NeuroGate Protocol logo"
+                className="w-10 h-10 object-contain"
+              />
               <Wordmark size="sm" />
             </Link>
             <p
