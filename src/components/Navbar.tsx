@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { NeuronIcon } from './Icons';
 import Wordmark from './Wordmark';
 
 export default function Navbar() {
@@ -22,9 +21,11 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 px-4 sm:px-6 py-3">
         {/* Left: Logo + brand */}
         <Link to="/" className="flex items-center gap-3 no-underline flex-shrink-0" onClick={closeMenu}>
-          <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-white/10">
-            <NeuronIcon size={24} color="#6DD3CE" />
-          </div>
+          <img
+            src="/logo.png"
+            alt="NeuroGate Protocol logo"
+            className="w-10 h-10 object-contain"
+          />
           <Wordmark size="sm" />
         </Link>
 

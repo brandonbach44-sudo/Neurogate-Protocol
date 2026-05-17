@@ -6,7 +6,6 @@ import MetadataStep from '../components/MetadataStep';
 import ValidationStep from '../components/ValidationStep';
 import ExportStep from '../components/ExportStep';
 import AuditLogPanel from '../components/AuditLogPanel';
-import { NeuronIcon } from '../components/Icons';
 import NeuralParticles from '../components/NeuralParticles';
 import Wordmark from '../components/Wordmark';
 import type { MetadataOutput } from '../components/MetadataStep';
@@ -221,9 +220,11 @@ function ToolPage() {
             aria-label="Back to NeuroGate Protocol home"
             title="Back to NeuroGate Protocol home"
           >
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-white/10 group-hover:bg-white/20 transition-colors">
-              <NeuronIcon size={28} color="#6DD3CE" />
-            </div>
+            <img
+              src="/logo.png"
+              alt="NeuroGate Protocol logo"
+              className="w-12 h-12 object-contain group-hover:opacity-90 transition-opacity"
+            />
             <div>
               <Wordmark size="lg" />
               <p className="hidden md:block text-sm mt-1 text-blue-200">
