@@ -223,7 +223,7 @@ function ToolPage() {
             <img
               src="/logo.png"
               alt="NeuroGate Protocol logo"
-              className="w-12 h-12 object-contain group-hover:opacity-90 transition-opacity"
+              className="w-20 h-20 object-contain group-hover:opacity-90 transition-opacity"
             />
             <div>
               <Wordmark size="lg" />
