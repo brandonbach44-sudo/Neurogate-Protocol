@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { NeuronIcon, ShieldIcon, ClipboardIcon } from '../components/Icons';
+import { ShieldIcon, ClipboardIcon } from '../components/Icons';
 
 /* ─── Reusable stat counter ─────────────────────────────────── */
 function StatBlock({ value, label }: { value: string; label: string }) {
@@ -261,7 +261,7 @@ export default function HomePage() {
                 className="w-12 h-12 rounded-xl flex items-center justify-center mb-5"
                 style={{ backgroundColor: 'rgba(109,211,206,0.12)' }}
               >
-                <NeuronIcon size={24} color="#0F6E56" />
+                <img src="/logo.png" alt="NeuroGate Protocol logo" className="w-9 h-9 object-contain" />
               </div>
               <h3 className="text-base font-semibold text-gray-900 mb-2">5-layer auto-detection</h3>
               <p className="text-sm text-gray-500 leading-relaxed">
