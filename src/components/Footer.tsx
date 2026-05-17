@@ -32,9 +32,9 @@ export default function Footer() {
               <img
                 src="/logo.png"
                 alt="NeuroGate Protocol logo"
-                className="w-10 h-10 object-contain"
+                className="w-14 h-14 object-contain"
               />
-              <Wordmark size="sm" />
+              <Wordmark size="lg" />
             </Link>
             <p
               className="mt-4 text-xs leading-relaxed max-w-xs"
