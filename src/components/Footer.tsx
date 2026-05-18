@@ -103,6 +103,22 @@ export default function Footer() {
                 </a>
               </li>
               <li>
+                <a
+                  href="https://scholar.google.com/citations?user=WvJtxmUAAAAJ&hl=en"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="no-underline inline-flex items-center gap-2 text-sm transition-colors"
+                  style={{ color: 'rgba(255,255,255,0.7)' }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = TEAL)}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.7)')}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M12 1L1 7l4 2.18v6L12 19l7-3.82v-6L21 8.5V14h2V7L12 1zM5.27 9.5L12 13l6.73-3.5L12 6 5.27 9.5z" />
+                  </svg>
+                  Google Scholar
+                </a>
+              </li>
+              <li>
                 <button
                   type="button"
                   onClick={handleCopyEmail}
