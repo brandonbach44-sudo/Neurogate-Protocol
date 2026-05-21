@@ -68,6 +68,7 @@ export default function AuditLogPanel({ isOpen, onClose }: AuditLogPanelProps) {
           <button
             onClick={onClose}
             className="text-blue-200 hover:text-white transition-colors text-lg"
+            aria-label="Close audit log panel"
           >
             &times;
           </button>
