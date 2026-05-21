@@ -79,14 +79,14 @@ export default function HomePage() {
             <h1 className="text-3xl md:text-5xl font-bold tracking-tight leading-[1.1] text-gray-900">
               Standardized
               <br />
-              neuroimaging data,
+              neural data in epilepsy,
               <br />
               <span style={{ color: '#011F5B' }}>ready to share.</span>
             </h1>
             <p className="mt-5 text-base leading-relaxed text-gray-500 max-w-md">
-              NeuroGate Protocol helps epilepsy research sites organize, validate, and export
-              BIDS-compliant neuroimaging data, ready to share through whichever platform the
-              site chooses.
+              NeuroGate Protocol helps research sites organize, validate, and export
+              BIDS-compliant neural data in epilepsy, ready to share through cloud and on-premise
+              standardized data infrastructure toward building a learning health system.
             </p>
             <div className="flex items-center gap-3 mt-8">
               <Link

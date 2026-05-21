@@ -75,7 +75,7 @@ export default function ExportStep({
       <div className="text-center mb-8">
         <h2 className="text-2xl font-semibold text-gray-800">Export BIDS Dataset</h2>
         <p className="text-gray-500 mt-2">
-          Review the output structure below, then download the ZIP to upload to your sharing platform.
+          Review the output structure below, then download the ZIP to upload to your data infrastructure.
         </p>
       </div>
 
@@ -138,7 +138,7 @@ export default function ExportStep({
               <p className="text-sm font-medium text-green-800">Export complete!</p>
               <p className="text-sm text-green-700 mt-0.5">
                 Your BIDS dataset has been downloaded. Unzip the file and upload the contents to your
-                site's chosen sharing platform (SOP-PENNSIEVE-001 covers Pennsieve as an example).
+                site's chosen data infrastructure (SOP-PENNSIEVE-001 covers Pennsieve as an example).
               </p>
             </div>
           </div>

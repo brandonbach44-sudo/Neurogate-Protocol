@@ -110,8 +110,8 @@ export default function DocsPage() {
             </h2>
             <p className="text-sm text-gray-500 leading-relaxed max-w-lg">
               The foundational document defining regulatory requirements, data standards,
-              compliance mechanisms, and QMS structure for multi-site neuroimaging data sharing.
-              All SOPs trace back to this framework.
+              compliance mechanisms, and QMS structure for multi-site neural data sharing in
+              epilepsy. All SOPs trace back to this framework.
             </p>
             <div className="mt-5 flex items-center gap-1 text-sm font-medium" style={{ color: '#011F5B' }}>
               Read framework
@@ -129,7 +129,7 @@ export default function DocsPage() {
         <DocCard
           id="SOP-BIDS-001"
           title="BIDS Data Structure"
-          description="Folder hierarchy, file naming conventions, modality organization, JSON sidecars, and de-identification requirements for BIDS-compliant neuroimaging datasets."
+          description="Folder hierarchy, file naming conventions, modality organization, JSON sidecars, and de-identification requirements for BIDS-compliant neural data (imaging and electrophysiology)."
           status="Draft"
           version="v2.0"
           to="/docs/sop-bids"
@@ -143,7 +143,7 @@ export default function DocsPage() {
         <DocCard
           id="SOP-PENNSIEVE-001"
           title="Pennsieve Upload Procedures (optional reference)"
-          description="Worked example for sites that choose Pennsieve as their sharing platform. Covers Agent CLI and web interface upload, pre-upload validation, post-upload verification, and audit logging. Sites using a different platform should produce an equivalent SOP."
+          description="Worked example for sites that choose Pennsieve as their data infrastructure. Covers Agent CLI and web interface upload, pre-upload validation, post-upload verification, and audit logging. Sites using different infrastructure should produce an equivalent SOP."
           status="Draft"
           version="v2.1"
           to="/docs/sop-pennsieve"

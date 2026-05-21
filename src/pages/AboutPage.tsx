@@ -91,15 +91,16 @@ export default function AboutPage() {
           <h1 className="text-3xl font-bold text-gray-900 mt-4 leading-tight">
             A governance framework
             <br />
-            for sharing epilepsy
+            for neural data
             <br />
-            <span style={{ color: PENN_BLUE }}>neuroimaging data.</span>
+            <span style={{ color: PENN_BLUE }}>in epilepsy.</span>
           </h1>
           <p className="mt-4 text-sm text-gray-500 leading-relaxed max-w-lg">
             NeuroGate Protocol combines a regulatory governance framework with a browser-based
             tool that helps research sites organize, validate, and prepare BIDS-compliant
-            neuroimaging data ready for multi-site sharing. The framework is the spine; the tool
-            is one of its implementations. The site chooses its own sharing platform.
+            neural data in epilepsy ready for multi-site sharing through cloud and on-premise
+            standardized data infrastructure toward building a learning health system. The
+            framework is the spine; the tool is one of its implementations.
           </p>
           <div className="mt-6 flex items-center gap-3">
             <Link
@@ -137,14 +138,15 @@ export default function AboutPage() {
       {/* ─── WHY THIS EXISTS ─────────────────────────────── */}
       <section className="rounded-2xl border border-gray-100 bg-white p-8 shadow-sm mb-14">
         <Eyebrow>The problem</Eyebrow>
-        <h2 className="text-2xl font-bold text-gray-900 mt-3 mb-4">Sharing epilepsy data is hard for the right reasons.</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mt-3 mb-4">Sharing neural data is hard for the right reasons.</h2>
         <p className="text-sm text-gray-600 leading-relaxed max-w-3xl">
-          Multi-site epilepsy research depends on sharing imaging data across institutions, but
-          imaging data is sensitive: it carries facial features, identifying headers, and clinical
-          context that need careful handling. Each site has its own conventions, and BIDS, FAIR,
-          ALCOA+, and HIPAA all impose real requirements that are easy to get wrong without a
-          shared structure. NeuroGate is designed to make doing the right thing the path of least
-          resistance.
+          Multi-site epilepsy research depends on sharing neural data across institutions, and
+          that data is sensitive: imaging carries facial features and identifying headers,
+          electrophysiology carries patient identifiers in recording headers, and all of it
+          carries clinical context that needs careful handling. Each site has its own conventions,
+          and BIDS, FAIR, ALCOA+, and HIPAA all impose real requirements that are easy to get
+          wrong without a shared structure. NeuroGate Protocol is designed to make doing the right
+          thing the path of least resistance.
         </p>
       </section>
 
@@ -218,7 +220,7 @@ export default function AboutPage() {
             The framework and SOPs are being validated internally first, then with one external
             partner site before broader adoption. The tool is functional and the documentation is
             in draft, pending review. NeuroGate is in active development and intended to be a
-            long-lived resource for the multi-site epilepsy data sharing community.
+            long-lived resource for the multi-site neural data sharing community in epilepsy.
           </p>
           <div className="mt-5 inline-flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-full" style={{ backgroundColor: 'rgba(109,211,206,0.15)', color: TEAL_TEXT }}>
             <span style={{ color: TEAL }}>&#9679;</span>
@@ -231,7 +233,7 @@ export default function AboutPage() {
           <p className="text-sm text-gray-500 leading-relaxed">
             Project lead, framework author, and tool developer. The work spans regulatory writing,
             front-end engineering, and biomedical informatics, anchored on the goal of making
-            multi-site epilepsy data sharing easier to do correctly.
+            multi-site neural data sharing in epilepsy easier to do correctly.
           </p>
           <div className="mt-5 flex flex-wrap items-center gap-3">
             <button

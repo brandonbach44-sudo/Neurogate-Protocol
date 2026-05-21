@@ -1,17 +1,17 @@
 # Site Onboarding Checklist
 
-**Standardized Multi-Site Neuroimaging Data Sharing in Epilepsy**
+**Standardized Multi-Site Neural Data Sharing in Epilepsy**
 
 | Field | Value |
 |---|---|
 | **Document ID** | ONBOARD-001 |
-| **Version** | 2.3 |
+| **Version** | 2.5 |
 | **Effective Date** | May 9, 2026 |
 | **Author** | Brandon Bach |
 | **Advisor** | Nishant Sinha |
 | **Status** | Draft -- Pending Advisor Review |
 | **Parent Document** | GOV-001: Regulatory and Governance Framework (v1.5) |
-| **Related Documents** | SOP-BIDS-001, SOP-REDCAP-001, SOP-GUI-001 (SOP-PENNSIEVE-001 is an optional reference for sites that choose Pennsieve as their sharing platform) |
+| **Related Documents** | SOP-BIDS-001, SOP-REDCAP-001, SOP-GUI-001 (SOP-PENNSIEVE-001 is an optional reference for sites that choose Pennsieve as their data infrastructure) |
 
 ---
 
@@ -21,7 +21,9 @@
 
 ## 1. Purpose
 
-This document defines the procedure for onboarding a new external research site into the multi-site epilepsy neuroimaging data sharing initiative. It walks the site through every step required before they can independently produce compliant, BIDS-organized datasets ready for sharing. Where the site uploads the resulting BIDS folder (Pennsieve, institutional cloud storage, another sharing platform) is the site's own choice. Completion of this checklist is a prerequisite for any data sharing per GOV-001 Section 7.3 (Site Onboarding Verification).
+This document defines the procedure for onboarding a new external research site into the multi-site neural data sharing initiative in epilepsy. It walks the site through every step required before they can independently produce compliant, BIDS-organized datasets ready for sharing through cloud and on-premise standardized data infrastructure toward building a learning health system infrastructure. The specific infrastructure choice (Pennsieve, institutional cloud, on-premise archive, etc.) is the site's own. Completion of this checklist is a prerequisite for any data sharing per GOV-001 Section 7.3 (Site Onboarding Verification).
+
+"Neural data" covers all modalities used in epilepsy research, including structural and functional MRI, CT, DWI, scalp EEG, and intracranial EEG.
 
 ## 2. Governance Traceability
 
@@ -37,7 +39,7 @@ This onboarding procedure implements specific requirements from the Regulatory a
 
 ## 3. Scope
 
-This SOP applies to every external site joining the multi-site epilepsy data sharing initiative. It covers the full path from initial outreach through the first three independently uploaded subjects. After Phase 5 reviews pass, the site moves to the ongoing operation cadence (Section 10) and the onboarding record is filed as evidence of training completion.
+This SOP applies to every external site joining the multi-site neural data sharing initiative in epilepsy. It covers the full path from initial outreach through the first three independently uploaded subjects. After Phase 5 reviews pass, the site moves to the ongoing operation cadence (Section 10) and the onboarding record is filed as evidence of training completion.
 
 This SOP does not cover the day-to-day execution of BIDS conversion (SOP-BIDS-001), REDCap data entry (SOP-REDCAP-001), use of the NeuroGate tool (SOP-GUI-001), or platform-specific upload procedures (SOP-PENNSIEVE-001 is provided as a worked example for sites using Pennsieve). It coordinates the introduction of those documents to the site.
 
@@ -74,8 +76,8 @@ Before any account is created or any data is touched, the legal and governance p
 | Site reviews SOP-BIDS-001 (BIDS Data Structure) | Site |
 | Site reviews SOP-REDCAP-001 (REDCap Metadata Entry) | Site |
 | Site reviews SOP-GUI-001 (NeuroGate Tool User Guide) | Site |
-| Site reviews SOP-PENNSIEVE-001 if relevant (optional, only if Pennsieve is the chosen platform) | Site |
-| Site confirms which sharing platform they will use for the exported BIDS folder | Site |
+| Site reviews SOP-PENNSIEVE-001 if relevant (optional, only if Pennsieve is the chosen data infrastructure) | Site |
+| Site confirms which data infrastructure they will use for the exported BIDS folder | Site |
 
 ## 6. Phase 2: Account and Tooling Setup
 
@@ -87,14 +89,14 @@ The site provisions accounts, secures credentials, sets up the local subject ID 
 |---|---|
 | REDCap project access granted | REDCap Administrator |
 | Site can log in to REDCap and view the data dictionary | Site |
-| Site has independently provisioned access to its chosen sharing platform (Pennsieve, institutional cloud, etc.) | Site |
-| Site has confirmed credentials for the chosen platform are stored securely | Site Data Manager |
+| Site has independently provisioned access to its chosen data infrastructure (Pennsieve, institutional cloud, etc.) | Site |
+| Site has confirmed credentials for the chosen data infrastructure are stored securely | Site Data Manager |
 
 ### 6.2 Platform Credentials (only required if the site will use a CLI-based upload tool)
 
 | Task | Responsible |
 |---|---|
-| API key or equivalent credentials generated for the chosen sharing platform | Site |
+| API key or equivalent credentials generated for the chosen data infrastructure | Site |
 | Credentials stored securely (note: many platforms only display secrets once) | Site Data Manager |
 | Test connection succeeds from the Site Data Manager's machine | Site |
 
@@ -110,7 +112,7 @@ The site must install dcm2niix and pydeface before they can convert and de-ident
 
 ### 6.4 Subject ID Key Storage
 
-Per GOV-001 Section 2.3, the key linking BIDS subject IDs to real patient identifiers must live only at the originating institution in a secure, access-controlled system. It is never uploaded to any sharing platform or shared externally.
+Per GOV-001 Section 2.3, the key linking BIDS subject IDs to real patient identifiers must live only at the originating institution in a secure, access-controlled system. It is never uploaded to any data infrastructure or shared externally.
 
 | Task | Responsible |
 |---|---|
@@ -208,7 +210,7 @@ This section summarizes the onboarding workflow for day-to-day use during an act
 | Phase | Focus | Exit Criteria |
 |---|---|---|
 | 1. Pre-Onboarding | Agreements, IRB, roles, doc review | Site PI and Data Manager named; IRB and DUA on file; institution prefix assigned; all 5 docs reviewed |
-| 2. Account and Tooling Setup | REDCap, sharing platform credentials, pre-processing tools, subject ID key store | Site can log in to REDCap; site has independently set up its chosen sharing platform; dcm2niix and pydeface installed; secure local key store ready |
+| 2. Account and Tooling Setup | REDCap, data infrastructure credentials, pre-processing tools, subject ID key store | Site can log in to REDCap; site has independently set up its chosen data infrastructure; dcm2niix and pydeface installed; secure local key store ready |
 | 3. Training | Walk through framework, SOPs, and tool | Site Data Manager confirms readiness for the supervised first upload |
 | 4. First Subject (Supervised) | First real subject uploaded end-to-end with project lead watching | Subject 1 uploaded and validated; PHI Clearance Form signed; ALCOA+ audit log archived |
 | 5. Independent Operation | Subjects 2 and 3 uploaded independently | Both reviewed by Quality Auditor; non-conformances resolved; site marked fully onboarded |
@@ -252,4 +254,6 @@ The following must be true before advancing to each phase. Onboarding does not m
 | 2.0 | May 6, 2026 | Brandon Bach | Major revision: added Purpose, Governance Traceability, Scope, and Roles sections to match sibling SOPs; added Site PI / Site Data Manager designation; added institution prefix and starting subject number coordination; added pre-processing tools (dcm2niix, pydeface) install to Phase 2; added subject ID key storage setup (GOV-001 2.3); added API key handling per SOP-PENNSIEVE-001 5.2; reframed Phase 4 as the supervised first real-subject upload (this serves as the GOV-001 7.3 validation upload; sites are not expected to produce synthetic test data) and Phase 5 as independent operation for subjects 2 and 3; added PHI Clearance Form sign-off per subject; added Ongoing Site Support and Quarterly Audit Cadence sections (GOV-001 7.2); added Quick Reference section to match sibling SOPs; expanded documentation package to include GOV-001 and SOP-GUI-001 |
 | 2.1 | May 7, 2026 | Brandon Bach | Removed Penn-team affiliation from project roles (Onboarding Lead, Pennsieve Workspace Admin, REDCap Administrator, Quality Auditor) since the tool is project-owned, not Penn-affiliated; removed Site Information block, Onboarding Sign-Off section, Notes and Issues Log, and the Notes/Date columns from phase tables (these implied fillability the rendered doc cannot support, and the tool already captures the actual data); added a "How to use this document" preamble clarifying that the doc is a procedural reference; removed consent line from Phase 4 (consent for sharing was obtained at the original IRB protocol; no separate consent step is needed for the upload); replaced sign-off mechanic with documenting completion in the project training records (Phase 5 final task) |
 | 2.2 | May 8, 2026 | Brandon Bach | Removed the "Done" column and unicode checkbox markers (☐) from every phase table; the boxes were visual decoration only since the rendered doc cannot be interacted with, and they implied a fillability that does not exist. Tables now read as straightforward "Task | Responsible" lists. Updated the "How to use this document" preamble to drop the checkbox mention. Updated contact email in Section 10 to brandon.bach44@gmail.com to match the rest of the public site. |
-| 2.3 | May 9, 2026 | Brandon Bach | Decoupled onboarding from Pennsieve as the assumed sharing platform. Removed "Pennsieve Workspace Admin" role. Section 6.1 generalized to "REDCap and Sharing Platform Access"; sites now confirm their own platform access. Section 6.2 reframed from "Pennsieve Agent CLI" to generic platform credentials. Phase 4 supervised step now ends at producing the BIDS export folder, not uploading to Pennsieve (Option A scope: tool output is the deliverable; what the site does with it next is their call). Phase 1 documentation package marks SOP-PENNSIEVE-001 as optional reference. Quick Reference doc list and tools list mark Pennsieve items as optional. Parent doc bumped to GOV-001 v1.5. |
+| 2.3 | May 9, 2026 | Brandon Bach | Decoupled onboarding from Pennsieve as the assumed data infrastructure. Removed "Pennsieve Workspace Admin" role. Section 6.1 generalized to "REDCap and Sharing Platform Access"; sites now confirm their own platform access. Section 6.2 reframed from "Pennsieve Agent CLI" to generic platform credentials. Phase 4 supervised step now ends at producing the BIDS export folder, not uploading to Pennsieve (Option A scope: tool output is the deliverable; what the site does with it next is their call). Phase 1 documentation package marks SOP-PENNSIEVE-001 as optional reference. Quick Reference doc list and tools list mark Pennsieve items as optional. Parent doc bumped to GOV-001 v1.5. |
+| 2.4 | May 9, 2026 | Brandon Bach | Broadened framing from epilepsy-specific to general neuroimaging research. Title subtitle dropped "in Epilepsy"; Section 1 Purpose reframed accordingly; Section 3 Scope updated. Operational phases remain framed around the current epilepsy worked example since the SOPs they coordinate are still epilepsy-specific. Parent doc bumped to GOV-001 v1.6. |
+| 2.5 | May 9, 2026 | Brandon Bach | Reversed v2.4 broadening per advisor direction. Epilepsy restored as the named domain in the subtitle and Section 1 Purpose. "Neuroimaging" replaced with "neural data" to include electrophysiology (iEEG, EEG). Platform language switched from "sharing platform" to the advisor's "cloud and on-premise standardized data infrastructure toward building a learning health system infrastructure" phrasing (full in Purpose, "data infrastructure" elsewhere). Parent doc bumped to GOV-001 v1.7. |
