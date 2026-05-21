@@ -130,7 +130,7 @@ export default function AboutPage() {
         <div className="flex items-end md:justify-end">
           <div className="md:text-right">
             <div className="text-3xl font-bold" style={{ color: PENN_BLUE }}>2026</div>
-            <div className="text-xs text-gray-400 uppercase tracking-wide mt-1">In development</div>
+            <div className="text-xs text-gray-500 uppercase tracking-wide mt-1">In development</div>
           </div>
         </div>
       </div>

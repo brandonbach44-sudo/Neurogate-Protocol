@@ -87,8 +87,8 @@ export default function DocViewerPage() {
   return (
     <div className="max-w-4xl mx-auto px-6 py-12 relative z-10">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-xs text-gray-400 mb-8">
-        <Link to="/docs" className="no-underline hover:text-gray-600 transition-colors" style={{ color: '#9ca3af' }}>
+      <div className="flex items-center gap-2 text-xs text-gray-500 mb-8">
+        <Link to="/docs" className="no-underline hover:text-gray-700 transition-colors" style={{ color: '#6b7280' }}>
           Documentation
         </Link>
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

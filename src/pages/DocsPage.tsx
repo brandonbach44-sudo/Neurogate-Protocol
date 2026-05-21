@@ -47,7 +47,7 @@ function DocCard({
           </span>
         </div>
       </div>
-      <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">{id}</div>
+      <div className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">{id}</div>
       <h3 className="text-sm font-semibold text-gray-900 mb-2 group-hover:text-[#011F5B] transition-colors">{title}</h3>
       <p className="text-xs text-gray-500 leading-relaxed">{description}</p>
       <div className="mt-4 flex items-center gap-1 text-xs font-medium" style={{ color: '#011F5B' }}>
@@ -88,7 +88,7 @@ export default function DocsPage() {
         <div className="flex items-end md:justify-end">
           <div className="text-right">
             <div className="text-3xl font-bold" style={{ color: '#011F5B' }}>6</div>
-            <div className="text-xs text-gray-400 uppercase tracking-wide mt-1">Documents</div>
+            <div className="text-xs text-gray-500 uppercase tracking-wide mt-1">Documents</div>
           </div>
         </div>
       </div>
@@ -101,7 +101,7 @@ export default function DocsPage() {
         >
           <div className="p-8">
             <div className="flex items-center gap-2 mb-4">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">GOV-001</span>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500">GOV-001</span>
               <span className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(1,31,91,0.06)', color: '#011F5B' }}>v1.3</span>
               <span className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(234,179,8,0.1)', color: '#a16207' }}>Draft</span>
             </div>
@@ -209,7 +209,7 @@ export default function DocsPage() {
               </svg>
             </div>
             <div>
-              <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-0.5">ONBOARD-001</div>
+              <div className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-0.5">ONBOARD-001</div>
               <h3 className="text-sm font-semibold text-gray-900 group-hover:text-[#011F5B] transition-colors">Site Onboarding Checklist</h3>
               <p className="text-xs text-gray-500 mt-1">5-phase checklist for onboarding external research sites, from initial contact through first validated upload.</p>
             </div>

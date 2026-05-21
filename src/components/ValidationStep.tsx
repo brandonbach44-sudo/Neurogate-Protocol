@@ -215,7 +215,7 @@ export default function ValidationStep({
       {/* Issues list */}
       <div className="space-y-2">
         {filteredIssues.length === 0 ? (
-          <div className="text-center py-12 text-gray-400">
+          <div className="text-center py-12 text-gray-500">
             {report.issues.length === 0
               ? 'No issues found — your data looks great!'
               : 'No issues match the current filter.'}
@@ -297,13 +297,13 @@ function IssueCard({
 
         {/* File count */}
         {issue.affectedFiles.length > 0 && (
-          <span className="text-xs text-gray-400">
+          <span className="text-xs text-gray-500">
             {issue.affectedFiles.length} file{issue.affectedFiles.length !== 1 ? 's' : ''}
           </span>
         )}
 
         {/* Expand indicator */}
-        <span className="text-gray-400 text-xs">
+        <span className="text-gray-500 text-xs">
           {expanded ? '▼' : '▶'}
         </span>
       </button>
@@ -329,7 +329,7 @@ function IssueCard({
 
           {/* Subject/session info */}
           {(issue.subjectGroup || issue.session) && (
-            <div className="flex gap-4 text-xs text-gray-400">
+            <div className="flex gap-4 text-xs text-gray-500">
               {issue.subjectGroup && <span>Subject: {issue.subjectGroup}</span>}
               {issue.session && <span>Session: {issue.session}</span>}
             </div>
@@ -342,7 +342,7 @@ function IssueCard({
                 e.stopPropagation();
                 onDismiss();
               }}
-              className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+              className="text-xs text-gray-500 hover:text-gray-600 transition-colors"
             >
               Dismiss this issue
             </button>

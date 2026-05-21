@@ -311,7 +311,7 @@ export default function HomePage() {
                 Every file scan, user correction, metadata entry, and export decision is logged
                 with timestamps. The audit JSON downloads automatically with your BIDS dataset.
               </p>
-              <div className="mt-5 flex items-center gap-3 text-xs text-gray-400">
+              <div className="mt-5 flex items-center gap-3 text-xs text-gray-500">
                 <span className="flex items-center gap-1">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                   Timestamped

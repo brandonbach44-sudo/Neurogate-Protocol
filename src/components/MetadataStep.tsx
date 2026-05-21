@@ -259,10 +259,11 @@ export default function MetadataStep({
 
             <div className="flex gap-4">
               <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="ms-institution-prefix" className="block text-sm font-medium text-gray-700 mb-1">
                   Institution Prefix <span className="text-red-500">*</span>
                 </label>
                 <input
+                  id="ms-institution-prefix"
                   type="text"
                   value={institutionConfig.prefix}
                   onChange={(e) => setInstitutionConfig(prev => ({
@@ -275,14 +276,15 @@ export default function MetadataStep({
                     hover:border-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none
                     uppercase tracking-wider"
                 />
-                <p className="text-xs text-gray-400 mt-1">2-6 uppercase letters identifying your institution</p>
+                <p className="text-xs text-gray-500 mt-1">2-6 uppercase letters identifying your institution</p>
               </div>
 
               <div className="w-40">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="ms-starting-number" className="block text-sm font-medium text-gray-700 mb-1">
                   Starting Number
                 </label>
                 <input
+                  id="ms-starting-number"
                   type="number"
                   min="1"
                   value={institutionConfig.startingNumber}
@@ -293,7 +295,7 @@ export default function MetadataStep({
                   className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2
                     hover:border-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
                 />
-                <p className="text-xs text-gray-400 mt-1">
+                <p className="text-xs text-gray-500 mt-1">
                   First subject will be {institutionConfig.prefix || 'SITE'}{String(institutionConfig.startingNumber).padStart(3, '0')}
                 </p>
               </div>
@@ -310,7 +312,7 @@ export default function MetadataStep({
                     </span>
                   ))}
                   {subjects.length > 8 && (
-                    <span className="text-xs text-gray-400 self-center">
+                    <span className="text-xs text-gray-500 self-center">
                       +{subjects.length - 8} more
                     </span>
                   )}
@@ -324,7 +326,7 @@ export default function MetadataStep({
         {activeTab === 'subjects' && (
           <div className="space-y-4">
             {subjects.length === 0 ? (
-              <div className="text-center py-8 text-gray-400">
+              <div className="text-center py-8 text-gray-500">
                 No subjects detected. Go back to the mapping table to assign files to subjects.
               </div>
             ) : (

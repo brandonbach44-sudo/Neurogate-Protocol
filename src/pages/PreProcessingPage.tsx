@@ -22,7 +22,7 @@ function CodeBlock({ children, label }: { children: string; label?: string }) {
   return (
     <div className="relative">
       {label && (
-        <div className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-2">
+        <div className="text-[10px] font-semibold uppercase tracking-widest text-gray-500 mb-2">
           {label}
         </div>
       )}
@@ -241,7 +241,7 @@ export default function PreProcessingPage() {
         <div className="flex items-end md:justify-end">
           <div className="md:text-right">
             <div className="text-3xl font-bold" style={{ color: PENN_BLUE }}>2</div>
-            <div className="text-xs text-gray-400 uppercase tracking-wide mt-1">Required tools</div>
+            <div className="text-xs text-gray-500 uppercase tracking-wide mt-1">Required tools</div>
           </div>
         </div>
       </div>
@@ -544,7 +544,7 @@ done`}</CodeBlock>
                 {r.title}
               </div>
               <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">{r.desc}</p>
-              <div className="mt-3 flex items-center gap-1 text-xs font-medium text-gray-400">
+              <div className="mt-3 flex items-center gap-1 text-xs font-medium text-gray-500">
                 Open
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />

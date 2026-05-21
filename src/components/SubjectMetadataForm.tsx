@@ -34,7 +34,7 @@ export default function SubjectMetadataForm({
           <span className="text-sm font-semibold text-gray-800">
             {subject.bidsSubjectId}
           </span>
-          <span className="text-xs text-gray-400">
+          <span className="text-xs text-gray-500">
             (from: {subject.subjectGroup})
           </span>
         </div>
@@ -53,14 +53,14 @@ export default function SubjectMetadataForm({
             <span className="text-sm font-medium text-gray-700">
               {getSessionLabel(session.sessionId)}
             </span>
-            <span className="text-xs text-gray-400">
+            <span className="text-xs text-gray-500">
               {session.sessionId}
             </span>
           </div>
         ))}
 
         {subject.sessions.length === 0 && (
-          <div className="px-5 py-4 text-sm text-gray-400 italic">
+          <div className="px-5 py-4 text-sm text-gray-500 italic">
             No sessions detected for this subject. Sessions will be added based on the mapping table.
           </div>
         )}

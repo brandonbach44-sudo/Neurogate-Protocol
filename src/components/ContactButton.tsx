@@ -80,7 +80,7 @@ export default function ContactButton() {
           role="dialog"
           aria-label="Contact options"
         >
-          <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
+          <div className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">
             Contact
           </div>
           <div
@@ -131,7 +131,7 @@ export default function ContactButton() {
               Open mail
             </a>
           </div>
-          <p className="text-[10px] text-gray-400 mt-3 leading-relaxed">
+          <p className="text-[10px] text-gray-500 mt-3 leading-relaxed">
             "Open mail" only works if you have a mail app set up. The Copy button works everywhere.
           </p>
         </div>

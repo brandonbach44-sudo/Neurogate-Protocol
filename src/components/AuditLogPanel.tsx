@@ -93,7 +93,7 @@ export default function AuditLogPanel({ isOpen, onClose }: AuditLogPanelProps) {
             Export CSV
           </button>
           <div className="flex-1" />
-          <span className="text-xs text-gray-400 self-center">
+          <span className="text-xs text-gray-500 self-center">
             ALCOA+ Compliant
           </span>
         </div>
@@ -101,7 +101,7 @@ export default function AuditLogPanel({ isOpen, onClose }: AuditLogPanelProps) {
         {/* Entries list */}
         <div className="flex-1 overflow-y-auto">
           {entries.length === 0 ? (
-            <div className="text-center py-12 text-gray-400 text-sm">
+            <div className="text-center py-12 text-gray-500 text-sm">
               No audit entries yet. Actions will be logged as you progress through the wizard.
             </div>
           ) : (
@@ -145,7 +145,7 @@ function AuditEntryRow({
       >
         <div className="flex items-start gap-3">
           {/* Timestamp */}
-          <span className="text-xs text-gray-400 font-mono shrink-0 mt-0.5 w-16">
+          <span className="text-xs text-gray-500 font-mono shrink-0 mt-0.5 w-16">
             {timeStr}
           </span>
 
@@ -177,7 +177,7 @@ function AuditEntryRow({
           <div className="bg-gray-50 rounded p-3 text-xs font-mono text-gray-600 overflow-x-auto">
             {Object.entries(entry.details).map(([key, value]) => (
               <div key={key} className="flex gap-2">
-                <span className="text-gray-400 shrink-0">{key}:</span>
+                <span className="text-gray-500 shrink-0">{key}:</span>
                 <span className="text-gray-700">
                   {typeof value === 'object' ? JSON.stringify(value) : String(value)}
                 </span>

@@ -101,7 +101,7 @@ export default function ExportStep({
       <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden mb-6">
         <div className="bg-gray-50 px-5 py-3 border-b border-gray-200 flex items-center justify-between">
           <span className="text-sm font-semibold text-gray-800">BIDS Output Structure</span>
-          <span className="text-xs text-gray-400">{stats.totalFolders} folders, {stats.totalFiles} files</span>
+          <span className="text-xs text-gray-500">{stats.totalFolders} folders, {stats.totalFiles} files</span>
         </div>
         <div className="p-4 max-h-96 overflow-y-auto font-mono text-sm">
           <TreeView node={tree} depth={0} />
@@ -196,7 +196,7 @@ function TreeView({ node, depth }: { node: TreeNode; depth: number }) {
         className="flex items-center gap-1.5 py-0.5 text-gray-600 hover:bg-gray-50 rounded px-1"
         style={{ paddingLeft: indent }}
       >
-        <span className="text-gray-400 text-xs">&#128196;</span>
+        <span className="text-gray-500 text-xs">&#128196;</span>
         <span>{node.name}</span>
         {node.size !== undefined && (
           <span className="text-gray-300 text-xs ml-1">({formatSize(node.size)})</span>
@@ -212,7 +212,7 @@ function TreeView({ node, depth }: { node: TreeNode; depth: number }) {
         className="flex items-center gap-1.5 py-0.5 text-gray-800 font-medium hover:bg-gray-50 rounded px-1 w-full text-left"
         style={{ paddingLeft: indent }}
       >
-        <span className="text-xs text-gray-400 w-3">
+        <span className="text-xs text-gray-500 w-3">
           {expanded ? '&#9660;' : '&#9654;'}
         </span>
         <span className="text-yellow-600 text-xs">&#128193;</span>
