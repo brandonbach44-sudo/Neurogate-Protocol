@@ -197,6 +197,7 @@ export default function MappingTable({
               value={bulkSession}
               onChange={(e) => setBulkSession(e.target.value as Session | '')}
               className="text-sm border border-blue-300 rounded px-2 py-1.5 bg-white"
+              aria-label="Bulk-assign session to selected files"
             >
               <option value="">Set session...</option>
               {SESSIONS.map(s => (
@@ -217,6 +218,7 @@ export default function MappingTable({
               value={bulkModality}
               onChange={(e) => setBulkModality(e.target.value as Modality | '')}
               className="text-sm border border-blue-300 rounded px-2 py-1.5 bg-white"
+              aria-label="Bulk-assign modality to selected files"
             >
               <option value="">Set modality...</option>
               {MODALITIES.filter(m => m.value !== 'sidecar-json' && m.value !== 'sidecar-tsv').map(m => (
@@ -251,6 +253,7 @@ export default function MappingTable({
               checked={selectedIndices.size === filteredIndices.length && filteredIndices.length > 0}
               onChange={toggleSelectAll}
               className="w-4 h-4 rounded border-gray-300"
+              aria-label="Select all files"
             />
           </div>
           <span>Original File</span>
@@ -290,6 +293,7 @@ export default function MappingTable({
                       checked={isSelected}
                       onChange={() => toggleSelect(resultIndex)}
                       className="w-4 h-4 rounded border-gray-300"
+                      aria-label={`Select ${result.fileName}`}
                     />
                   </div>
 
@@ -298,7 +302,7 @@ export default function MappingTable({
                     <div className="font-mono text-xs text-gray-700 truncate" title={result.relativePath}>
                       {result.relativePath}
                     </div>
-                    <div className="font-mono text-xs text-gray-400 mt-0.5 truncate" title={result.bidsPath}>
+                    <div className="font-mono text-xs text-gray-500 mt-0.5 truncate" title={result.bidsPath}>
                       &rarr; {result.bidsPath}
                     </div>
                   </div>
@@ -310,6 +314,7 @@ export default function MappingTable({
                       value={effectiveGroup}
                       onChange={(e) => onUpdateResult(resultIndex, { userSubjectGroup: e.target.value })}
                       className="w-full text-xs border border-gray-200 rounded px-2 py-1.5 hover:border-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                      aria-label={`Subject group for ${result.fileName}`}
                     />
                   </div>
 
@@ -317,6 +322,7 @@ export default function MappingTable({
                   <div onClick={(e) => e.stopPropagation()}>
                     <select
                       value={effectiveSession || ''}
+                      aria-label={`Session for ${result.fileName}`}
                       onChange={(e) => onUpdateResult(resultIndex, {
                         userSession: (e.target.value as Session) || null
                       })}
@@ -336,6 +342,7 @@ export default function MappingTable({
                   <div onClick={(e) => e.stopPropagation()}>
                     <select
                       value={effectiveModality}
+                      aria-label={`Modality for ${result.fileName}`}
                       onChange={(e) => onUpdateResult(resultIndex, {
                         userModality: e.target.value as Modality
                       })}
@@ -375,9 +382,9 @@ export default function MappingTable({
                             <li key={ri} className={`flex items-start gap-1.5 ${
                               reason.message.startsWith('WARNING') ? 'text-orange-600' : 'text-gray-600'
                             }`}>
-                              <span className="mt-0.5 text-gray-400">&bull;</span>
+                              <span className="mt-0.5 text-gray-500">&bull;</span>
                               <span>
-                                <span className="text-gray-400">[{reason.layer}]</span>{' '}
+                                <span className="text-gray-500">[{reason.layer}]</span>{' '}
                                 {reason.message}
                               </span>
                             </li>

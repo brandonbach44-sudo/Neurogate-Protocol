@@ -94,7 +94,7 @@ function PhaseCard({
         </div>
       </div>
       <div className="border-t border-gray-100 pt-4">
-        <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Key tasks</div>
+        <div className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">Key tasks</div>
         <ul className="space-y-1.5">
           {tasks.map((t) => (
             <li key={t} className="flex items-start gap-2 text-xs text-gray-600 leading-relaxed">
@@ -156,7 +156,7 @@ function DocRow({ id, title, to }: { id: string; title: string; to: string }) {
           </svg>
         </div>
         <div>
-          <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400">{id}</div>
+          <div className="text-[10px] font-bold uppercase tracking-widest text-gray-500">{id}</div>
           <div className="text-sm font-semibold text-gray-900 group-hover:text-[#011F5B] transition-colors">
             {title}
           </div>
@@ -217,7 +217,7 @@ export default function OnboardingPage() {
         <div className="flex items-end md:justify-end">
           <div className="md:text-right">
             <div className="text-3xl font-bold" style={{ color: PENN_BLUE }}>5</div>
-            <div className="text-xs text-gray-400 uppercase tracking-wide mt-1">Phases</div>
+            <div className="text-xs text-gray-500 uppercase tracking-wide mt-1">Phases</div>
           </div>
         </div>
       </div>
@@ -552,21 +552,21 @@ export default function OnboardingPage() {
             takes over.
           </p>
           <div className="rounded-xl border border-gray-100 bg-white p-5 mb-3">
-            <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Required</div>
+            <div className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Required</div>
             <div className="text-sm font-semibold text-gray-900">dcm2niix</div>
             <p className="text-xs text-gray-500 mt-1 leading-relaxed">
               DICOM to NIfTI conversion with BIDS-ready JSON sidecars.
             </p>
           </div>
           <div className="rounded-xl border border-gray-100 bg-white p-5 mb-3">
-            <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Required</div>
+            <div className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Required</div>
             <div className="text-sm font-semibold text-gray-900">pydeface (with FSL)</div>
             <p className="text-xs text-gray-500 mt-1 leading-relaxed">
               Facial de-identification for T1w, T2w, and FLAIR scans.
             </p>
           </div>
           <div className="rounded-xl border border-gray-100 bg-white p-5 mb-5">
-            <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Optional</div>
+            <div className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Optional</div>
             <div className="text-sm font-semibold text-gray-900">Pennsieve Agent (only if site uses Pennsieve)</div>
             <p className="text-xs text-gray-500 mt-1 leading-relaxed">
               CLI uploads with resume support; recommended for large or multi-subject datasets.

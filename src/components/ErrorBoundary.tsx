@@ -122,7 +122,7 @@ export default class ErrorBoundary extends Component<Props, State> {
           {/* Dev-only error details */}
           {import.meta.env.DEV && this.state.error && (
             <details className="mt-10 text-left text-xs">
-              <summary className="cursor-pointer text-gray-400 font-medium mb-2">
+              <summary className="cursor-pointer text-gray-500 font-medium mb-2">
                 Error details (dev only)
               </summary>
               <pre
