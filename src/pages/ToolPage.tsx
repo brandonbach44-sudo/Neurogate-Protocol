@@ -228,7 +228,7 @@ function ToolPage() {
             <div>
               <Wordmark size="lg" />
               <p className="hidden md:block text-sm mt-1 text-blue-200">
-                Multi-site epilepsy data compliance tool
+                Multi-site neural data compliance tool for epilepsy
               </p>
             </div>
           </Link>
@@ -334,7 +334,7 @@ function ToolPage() {
             {/* Hero section */}
             <div className="text-center mb-10">
               <h2 className="text-3xl font-bold tracking-tight text-gray-900">
-                Organize your neuroimaging data
+                Organize your neural data
               </h2>
               <p className="mt-3 max-w-lg mx-auto text-base leading-relaxed text-gray-500">
                 Drop your patient data folder to auto-detect sessions and modalities,

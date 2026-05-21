@@ -1,6 +1,6 @@
 # NeuroGate
 
-A browser-based tool and governance framework for organizing multi-site epilepsy neuroimaging data into BIDS-compliant format, ready for sharing through whichever platform a site chooses.
+A browser-based tool and governance framework for organizing multi-site neural data in epilepsy into BIDS-compliant format, ready for sharing through cloud and on-premise standardized data infrastructure toward building a learning health system. "Neural data" covers all epilepsy research modalities: structural and functional MRI, CT, DWI, scalp EEG, and intracranial EEG.
 
 ## Status
 
@@ -8,7 +8,7 @@ Beta, in active development. Tool is functional; documentation is in draft, pend
 
 ## What It Does
 
-Research staff at participating epilepsy study sites drag a folder of patient data into the web app. The tool:
+Research staff at participating sites drag a folder of patient data into the web app. The tool:
 
 1. Auto-detects imaging modalities and proposes BIDS-compliant names
 2. Lets users correct the mapping inline
@@ -17,7 +17,7 @@ Research staff at participating epilepsy study sites drag a folder of patient da
 5. Exports a BIDS-organized folder ready for upload
 6. Generates an ALCOA+ compliant audit log
 
-Users are assumed to have already converted DICOM to NIfTI and de-identified structural MRI. The tool validates and attests; it does not perform those steps. After the tool exports the BIDS folder, the site uploads it to whichever sharing platform they have chosen. SOP-PENNSIEVE-001 is a worked example for sites using Pennsieve.
+Users are assumed to have already converted DICOM to NIfTI and de-identified structural MRI. The tool validates and attests; it does not perform those steps. After the tool exports the BIDS folder, the site uploads it to its chosen data infrastructure. SOP-PENNSIEVE-001 is a worked example for sites using Pennsieve.
 
 ## Development
 

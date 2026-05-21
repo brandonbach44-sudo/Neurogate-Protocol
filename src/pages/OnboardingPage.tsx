@@ -184,7 +184,7 @@ export default function OnboardingPage() {
             to independent operation.
           </h1>
           <p className="mt-4 text-sm text-gray-500 leading-relaxed max-w-lg">
-            Every external research site joining the multi-site epilepsy data sharing initiative
+            Every external research site joining the multi-site neural data sharing initiative in epilepsy
             completes a five-phase onboarding workflow. Phases gate one another: a site cannot move
             forward until the previous phase's criteria are met. The full checklist (ONBOARD-001) is
             below as a downloadable document; this page summarizes the workflow.
@@ -355,7 +355,7 @@ export default function OnboardingPage() {
               </svg>
             }
             tasks={[
-              'REDCap account and chosen sharing platform credentials in place',
+              'REDCap account and chosen data infrastructure credentials in place',
               'API key generated and stored securely (only shown once)',
               'dcm2niix and pydeface installed at the site',
               'Secure local storage set up for the BIDS-ID-to-patient-ID key',
@@ -379,7 +379,7 @@ export default function OnboardingPage() {
               'Project overview and governance framework presented',
               'BIDS structure and de-identification workflow walked through',
               'NeuroGate tool demonstrated end-to-end',
-              'REDCap walkthrough and sharing platform overview completed',
+              'REDCap walkthrough and data infrastructure overview completed',
               'Site Data Manager confirms readiness for the supervised upload',
             ]}
           />
@@ -506,7 +506,7 @@ export default function OnboardingPage() {
               />
               <GateRow
                 before="Phase 3"
-                criteria="REDCap access working; site has provisioned its own sharing platform; subject ID key store ready; dcm2niix and pydeface installed and verified."
+                criteria="REDCap access working; site has provisioned its own data infrastructure; subject ID key store ready; dcm2niix and pydeface installed and verified."
               />
               <GateRow
                 before="Phase 4"

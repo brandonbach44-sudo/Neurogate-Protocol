@@ -15,7 +15,7 @@
 
 ## 1. Purpose
 
-This Standard Operating Procedure (SOP) defines a standardized data structure that all participating sites must follow when organizing neuroimaging and electrophysiology data for cross-site sharing. By adopting a common BIDS-compliant structure, each site's data remains consistent and interoperable, making it straightforward to share with Penn and other collaborators while meeting data sharing compliance standards.
+This Standard Operating Procedure (SOP) defines a standardized data structure that all participating sites must follow when organizing neural data (imaging + electrophysiology) in epilepsy research for cross-site sharing. By adopting a common BIDS-compliant structure, each site's data remains consistent and interoperable, making it straightforward to share with Penn and other collaborators while meeting data sharing compliance standards.
 
 ## 2. Governance Traceability
 
@@ -60,7 +60,7 @@ All subjects are identified using a BIDS-compliant ID with the format:
 
 Where `{INSTITUTION_PREFIX}` is 2-6 uppercase letters assigned to your site, and `{###}` is a three-digit zero-padded number scoped per institution. Examples: `sub-CHOP016`, `sub-PENN042`, `sub-HUP003`.
 
-Subject IDs must contain only alphanumeric characters (no spaces, hyphens, underscores, or special characters after the `sub-` prefix). The key linking subject IDs to real patient identifiers must be stored only at your institution in a secure, access-controlled system per GOV-001 Section 2.3. It is never uploaded to any sharing platform or shared externally.
+Subject IDs must contain only alphanumeric characters (no spaces, hyphens, underscores, or special characters after the `sub-` prefix). The key linking subject IDs to real patient identifiers must be stored only at your institution in a secure, access-controlled system per GOV-001 Section 2.3. It is never uploaded to any data infrastructure or shared externally.
 
 ## 5. Dataset Structure Overview
 
@@ -304,7 +304,7 @@ The channels file describes recording channels. Required columns:
 
 ## 8. De-identification and Defacing Requirements
 
-Per GOV-001 Section 2.3, all 18 HIPAA identifiers must be removed before data leaves the originating institution. For neuroimaging data, this involves multiple steps.
+Per GOV-001 Section 2.3, all 18 HIPAA identifiers must be removed before data leaves the originating institution. For neural data, this involves multiple steps.
 
 ### 8.1 DICOM Header Stripping
 

@@ -40,8 +40,8 @@ export default function Footer() {
               className="mt-4 text-xs leading-relaxed max-w-xs"
               style={{ color: 'rgba(255,255,255,0.55)' }}
             >
-              A governance framework and browser-based tool for multi-site epilepsy neuroimaging
-              data sharing. All processing runs in your browser; no data leaves your machine.
+              A governance framework and browser-based tool for multi-site neural data sharing in
+              epilepsy. All processing runs in your browser; no data leaves your machine.
             </p>
           </div>
 
