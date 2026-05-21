@@ -34,16 +34,25 @@ const FOLDER_SESSION_PATTERNS: [RegExp, Session, string][] = [
 
 // ── Modality patterns for folder names ────────────────────────────
 const FOLDER_MODALITY_PATTERNS: [RegExp, Modality, string][] = [
+  // Localizer / scout (check first so scout folders are not mislabeled)
+  [/\b(localizer|localiser|scout)\b/i, 'localizer', 'Folder suggests localizer / scout'],
+
   // Anatomical MRI
   [/\b(anat|anatomical|structural|mri[-_]?structural|t1|t1w|mprage)\b/i, 'anat-T1w', 'Folder suggests anatomical MRI'],
   [/\b(flair)\b/i, 'anat-FLAIR', 'Folder suggests FLAIR MRI'],
   [/\b(t2|t2w)\b/i, 'anat-T2w', 'Folder suggests T2-weighted MRI'],
+
+  // MR Angiography
+  [/\b(tof|angio|angiography|mra)\b/i, 'anat-angio', 'Folder suggests MR angiography'],
 
   // CT
   [/\b(ct|ct[-_]?scan|computed[-_]?tomography)\b/i, 'ct', 'Folder suggests CT scan'],
 
   // Diffusion
   [/\b(dwi|dti|diffusion)\b/i, 'dwi', 'Folder suggests diffusion MRI'],
+
+  // Perfusion / ASL
+  [/\b(perf|perfusion|asl)\b/i, 'perf', 'Folder suggests perfusion / ASL'],
 
   // EEG types (check ieeg before eeg)
   [/\b(ieeg|intracranial[-_]?eeg|ecog|seeg|depth[-_]?electrode|subdural)\b/i, 'ieeg', 'Folder suggests intracranial EEG'],

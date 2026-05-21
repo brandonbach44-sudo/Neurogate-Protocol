@@ -139,8 +139,9 @@ export function buildFileEntries(
       const session = getEffectiveSession(result);
       const modality = getEffectiveModality(result);
 
-      // Skip unclassified/other files
-      if (!session || modality === 'other') continue;
+      // Skip unclassified/other files and localizer/scout scans
+      // (localizers are not part of a BIDS dataset)
+      if (!session || modality === 'other' || modality === 'localizer') continue;
 
       // Get BIDS folder for this modality
       const modalityInfo = MODALITIES.find(m => m.value === modality);
@@ -185,10 +186,14 @@ function buildBidsFilename(
       return `${sub}_${session}_T2w${ext}`;
     case 'anat-FLAIR':
       return `${sub}_${session}_FLAIR${ext}`;
+    case 'anat-angio':
+      return `${sub}_${session}_angio${ext}`;
     case 'ct':
       return `${sub}_${session}_ct${ext}`;
     case 'dwi':
       return `${sub}_${session}_dwi${ext}`;
+    case 'perf':
+      return `${sub}_${session}_asl${ext}`;
     case 'eeg':
       return `${sub}_${session}_task-monitor_eeg${ext}`;
     case 'ieeg':

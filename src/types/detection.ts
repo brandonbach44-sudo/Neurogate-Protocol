@@ -27,12 +27,15 @@ export type Modality =
   | 'anat-T1w'
   | 'anat-T2w'
   | 'anat-FLAIR'
+  | 'anat-angio'
   | 'ct'
   | 'dwi'
+  | 'perf'
   | 'eeg'
   | 'ieeg'
   | 'func'
   | 'fmap'
+  | 'localizer'
   | 'electrodes'
   | 'channels'
   | 'events'
@@ -44,12 +47,15 @@ export const MODALITIES: { value: Modality; label: string; bidsFolder: string }[
   { value: 'anat-T1w', label: 'Anatomical MRI (T1w)', bidsFolder: 'anat' },
   { value: 'anat-T2w', label: 'Anatomical MRI (T2w)', bidsFolder: 'anat' },
   { value: 'anat-FLAIR', label: 'Anatomical MRI (FLAIR)', bidsFolder: 'anat' },
+  { value: 'anat-angio', label: 'MR Angiography (TOF)', bidsFolder: 'anat' },
   { value: 'ct', label: 'CT Scan', bidsFolder: 'ct' },
   { value: 'dwi', label: 'Diffusion MRI', bidsFolder: 'dwi' },
+  { value: 'perf', label: 'Perfusion / ASL', bidsFolder: 'perf' },
   { value: 'eeg', label: 'Scalp EEG', bidsFolder: 'eeg' },
   { value: 'ieeg', label: 'Intracranial EEG', bidsFolder: 'ieeg' },
   { value: 'func', label: 'Functional MRI', bidsFolder: 'func' },
   { value: 'fmap', label: 'Field Map', bidsFolder: 'fmap' },
+  { value: 'localizer', label: 'Localizer / Scout (excluded from export)', bidsFolder: '' },
   { value: 'electrodes', label: 'Electrodes Metadata', bidsFolder: 'ieeg' },
   { value: 'channels', label: 'Channels Metadata', bidsFolder: 'ieeg' },
   { value: 'events', label: 'Events Metadata', bidsFolder: 'ieeg' },

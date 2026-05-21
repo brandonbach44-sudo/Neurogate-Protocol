@@ -51,7 +51,15 @@ export function validateBidsStructure(
     const bidsId = subjectIdMap.get(group) || group; void bidsId;
 
     // ── Check: File has no session assigned ──────────────────
-    if (!session && modality !== 'other' && modality !== 'sidecar-json' && modality !== 'sidecar-tsv') {
+    // Localizer/scout scans are excluded from the BIDS export, so they
+    // do not need a session assignment.
+    if (
+      !session &&
+      modality !== 'other' &&
+      modality !== 'localizer' &&
+      modality !== 'sidecar-json' &&
+      modality !== 'sidecar-tsv'
+    ) {
       issues.push({
         id: nextId(),
         category: 'bids-structure',

@@ -24,6 +24,10 @@ export interface FilenameResult {
 // Order matters: more specific patterns first.
 
 const MODALITY_PATTERNS: [RegExp, Modality, string][] = [
+  // Localizer / scout — checked FIRST so scout scans are not mislabeled
+  // as anatomical (they sometimes carry "t1"/"3-plane" in the name).
+  [/\b(localizer|localiser|scout|aahead[-_]?scout|aascout|3[-_]?plane[-_]?loc|survey[-_]?scan)\b/i, 'localizer', 'Localizer / scout scan keyword'],
+
   // Anatomical — T1-weighted (most common MRI type)
   [/\b(t1w|t1_w|t1[-_]?weighted|t1[-_]?mprage|mprage|t1[-_]?space|t1_sag|t1_ax|t1_cor|structural)\b/i, 'anat-T1w', 'T1-weighted MRI keyword'],
   [/\bt1\b/i, 'anat-T1w', 'T1 keyword (assumed T1-weighted)'],
@@ -35,12 +39,18 @@ const MODALITY_PATTERNS: [RegExp, Modality, string][] = [
   [/\b(t2w|t2_w|t2[-_]?weighted|t2[-_]?space|t2_sag|t2_ax|t2_cor)\b/i, 'anat-T2w', 'T2-weighted MRI keyword'],
   [/\bt2\b/i, 'anat-T2w', 'T2 keyword (assumed T2-weighted)'],
 
+  // MR Angiography — Time-of-Flight
+  [/\b(tof|angio|angiography|mra|time[-_]?of[-_]?flight)\b/i, 'anat-angio', 'MR angiography (TOF) keyword'],
+
   // CT scan
   [/\b(ct[-_]?scan|ct[-_]?head|ct[-_]?electrode|post[-_]?implant[-_]?ct|ct_with[-_]?electrode)\b/i, 'ct', 'CT scan keyword'],
   [/\bct\b/i, 'ct', 'CT keyword'],
 
   // Diffusion MRI
   [/\b(dwi|dti|diffusion|diffusion[-_]?weighted|diff[-_]?mri|hardi|multishell)\b/i, 'dwi', 'Diffusion MRI keyword'],
+
+  // Perfusion — Arterial Spin Labeling
+  [/\b(asl|pcasl|pasl|m0|m0scan|perfusion|meanperf|mean[-_]?perf|cbf)\b/i, 'perf', 'Perfusion / ASL keyword'],
 
   // Functional MRI
   [/\b(bold|fmri|func[-_]?mri|functional|resting[-_]?state|task[-_]?fmri|rest)\b/i, 'func', 'Functional MRI keyword'],
