@@ -6,6 +6,42 @@
   --accent: #00d4ff;
 }
 
+/* ═══ Accessibility: keyboard focus ══════════════════════════ */
+/* Tailwind's reset removes default focus outlines. This restores a
+   visible focus ring for keyboard users only (:focus-visible does not
+   fire on plain mouse clicks). Penn Blue ring on light backgrounds; a
+   teal ring inside the dark header/footer where Penn Blue would vanish. */
+*:focus-visible {
+  outline: 2px solid #011F5B;
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+header *:focus-visible,
+footer *:focus-visible {
+  outline-color: #6DD3CE;
+}
+
+/* Skip-to-content link: off-screen until focused, then slides into view */
+.skip-link {
+  position: absolute;
+  left: 0;
+  top: -3rem;
+  z-index: 100;
+  padding: 0.6rem 1rem;
+  background: #011F5B;
+  color: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 0 0 8px 0;
+  transition: top 0.15s ease;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
 /* ═══ Document content (rendered markdown) ═══════════════════ */
 .doc-content {
   color: #1f2937;

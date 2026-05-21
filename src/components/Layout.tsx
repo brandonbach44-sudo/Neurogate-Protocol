@@ -11,9 +11,10 @@ export default function Layout() {
         background: 'linear-gradient(180deg, #f8fafc 0%, #ffffff 40%, #f1f5f9 100%)',
       }}
     >
+      <a href="#main-content" className="skip-link">Skip to main content</a>
       <NeuralParticles />
       <Navbar />
-      <main className="relative z-10 flex-1">
+      <main id="main-content" className="relative z-10 flex-1">
         <Outlet />
       </main>
       <Footer />
