@@ -160,7 +160,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-6 py-8 grid grid-cols-2 md:flex md:items-center md:justify-around gap-6 md:gap-0">
           <StatBlock value="5" label="Workflow steps" />
           <div className="hidden md:block w-px h-10 bg-gray-200" />
-          <StatBlock value="7" label="Modalities supported" />
+          <StatBlock value="11" label="Modalities supported" />
           <div className="hidden md:block w-px h-10 bg-gray-200" />
           <StatBlock value="3" label="Clinical sessions" />
           <div className="hidden md:block w-px h-10 bg-gray-200" />
@@ -272,8 +272,12 @@ export default function HomePage() {
                 <Badge label="T1w" />
                 <Badge label="T2w" />
                 <Badge label="FLAIR" />
+                <Badge label="Angio" />
                 <Badge label="CT" />
                 <Badge label="DWI" />
+                <Badge label="ASL" />
+                <Badge label="fMRI" />
+                <Badge label="Field map" />
                 <Badge label="EEG" />
                 <Badge label="iEEG" />
               </div>

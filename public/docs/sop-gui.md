@@ -3,11 +3,11 @@
 | Field | Value |
 |---|---|
 | **Document ID** | SOP-GUI-001 |
-| **Version** | 1.0 |
+| **Version** | 1.1 |
 | **Effective Date** | 2026-05-04 |
 | **Author** | Brandon Bach |
 | **Status** | Draft |
-| **Parent Framework** | GOV-001 Regulatory Governance Framework v1.3 |
+| **Parent Framework** | GOV-001 Regulatory Governance Framework v1.8 |
 | **Related Documents** | SOP-BIDS-001, SOP-PENNSIEVE-001, SOP-REDCAP-001, ONBOARD-001 |
 
 ---
@@ -96,8 +96,8 @@ All processing happens locally in your browser. No data is transmitted to any se
 
 | Extension | Description |
 |---|---|
-| .nii | Uncompressed NIfTI neuroimaging |
-| .nii.gz | Compressed NIfTI neuroimaging (preferred) |
+| .nii | Uncompressed NIfTI (compressed to .nii.gz automatically on export) |
+| .nii.gz | Compressed NIfTI neuroimaging |
 | .json | JSON sidecar metadata |
 | .edf | European Data Format (scalp EEG) |
 | .tsv | Tab-separated values (electrodes, channels) |
@@ -117,7 +117,7 @@ The Mapping Table displays each file with its auto-detected classification:
 
 - **Subject Group:** Which subject the file belongs to (e.g., sub-PENN001)
 - **Session:** Clinical timepoint (pre-implant, post-implant, or post-surgery)
-- **Modality:** Imaging type (T1w, T2w, FLAIR, CT, DWI, EEG, iEEG)
+- **Modality:** Data type (T1w, T2w, FLAIR, MR angiography, CT, DWI, perfusion/ASL, fMRI, field map, EEG, iEEG)
 - **Confidence:** Detection confidence level (high, medium, low)
 
 ### 7.2 Auto-Detection Engine
@@ -131,6 +131,10 @@ The tool uses a 5-layer detection pipeline:
 | 3 | Folder path | Session or subject info from parent folder names |
 | 4 | Neighbor context | Infers classification from adjacent files with known types |
 | 5 | Subject grouping | Groups files by shared folder paths or naming prefixes |
+
+As part of Layer 2, when a dropped NIfTI file has a matching dcm2niix JSON sidecar, the engine also reads the sidecar's scan description (`SeriesDescription` and `ProtocolName`). This classifies files whose own filename is generic (for example, a scan exported as `sub-X_10.nii` whose sidecar identifies it as an ASL perfusion scan).
+
+When no layer can determine a session, the engine assigns a provisional one based on modality (structural and functional imaging defaults to pre-implant; CT and intracranial EEG default to post-implant) and flags it as low confidence for you to verify.
 
 Each layer adds confidence. Files classified by multiple agreeing layers receive "high" confidence; single-layer detections receive "medium" or "low."
 
@@ -262,6 +266,8 @@ Once all failures are resolved, the "Continue to Export" button becomes active.
 
 The Export step generates a BIDS-compliant ZIP archive ready for upload to the site's chosen data infrastructure. SOP-PENNSIEVE-001 is provided as a worked example for sites using Pennsieve.
 
+During export the tool finalizes two formatting details automatically: uncompressed `.nii` files are compressed to `.nii.gz`, and localizer/scout scans are left out of the archive because they are acquisition aids rather than analyzable data.
+
 ### 10.2 Export Contents
 
 The generated ZIP contains:
@@ -375,7 +381,7 @@ The audit log satisfies ALCOA+ requirements:
 | **File size limit** | Limited by browser memory. Recommended maximum: 500 files or 2 GB per session. For larger datasets, process in batches by subject. |
 | **Internet required** | Only for initial page load. Once loaded, the tool works offline. |
 | **Data persistence** | The tool does not save state between sessions. If you close the browser, you must start over. Complete the full workflow in one sitting. |
-| **Supported modalities** | T1w, T2w, FLAIR, CT, DWI, EEG (scalp), iEEG (intracranial) |
+| **Supported modalities** | T1w, T2w, FLAIR, MR angiography (TOF), CT, DWI, perfusion (ASL), fMRI, field maps, EEG (scalp), iEEG (intracranial). Localizer/scout scans are detected but excluded from the export. |
 | **Sessions** | Pre-implant, Post-implant, Post-surgery (per the project protocol) |
 
 ---
@@ -426,3 +432,4 @@ The audit log satisfies ALCOA+ requirements:
 | Version | Date | Author | Summary of Changes |
 |---|---|---|---|
 | 1.0 | 2026-05-04 | Brandon Bach | Initial draft covering all 5 workflow steps, audit trail, troubleshooting, and quick-reference guide |
+| 1.1 | 2026-05-22 | Brandon Bach | Updated the supported-modality lists to add MR angiography, perfusion (ASL), fMRI, and field maps; documented that Layer 2 also reads dcm2niix JSON sidecar scan descriptions and that the engine defaults a session by modality when no other clue is found; noted that the export compresses `.nii` to `.nii.gz` and excludes localizer/scout scans; updated the parent GOV-001 reference to v1.8 |
