@@ -13,6 +13,7 @@
  */
 
 import type { Modality, Session, DetectionReason } from '../../types/detection';
+import { normalizeForKeywords } from './filenameDetector';
 
 export interface FolderResult {
   session: Session | null;
@@ -94,10 +95,10 @@ export function detectFromFolderPath(relativePath: string): FolderResult {
   for (const segment of segments) {
     if (session !== null) break; // Already found a session
 
-    // Normalize underscores to spaces so \b word boundaries work correctly.
-    // Without this, "Session_preimplant" won't match \bpreimplant\b because
-    // underscore is a word character in regex.
-    const normalized = segment.replace(/_/g, ' ');
+    // Normalize separators and split camelCase so \b word boundaries
+    // and multi-word keywords work. Without this, "Session_preimplant"
+    // or "PreImplantMRI" would not match the keyword patterns.
+    const normalized = normalizeForKeywords(segment);
 
     for (const [pattern, ses, description] of FOLDER_SESSION_PATTERNS) {
       if (pattern.test(normalized)) {
@@ -116,7 +117,7 @@ export function detectFromFolderPath(relativePath: string): FolderResult {
   for (const segment of segments) {
     if (modality !== null) break; // Already found a modality
 
-    const normalized = segment.replace(/_/g, ' ');
+    const normalized = normalizeForKeywords(segment);
 
     for (const [pattern, mod, description] of FOLDER_MODALITY_PATTERNS) {
       if (pattern.test(normalized)) {

@@ -12,7 +12,7 @@ import type { MetadataOutput } from '../components/MetadataStep';
 import type { ScannedFile } from '../types/files';
 import type { DetectionResult, DetectionSummary, Session, Modality } from '../types/detection';
 import { getEffectiveSession, getEffectiveModality } from '../types/detection';
-import { runDetection, generateSummary } from '../lib/detection';
+import { runDetection, generateSummary, readJsonSidecars } from '../lib/detection';
 import { useAudit, downloadAuditJson } from '../lib/audit';
 import {
   saveToolSession,
@@ -89,8 +89,11 @@ function ToolPage() {
     audit.logFilesScanned(files.length, totalSize);
 
     // Run detection engine (small delay so the UI shows the scanning state)
-    setTimeout(() => {
-      const results = runDetection(files);
+    setTimeout(async () => {
+      // Read any dcm2niix JSON sidecars first so the engine can use the
+      // scanner's original scan names to classify generic NIfTI files.
+      const sidecarMap = await readJsonSidecars(files);
+      const results = runDetection(files, sidecarMap);
       const sum = generateSummary(results);
       setDetectionResults(results);
       setSummary(sum);

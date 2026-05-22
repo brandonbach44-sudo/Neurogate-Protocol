@@ -100,6 +100,17 @@ function generateSessionsTsv(subject: SubjectMetadata): string {
 interface FileEntry {
   path: string;
   content: File | string;
+  /**
+   * True when content is an uncompressed .nii file that must be gzipped
+   * to .nii.gz during ZIP generation to be BIDS-compliant.
+   */
+  needsGzip?: boolean;
+}
+
+/** True for an uncompressed NIfTI file (.nii but not .nii.gz). */
+function isUncompressedNifti(fileName: string): boolean {
+  const lower = fileName.toLowerCase();
+  return lower.endsWith('.nii') && !lower.endsWith('.nii.gz');
 }
 
 export function buildFileEntries(
@@ -161,6 +172,7 @@ export function buildFileEntries(
       entries.push({
         path: filePath,
         content: result.file,
+        needsGzip: isUncompressedNifti(result.fileName),
       });
     }
   }
@@ -217,7 +229,11 @@ function buildBidsFilename(
 }
 
 function getFileExtension(fileName: string): string {
-  if (fileName.endsWith('.nii.gz')) return '.nii.gz';
+  const lower = fileName.toLowerCase();
+  if (lower.endsWith('.nii.gz')) return '.nii.gz';
+  // Uncompressed NIfTI is gzipped on export, so the BIDS filename
+  // already carries the final .nii.gz extension.
+  if (lower.endsWith('.nii')) return '.nii.gz';
   const lastDot = fileName.lastIndexOf('.');
   return lastDot >= 0 ? fileName.substring(lastDot) : '';
 }
@@ -270,6 +286,16 @@ function sortTree(node: TreeNode) {
 
 // ── ZIP generation ────────────────────────────────────────────────
 
+/**
+ * Gzip an uncompressed .nii file so the export is BIDS-compliant
+ * .nii.gz. Uses the browser's native CompressionStream, so there is no
+ * extra dependency. Returns the gzipped bytes.
+ */
+async function gzipFile(file: File): Promise<ArrayBuffer> {
+  const compressed = file.stream().pipeThrough(new CompressionStream('gzip'));
+  return await new Response(compressed).arrayBuffer();
+}
+
 export async function generateZip(
   entries: FileEntry[],
   onProgress?: ExportProgressCallback,
@@ -282,8 +308,15 @@ export async function generateZip(
     onProgress?.({ phase: 'building', current: i + 1, total: entries.length });
 
     if (entry.content instanceof File) {
-      const buffer = await entry.content.arrayBuffer();
-      zip.file(`bids_output/${entry.path}`, buffer);
+      if (entry.needsGzip) {
+        // Uncompressed .nii; gzip it so the output file is .nii.gz.
+        // The entry path was already built with the .nii.gz extension.
+        const buffer = await gzipFile(entry.content);
+        zip.file(`bids_output/${entry.path}`, buffer);
+      } else {
+        const buffer = await entry.content.arrayBuffer();
+        zip.file(`bids_output/${entry.path}`, buffer);
+      }
     } else {
       zip.file(`bids_output/${entry.path}`, entry.content);
     }
