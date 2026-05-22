@@ -74,7 +74,7 @@ export type Confidence = 'high' | 'medium' | 'low' | 'unclassified';
 
 export interface DetectionReason {
   /** Which detection layer produced this reason */
-  layer: 'extension' | 'filename' | 'folder' | 'neighbor' | 'subject-grouping';
+  layer: 'extension' | 'filename' | 'sidecar' | 'folder' | 'neighbor' | 'subject-grouping' | 'default';
   /** Human-readable explanation */
   message: string;
   /** How much this reason contributes to confidence (0-1) */

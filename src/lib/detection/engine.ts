@@ -27,10 +27,12 @@ import type {
 } from '../../types/detection';
 import { MODALITIES } from '../../types/detection';
 import { detectFromExtension } from './extensionDetector';
-import { detectFromFilename } from './filenameDetector';
+import { detectFromFilename, detectFromSidecarText } from './filenameDetector';
 import { detectFromFolderPath } from './folderDetector';
 import { inferFromNeighbors } from './neighborInference';
 import { groupIntoSubject } from './subjectGrouping';
+import { getSidecarBaseName } from './sidecarReader';
+import type { SidecarInfo } from './sidecarReader';
 
 // ── BIDS filename generation ──────────────────────────────────────
 
@@ -110,7 +112,11 @@ function generateBidsPath(
 }
 
 function getFileExtension(fileName: string): string {
-  if (fileName.toLowerCase().endsWith('.nii.gz')) return '.nii.gz';
+  const lower = fileName.toLowerCase();
+  if (lower.endsWith('.nii.gz')) return '.nii.gz';
+  // Uncompressed NIfTI is gzipped on export, so the BIDS preview name
+  // already reflects the final .nii.gz extension.
+  if (lower.endsWith('.nii')) return '.nii.gz';
   const lastDot = fileName.lastIndexOf('.');
   return lastDot === -1 ? '' : fileName.substring(lastDot);
 }
@@ -159,7 +165,15 @@ function calculateConfidence(
  * Run the full detection pipeline on a list of scanned files.
  * Returns a DetectionResult for every file.
  */
-export function runDetection(files: ScannedFile[]): DetectionResult[] {
+export function runDetection(
+  files: ScannedFile[],
+  /**
+   * Optional map of base name -> JSON sidecar scan-name text, produced
+   * by readJsonSidecars(). When provided, the engine uses the scanner's
+   * own scan label to classify data files whose own filename is generic.
+   */
+  sidecarMap?: Map<string, SidecarInfo>,
+): DetectionResult[] {
   // ── Pass 1: Run layers 1-3 on every file individually ───────
   // These layers only need the file itself, not context from others.
 
@@ -202,6 +216,43 @@ export function runDetection(files: ScannedFile[]): DetectionResult[] {
     }
     if (fnResult.session) {
       session = fnResult.session;
+    }
+
+    // Layer 2b: JSON sidecar content
+    // dcm2niix writes a .json sidecar next to every converted scan, and
+    // that sidecar's SeriesDescription / ProtocolName carries the
+    // scanner's original scan name even when the NIfTI filename itself
+    // is generic (e.g. "sub-X_10.nii"). If a matching sidecar was read,
+    // use its scan-name text as a high-signal modality/session clue.
+    const isJsonFile = file.name.toLowerCase().endsWith('.json');
+    if (sidecarMap && !isJsonFile) {
+      const sidecar = sidecarMap.get(getSidecarBaseName(file.name));
+      if (sidecar) {
+        const scResult = detectFromSidecarText(sidecar.scanText);
+        if (scResult.modality) {
+          // Apply the sidecar's modality when the file's own name and
+          // extension left it ambiguous, and only when the result is
+          // compatible with what the extension says is possible.
+          const fileNameAmbiguous = modality === 'other' || possibleModalities.length > 1;
+          const compatible =
+            possibleModalities.length === 0 ||
+            possibleModalities.includes(scResult.modality);
+          if (fileNameAmbiguous && compatible) {
+            modality = scResult.modality;
+          }
+        }
+        if (scResult.session && !session) {
+          session = scResult.session;
+        }
+        // Keyword-match reasons from the sidecar text (modality/session).
+        reasons.push(...scResult.reasons);
+        // Record which sidecar was consulted, for transparency.
+        reasons.push({
+          layer: 'sidecar',
+          message: `Read scan name from sidecar "${sidecar.sidecarName}": "${sidecar.scanText}"`,
+          weight: 0,
+        });
+      }
     }
 
     // Layer 3: Folder path
@@ -270,6 +321,38 @@ export function runDetection(files: ScannedFile[]): DetectionResult[] {
     reasons.push(...groupResult.reasons);
     if (groupResult.session && !session) {
       session = groupResult.session;
+    }
+
+    // ── Session fallback: default by modality ──────────────────
+    // If no layer found a session, a file would be stranded with no
+    // BIDS placement. Most structural and functional imaging is
+    // acquired at the pre-implant baseline, while CT and intracranial
+    // EEG (and their metadata) belong to the post-implant monitoring
+    // session. This is a deliberately low-confidence guess the user
+    // can override in the mapping table.
+    if (
+      !session &&
+      modality !== 'other' &&
+      modality !== 'localizer' &&
+      modality !== 'sidecar-json' &&
+      modality !== 'sidecar-tsv'
+    ) {
+      const postImplantModalities: Modality[] = ['ct', 'ieeg', 'electrodes', 'channels', 'events'];
+      if (postImplantModalities.includes(modality)) {
+        session = 'ses-postimplant';
+        reasons.push({
+          layer: 'default',
+          message: 'No session keyword found; defaulted to post-implant based on modality (CT / iEEG). Please verify.',
+          weight: 0.1,
+        });
+      } else {
+        session = 'ses-preimplant';
+        reasons.push({
+          layer: 'default',
+          message: 'No session keyword found; defaulted to pre-implant baseline based on modality. Please verify.',
+          weight: 0.1,
+        });
+      }
     }
 
     // ── Calculate final confidence ─────────────────────────────

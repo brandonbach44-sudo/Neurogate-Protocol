@@ -89,33 +89,56 @@ const SESSION_PATTERNS: [RegExp, Session, string][] = [
 ];
 
 /**
- * Analyze a filename for modality and session keywords.
+ * Normalize a string for keyword matching.
+ *
+ * Every separator (spaces, underscores, hyphens, and camelCase
+ * boundaries) is unified to a single hyphen. A hyphen is the right
+ * canonical separator because:
+ *  - it is a non-word character, so \b word boundaries still split
+ *    tokens correctly ("flair_followup" -> "flair-followup");
+ *  - it is exactly what the keyword patterns' [-_]? optional
+ *    separators expect, so multi-word keywords like "pre-implant" and
+ *    "resting-state" match regardless of how the source was spaced.
+ *
+ * camelCase boundaries are split first because dcm2niix concatenates
+ * words in its output names ("restBOLD", "MeanPerf"); without splitting,
+ * \bbold\b would never match inside "restBOLD".
  */
-export function detectFromFilename(fileName: string): FilenameResult {
+export function normalizeForKeywords(raw: string): string {
+  return raw
+    // Split camelCase / acronym boundaries.
+    .replace(/([a-z])([A-Z])/g, '$1-$2')
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1-$2')
+    // Unify every separator run to a single hyphen.
+    .replace(/[\s_]+/g, '-')
+    .replace(/-+/g, '-');
+}
+
+/**
+ * Run modality + session keyword patterns against already-normalized
+ * text. Shared by the filename detector and the JSON sidecar detector,
+ * with the same patterns but a different layer label and confidence
+ * weight (sidecar text is the scanner's own label, so it scores higher).
+ */
+function matchKeywords(
+  normalized: string,
+  layer: DetectionReason['layer'],
+  messagePrefix: string,
+  modalityWeight: number,
+  sessionWeight: number,
+): FilenameResult {
   const reasons: DetectionReason[] = [];
   let modality: Modality | null = null;
   let session: Session | null = null;
 
-  // Strip extension for cleaner matching
-  const nameWithoutExt = fileName
-    .replace(/\.nii\.gz$/i, '')
-    .replace(/\.[^.]+$/i, '');
-
-  // Replace underscores and hyphens with spaces so \b word boundaries
-  // work correctly (regex treats _ as a word character, so \bflair\b
-  // won't match "flair_followup" without this normalization)
-  const normalized = nameWithoutExt.replace(/[-_]/g, ' ');
-
   // ── Check modality patterns ───────────────────────────────
   for (const [pattern, mod, description] of MODALITY_PATTERNS) {
     if (pattern.test(normalized)) {
-      if (modality === null) {
-        modality = mod;
-      }
+      modality = mod;
       reasons.push({
-        layer: 'filename',
-        message: `Filename keyword match: ${description}`,
-        weight: 0.6,
+        layer,
+        message: `${messagePrefix}: ${description}`,
+        weight: modalityWeight,
       });
       break; // Take first (most specific) match
     }
@@ -124,17 +147,41 @@ export function detectFromFilename(fileName: string): FilenameResult {
   // ── Check session patterns ────────────────────────────────
   for (const [pattern, ses, description] of SESSION_PATTERNS) {
     if (pattern.test(normalized)) {
-      if (session === null) {
-        session = ses;
-      }
+      session = ses;
       reasons.push({
-        layer: 'filename',
-        message: `Filename keyword match: ${description}`,
-        weight: 0.5,
+        layer,
+        message: `${messagePrefix}: ${description}`,
+        weight: sessionWeight,
       });
       break; // Take first match
     }
   }
 
   return { modality, session, reasons };
+}
+
+/**
+ * Analyze a filename for modality and session keywords.
+ */
+export function detectFromFilename(fileName: string): FilenameResult {
+  // Strip extension for cleaner matching
+  const nameWithoutExt = fileName
+    .replace(/\.nii\.gz$/i, '')
+    .replace(/\.[^.]+$/i, '');
+
+  const normalized = normalizeForKeywords(nameWithoutExt);
+  return matchKeywords(normalized, 'filename', 'Filename keyword match', 0.6, 0.5);
+}
+
+/**
+ * Analyze JSON sidecar scan-name text (SeriesDescription / ProtocolName
+ * pulled by the sidecar reader) for modality and session keywords.
+ *
+ * This is higher confidence than the filename detector: the text comes
+ * straight from the scanner's own scan label, which survives even when
+ * dcm2niix produces a generic NIfTI filename like "sub-X_10.nii".
+ */
+export function detectFromSidecarText(scanText: string): FilenameResult {
+  const normalized = normalizeForKeywords(scanText);
+  return matchKeywords(normalized, 'sidecar', 'JSON sidecar keyword match', 0.75, 0.55);
 }

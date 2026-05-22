@@ -42,15 +42,16 @@ export function detectFromExtension(fileName: string, _relativePath: string): Ex
     };
   }
 
-  // ── Uncompressed NIfTI — flag as wrong format ───────────────
-  // Per governance framework, must be .nii.gz, never .nii
+  // ── Uncompressed NIfTI — auto-compressed on export ──────────
+  // BIDS requires .nii.gz. An uncompressed .nii is no longer an error:
+  // the exporter gzips it automatically, so this is just informational.
   if (lower.endsWith('.nii') && !lower.endsWith('.nii.gz')) {
     return {
       possibleModalities: ['anat-T1w', 'anat-T2w', 'anat-FLAIR', 'anat-angio', 'ct', 'dwi', 'perf', 'func', 'fmap', 'localizer'],
       bestGuess: null,
       reason: {
         layer: 'extension',
-        message: 'WARNING: Uncompressed NIfTI (.nii) — must be .nii.gz per BIDS spec',
+        message: 'Uncompressed NIfTI (.nii) — will be compressed to .nii.gz automatically on export',
         weight: 0.3,
       },
     };
