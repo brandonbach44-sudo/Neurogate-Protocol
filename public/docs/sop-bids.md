@@ -3,12 +3,12 @@
 | Field | Value |
 |---|---|
 | **Document ID** | SOP-BIDS-001 |
-| **Version** | 2.1 |
+| **Version** | 2.2 |
 | **Effective Date** | May 7, 2026 |
 | **Author** | Brandon Bach |
 | **Advisor** | Nishant Sinha |
 | **Status** | Draft -- Pending Advisor Review |
-| **Parent Document** | GOV-001: Regulatory and Governance Framework (v1.3) |
+| **Parent Document** | GOV-001: Regulatory and Governance Framework (v1.8) |
 | **Related Documents** | SOP-PENNSIEVE-001, SOP-REDCAP-001, ONBOARD-001 |
 
 ---
@@ -24,7 +24,7 @@ This SOP implements specific requirements from the Regulatory and Governance Fra
 | SOP Section | GOV-001 Section | Requirement |
 |---|---|---|
 | 4.1 (Subject ID format) | 2.3 (HIPAA/PHI Protection) | Coded subject IDs with no PHI; key stored only at originating site |
-| 5-6 (Folder structure, session requirements) | 3 (Data Standards by Modality) | BIDS-compliant organization for all 5 modalities across 3 sessions |
+| 5-6 (Folder structure, session requirements) | 3 (Data Standards by Modality) | BIDS-compliant organization for all modalities across 3 sessions |
 | 7 (Metadata files) | 2.1, 2.2, 4 (FAIR, ALCOA+, Metadata Completeness) | Complete, standardized metadata for findability, attributability, and reusability |
 | 7.5 (Channels cross-validation) | 2.2 (ALCOA+ Accuracy) | Channel names must match electrodes.tsv for data integrity |
 | 8 (De-identification and defacing) | 2.3 (HIPAA/PHI) | DICOM stripping, facial defacing, EEG header cleaning, filename PHI checks |
@@ -36,7 +36,7 @@ This SOP implements specific requirements from the Regulatory and Governance Fra
 This SOP applies to all sites participating in the multi-site epilepsy data sharing initiative. It covers:
 
 - Required folder hierarchy and naming conventions
-- File formats for each modality (MRI, CT, DWI, EEG, iEEG)
+- File formats for each modality (MRI, MR angiography, fMRI, perfusion/ASL, field maps, CT, DWI, EEG, iEEG)
 - Metadata requirements (JSON sidecars, TSV files)
 - De-identification and defacing requirements
 - Session-based organization (pre-implant, post-implant, post-surgery)
@@ -95,11 +95,12 @@ primary/
 └── sub-<ID>/
     ├── sub-<ID>_sessions.tsv      # Session metadata
     ├── ses-preimplant/            # Pre-surgical evaluation
-    │   ├── anat/                  # Anatomical MRI
+    │   ├── anat/                  # Anatomical MRI + MR angiography
     │   ├── dwi/                   # Diffusion MRI
-    │   ├── eeg/                   # Scalp EEG
+    │   ├── perf/                  # Perfusion / ASL
+    │   ├── func/                  # Functional MRI
     │   ├── fmap/                  # Field maps
-    │   └── func/                  # Functional imaging
+    │   └── eeg/                   # Scalp EEG
     ├── ses-postimplant/           # Intracranial monitoring
     │   ├── ct/                    # CT with electrodes
     │   └── ieeg/                  # Intracranial EEG
@@ -113,7 +114,7 @@ primary/
 
 **Purpose:** Baseline structural and functional imaging acquired before electrode implantation for surgical planning.
 
-#### 6.1.1 Anatomical MRI (anat/)
+#### 6.1.1 Anatomical MRI and Angiography (anat/)
 
 Required files:
 
@@ -125,6 +126,10 @@ Required files:
 | `sub-<ID>_ses-preimplant_T2w.json` | JSON sidecar | Recommended |
 | `sub-<ID>_ses-preimplant_FLAIR.nii.gz` | NIfTI (gzipped) | If available |
 | `sub-<ID>_ses-preimplant_FLAIR.json` | JSON sidecar | If available |
+| `sub-<ID>_ses-preimplant_angio.nii.gz` | NIfTI (gzipped) | If available |
+| `sub-<ID>_ses-preimplant_angio.json` | JSON sidecar | If available |
+
+Time-of-flight (TOF) MR angiography uses the `_angio` suffix and is placed in the `anat/` folder alongside the structural scans, per the BIDS specification.
 
 **DICOM to NIfTI Conversion:**
 
@@ -133,9 +138,9 @@ Required files:
 dcm2niix -z y -f sub-<ID>_ses-preimplant_T1w -o ./anat/ /path/to/dicom/T1/
 ```
 
-The `-z y` flag compresses output to `.nii.gz`. The JSON sidecar is automatically generated.
+The `-z y` flag compresses output to `.nii.gz`. The JSON sidecar is automatically generated. If you convert without `-z y`, the resulting uncompressed `.nii` files are still accepted; the NeuroGate tool compresses them to `.nii.gz` automatically on export.
 
-**Required JSON sidecar fields for MRI** (per GOV-001 Section 3): Manufacturer, MagneticFieldStrength, RepetitionTime, EchoTime, FlipAngle, SliceThickness.
+**Required JSON sidecar fields for MRI** (per GOV-001 Section 3): Manufacturer, MagneticFieldStrength, RepetitionTime, EchoTime, FlipAngle, SliceThickness. TOF angiography uses Manufacturer, MagneticFieldStrength, RepetitionTime, EchoTime, FlipAngle.
 
 #### 6.1.2 Diffusion MRI (dwi/)
 
@@ -163,6 +168,39 @@ Required files (if available):
 **Required JSON sidecar fields for scalp EEG** (per GOV-001 Section 3): SamplingFrequency, EEGReference, PowerLineFrequency.
 
 **De-identification note:** Patient names must be removed from EDF/BDF recording headers before submission. Replace the patient ID field with the BIDS subject ID (e.g., `sub-CHOP016`).
+
+#### 6.1.4 Perfusion / ASL (perf/)
+
+Required files (if available):
+
+| File | Format | Description |
+|---|---|---|
+| `sub-<ID>_ses-preimplant_asl.nii.gz` | NIfTI (gzipped) | Arterial spin labeling perfusion image |
+| `sub-<ID>_ses-preimplant_asl.json` | JSON | Acquisition metadata |
+
+**Required JSON sidecar fields for ASL** (per GOV-001 Section 3): Manufacturer, MagneticFieldStrength, RepetitionTime, EchoTime, ArterialSpinLabelingType, PostLabelingDelay.
+
+#### 6.1.5 Functional MRI (func/)
+
+Required files (if available):
+
+| File | Format | Description |
+|---|---|---|
+| `sub-<ID>_ses-preimplant_task-rest_bold.nii.gz` | NIfTI (gzipped) | 4D BOLD functional image |
+| `sub-<ID>_ses-preimplant_task-rest_bold.json` | JSON | Acquisition metadata |
+
+**Required JSON sidecar fields for fMRI** (per GOV-001 Section 3): Manufacturer, MagneticFieldStrength, RepetitionTime, EchoTime, TaskName, SliceTiming.
+
+#### 6.1.6 Field Maps (fmap/)
+
+Required files (if available):
+
+| File | Format | Description |
+|---|---|---|
+| `sub-<ID>_ses-preimplant_fmap.nii.gz` | NIfTI (gzipped) | Field map for distortion correction |
+| `sub-<ID>_ses-preimplant_fmap.json` | JSON | Acquisition metadata |
+
+**Required JSON sidecar fields for field maps** (per GOV-001 Section 3): Manufacturer, MagneticFieldStrength, EchoTime1, EchoTime2, IntendedFor.
 
 ### 6.2 Session 2: Post-Implant (ses-postimplant)
 
@@ -348,6 +386,10 @@ The NeuroGate tool can automate much of this process. Instead of manually organi
 
 The GUI generates compliant folder structures, filenames, and metadata files automatically. See the GUI documentation for detailed instructions.
 
+**Localizer and scout scans:** The tool recognizes localizer and scout acquisitions and excludes them from the exported dataset. These are acquisition aids used to plan the diagnostic scans, not analyzable data, and are not part of a BIDS dataset.
+
+**Uncompressed NIfTI:** Files dropped as uncompressed `.nii` are accepted and compressed to `.nii.gz` automatically during export, so a separate manual compression step is not required.
+
 ## 10. Troubleshooting and Common Issues
 
 ### 10.1 BIDS Validation
@@ -369,7 +411,7 @@ bids-validator /path/to/dataset/
 | Missing JSON sidecar | Re-run dcm2niix or manually create the JSON file |
 | Incorrect file naming | Check BIDS naming: `sub-<ID>_ses-<session>_<modality>` |
 | Channels mismatch | Ensure channel names in channels.tsv match electrodes.tsv |
-| Wrong file extension | Use `.nii.gz` (not `.nii`), `.tsv` (not `.csv`) |
+| Wrong tabular extension | Use `.tsv` (not `.csv`) for electrodes, channels, and events. Uncompressed `.nii` is accepted and compressed to `.nii.gz` automatically. |
 | Subject ID format error | Use only alphanumeric characters, no spaces or special characters |
 | Missing electrodes.tsv | Required for any session containing iEEG recordings |
 
@@ -395,11 +437,12 @@ This section summarizes the key information from this SOP for day-to-day use.
 primary/sub-<ID>/
 ├── sub-<ID>_sessions.tsv
 ├── ses-preimplant/
-│   ├── anat/    T1w (.nii.gz + .json), T2w, FLAIR
+│   ├── anat/    T1w, T2w, FLAIR, angio (.nii.gz + .json)
 │   ├── dwi/     DWI (.nii.gz + .json + .bval + .bvec)
-│   ├── eeg/     Scalp EEG (.edf + .json + channels.tsv)
-│   ├── fmap/    Field maps (if available)
-│   └── func/    fMRI (if available)
+│   ├── perf/    Perfusion / ASL (.nii.gz + .json)
+│   ├── func/    fMRI (.nii.gz + .json)
+│   ├── fmap/    Field maps (.nii.gz + .json)
+│   └── eeg/     Scalp EEG (.edf + .json + channels.tsv)
 ├── ses-postimplant/
 │   ├── ct/      CT (.nii.gz + .json)
 │   └── ieeg/    iEEG (.edf/.nwb/.dat+.lay + .json + channels.tsv + electrodes.tsv + events.tsv)
@@ -411,13 +454,13 @@ primary/sub-<ID>/
 
 | Session | Required | Recommended / If Available |
 |---|---|---|
-| ses-preimplant | T1w + JSON | T2w, FLAIR, DWI, scalp EEG, fMRI, field maps |
+| ses-preimplant | T1w + JSON | T2w, FLAIR, MR angiography, DWI, perfusion (ASL), fMRI, field maps, scalp EEG |
 | ses-postimplant | CT + JSON, iEEG + JSON + channels.tsv + electrodes.tsv | events.tsv |
 | ses-postsurgery | (none strictly required) | Post-op T1w + JSON |
 
 ### File Format Rules
 
-- Imaging: always `.nii.gz` (never uncompressed `.nii`)
+- Imaging: `.nii.gz` is the required output format; uncompressed `.nii` is accepted and compressed automatically on export
 - Tabular: always `.tsv` (never `.csv`)
 - Every imaging/recording file needs a matching `.json` sidecar
 - Persyst iEEG: `.dat` and `.lay` files must both be present
@@ -446,3 +489,4 @@ dcm2niix -z y -f sub-<ID>_ses-<session>_<modality> -o ./output/ /path/to/dicom/
 | 1.2 | April 28, 2026 | Brandon Bach | Added quick-reference section (replaces separate quick-reference guide) |
 | 2.0 | April 28, 2026 | Brandon Bach | Major update: added GOV-001 traceability section, added subject ID format definition, added dataset_description.json required fields, added JSON sidecar required fields per modality, expanded de-identification section (DICOM stripping, EEG header cleaning, filename PHI checks), added cross-validation rule for channels/electrodes, added FLAIR to post-surgery, added PHI warnings to metadata sections, added date-shifting guidance, updated section numbering |
 | 2.1 | May 7, 2026 | Brandon Bach | Replaced "Penn team" references with project-role labels (institution prefix and starting subject number coordination now attributed to the project lead) for consistency with the multi-site framing; renamed in-text reference to "Penn Epilepsy BIDS GUI tool" as "NeuroGate tool" |
+| 2.2 | May 22, 2026 | Brandon Bach | Added MR angiography (Section 6.1.1) and new subsections for perfusion/ASL (6.1.4), functional MRI (6.1.5), and field maps (6.1.6) to match the modalities the NeuroGate tool now classifies; added a `perf/` folder to the directory structure and quick-reference tree; updated the Scope, traceability, and required/optional tables for the new modalities; noted that localizer/scout scans are excluded from export and that uncompressed `.nii` is compressed to `.nii.gz` automatically; updated the parent GOV-001 reference to v1.8 |

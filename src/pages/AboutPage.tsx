@@ -201,7 +201,7 @@ export default function AboutPage() {
       {/* ─── STATS BAR ───────────────────────────────────── */}
       <section className="rounded-2xl border border-gray-100 bg-white py-8 px-6 mb-14 shadow-sm">
         <div className="grid grid-cols-2 md:flex md:items-center md:justify-around gap-6 md:gap-0">
-          <StatBlock value="5" label="Modalities" />
+          <StatBlock value="11" label="Modalities" />
           <div className="hidden md:block w-px h-10 bg-gray-200" />
           <StatBlock value="3" label="Clinical sessions" />
           <div className="hidden md:block w-px h-10 bg-gray-200" />

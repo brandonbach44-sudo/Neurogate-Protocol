@@ -346,7 +346,7 @@ dcm2niix \\
                 </tr>
               </thead>
               <tbody className="bg-white">
-                <FlagRow flag="-z" value="y" desc="gzip the NIfTI output (.nii.gz). BIDS expects compressed files." />
+                <FlagRow flag="-z" value="y" desc="gzip the NIfTI output (.nii.gz), the BIDS-expected format. If omitted, NeuroGate compresses the .nii for you on export." />
                 <FlagRow flag="-b" value="y" desc="emit the .json sidecar with acquisition metadata." />
                 <FlagRow flag="-ba" value="y" desc="anonymize the sidecar by stripping PHI fields like PatientName." />
                 <FlagRow flag="-f" value='"sub-%i_ses-%j_%p"' desc="filename template; %i = patient ID, %j = study UID slug, %p = protocol name." />
