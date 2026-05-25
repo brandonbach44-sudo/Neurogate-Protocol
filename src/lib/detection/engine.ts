@@ -45,20 +45,32 @@ function generateBidsFilename(
   modality: Modality,
   originalFileName: string,
 ): string {
-  if (!session || modality === 'other' || modality === 'sidecar-json' || modality === 'sidecar-tsv') {
+  // Localizer/scout scans are not part of a BIDS dataset and are not
+  // exported, so they keep their original name in the preview.
+  if (
+    !session ||
+    modality === 'other' ||
+    modality === 'localizer' ||
+    modality === 'sidecar-json' ||
+    modality === 'sidecar-tsv'
+  ) {
     return originalFileName; // Can't generate BIDS name without session
   }
 
   const sub = subjectId.startsWith('sub-') ? subjectId : `sub-${subjectId}`;
   const ext = getFileExtension(originalFileName);
 
-  // Map modality to BIDS suffix
+  // Map modality to BIDS suffix. This must stay in sync with
+  // buildBidsFilename() in lib/bids/exporter.ts, which produces the
+  // actual exported filenames.
   const suffixMap: Record<string, string> = {
     'anat-T1w': 'T1w',
     'anat-T2w': 'T2w',
     'anat-FLAIR': 'FLAIR',
+    'anat-angio': 'angio',
     'ct': 'ct',
     'dwi': 'dwi',
+    'perf': 'asl',
     'eeg': 'eeg',
     'ieeg': 'ieeg',
     'func': 'bold',
@@ -83,6 +95,9 @@ function generateBidsFilename(
   if (modality === 'eeg' || modality === 'ieeg') {
     return `${sub}_${session}_task-monitor_${suffix}${ext}`;
   }
+  if (modality === 'func') {
+    return `${sub}_${session}_task-rest_bold${ext}`;
+  }
 
   return `${sub}_${session}_${suffix}${ext}`;
 }
@@ -96,6 +111,11 @@ function generateBidsPath(
   modality: Modality,
   originalFileName: string,
 ): string {
+  // Localizer/scout scans are recognized but never exported.
+  if (modality === 'localizer') {
+    return '(excluded from export: localizer/scout)';
+  }
+
   if (!session || modality === 'other') {
     return `unclassified/${originalFileName}`;
   }

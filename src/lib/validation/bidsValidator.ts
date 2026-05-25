@@ -116,7 +116,13 @@ export function validateBidsStructure(
     }
 
     // ── Track duplicate BIDS paths ───────────────────────────
-    if (result.bidsPath && result.bidsPath !== `unclassified/${result.fileName}`) {
+    // Localizer/scout files are excluded from the export, so they
+    // cannot collide and are not tracked here.
+    if (
+      result.bidsPath &&
+      modality !== 'localizer' &&
+      result.bidsPath !== `unclassified/${result.fileName}`
+    ) {
       if (!bidsPathMap.has(result.bidsPath)) {
         bidsPathMap.set(result.bidsPath, []);
       }
