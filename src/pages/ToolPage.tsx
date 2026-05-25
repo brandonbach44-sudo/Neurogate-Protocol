@@ -13,6 +13,7 @@ import type { ScannedFile } from '../types/files';
 import type { DetectionResult, DetectionSummary, Session, Modality } from '../types/detection';
 import { getEffectiveSession, getEffectiveModality } from '../types/detection';
 import { runDetection, generateSummary, readJsonSidecars } from '../lib/detection';
+import { computeBidsNames } from '../lib/bids/bidsNaming';
 import { useAudit, downloadAuditJson } from '../lib/audit';
 import {
   saveToolSession,
@@ -67,7 +68,7 @@ function ToolPage() {
     if (savedSession) {
       const restored = trySessionRestore(files, savedSession);
       if (restored) {
-        setDetectionResults(restored);
+        setDetectionResults(computeBidsNames(restored));
         setSummary(savedSession.summary);
         setStep('mapping');
         setSavedSession(null);
@@ -129,9 +130,11 @@ function ToolPage() {
         audit.logSubjectCorrected(old.fileName, old.subjectGroup, updates.userSubjectGroup);
       }
 
-      const newSummary = generateSummary(next);
-      setSummary(newSummary);
-      return next;
+      // Recompute BIDS names so the preview, run- entities, and sidecar
+      // pairing stay correct after the change.
+      const renamed = computeBidsNames(next);
+      setSummary(generateSummary(renamed));
+      return renamed;
     });
   }, [audit]);
 
@@ -142,8 +145,9 @@ function ToolPage() {
       for (const i of indices) {
         next[i] = { ...next[i], userSession: session };
       }
-      setSummary(generateSummary(next));
-      return next;
+      const renamed = computeBidsNames(next);
+      setSummary(generateSummary(renamed));
+      return renamed;
     });
     audit.logBulkSessionApplied(indices.length, session);
   }, [audit]);
@@ -155,8 +159,9 @@ function ToolPage() {
       for (const i of indices) {
         next[i] = { ...next[i], userModality: modality };
       }
-      setSummary(generateSummary(next));
-      return next;
+      const renamed = computeBidsNames(next);
+      setSummary(generateSummary(renamed));
+      return renamed;
     });
     audit.logBulkModalityApplied(indices.length, modality);
   }, [audit]);

@@ -13,22 +13,25 @@
  *       ses-preimplant/
  *         anat/
  *           sub-<ID>_ses-preimplant_T1w.nii.gz
+ *           sub-<ID>_ses-preimplant_T1w.json
  *           ...
  *       ses-postimplant/
  *         ct/
  *         ieeg/
  *       ses-postsurgery/
  *         anat/
+ *
+ * Every file's BIDS path is assigned by computeBidsNames() in
+ * lib/bids/bidsNaming.ts, the single source of truth shared with the
+ * detection engine and the validator. The exporter places each file at
+ * the path that module produced, so the export can never disagree with
+ * the in-tool preview.
  */
 
 import JSZip from 'jszip';
 import type { DetectionResult } from '../../types/detection';
-import {
-  getEffectiveSession,
-  getEffectiveModality,
-  getEffectiveSubjectGroup,
-  MODALITIES,
-} from '../../types/detection';
+import { getEffectiveSubjectGroup } from '../../types/detection';
+import { computeBidsNames } from './bidsNaming';
 import type {
   SubjectMetadata,
   DatasetDescription,
@@ -131,111 +134,39 @@ export function buildFileEntries(
     content: generateParticipantsTsv(subjects),
   });
 
-  // ── Per-subject metadata + data files ───────────────────────
+  // ── Per-subject sessions.tsv ─────────────────────────────────
   for (const subject of subjects) {
-    const subId = subject.bidsSubjectId;
-
-    // sessions.tsv
     entries.push({
-      path: `primary/${subId}/${subId}_sessions.tsv`,
+      path: `primary/${subject.bidsSubjectId}/${subject.bidsSubjectId}_sessions.tsv`,
       content: generateSessionsTsv(subject),
     });
+  }
 
-    // Find all detection results for this subject
-    const subjectResults = results.filter(
-      r => getEffectiveSubjectGroup(r) === subject.subjectGroup
-    );
+  // ── Data files and their sidecars ───────────────────────────
+  // computeBidsNames assigns every file its final BIDS path using the
+  // metadata subject ids, run / field-map entities, and sidecar pairing.
+  // The exporter simply places each file where that path says.
+  const subjectIdMap = new Map<string, string>();
+  for (const s of subjects) {
+    subjectIdMap.set(s.subjectGroup, s.bidsSubjectId);
+  }
 
-    for (const result of subjectResults) {
-      const session = getEffectiveSession(result);
-      const modality = getEffectiveModality(result);
+  const named = computeBidsNames(results, subjectIdMap);
+  for (const result of named) {
+    // Export only files that belong to a configured subject and that
+    // resolved to a real BIDS path. This drops localizer/scout scans,
+    // unclassified files, and anything without a session.
+    if (!subjectIdMap.has(getEffectiveSubjectGroup(result))) continue;
+    if (!result.bidsPath.startsWith('primary/')) continue;
 
-      // Skip unclassified/other files and localizer/scout scans
-      // (localizers are not part of a BIDS dataset)
-      if (!session || modality === 'other' || modality === 'localizer') continue;
-
-      // Get BIDS folder for this modality
-      const modalityInfo = MODALITIES.find(m => m.value === modality);
-      const bidsFolder = modalityInfo?.bidsFolder || '';
-
-      // Build the BIDS filename
-      const bidsFilename = buildBidsFilename(subId, session, modality, result.fileName);
-
-      // Build path
-      let filePath: string;
-      if (bidsFolder) {
-        filePath = `primary/${subId}/${session}/${bidsFolder}/${bidsFilename}`;
-      } else {
-        filePath = `primary/${subId}/${session}/${bidsFilename}`;
-      }
-
-      entries.push({
-        path: filePath,
-        content: result.file,
-        needsGzip: isUncompressedNifti(result.fileName),
-      });
-    }
+    entries.push({
+      path: result.bidsPath,
+      content: result.file,
+      needsGzip: isUncompressedNifti(result.fileName),
+    });
   }
 
   return entries;
-}
-
-// ── BIDS filename builder (mirrors detection engine logic) ────────
-
-function buildBidsFilename(
-  subjectId: string,
-  session: string,
-  modality: string,
-  originalFileName: string,
-): string {
-  const sub = subjectId.startsWith('sub-') ? subjectId : `sub-${subjectId}`;
-  const ext = getFileExtension(originalFileName);
-
-  switch (modality) {
-    case 'anat-T1w':
-      return `${sub}_${session}_T1w${ext}`;
-    case 'anat-T2w':
-      return `${sub}_${session}_T2w${ext}`;
-    case 'anat-FLAIR':
-      return `${sub}_${session}_FLAIR${ext}`;
-    case 'anat-angio':
-      return `${sub}_${session}_angio${ext}`;
-    case 'ct':
-      return `${sub}_${session}_ct${ext}`;
-    case 'dwi':
-      return `${sub}_${session}_dwi${ext}`;
-    case 'perf':
-      return `${sub}_${session}_asl${ext}`;
-    case 'eeg':
-      return `${sub}_${session}_task-monitor_eeg${ext}`;
-    case 'ieeg':
-      return `${sub}_${session}_task-monitor_ieeg${ext}`;
-    case 'func':
-      return `${sub}_${session}_task-rest_bold${ext}`;
-    case 'fmap':
-      return `${sub}_${session}_fmap${ext}`;
-    case 'electrodes':
-      return `${sub}_${session}_electrodes.tsv`;
-    case 'channels':
-      return `${sub}_${session}_task-monitor_channels.tsv`;
-    case 'events':
-      return `${sub}_${session}_task-monitor_events.tsv`;
-    case 'sidecar-json':
-    case 'sidecar-tsv':
-      return originalFileName;
-    default:
-      return `${sub}_${session}_${originalFileName}`;
-  }
-}
-
-function getFileExtension(fileName: string): string {
-  const lower = fileName.toLowerCase();
-  if (lower.endsWith('.nii.gz')) return '.nii.gz';
-  // Uncompressed NIfTI is gzipped on export, so the BIDS filename
-  // already carries the final .nii.gz extension.
-  if (lower.endsWith('.nii')) return '.nii.gz';
-  const lastDot = fileName.lastIndexOf('.');
-  return lastDot >= 0 ? fileName.substring(lastDot) : '';
 }
 
 // ── Build tree structure for preview ──────────────────────────────
