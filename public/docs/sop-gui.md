@@ -3,11 +3,11 @@
 | Field | Value |
 |---|---|
 | **Document ID** | SOP-GUI-001 |
-| **Version** | 1.1 |
+| **Version** | 1.2 |
 | **Effective Date** | 2026-05-04 |
 | **Author** | Brandon Bach |
 | **Status** | Draft |
-| **Parent Framework** | GOV-001 Regulatory Governance Framework v1.8 |
+| **Parent Framework** | GOV-001 Regulatory Governance Framework v1.9 |
 | **Related Documents** | SOP-BIDS-001, SOP-PENNSIEVE-001, SOP-REDCAP-001, ONBOARD-001 |
 
 ---
@@ -266,7 +266,13 @@ Once all failures are resolved, the "Continue to Export" button becomes active.
 
 The Export step generates a BIDS-compliant ZIP archive ready for upload to the site's chosen data infrastructure. SOP-PENNSIEVE-001 is provided as a worked example for sites using Pennsieve.
 
-During export the tool finalizes two formatting details automatically: uncompressed `.nii` files are compressed to `.nii.gz`, and localizer/scout scans are left out of the archive because they are acquisition aids rather than analyzable data.
+During export the tool finalizes several details automatically:
+
+- Uncompressed `.nii` files are compressed to `.nii.gz`.
+- Each data file's JSON sidecar is renamed to match its data file and placed alongside it, so the scanner metadata travels with the data.
+- When a session contains more than one acquisition of the same modality, each is given a `run-` entity (`run-1`, `run-2`, and so on) so that filenames stay unique.
+- Field-map images are named with their standard BIDS suffixes (`magnitude1`, `magnitude2`, `phasediff`).
+- Localizer and scout scans are left out of the archive, as they are acquisition aids rather than analyzable data.
 
 ### 10.2 Export Contents
 
@@ -278,16 +284,25 @@ dataset/
   participants.tsv
   participants.json
   sub-PENN001/
+    sub-PENN001_sessions.tsv
     ses-preimplant/
       anat/
         sub-PENN001_ses-preimplant_T1w.nii.gz
         sub-PENN001_ses-preimplant_T1w.json
-        sub-PENN001_ses-preimplant_T2w.nii.gz
-        sub-PENN001_ses-preimplant_T2w.json
+        sub-PENN001_ses-preimplant_run-1_T2w.nii.gz
+        sub-PENN001_ses-preimplant_run-1_T2w.json
+        sub-PENN001_ses-preimplant_run-2_T2w.nii.gz
+        sub-PENN001_ses-preimplant_run-2_T2w.json
       dwi/
         sub-PENN001_ses-preimplant_dwi.nii.gz
-      eeg/
-        sub-PENN001_ses-preimplant_eeg.edf
+        sub-PENN001_ses-preimplant_dwi.json
+        sub-PENN001_ses-preimplant_dwi.bval
+        sub-PENN001_ses-preimplant_dwi.bvec
+      fmap/
+        sub-PENN001_ses-preimplant_magnitude1.nii.gz
+        sub-PENN001_ses-preimplant_magnitude2.nii.gz
+        sub-PENN001_ses-preimplant_phasediff.nii.gz
+        sub-PENN001_ses-preimplant_phasediff.json
     ses-postimplant/
       ...
     ses-postsurgery/
@@ -433,3 +448,4 @@ The audit log satisfies ALCOA+ requirements:
 |---|---|---|---|
 | 1.0 | 2026-05-04 | Brandon Bach | Initial draft covering all 5 workflow steps, audit trail, troubleshooting, and quick-reference guide |
 | 1.1 | 2026-05-22 | Brandon Bach | Updated the supported-modality lists to add MR angiography, perfusion (ASL), fMRI, and field maps; documented that Layer 2 also reads dcm2niix JSON sidecar scan descriptions and that the engine defaults a session by modality when no other clue is found; noted that the export compresses `.nii` to `.nii.gz` and excludes localizer/scout scans; updated the parent GOV-001 reference to v1.8 |
+| 1.2 | 2026-05-25 | Brandon Bach | Documented the export naming behavior in Section 10: each data file's JSON sidecar is now included in the export, repeated acquisitions of the same modality receive `run-` entities, and field-map images are named `magnitude1` / `magnitude2` / `phasediff`. Updated the Export Contents tree to show sidecars, `run-` entities, a field-map folder, and the per-subject sessions.tsv. Updated the parent GOV-001 reference to v1.9. |

@@ -3,12 +3,12 @@
 | Field | Value |
 |---|---|
 | **Document ID** | SOP-BIDS-001 |
-| **Version** | 2.2 |
+| **Version** | 2.3 |
 | **Effective Date** | May 7, 2026 |
 | **Author** | Brandon Bach |
 | **Advisor** | Nishant Sinha |
 | **Status** | Draft -- Pending Advisor Review |
-| **Parent Document** | GOV-001: Regulatory and Governance Framework (v1.8) |
+| **Parent Document** | GOV-001: Regulatory and Governance Framework (v1.9) |
 | **Related Documents** | SOP-PENNSIEVE-001, SOP-REDCAP-001, ONBOARD-001 |
 
 ---
@@ -108,6 +108,10 @@ primary/
         └── anat/                  # Post-surgery MRI
 ```
 
+### 5.2 Repeated Acquisitions and run- Entities
+
+When a session contains more than one acquisition of the same modality (for example two T2w scans, or a TOF angiography scan together with its derived reconstructions), each acquisition is given a BIDS `run-` entity so that every file has a unique name: `sub-<ID>_ses-preimplant_run-1_T2w.nii.gz`, `sub-<ID>_ses-preimplant_run-2_T2w.nii.gz`, and so on. A scan's companion files (its JSON sidecar, and the `.bval` / `.bvec` for diffusion) share the same run number. The NeuroGate tool assigns these entities automatically. The single-file examples in Section 6 omit the `run-` entity for readability; it is added only when a modality repeats within a session.
+
 ## 6. Session-by-Session Requirements
 
 ### 6.1 Session 1: Pre-Implant (ses-preimplant)
@@ -197,10 +201,14 @@ Required files (if available):
 
 | File | Format | Description |
 |---|---|---|
-| `sub-<ID>_ses-preimplant_fmap.nii.gz` | NIfTI (gzipped) | Field map for distortion correction |
-| `sub-<ID>_ses-preimplant_fmap.json` | JSON | Acquisition metadata |
+| `sub-<ID>_ses-preimplant_magnitude1.nii.gz` | NIfTI (gzipped) | First-echo magnitude image |
+| `sub-<ID>_ses-preimplant_magnitude2.nii.gz` | NIfTI (gzipped) | Second-echo magnitude image |
+| `sub-<ID>_ses-preimplant_phasediff.nii.gz` | NIfTI (gzipped) | Phase-difference image for distortion correction |
+| `sub-<ID>_ses-preimplant_phasediff.json` | JSON | Acquisition metadata |
 
-**Required JSON sidecar fields for field maps** (per GOV-001 Section 3): Manufacturer, MagneticFieldStrength, EchoTime1, EchoTime2, IntendedFor.
+A gradient-echo field map produces two magnitude images and one phase-difference image. Each is named with its standard BIDS suffix (`magnitude1`, `magnitude2`, `phasediff`); `fmap` is the folder name, not a file suffix. The NeuroGate tool reads the dcm2niix echo and phase markers (`_e1`, `_e2`, `_ph`) to assign these suffixes automatically.
+
+**Required JSON sidecar fields for field maps** (per GOV-001 Section 3): Manufacturer, MagneticFieldStrength, EchoTime1, EchoTime2, IntendedFor. These accompany the `phasediff` image.
 
 ### 6.2 Session 2: Post-Implant (ses-postimplant)
 
@@ -490,3 +498,4 @@ dcm2niix -z y -f sub-<ID>_ses-<session>_<modality> -o ./output/ /path/to/dicom/
 | 2.0 | April 28, 2026 | Brandon Bach | Major update: added GOV-001 traceability section, added subject ID format definition, added dataset_description.json required fields, added JSON sidecar required fields per modality, expanded de-identification section (DICOM stripping, EEG header cleaning, filename PHI checks), added cross-validation rule for channels/electrodes, added FLAIR to post-surgery, added PHI warnings to metadata sections, added date-shifting guidance, updated section numbering |
 | 2.1 | May 7, 2026 | Brandon Bach | Replaced "Penn team" references with project-role labels (institution prefix and starting subject number coordination now attributed to the project lead) for consistency with the multi-site framing; renamed in-text reference to "Penn Epilepsy BIDS GUI tool" as "NeuroGate tool" |
 | 2.2 | May 22, 2026 | Brandon Bach | Added MR angiography (Section 6.1.1) and new subsections for perfusion/ASL (6.1.4), functional MRI (6.1.5), and field maps (6.1.6) to match the modalities the NeuroGate tool now classifies; added a `perf/` folder to the directory structure and quick-reference tree; updated the Scope, traceability, and required/optional tables for the new modalities; noted that localizer/scout scans are excluded from export and that uncompressed `.nii` is compressed to `.nii.gz` automatically; updated the parent GOV-001 reference to v1.8 |
+| 2.3 | May 25, 2026 | Brandon Bach | Corrected Section 6.1.6: field maps are named with the standard BIDS suffixes `magnitude1`, `magnitude2`, and `phasediff`, not a single `fmap` suffix. Added Section 5.2 describing automatic `run-` entity assignment when a session holds more than one acquisition of the same modality. Updated the parent GOV-001 reference to v1.9. |
