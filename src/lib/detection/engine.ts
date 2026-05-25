@@ -25,7 +25,6 @@ import type {
   Confidence,
   DetectionReason,
 } from '../../types/detection';
-import { MODALITIES } from '../../types/detection';
 import { detectFromExtension } from './extensionDetector';
 import { detectFromFilename, detectFromSidecarText } from './filenameDetector';
 import { detectFromFolderPath } from './folderDetector';
@@ -33,113 +32,12 @@ import { inferFromNeighbors } from './neighborInference';
 import { groupIntoSubject } from './subjectGrouping';
 import { getSidecarBaseName } from './sidecarReader';
 import type { SidecarInfo } from './sidecarReader';
+import { computeBidsNames } from '../bids/bidsNaming';
 
-// ── BIDS filename generation ──────────────────────────────────────
-
-/**
- * Generate a BIDS-compliant filename based on detected/assigned values.
- */
-function generateBidsFilename(
-  subjectId: string,
-  session: Session | null,
-  modality: Modality,
-  originalFileName: string,
-): string {
-  // Localizer/scout scans are not part of a BIDS dataset and are not
-  // exported, so they keep their original name in the preview.
-  if (
-    !session ||
-    modality === 'other' ||
-    modality === 'localizer' ||
-    modality === 'sidecar-json' ||
-    modality === 'sidecar-tsv'
-  ) {
-    return originalFileName; // Can't generate BIDS name without session
-  }
-
-  const sub = subjectId.startsWith('sub-') ? subjectId : `sub-${subjectId}`;
-  const ext = getFileExtension(originalFileName);
-
-  // Map modality to BIDS suffix. This must stay in sync with
-  // buildBidsFilename() in lib/bids/exporter.ts, which produces the
-  // actual exported filenames.
-  const suffixMap: Record<string, string> = {
-    'anat-T1w': 'T1w',
-    'anat-T2w': 'T2w',
-    'anat-FLAIR': 'FLAIR',
-    'anat-angio': 'angio',
-    'ct': 'ct',
-    'dwi': 'dwi',
-    'perf': 'asl',
-    'eeg': 'eeg',
-    'ieeg': 'ieeg',
-    'func': 'bold',
-    'fmap': 'fmap',
-    'electrodes': 'electrodes',
-    'channels': 'channels',
-    'events': 'events',
-  };
-
-  const suffix = suffixMap[modality] || modality;
-
-  // Build BIDS filename
-  if (modality === 'electrodes') {
-    return `${sub}_${session}_electrodes.tsv`;
-  }
-  if (modality === 'channels') {
-    return `${sub}_${session}_task-monitor_channels.tsv`;
-  }
-  if (modality === 'events') {
-    return `${sub}_${session}_task-monitor_events.tsv`;
-  }
-  if (modality === 'eeg' || modality === 'ieeg') {
-    return `${sub}_${session}_task-monitor_${suffix}${ext}`;
-  }
-  if (modality === 'func') {
-    return `${sub}_${session}_task-rest_bold${ext}`;
-  }
-
-  return `${sub}_${session}_${suffix}${ext}`;
-}
-
-/**
- * Generate the full BIDS path for a file.
- */
-function generateBidsPath(
-  subjectId: string,
-  session: Session | null,
-  modality: Modality,
-  originalFileName: string,
-): string {
-  // Localizer/scout scans are recognized but never exported.
-  if (modality === 'localizer') {
-    return '(excluded from export: localizer/scout)';
-  }
-
-  if (!session || modality === 'other') {
-    return `unclassified/${originalFileName}`;
-  }
-
-  const sub = subjectId.startsWith('sub-') ? subjectId : `sub-${subjectId}`;
-  const bidsFolder = MODALITIES.find(m => m.value === modality)?.bidsFolder || '';
-  const bidsFilename = generateBidsFilename(subjectId, session, modality, originalFileName);
-
-  if (!bidsFolder) {
-    return `primary/${sub}/${session}/${bidsFilename}`;
-  }
-
-  return `primary/${sub}/${session}/${bidsFolder}/${bidsFilename}`;
-}
-
-function getFileExtension(fileName: string): string {
-  const lower = fileName.toLowerCase();
-  if (lower.endsWith('.nii.gz')) return '.nii.gz';
-  // Uncompressed NIfTI is gzipped on export, so the BIDS preview name
-  // already reflects the final .nii.gz extension.
-  if (lower.endsWith('.nii')) return '.nii.gz';
-  const lastDot = fileName.lastIndexOf('.');
-  return lastDot === -1 ? '' : fileName.substring(lastDot);
-}
+// BIDS filename and path generation lives in lib/bids/bidsNaming.ts, the
+// single source of truth shared with the exporter and the validator.
+// runDetection() calls computeBidsNames() over the whole result set
+// before returning, so repeated modalities get unique run- entities.
 
 // ── Confidence calculation ────────────────────────────────────────
 
@@ -379,9 +277,8 @@ export function runDetection(
     const confidence = calculateConfidence(modality, session, reasons);
 
     // ── Generate BIDS filename preview ─────────────────────────
-    const subjectId = groupResult.groupName;
-    const bidsFilename = generateBidsFilename(subjectId, session, modality, file.name);
-    const bidsPath = generateBidsPath(subjectId, session, modality, file.name);
+    // The BIDS filename and path are assigned after this loop, in one
+    // pass over the whole result set (see computeBidsNames below).
 
     // ── Add any neighbor warnings as low-weight reasons ────────
     for (const warning of neighborResult.warnings) {
@@ -405,12 +302,14 @@ export function runDetection(
       userSession: null,
       userModality: null,
       userSubjectGroup: null,
-      bidsFilename,
-      bidsPath,
+      bidsFilename: '',
+      bidsPath: '',
     });
   }
 
-  return finalResults;
+  // Assign BIDS filenames and paths (run / field-map entities and sidecar
+  // pairing) in one pass, so repeated modalities never collide.
+  return computeBidsNames(finalResults);
 }
 
 // ── Summary generation ────────────────────────────────────────────
