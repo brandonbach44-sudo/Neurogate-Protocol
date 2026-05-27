@@ -66,25 +66,16 @@ export function createDefaultDatasetDescription(): DatasetDescription {
 // Logged per ALCOA+ audit requirements.
 
 export interface DefacingAttestation {
-  /** User confirms defacing was performed */
+  /** User confirms defacing was performed on the structural MRIs in the upload. */
   confirmed: boolean;
-  /** Name of the defacing tool used (e.g., "pydeface", "mri_deface", "FreeSurfer") */
-  toolName: string;
-  /** Version of the defacing tool */
-  toolVersion: string;
-  /** Timestamp when attestation was made (auto-generated) */
+  /** Timestamp when the attestation checkbox was ticked (auto-generated). */
   timestamp: string | null;
-  /** Username / identifier of the person attesting */
-  attestedBy: string;
 }
 
 export function createDefaultAttestation(): DefacingAttestation {
   return {
     confirmed: false,
-    toolName: '',
-    toolVersion: '',
     timestamp: null,
-    attestedBy: '',
   };
 }
 

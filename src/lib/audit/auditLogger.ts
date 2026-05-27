@@ -120,11 +120,8 @@ export function createAuditLogger() {
     );
   }
 
-  function logDefacingAttested(toolName: string, toolVersion: string, attestedBy: string) {
-    addEntry('defacing-attested',
-      `Defacing attested by "${attestedBy}" using ${toolName} v${toolVersion}`,
-      { toolName, toolVersion, attestedBy },
-    );
+  function logDefacingAttested() {
+    addEntry('defacing-attested', 'Defacing attestation confirmed', {});
   }
 
   function logDefacingRevoked() {

@@ -182,11 +182,7 @@ function ToolPage() {
     audit.logDatasetDescriptionEntered(metadata.datasetDescription.name, filledAuthors);
 
     if (metadata.defacingAttestation.confirmed) {
-      audit.logDefacingAttested(
-        metadata.defacingAttestation.toolName,
-        metadata.defacingAttestation.toolVersion,
-        metadata.defacingAttestation.attestedBy,
-      );
+      audit.logDefacingAttested();
     }
   }, [audit]);
 
@@ -502,14 +498,14 @@ function ToolPage() {
             institutionConfig={metadataOutput.institutionConfig}
             onBack={() => setStep('validation')}
             onExportComplete={() => {
-              // Auto-download audit log with the export
-              const exportedBy = metadataOutput!.defacingAttestation.attestedBy || 'user';
-              downloadAuditJson(audit, exportedBy);
-
+              // Record the export event in the audit log BEFORE downloading,
+              // so the downloaded audit file includes the export-completed
+              // entry that documents itself.
               audit.addEntry('export-completed', 'BIDS dataset exported as ZIP', {
                 subjectCount: metadataOutput!.subjects.length,
                 fileCount: detectionResults.length,
               }, 'system');
+              downloadAuditJson(audit, 'user');
             }}
           />
         )}
