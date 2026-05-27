@@ -3,11 +3,11 @@
 | Field | Value |
 |---|---|
 | **Document ID** | SOP-GUI-001 |
-| **Version** | 1.2 |
+| **Version** | 1.3 |
 | **Effective Date** | 2026-05-04 |
 | **Author** | Brandon Bach |
 | **Status** | Draft |
-| **Parent Framework** | GOV-001 Regulatory Governance Framework v1.9 |
+| **Parent Framework** | GOV-001 Regulatory Governance Framework v1.10 |
 | **Related Documents** | SOP-BIDS-001, SOP-PENNSIEVE-001, SOP-REDCAP-001, ONBOARD-001 |
 
 ---
@@ -197,17 +197,12 @@ Additional clinical fields (epilepsy diagnosis, seizure type, localization) are 
 |---|---|---|
 | Dataset Name | Yes | Human-readable name for this dataset |
 | Authors | Yes | At least one author (PI or data submitter) |
-| License | Auto-filled | CC-BY-4.0 (per governance framework) |
 | Acknowledgements | No | Funding sources or acknowledgements |
+| Funding | No | Grant numbers or funding source identifiers |
 
 ### 8.5 Defacing Attestation
 
-You must confirm:
-- All T1w and T2w anatomical images have been defaced
-- The tool and version used for defacing (e.g., pydeface 2.0.2)
-- The name of the person attesting
-
-This attestation is recorded in the audit log and exported with the dataset.
+You must confirm via checkbox that all T1w and T2w anatomical images in this upload have been defaced or de-identified before submission. Ticking the box records a timestamped `defacing-attested` entry in the audit log, which is exported with the dataset.
 
 ### 8.6 Proceeding to Step 4
 
@@ -449,3 +444,4 @@ The audit log satisfies ALCOA+ requirements:
 | 1.0 | 2026-05-04 | Brandon Bach | Initial draft covering all 5 workflow steps, audit trail, troubleshooting, and quick-reference guide |
 | 1.1 | 2026-05-22 | Brandon Bach | Updated the supported-modality lists to add MR angiography, perfusion (ASL), fMRI, and field maps; documented that Layer 2 also reads dcm2niix JSON sidecar scan descriptions and that the engine defaults a session by modality when no other clue is found; noted that the export compresses `.nii` to `.nii.gz` and excludes localizer/scout scans; updated the parent GOV-001 reference to v1.8 |
 | 1.2 | 2026-05-25 | Brandon Bach | Documented the export naming behavior in Section 10: each data file's JSON sidecar is now included in the export, repeated acquisitions of the same modality receive `run-` entities, and field-map images are named `magnitude1` / `magnitude2` / `phasediff`. Updated the Export Contents tree to show sidecars, `run-` entities, a field-map folder, and the per-subject sessions.tsv. Updated the parent GOV-001 reference to v1.9. |
+| 1.3 | 2026-05-27 | Brandon Bach | Section 8.4 Dataset Description: dropped the (inaccurate) License auto-fill row and added the optional Funding row to match the actual form. Section 8.5 Defacing Attestation: rewritten to describe the simplified single-checkbox attestation; the tool no longer captures defacing tool name, version, or attestor identity. Updated the parent GOV-001 reference to v1.10. |

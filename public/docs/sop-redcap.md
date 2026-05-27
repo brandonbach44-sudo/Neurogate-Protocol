@@ -3,12 +3,12 @@
 | Field | Value |
 |---|---|
 | **Document ID** | SOP-REDCAP-001 |
-| **Version** | 1.2 |
+| **Version** | 1.3 |
 | **Effective Date** | May 9, 2026 |
 | **Author** | Brandon Bach |
 | **Advisor** | Nishant Sinha |
 | **Status** | Draft -- Pending Advisor Review |
-| **Parent Document** | GOV-001: Regulatory and Governance Framework (v1.3) |
+| **Parent Document** | GOV-001: Regulatory and Governance Framework (v1.10) |
 | **Related Documents** | SOP-BIDS-001, SOP-PENNSIEVE-001, ONBOARD-001 |
 
 ---
@@ -253,10 +253,9 @@ Provided by the project team for the root dataset. Sites do not need to create t
 |---|---|
 | Name | Dataset name (e.g., your site's dataset name) |
 | BIDSVersion | BIDS specification version (e.g., "1.8.0") |
-| License | Data license (e.g., "CC BY 4.0") |
+| DatasetType | Always "raw" for source data |
 | Authors | List of contributing authors |
-| DatasetDOI | DOI once published |
-| GeneratedBy | Tools used for BIDS conversion |
+| GeneratedBy | Tools used for BIDS conversion (auto-filled by NeuroGate) |
 
 ### 6.4 Electrodes and Channels TSV Files
 
@@ -568,3 +567,4 @@ Before saving any record, verify:
 | 1.0 | May 1, 2026 | Brandon Bach | Initial release: clinical metadata requirements, imaging acquisition metadata, BIDS dataset-level metadata, REDCap project structure and entry workflow, de-identification guidance, quality checks, quick-reference section |
 | 1.1 | May 7, 2026 | Brandon Bach | Reframed sites as "participating in the multi-site epilepsy data sharing initiative" rather than "contributing to the Penn Epilepsy Dataset"; renamed `contributing_site` field to `participating_site`; replaced "Penn team" references with project-role labels (REDCap Administrator for permissions issues, project team for the dataset_description.json and cross-site auditing); reframed REDCap as the centralized metadata registry for the initiative; replaced "your contributing site" with "your site" in DAG selection step |
 | 1.2 | May 9, 2026 | Brandon Bach | Decoupled REDCap workflow from Pennsieve as the assumed data infrastructure. Renamed `pennsieve_dataset_id` and `pennsieve_id` fields to `platform_dataset_id` and `platform_id`. Reframed every "data on Pennsieve" / "uploaded to Pennsieve" reference to "data infrastructure" / "your platform." Upload Tracking workflow now accepts any platform (Pennsieve, S3, internal archive, etc.) with method examples broadened from "web interface or Pennsieve Agent CLI" to "e.g., web interface, agent CLI, programmatic API." |
+| 1.3 | May 27, 2026 | Brandon Bach | Section 6.3 dataset_description.json table: dropped License and DatasetDOI rows (the NeuroGate tool does not capture them) and added DatasetType. Brought the parent GOV-001 reference up to v1.10. |
