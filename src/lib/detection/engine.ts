@@ -242,16 +242,21 @@ export function runDetection(
     }
 
     // ── Session fallback: default by modality ──────────────────
-    // If no layer found a session, a file would be stranded with no
-    // BIDS placement. Most structural and functional imaging is
-    // acquired at the pre-implant baseline, while CT and intracranial
-    // EEG (and their metadata) belong to the post-implant monitoring
-    // session. This is a deliberately low-confidence guess the user
-    // can override in the mapping table.
+    // If no layer found a session, a file would be stranded with a
+    // blank dropdown in the mapping table. Most structural and
+    // functional imaging is acquired at the pre-implant baseline,
+    // while CT and intracranial EEG (and their metadata) belong to
+    // the post-implant monitoring session. Localizer scans are
+    // excluded from the export but still receive a default session so
+    // the mapping table is not cluttered with blank dropdowns; the
+    // session value is cosmetic for them. JSON / TSV sidecars are
+    // handled separately: they inherit their data file's session
+    // during pairing (see computeBidsNames in lib/bids/bidsNaming.ts).
+    // This is a deliberately low-confidence guess the user can
+    // override in the mapping table.
     if (
       !session &&
       modality !== 'other' &&
-      modality !== 'localizer' &&
       modality !== 'sidecar-json' &&
       modality !== 'sidecar-tsv'
     ) {

@@ -267,11 +267,15 @@ function findSidecarPartner(
   sidecarIndex: number,
 ): DetectionResult | null {
   const base = baseName(results[sidecarIndex].fileName);
+  // We accept partners whose own path is excluded (for example a
+  // localizer). The caller checks the partner's path before deciding
+  // whether to mirror it; either way the sidecar inherits the
+  // partner's session, so the mapping table never shows a blank
+  // dropdown for a paired sidecar.
   const candidates = results.filter((d, di) => {
     if (di === sidecarIndex) return false;
     const m = getEffectiveModality(d);
     if (m === 'sidecar-json' || m === 'sidecar-tsv') return false;
-    if (!d.bidsPath.startsWith('primary/')) return false;
     return baseName(d.fileName) === base;
   });
   if (candidates.length === 0) return null;
@@ -388,8 +392,22 @@ export function computeBidsNames(
     const partner = findSidecarPartner(out, i);
     if (partner) {
       const sidecarExt = modality === 'sidecar-json' ? '.json' : '.tsv';
-      r.bidsFilename = stripExtension(partner.bidsFilename) + sidecarExt;
-      r.bidsPath = partner.bidsPath.replace(/[^/]+$/, r.bidsFilename);
+      if (partner.bidsPath.startsWith('primary/')) {
+        // Partner has a real export path; mirror it for the sidecar.
+        r.bidsFilename = stripExtension(partner.bidsFilename) + sidecarExt;
+        r.bidsPath = partner.bidsPath.replace(/[^/]+$/, r.bidsFilename);
+      } else {
+        // Partner is excluded from the export (for example a localizer
+        // scan). The sidecar follows: also excluded. The session is
+        // still inherited below so the mapping table has no blank
+        // dropdown.
+        r.bidsFilename = r.fileName;
+        r.bidsPath = `unclassified/${r.fileName}`;
+      }
+      // Inherit the partner's effective session so the mapping table
+      // shows a session for the sidecar instead of a blank dropdown.
+      const partnerSession = getEffectiveSession(partner);
+      if (partnerSession && !r.userSession) r.detectedSession = partnerSession;
     } else {
       r.bidsFilename = r.fileName;
       r.bidsPath = `unclassified/${r.fileName}`;
