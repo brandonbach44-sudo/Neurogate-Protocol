@@ -54,23 +54,30 @@ function calculateConfidence(
   // Sum up all weights
   const totalWeight = reasons.reduce((sum, r) => sum + r.weight, 0);
 
+  // Sidecars are scored on their own. A JSON / TSV sidecar inherits its
+  // session from the data file it pairs with (see computeBidsNames in
+  // lib/bids/bidsNaming.ts), so the engine should not penalise it for
+  // not having found a session on its own. Classify it purely by the
+  // strength of the modality evidence. This branch must come before the
+  // session-aware branches below, otherwise a sidecar whose engine-time
+  // session is still null would fall through to the modality-only path
+  // and be capped at medium.
+  if (modality === 'sidecar-json' || modality === 'sidecar-tsv') {
+    if (totalWeight >= 0.8) return 'high';
+    if (totalWeight >= 0.4) return 'medium';
+    return 'low';
+  }
+
   // Both modality and session detected with good evidence
-  if (session && modality !== 'sidecar-json' && modality !== 'sidecar-tsv') {
+  if (session) {
     if (totalWeight >= 1.2) return 'high';
     if (totalWeight >= 0.7) return 'medium';
     return 'low';
   }
 
   // Only modality detected (no session)
-  if (modality && !session) {
+  if (modality) {
     if (totalWeight >= 1.0) return 'medium';
-    return 'low';
-  }
-
-  // Sidecars inherit confidence from what they're paired with
-  if (modality === 'sidecar-json' || modality === 'sidecar-tsv') {
-    if (totalWeight >= 0.8) return 'high';
-    if (totalWeight >= 0.4) return 'medium';
     return 'low';
   }
 
