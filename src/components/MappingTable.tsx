@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import Button from './Button';
 import type {
   DetectionResult,
   DetectionSummary,
@@ -410,18 +411,8 @@ export default function MappingTable({
 
       {/* ── Action Buttons ───────────────────────────────────── */}
       <div className="flex justify-between mt-6">
-        <button
-          onClick={onBack}
-          className="px-5 py-2.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-        >
-          Back to Drop Zone
-        </button>
-        <button
-          onClick={onContinue}
-          className="px-5 py-2.5 text-sm font-medium bg-[#011F5B] text-white rounded-lg hover:bg-[#01326e] transition-colors"
-        >
-          Continue to Metadata
-        </button>
+        <Button variant="secondary" onClick={onBack}>Back to Drop Zone</Button>
+        <Button variant="primary" onClick={onContinue}>Continue to Metadata</Button>
       </div>
     </div>
   );

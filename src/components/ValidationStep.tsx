@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, type ReactNode } from 'react';
+import Button from './Button';
 import type { DetectionResult } from '../types/detection';
 import type { SubjectMetadata, DatasetDescription, DefacingAttestation, InstitutionConfig } from '../types/metadata';
 import type { ValidationReport, ValidationIssue, ValidationCategory, ValidationSeverity } from '../types/validation';
@@ -235,23 +236,12 @@ export default function ValidationStep({
 
       {/* Action buttons */}
       <div className="flex justify-between mt-8">
-        <button
-          onClick={onBack}
-          className="px-5 py-2.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-        >
-          Back to Metadata
-        </button>
-        <button
-          onClick={onContinue}
-          disabled={activeErrors > 0}
-          className="px-5 py-2.5 text-sm font-medium bg-[#011F5B] text-white rounded-lg
-            hover:bg-[#00bde0] transition-colors
-            disabled:opacity-40 disabled:cursor-not-allowed"
-        >
+        <Button variant="secondary" onClick={onBack}>Back to Metadata</Button>
+        <Button variant="primary" onClick={onContinue} disabled={activeErrors > 0}>
           {activeErrors > 0
             ? `Fix ${activeErrors} Error${activeErrors !== 1 ? 's' : ''} to Continue`
             : 'Continue to Export'}
-        </button>
+        </Button>
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import Button from './Button';
 import type { DetectionResult } from '../types/detection';
 import type { SubjectMetadata, DatasetDescription, InstitutionConfig } from '../types/metadata';
 import {
@@ -147,26 +148,15 @@ export default function ExportStep({
 
       {/* Action buttons */}
       <div className="flex justify-between">
-        <button
-          onClick={onBack}
-          disabled={isExporting}
-          className="px-5 py-2.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg
-            hover:bg-gray-50 transition-colors disabled:opacity-40"
-        >
+        <Button variant="secondary" onClick={onBack} disabled={isExporting}>
           Back to Validation
-        </button>
+        </Button>
 
         <div className="flex items-center gap-3">
           {isExporting && (
             <span className="text-sm text-gray-500">{exportProgress}</span>
           )}
-          <button
-            onClick={handleExport}
-            disabled={isExporting}
-            className="px-6 py-2.5 text-sm font-medium bg-[#011F5B] text-white rounded-lg
-              hover:bg-[#01326e] transition-colors flex items-center gap-2
-              disabled:opacity-40 disabled:cursor-not-allowed"
-          >
+          <Button variant="primary" onClick={handleExport} disabled={isExporting} className="gap-2">
             {isExporting ? (
               <>
                 <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -177,7 +167,7 @@ export default function ExportStep({
             ) : (
               'Download ZIP'
             )}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
