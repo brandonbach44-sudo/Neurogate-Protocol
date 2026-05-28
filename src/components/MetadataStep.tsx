@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import Button from './Button';
 import SubjectMetadataForm from './SubjectMetadataForm';
 import DatasetDescriptionForm from './DatasetDescriptionForm';
 import DefacingAttestation from './DefacingAttestation';
@@ -384,13 +385,9 @@ export default function MetadataStep({
 
       {/* Action buttons */}
       <div className="flex justify-between mt-6">
-        <button
-          onClick={onBack}
-          className="px-5 py-2.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-        >
-          Back to Mapping
-        </button>
-        <button
+        <Button variant="secondary" onClick={onBack}>Back to Mapping</Button>
+        <Button
+          variant="primary"
           onClick={() => {
             if (validationErrors.length > 0) {
               setShowErrors(true);
@@ -403,11 +400,9 @@ export default function MetadataStep({
               });
             }
           }}
-          className="px-5 py-2.5 text-sm font-medium bg-[#011F5B] text-white rounded-lg
-            hover:bg-[#01326e] transition-colors"
         >
           Continue to Validation
-        </button>
+        </Button>
       </div>
     </div>
   );
