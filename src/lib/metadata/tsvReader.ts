@@ -141,6 +141,16 @@ export async function extractDatasetDescription(file: File): Promise<Partial<Dat
   }
 }
 
+// ── Sidecar JSON Helpers ──────────────────────────────────────────
+
+/**
+ * Extract session ID from a file path (matches the first ses-* segment).
+ */
+function sessionFromPath(relativePath: string): string | null {
+  const match = relativePath.match(/\b(ses-[a-zA-Z0-9]+)\b/i);
+  return match ? match[1].toLowerCase() : null;
+}
+
 // ── Auto-Detection from Scanned Files ─────────────────────────────
 
 export interface AutoFilledMetadata {
@@ -200,6 +210,41 @@ export async function autoFillFromDroppedFiles(
         result.datasetDescription = desc;
         result.sourceFiles.push(file.relativePath);
       }
+    }
+  }
+
+  // Second pass: fill acqTime from dcm2niix JSON sidecars where still missing.
+  // dcm2niix emits AcquisitionDateTime in ISO 8601; we use it directly.
+  for (const file of files) {
+    const lower = file.name.toLowerCase();
+    if (!lower.endsWith('.json') || lower === 'dataset_description.json') continue;
+
+    try {
+      const content = await file.file.text();
+      const json = JSON.parse(content) as Record<string, unknown>;
+      const acqDateTime = json['AcquisitionDateTime'];
+      if (typeof acqDateTime !== 'string' || !acqDateTime) continue;
+
+      const sesRaw = sessionFromPath(file.relativePath);
+      if (!sesRaw) continue;
+      const sessionId = normalizeSessionName(sesRaw);
+      if (!sessionId) continue;
+
+      for (const [group, groupFiles] of subjectGroups) {
+        if (!groupFiles.some(gf => gf.relativePath === file.relativePath)) continue;
+
+        const sessions = result.sessionsBySubject.get(group) ?? [];
+        const existing = sessions.find(s => s.sessionId === sessionId);
+        if (existing && !existing.acqTime) {
+          existing.acqTime = acqDateTime;
+        } else if (!existing) {
+          sessions.push({ sessionId, acqTime: acqDateTime, age: '' });
+          result.sessionsBySubject.set(group, sessions);
+        }
+        break;
+      }
+    } catch {
+      // Unparseable JSON — skip
     }
   }
 
