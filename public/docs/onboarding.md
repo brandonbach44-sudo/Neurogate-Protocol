@@ -5,12 +5,12 @@
 | Field | Value |
 |---|---|
 | **Document ID** | ONBOARD-001 |
-| **Version** | 2.5 |
-| **Effective Date** | May 9, 2026 |
+| **Version** | 2.6 |
+| **Effective Date** | May 28, 2026 |
 | **Author** | Brandon Bach |
 | **Advisor** | Nishant Sinha |
 | **Status** | Draft -- Pending Advisor Review |
-| **Parent Document** | GOV-001: Regulatory and Governance Framework (v1.5) |
+| **Parent Document** | GOV-001: Regulatory and Governance Framework (v1.10) |
 | **Related Documents** | SOP-BIDS-001, SOP-REDCAP-001, SOP-GUI-001 (SOP-PENNSIEVE-001 is an optional reference for sites that choose Pennsieve as their data infrastructure) |
 
 ---
@@ -257,3 +257,4 @@ The following must be true before advancing to each phase. Onboarding does not m
 | 2.3 | May 9, 2026 | Brandon Bach | Decoupled onboarding from Pennsieve as the assumed data infrastructure. Removed "Pennsieve Workspace Admin" role. Section 6.1 generalized to "REDCap and Sharing Platform Access"; sites now confirm their own platform access. Section 6.2 reframed from "Pennsieve Agent CLI" to generic platform credentials. Phase 4 supervised step now ends at producing the BIDS export folder, not uploading to Pennsieve (Option A scope: tool output is the deliverable; what the site does with it next is their call). Phase 1 documentation package marks SOP-PENNSIEVE-001 as optional reference. Quick Reference doc list and tools list mark Pennsieve items as optional. Parent doc bumped to GOV-001 v1.5. |
 | 2.4 | May 9, 2026 | Brandon Bach | Broadened framing from epilepsy-specific to general neuroimaging research. Title subtitle dropped "in Epilepsy"; Section 1 Purpose reframed accordingly; Section 3 Scope updated. Operational phases remain framed around the current epilepsy worked example since the SOPs they coordinate are still epilepsy-specific. Parent doc bumped to GOV-001 v1.6. |
 | 2.5 | May 9, 2026 | Brandon Bach | Reversed v2.4 broadening per advisor direction. Epilepsy restored as the named domain in the subtitle and Section 1 Purpose. "Neuroimaging" replaced with "neural data" to include electrophysiology (iEEG, EEG). Platform language switched from "sharing platform" to the advisor's "cloud and on-premise standardized data infrastructure toward building a learning health system infrastructure" phrasing (full in Purpose, "data infrastructure" elsewhere). Parent doc bumped to GOV-001 v1.7. |
+| 2.6 | May 28, 2026 | Brandon Bach | Hygiene: updated parent document reference from GOV-001 v1.5 to v1.10 to reflect intervening framework revisions. No procedural changes. |

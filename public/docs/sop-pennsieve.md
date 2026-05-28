@@ -3,12 +3,12 @@
 | Field | Value |
 |---|---|
 | **Document ID** | SOP-PENNSIEVE-001 |
-| **Version** | 2.1 |
-| **Effective Date** | May 7, 2026 |
+| **Version** | 2.2 |
+| **Effective Date** | May 28, 2026 |
 | **Author** | Brandon Bach |
 | **Advisor** | Nishant Sinha |
 | **Status** | Draft -- Pending Advisor Review |
-| **Parent Document** | GOV-001: Regulatory and Governance Framework (v1.3) |
+| **Parent Document** | GOV-001: Regulatory and Governance Framework (v1.10) |
 | **Related Documents** | SOP-BIDS-001, SOP-REDCAP-001, ONBOARD-001 |
 
 ---
@@ -405,3 +405,4 @@ Best for: multi-subject uploads, large files, unreliable connections (supports r
 | 1.2 | April 28, 2026 | Brandon Bach | Added quick-reference section (replaces separate quick-reference guide) |
 | 2.0 | April 28, 2026 | Brandon Bach | Major update: added GOV-001 traceability section, added pre-upload validation section (GUI and manual workflows), added audit and logging requirements section (ALCOA+ records), added data use agreement to prerequisites, expanded post-upload verification, updated section numbering |
 | 2.1 | May 7, 2026 | Brandon Bach | Replaced "Penn team" references with project-role labels (project lead for site notifications, project administrator for workspace access and node ID delivery, project team for the data use agreement) for consistency with the multi-site framing; updated workspace references from "Penn Epilepsy workspace" to "your site's workspace" so each site uploads to their own dataset |
+| 2.2 | May 28, 2026 | Brandon Bach | Hygiene: updated parent document reference from GOV-001 v1.3 to v1.10 to reflect intervening framework revisions. No procedural changes. |
