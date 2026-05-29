@@ -37,6 +37,139 @@ const DOC_META: Record<string, { title: string; id: string; file: string }> = {
   },
 };
 
+/* ─── Helpers ───────────────────────────────────────────────── */
+
+/** Convert heading text to a URL-safe anchor id */
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-');
+}
+
+interface TocEntry {
+  level: 2 | 3;
+  text: string;
+  id: string;
+}
+
+/** Extract ## and ### headings from raw markdown */
+function extractToc(markdown: string): TocEntry[] {
+  const lines = markdown.split('\n');
+  const entries: TocEntry[] = [];
+  for (const line of lines) {
+    const h2 = line.match(/^## (.+)/);
+    const h3 = line.match(/^### (.+)/);
+    if (h2) entries.push({ level: 2, text: h2[1].trim(), id: slugify(h2[1].trim()) });
+    else if (h3) entries.push({ level: 3, text: h3[1].trim(), id: slugify(h3[1].trim()) });
+  }
+  return entries;
+}
+
+/* ─── Table of Contents component ──────────────────────────── */
+function TableOfContents({ entries }: { entries: TocEntry[] }) {
+  const [open, setOpen] = useState(true);
+
+  if (entries.length === 0) return null;
+
+  return (
+    <div className="mb-8 rounded-xl border border-gray-100 bg-gray-50 overflow-hidden">
+      {/* Header */}
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-gray-100 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#011F5B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="12" x2="15" y2="12" />
+            <line x1="3" y1="18" x2="18" y2="18" />
+          </svg>
+          <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: '#011F5B' }}>
+            Table of Contents
+          </span>
+        </div>
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#6b7280"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+
+      {/* Entries */}
+      {open && (
+        <div className="px-5 pb-4 pt-1 border-t border-gray-100">
+          <nav>
+            {entries.map((entry, i) => (
+              <a
+                key={i}
+                href={`#${entry.id}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  const el = document.getElementById(entry.id);
+                  if (el) {
+                    const offset = 80;
+                    const top = el.getBoundingClientRect().top + window.scrollY - offset;
+                    window.scrollTo({ top, behavior: 'smooth' });
+                  }
+                }}
+                className="no-underline flex items-baseline gap-2 py-1 group"
+                style={{ paddingLeft: entry.level === 3 ? '1.25rem' : '0' }}
+              >
+                {entry.level === 3 && (
+                  <span className="text-gray-300 text-xs">└</span>
+                )}
+                <span
+                  className="text-xs leading-relaxed transition-colors group-hover:underline"
+                  style={{ color: entry.level === 2 ? '#011F5B' : '#374151' }}
+                >
+                  {entry.text}
+                </span>
+              </a>
+            ))}
+          </nav>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Custom heading renderers with anchor IDs ──────────────── */
+function buildHeadingComponents() {
+  const makeHeading = (Tag: 'h1' | 'h2' | 'h3' | 'h4') =>
+    ({ children, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => {
+      const text = typeof children === 'string'
+        ? children
+        : Array.isArray(children)
+          ? children.map(c => (typeof c === 'string' ? c : '')).join('')
+          : '';
+      const id = slugify(text);
+      return (
+        <Tag id={id} {...props} style={{ scrollMarginTop: '80px' }}>
+          {children}
+        </Tag>
+      );
+    };
+
+  return {
+    h1: makeHeading('h1'),
+    h2: makeHeading('h2'),
+    h3: makeHeading('h3'),
+    h4: makeHeading('h4'),
+  };
+}
+
+const headingComponents = buildHeadingComponents();
+
 /* ═══ MAIN PAGE ═══════════════════════════════════════════════ */
 export default function DocViewerPage() {
   const { docId } = useParams<{ docId: string }>();
@@ -71,6 +204,8 @@ export default function DocViewerPage() {
         setLoading(false);
       });
   }, [meta]);
+
+  const toc = content ? extractToc(content) : [];
 
   if (!meta) {
     return (
@@ -125,7 +260,15 @@ export default function DocViewerPage() {
       {/* Document content */}
       {!loading && !error && (
         <article className="doc-content bg-white rounded-2xl border border-gray-100 shadow-sm p-8 md:p-10">
-          <Markdown remarkPlugins={[remarkGfm]}>{content}</Markdown>
+          {/* Table of Contents */}
+          <TableOfContents entries={toc} />
+
+          <Markdown
+            remarkPlugins={[remarkGfm]}
+            components={headingComponents}
+          >
+            {content}
+          </Markdown>
         </article>
       )}
 
