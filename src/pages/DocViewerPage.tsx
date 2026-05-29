@@ -69,76 +69,42 @@ function extractToc(markdown: string): TocEntry[] {
 
 /* ─── Table of Contents component ──────────────────────────── */
 function TableOfContents({ entries }: { entries: TocEntry[] }) {
-  const [open, setOpen] = useState(true);
+  // Only show ## (level 2) headings for compactness
+  const topLevel = entries.filter(e => e.level === 2);
 
-  if (entries.length === 0) return null;
+  if (topLevel.length === 0) return null;
+
+  const scrollTo = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) {
+      const top = el.getBoundingClientRect().top + window.scrollY - 80;
+      window.scrollTo({ top, behavior: 'smooth' });
+    }
+  };
 
   return (
-    <div className="mb-8 rounded-xl border border-gray-100 bg-gray-50 overflow-hidden">
-      {/* Header */}
-      <button
-        onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-gray-100 transition-colors"
-      >
-        <div className="flex items-center gap-2">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#011F5B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="3" y1="6" x2="21" y2="6" />
-            <line x1="3" y1="12" x2="15" y2="12" />
-            <line x1="3" y1="18" x2="18" y2="18" />
-          </svg>
-          <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: '#011F5B' }}>
-            Table of Contents
-          </span>
-        </div>
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="#6b7280"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}
-        >
-          <polyline points="6 9 12 15 18 9" />
+    <div className="mb-8 rounded-xl border border-gray-100 bg-gray-50 p-4">
+      <div className="flex items-center gap-2 mb-3">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#011F5B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="3" y1="6" x2="21" y2="6" />
+          <line x1="3" y1="12" x2="15" y2="12" />
+          <line x1="3" y1="18" x2="18" y2="18" />
         </svg>
-      </button>
-
-      {/* Entries */}
-      {open && (
-        <div className="px-5 pb-4 pt-1 border-t border-gray-100">
-          <nav>
-            {entries.map((entry, i) => (
-              <a
-                key={i}
-                href={`#${entry.id}`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  const el = document.getElementById(entry.id);
-                  if (el) {
-                    const offset = 80;
-                    const top = el.getBoundingClientRect().top + window.scrollY - offset;
-                    window.scrollTo({ top, behavior: 'smooth' });
-                  }
-                }}
-                className="no-underline flex items-baseline gap-2 py-1 group"
-                style={{ paddingLeft: entry.level === 3 ? '1.25rem' : '0' }}
-              >
-                {entry.level === 3 && (
-                  <span className="text-gray-300 text-xs">└</span>
-                )}
-                <span
-                  className="text-xs leading-relaxed transition-colors group-hover:underline"
-                  style={{ color: entry.level === 2 ? '#011F5B' : '#374151' }}
-                >
-                  {entry.text}
-                </span>
-              </a>
-            ))}
-          </nav>
-        </div>
-      )}
+        <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#011F5B' }}>
+          Jump to section
+        </span>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {topLevel.map((entry, i) => (
+          <button
+            key={i}
+            onClick={() => scrollTo(entry.id)}
+            className="text-xs px-3 py-1.5 rounded-full border border-gray-200 bg-white hover:border-[#011F5B] hover:text-[#011F5B] transition-colors text-gray-600 cursor-pointer"
+          >
+            {entry.text}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
@@ -207,6 +173,11 @@ export default function DocViewerPage() {
 
   const toc = content ? extractToc(content) : [];
 
+  // Split content at first --- so TOC sits after the title/metadata block
+  const firstDivider = content.indexOf('\n---\n');
+  const contentBefore = firstDivider !== -1 ? content.slice(0, firstDivider + 5) : '';
+  const contentAfter  = firstDivider !== -1 ? content.slice(firstDivider + 5) : content;
+
   if (!meta) {
     return (
       <div className="max-w-4xl mx-auto px-6 py-16 text-center">
@@ -260,14 +231,17 @@ export default function DocViewerPage() {
       {/* Document content */}
       {!loading && !error && (
         <article className="doc-content bg-white rounded-2xl border border-gray-100 shadow-sm p-8 md:p-10">
-          {/* Table of Contents */}
+          {/* Title + metadata block (before first ---) */}
+          <Markdown remarkPlugins={[remarkGfm]} components={headingComponents}>
+            {contentBefore}
+          </Markdown>
+
+          {/* Table of Contents — sits right after the header block */}
           <TableOfContents entries={toc} />
 
-          <Markdown
-            remarkPlugins={[remarkGfm]}
-            components={headingComponents}
-          >
-            {content}
+          {/* Rest of the document */}
+          <Markdown remarkPlugins={[remarkGfm]} components={headingComponents}>
+            {contentAfter}
           </Markdown>
         </article>
       )}
