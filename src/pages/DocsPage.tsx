@@ -102,7 +102,7 @@ export default function DocsPage() {
           <div className="p-8">
             <div className="flex items-center gap-2 mb-4">
               <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500">GOV-001</span>
-              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(1,31,91,0.06)', color: '#011F5B' }}>v1.3</span>
+              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(1,31,91,0.06)', color: '#011F5B' }}>v1.11</span>
               <span className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(234,179,8,0.1)', color: '#a16207' }}>Draft</span>
             </div>
             <h2 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-[#011F5B] transition-colors">
@@ -131,7 +131,7 @@ export default function DocsPage() {
           title="BIDS Data Structure"
           description="Folder hierarchy, file naming conventions, modality organization, JSON sidecars, and de-identification requirements for BIDS-compliant neural data (imaging and electrophysiology)."
           status="Draft"
-          version="v2.0"
+          version="v2.4"
           to="/docs/sop-bids"
           accent="rgba(109,211,206)"
           icon={
@@ -145,7 +145,7 @@ export default function DocsPage() {
           title="Pennsieve Upload Procedures (optional reference)"
           description="Worked example for sites that choose Pennsieve as their data infrastructure. Covers Agent CLI and web interface upload, pre-upload validation, post-upload verification, and audit logging. Sites using different infrastructure should produce an equivalent SOP."
           status="Draft"
-          version="v2.1"
+          version="v2.2"
           to="/docs/sop-pennsieve"
           accent="rgba(1,31,91)"
           icon={
@@ -161,7 +161,7 @@ export default function DocsPage() {
           title="REDCap Metadata Entry"
           description="Clinical and demographic metadata fields, epilepsy-specific controlled vocabularies (ILAE 2017), imaging acquisition metadata, and REDCap data entry workflows."
           status="Draft"
-          version="v1.0"
+          version="v1.3"
           to="/docs/sop-redcap"
           accent="rgba(220,38,38)"
           icon={
@@ -178,7 +178,7 @@ export default function DocsPage() {
           title="Compliance Tool User Guide"
           description="Complete instructions for using the NeuroGate web tool: file upload, auto-detection review, metadata entry, validation, BIDS export, and audit trail management."
           status="Draft"
-          version="v1.0"
+          version="v1.3"
           to="/docs/sop-gui"
           accent="rgba(109,211,206)"
           icon={
@@ -215,7 +215,7 @@ export default function DocsPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(1,31,91,0.06)', color: '#011F5B' }}>v1.1</span>
+            <span className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(1,31,91,0.06)', color: '#011F5B' }}>v2.6</span>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#011F5B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="5" y1="12" x2="19" y2="12" />
               <polyline points="12 5 19 12 12 19" />
