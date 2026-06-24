@@ -12,51 +12,16 @@ User browser
    ├─ Validation (all client-side, using bids-validator npm)
    ├─ Audit log generation (all client-side)
    │
-   └─ Upload ──► [TBD: direct to Pennsieve OR via thin backend proxy]
+   └─ Export ──► BIDS ZIP download (site uploads manually via Pennsieve web or Agent)
 ```
 
-## Upload Architecture — Open Question
+## Upload Architecture — Decision Finalized
 
-**Status as of 2026-04-14:** Pending guidance from the Pennsieve team (meeting scheduled for week of 2026-04-14).
+**Decision:** Browser-to-Pennsieve direct upload is not feasible. Pennsieve does not support the CORS headers required for browser-initiated REST API calls, and adding a backend proxy would conflict with the tool's static, client-side-only design.
 
-Pennsieve's documented upload path uses their desktop **Pennsieve Agent**. There is no officially documented browser-based upload API, and CORS support for direct browser calls is not documented. See `Pennsieve_Upload_Architecture_Options.md` in the main project folder for full discussion.
+**Final approach:** The tool exports a validated BIDS ZIP file to the user's local machine. The site coordinator then uploads that ZIP to their chosen data infrastructure (Pennsieve web interface, Pennsieve Agent CLI, institutional cloud, etc.) per SOP-PENNSIEVE-001 or their site-specific equivalent. This keeps the tool fully static and deployable as a plain web URL with no backend.
 
-### Three options, ordered by preference
-
-**Option A — Thin Backend Proxy (current plan)**
-
-A minimal serverless function (Cloudflare Workers or Vercel Functions) sits between the browser and Pennsieve. The frontend is still a static web app. The backend handles the Pennsieve API calls using the official Python SDK or REST API.
-
-- Pros: Works regardless of CORS. Uses Pennsieve's supported path. Reliable for large files.
-- Cons: Adds a server component. API keys pass through the backend (requires secure handling).
-
-**Option A-prime — Pure Client-Side (ideal if Pennsieve supports it)**
-
-If Pennsieve confirms CORS + documented presigned-URL uploads for browsers, we skip the backend entirely.
-
-**Option B — Desktop App (Electron / Tauri)**
-
-Falls back on Pennsieve Agent. Breaks the "just a web URL" UX. Last resort.
-
-**Option C — Hybrid**
-
-Browser does prep; user runs Agent separately for upload. Splits the workflow across two tools. Also a last resort.
-
-### Design principle
-
-**All upload logic lives behind an abstract interface:**
-
-```typescript
-// src/lib/pennsieve/upload.ts
-export interface UploadDestination {
-  authenticate(apiKey: string, apiSecret: string): Promise<Session>;
-  listDatasets(session: Session): Promise<Dataset[]>;
-  listSubjects(session: Session, datasetId: string): Promise<string[]>;
-  uploadBidsTree(session: Session, datasetId: string, tree: BidsTree, onProgress: ProgressFn): Promise<UploadResult>;
-}
-```
-
-The rest of the app talks to this interface. We can ship a `MockUploadDestination` (writes JSON manifest to a download link) for development and demos, then plug in the real implementation once the Pennsieve path is settled.
+The audit log (JSON + CSV) auto-downloads alongside the BIDS ZIP so sites have an ALCOA+-compliant record regardless of which upload method they use.
 
 ---
 
@@ -148,15 +113,13 @@ Exported as JSON + CSV at end of session for the site to retain per their record
 ## Deployment
 
 - **Frontend:** Static build → GitHub Pages or Cloudflare Pages. Auto-deploy from `main` branch.
-- **Backend (if Option A):** Cloudflare Workers. Single function, <200 lines.
 - **CI:** GitHub Actions for lint + test on every PR.
 
 ---
 
 ## Open Questions
 
-1. Will Pennsieve support browser-direct uploads? (Friday meeting)
-2. What's the right institution prefix source — config file committed to repo, admin UI, or derived from Pennsieve workspace name?
-3. How do sites handle the mapping file (their BIDS subject ID ↔ internal MRN)? The tool doesn't see it, but we should document the recommended workflow.
-4. iEEG validation — is `ieeg-BIDS` extension stable enough to rely on?
-5. Versioning: when the governance framework updates (e.g., new required metadata field), how does the deployed tool get updated without breaking in-progress uploads at sites?
+1. What's the right institution prefix source: config file committed to repo, admin UI, or derived from workspace name?
+2. How do sites handle the mapping file (their BIDS subject ID vs. internal MRN)? The tool doesn't see it, but we should document the recommended workflow.
+3. iEEG validation: is the `ieeg-BIDS` extension stable enough to rely on?
+4. Versioning: when the governance framework updates (e.g., new required metadata field), how does the deployed tool get updated without breaking in-progress uploads at sites?
