@@ -61,6 +61,12 @@ export function checkRequiredFiles(
   issueCounter = 0;
   const issues: ValidationIssue[] = [];
 
+  const DATA_MODALITIES = new Set([
+    'anat-T1w', 'anat-T2w', 'anat-FLAIR', 'anat-angio',
+    'ct', 'dwi', 'perf', 'func', 'fmap',
+    'ieeg', 'eeg', 'electrodes', 'channels', 'events',
+  ]);
+
   // Build a map: subjectGroup → session → list of modalities present
   const subjectSessionModalities = new Map<string, Map<string, Set<string>>>();
 
@@ -87,6 +93,17 @@ export function checkRequiredFiles(
     const subject = subjects.find(s => s.subjectGroup === group);
     const displayId = subject?.bidsSubjectId || group;
 
+    // Count data files for this subject across all sessions.
+    // When a subject has very few files it is almost certainly an
+    // intentional partial upload (e.g. a single EDF for de-identification).
+    // Downgrade required-file errors to dismissable warnings in that case
+    // so the user can still proceed to export.
+    const subjectDataFileCount = results.filter(r =>
+      getEffectiveSubjectGroup(r) === group &&
+      DATA_MODALITIES.has(getEffectiveModality(r))
+    ).length;
+    const isSparseUpload = subjectDataFileCount < 4;
+
     for (const [session, modalities] of sessionMap) {
       const requirements = SESSION_REQUIREMENTS[session];
       if (!requirements) continue;
@@ -97,20 +114,28 @@ export function checkRequiredFiles(
             .filter(r => getEffectiveSubjectGroup(r) === group && getEffectiveSession(r) === session)
             .map(r => r.relativePath);
 
+          // For sparse uploads, treat all missing-file issues as dismissable
+          // warnings so the user is not blocked from exporting the files
+          // they do have (e.g. a single EDF being de-identified).
+          const effectiveSeverity: 'error' | 'warning' =
+            isSparseUpload ? 'warning' : req.severity;
+
           issues.push({
             id: nextId(),
             category: 'required-files',
-            severity: req.severity,
-            title: req.severity === 'error'
+            severity: effectiveSeverity,
+            title: effectiveSeverity === 'error'
               ? `Missing required: ${req.label}`
-              : `Recommended: ${req.label}`,
-            description: req.severity === 'error'
-              ? `${displayId} / ${session} is missing a required ${req.label} file. This file must be present for a valid BIDS submission. If you have this file, go back to the mapping step and verify it's assigned to the correct session and modality.`
-              : `${displayId} / ${session} does not include a ${req.label} file. This is recommended but not required. Your submission will still be valid without it.`,
+              : `Missing: ${req.label}`,
+            description: isSparseUpload
+              ? `${displayId} / ${session} is missing ${req.label}, but only ${subjectDataFileCount} file${subjectDataFileCount === 1 ? ' was' : 's were'} uploaded for this subject. If this is intentional (e.g. uploading a single file for de-identification), dismiss this warning and continue. Otherwise go back and verify all files were included.`
+              : effectiveSeverity === 'error'
+                ? `${displayId} / ${session} is missing a required ${req.label} file. This file must be present for a valid BIDS submission. If you have this file, go back to the mapping step and verify it's assigned to the correct session and modality.`
+                : `${displayId} / ${session} does not include a ${req.label} file. This is recommended but not required. Your submission will still be valid without it.`,
             affectedFiles,
             subjectGroup: group,
             session,
-            dismissable: req.severity === 'warning',
+            dismissable: true,
           });
         }
       }
