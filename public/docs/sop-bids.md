@@ -3,8 +3,8 @@
 | Field | Value |
 |---|---|
 | **Document ID** | SOP-BIDS-001 |
-| **Version** | 2.4 |
-| **Effective Date** | May 7, 2026 |
+| **Version** | 2.5 |
+| **Effective Date** | June 24, 2026 |
 | **Author** | Brandon Bach |
 | **Advisor** | Nishant Sinha |
 | **Status** | Draft -- Pending Advisor Review |
@@ -137,9 +137,16 @@ Time-of-flight (TOF) MR angiography uses the `_angio` suffix and is placed in th
 
 **DICOM to NIfTI Conversion:**
 
+Use the NeuroGate automation script (`convert_dicom_auto.py`, available on the Pre-Processing page) to detect your scanner type automatically and apply the correct flags. For manual conversion, use the commands in Section 8.5 (Scanner-Aware Conversion) below.
+
 ```bash
-# Using dcm2niix (recommended)
-dcm2niix -z y -f sub-<ID>_ses-preimplant_T1w -o ./anat/ /path/to/dicom/T1/
+# Recommended: automation script (handles 3T, 7T, fMRI, and all manufacturers)
+pip install pydicom
+python convert_dicom_auto.py /path/to/dicom/T1/ /output/anat/ \
+    --subject PENN001 --session preimplant
+
+# Manual fallback (3T structural only)
+dcm2niix -z y -b y -ba y -f sub-<ID>_ses-preimplant_T1w -o ./anat/ /path/to/dicom/T1/
 ```
 
 The `-z y` flag compresses output to `.nii.gz`. The JSON sidecar is automatically generated. If you convert without `-z y`, the resulting uncompressed `.nii` files are still accepted; the NeuroGate tool compresses them to `.nii.gz` automatically on export.
@@ -372,11 +379,78 @@ After defacing, visually inspect each file to confirm the face and ears are remo
 
 The GUI tool requires a defacing attestation checkbox before export. This attestation is recorded in the ALCOA+ audit log with user, timestamp, and tool information.
 
-### 8.3 EEG/iEEG Header Cleaning
+### 8.3 Scanner-Aware DICOM Conversion
+
+Generic dcm2niix commands from public tutorials frequently fail or produce silent errors when used with 7T scanners, Philips scanners, or multiband fMRI sequences. Sites must use scanner-appropriate flags or the NeuroGate automation script.
+
+#### 8.3.1 Supported scanner configurations
+
+| Scanner | Field | Sequence type | Approach |
+|---|---|---|---|
+| Siemens Prisma / Skyra | 3T | Structural (MPRAGE, T2w, FLAIR, DWI) | Standard dcm2niix with `-b y -ba y` |
+| Siemens Prisma / Skyra | 3T | fMRI (BOLD, multiband) | Add `--ignore_trigger_times`; verify SliceTiming in JSON |
+| Siemens Terra / Terra.X | 7T | Structural (MP2RAGE) | Add `-m n -i y`; rename UNI-Images output to `_T1w.nii.gz` |
+| Siemens Terra / Terra.X | 7T | fMRI (BOLD, multiband) | Add `-m n --ignore_trigger_times`; field maps mandatory |
+| Siemens (XA30 firmware) | 3T / 7T | Any | Add `-m n` to handle enhanced DICOM (all slices in one file) |
+| Philips Ingenia / Elition | 3T / 7T | Any | Add `--philips_scaling 0`; verify SliceTiming for fMRI |
+| GE Discovery / Signa | 3T | Structural | Standard flags; use latest dcm2niix (v1.0.20240202+) |
+| GE Discovery / Signa | 3T | fMRI | Add `-t y` for older firmware; verify SliceTiming manually |
+
+#### 8.3.2 fMRI (BOLD) requirements across all scanners
+
+fMRI conversion has two requirements beyond standard structural conversion.
+
+**SliceTiming**: The JSON sidecar must contain a `SliceTiming` array with one value (in seconds) per slice. This field is required by fMRIPrep, FSL FEAT, and SPM for slice-timing correction. On Siemens scanners it is extracted from the private CSA header automatically. On Philips and GE scanners it may be absent; obtain the values from your MR physicist and add them to the JSON manually.
+
+**TaskName**: dcm2niix does not populate the `TaskName` field. For resting-state fMRI this must be `rest`; for task fMRI it must match the task label in the filename. The automation script patches this automatically. To add manually:
+
+```bash
+# Python one-liner to inject TaskName into all fMRI sidecars in a folder
+python -c "
+import json, pathlib
+for p in pathlib.Path('./func/').glob('*.json'):
+    d = json.loads(p.read_text())
+    if 'RepetitionTime' in d and 'TaskName' not in d:
+        d['TaskName'] = 'rest'
+        p.write_text(json.dumps(d, indent=2))
+        print('Patched', p.name)
+"
+```
+
+#### 8.3.3 7T-specific requirements
+
+At 7T, two requirements go beyond the standard 3T workflow.
+
+**Field maps are mandatory.** B0 inhomogeneity is significantly higher at 7T than 3T, and field maps are required for geometric distortion correction of all BOLD and DWI series. Always convert the `fmap/` series alongside functional and diffusion data. After conversion, add an `IntendedFor` field to each field map JSON sidecar listing the BOLD and DWI files it should correct:
+
+```json
+{
+  "IntendedFor": [
+    "ses-preimplant/func/sub-PENN001_ses-preimplant_task-rest_bold.nii.gz",
+    "ses-preimplant/dwi/sub-PENN001_ses-preimplant_dwi.nii.gz"
+  ]
+}
+```
+
+**MP2RAGE naming.** Siemens 7T MP2RAGE sequences produce four derived volumes: INV1, INV2, UNI-Images, and T1map. dcm2niix names them with series-number suffixes. The UNI-Images volume must be renamed to `_T1w.nii.gz` for BIDS compliance. INV1, INV2, and T1map should be placed in a `derivatives/mp2rage/` folder rather than `anat/`.
+
+#### 8.3.4 Automation script
+
+The NeuroGate automation script (`convert_dicom_auto.py`) reads DICOM headers before conversion, detects manufacturer, field strength, and sequence type, and applies all required flags without manual intervention. It also patches fMRI sidecars with TaskName and verifies all GOV-001 required fields are present after conversion.
+
+```bash
+pip install pydicom
+python convert_dicom_auto.py /path/to/dicom/ /output/ \
+    --subject PENN001 --session preimplant [--task rest]
+```
+
+Download the script from the NeuroGate Pre-Processing page. After conversion, visually QA at least one volume per modality before proceeding to defacing and BIDS validation.
+
+### 8.5 EEG/iEEG Header Cleaning
 
 EDF and BDF files contain a patient identification field in the header. Before submission, replace this field with the BIDS subject ID. For Persyst (.dat/.lay) files, verify the .lay header does not contain patient names or MRNs.
 
-### 8.4 Filename PHI Check
+### 8.6 Filename PHI Check
 
 File names must never contain patient names, medical record numbers, dates of birth, or other identifiers. The BIDS naming convention (`sub-<ID>_ses-<session>_<modality>`) replaces all original filenames. If you are organizing files manually (not using the GUI tool), double-check that no source filenames with PHI are carried over.
 
@@ -498,3 +572,4 @@ dcm2niix -z y -f sub-<ID>_ses-<session>_<modality> -o ./output/ /path/to/dicom/
 | 2.2 | May 22, 2026 | Brandon Bach | Added MR angiography (Section 6.1.1) and new subsections for perfusion/ASL (6.1.4), functional MRI (6.1.5), and field maps (6.1.6) to match the modalities the NeuroGate tool now classifies; added a `perf/` folder to the directory structure and quick-reference tree; updated the Scope, traceability, and required/optional tables for the new modalities; noted that localizer/scout scans are excluded from export and that uncompressed `.nii` is compressed to `.nii.gz` automatically; updated the parent GOV-001 reference to v1.8 |
 | 2.3 | May 25, 2026 | Brandon Bach | Corrected Section 6.1.6: field maps are named with the standard BIDS suffixes `magnitude1`, `magnitude2`, and `phasediff`, not a single `fmap` suffix. Added Section 5.2 describing automatic `run-` entity assignment when a session holds more than one acquisition of the same modality. Updated the parent GOV-001 reference to v1.9. |
 | 2.4 | May 27, 2026 | Brandon Bach | Dropped License and DatasetDOI rows from the Section 7.1 dataset_description.json table to match GOV-001 v1.10 (the NeuroGate tool does not capture them). Marked GeneratedBy as Auto-filled. Updated the parent GOV-001 reference to v1.10. |
+| 2.5 | June 24, 2026 | Brandon Bach | Added Section 8.3 (Scanner-Aware DICOM Conversion) covering 3T/7T Siemens, Philips, and GE scanner-specific flags, fMRI SliceTiming and TaskName requirements, 7T field map and MP2RAGE naming requirements, and the NeuroGate automation script (convert_dicom_auto.py). Updated Section 6.1.1 DICOM conversion command to reference the automation script. Renumbered former 8.3/8.4 (EEG header cleaning, Filename PHI check) to 8.5/8.6. |
