@@ -33,6 +33,7 @@ import { groupIntoSubject } from './subjectGrouping';
 import { getSidecarBaseName } from './sidecarReader';
 import type { SidecarInfo } from './sidecarReader';
 import { computeBidsNames } from '../bids/bidsNaming';
+import type { EdfHeaderInfo } from './edfHeaderReader';
 
 // BIDS filename and path generation lives in lib/bids/bidsNaming.ts, the
 // single source of truth shared with the exporter and the validator.
@@ -98,6 +99,13 @@ export function runDetection(
    * own scan label to classify data files whose own filename is generic.
    */
   sidecarMap?: Map<string, SidecarInfo>,
+  /**
+   * Optional map of filename -> EDF header info, produced by
+   * readEdfHeaders(). When provided, the engine uses signal labels from
+   * the EDF header to resolve the eeg-vs-ieeg ambiguity for .edf/.bdf
+   * files whose filename and folder give no modality clues.
+   */
+  edfHeaderMap?: Map<string, EdfHeaderInfo>,
 ): DetectionResult[] {
   // ── Pass 1: Run layers 1-3 on every file individually ───────
   // These layers only need the file itself, not context from others.
@@ -177,6 +185,47 @@ export function runDetection(
           message: `Read scan name from sidecar "${sidecar.sidecarName}": "${sidecar.scanText}"`,
           weight: 0,
         });
+      }
+    }
+
+    // Layer 2c: EDF header signal labels
+    // For .edf/.bdf files, the extension alone can't distinguish scalp EEG
+    // from intracranial EEG (iEEG). When an EDF header was read, use the
+    // channel labels inside the file to resolve this ambiguity even when
+    // the filename and folder contain no keywords (e.g. "HUP282.edf").
+    const isEdfFile = file.name.toLowerCase().endsWith('.edf') || file.name.toLowerCase().endsWith('.bdf');
+    if (edfHeaderMap && isEdfFile) {
+      const edfInfo = edfHeaderMap.get(file.name);
+      if (edfInfo) {
+        if (edfInfo.modalityHint) {
+          // Only override if we're still ambiguous (eeg/ieeg both possible)
+          // or if modality is still 'other'.
+          const ambiguous = modality === 'other' || (possibleModalities.includes('eeg') && possibleModalities.includes('ieeg'));
+          if (ambiguous) {
+            modality = edfInfo.modalityHint;
+            reasons.push({
+              layer: 'sidecar',
+              message: `EDF signal labels (${edfInfo.signalLabels.slice(0, 5).join(', ')}${edfInfo.signalLabels.length > 5 ? '...' : ''}) suggest ${edfInfo.modalityHint === 'ieeg' ? 'intracranial EEG' : 'scalp EEG'}`,
+              weight: 0.7,
+            });
+          }
+        }
+        // Surface PHI warning if the EDF header contains patient data
+        if (edfInfo.phiLikely) {
+          reasons.push({
+            layer: 'sidecar',
+            message: `WARNING: EDF header patient ID field appears to contain non-anonymized data: "${edfInfo.patientId.slice(0, 40)}" -- review before sharing`,
+            weight: 0,
+          });
+        }
+        // Add start date/time as an informational reason if present
+        if (edfInfo.startDate && edfInfo.startDate !== '        ') {
+          reasons.push({
+            layer: 'sidecar',
+            message: `EDF recording date: ${edfInfo.startDate} ${edfInfo.startTime}`.trim(),
+            weight: 0,
+          });
+        }
       }
     }
 

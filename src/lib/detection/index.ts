@@ -15,3 +15,5 @@ export { inferFromNeighbors } from './neighborInference';
 export { groupIntoSubject } from './subjectGrouping';
 export { readJsonSidecars, getSidecarBaseName } from './sidecarReader';
 export type { SidecarInfo } from './sidecarReader';
+export { readEdfHeaders } from './edfHeaderReader';
+export type { EdfHeaderInfo } from './edfHeaderReader';

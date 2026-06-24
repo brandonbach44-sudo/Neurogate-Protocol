@@ -58,6 +58,10 @@ export function runValidation(input: ValidationInput): ValidationReport {
   const metadataIssues = validateMetadata(input);
   allIssues.push(...metadataIssues);
 
+  // ── 6. Sparse / single-file dataset warning ────────────────
+  const sparseIssues = checkSparseDataset(input);
+  allIssues.push(...sparseIssues);
+
   // ── Finalize report ───────────────────────────────────────
   return finalizeReport(allIssues);
 }
@@ -132,6 +136,69 @@ function validateMetadata(input: ValidationInput): ValidationIssue[] {
           })
           .map(r => r.relativePath),
         dismissable: false,
+      });
+    }
+  }
+
+  return issues;
+}
+
+// ── Sparse dataset check ──────────────────────────────────────────
+
+let sparseCounter = 0;
+function nextSparseId(): string {
+  return `sparse-${++sparseCounter}`;
+}
+
+/**
+ * Warn when the dataset appears to be a single-file or very sparse upload.
+ *
+ * A full epilepsy BIDS dataset typically has 10+ files per subject
+ * (T1w, CT, iEEG recording, electrodes.tsv, channels.tsv, sidecars, etc.).
+ * If the entire upload contains only 1-3 data files, it almost certainly
+ * represents an intentional single-file workflow (e.g. de-identifying one
+ * iEEG recording before export), and the user should be reminded that the
+ * rest of the session data is absent.
+ *
+ * The threshold is per-subject: if ANY subject has fewer than 4 data files
+ * across all sessions, surface the warning. Sidecar-only files are not
+ * counted as data files.
+ */
+function checkSparseDataset(input: ValidationInput): ValidationIssue[] {
+  sparseCounter = 0;
+  const issues: ValidationIssue[] = [];
+
+  const DATA_MODALITIES = new Set([
+    'anat-T1w', 'anat-T2w', 'anat-FLAIR', 'anat-angio',
+    'ct', 'dwi', 'perf', 'func', 'fmap',
+    'ieeg', 'eeg',
+    'electrodes', 'channels', 'events',
+  ]);
+
+  // Group data files by subject
+  const subjectFileCounts = new Map<string, number>();
+  for (const result of input.detectionResults) {
+    const mod = getEffectiveModality(result);
+    if (!DATA_MODALITIES.has(mod)) continue;
+    const group = result.userSubjectGroup ?? result.subjectGroup;
+    subjectFileCounts.set(group, (subjectFileCounts.get(group) ?? 0) + 1);
+  }
+
+  for (const [group, count] of subjectFileCounts) {
+    if (count < 4) {
+      const fileNames = input.detectionResults
+        .filter(r => (r.userSubjectGroup ?? r.subjectGroup) === group)
+        .map(r => r.relativePath);
+
+      issues.push({
+        id: nextSparseId(),
+        category: 'required-files',
+        severity: 'warning',
+        title: 'Sparse dataset: only a few files uploaded',
+        description: `Subject "${group}" has only ${count} data file${count === 1 ? '' : 's'}. A complete epilepsy BIDS dataset typically includes a T1w MRI, CT scan, iEEG recording, and companion metadata files. If you intentionally uploaded a single file (e.g. to de-identify one recording), you can ignore this warning. Otherwise, verify that you selected the correct folder and that no files were accidentally left out.`,
+        affectedFiles: fileNames,
+        subjectGroup: group,
+        dismissable: true,
       });
     }
   }
