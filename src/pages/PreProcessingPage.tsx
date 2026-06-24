@@ -376,7 +376,233 @@ dcm2niix \\
         </div>
       </section>
 
-      {/* ═══ TOOL 2: pydeface ═══════════════════════════════ */}
+      {      {/* ═══ SCANNER-AWARE CONVERSION ══════════════════════ */}
+      <section
+        id="scanner-aware"
+        className="rounded-2xl border border-gray-100 bg-white p-8 shadow-sm mb-10"
+      >
+        <div className="flex items-start gap-4 mb-6">
+          <div
+            className="flex-shrink-0 w-14 h-14 rounded-xl flex items-center justify-center"
+            style={{ backgroundColor: 'rgba(124,58,237,0.08)' }}
+          >
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="3" />
+              <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" />
+            </svg>
+          </div>
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(124,58,237,0.08)', color: '#7c3aed' }}>
+                STEP 2b
+              </span>
+              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(1,31,91,0.06)', color: PENN_BLUE }}>
+                Scanner-Aware Flags
+              </span>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900">Field-strength and manufacturer tuning</h2>
+            <p className="mt-1 text-sm text-gray-500 leading-relaxed">
+              dcm2niix works across all scanners, but the default command is not always correct for 3T vs. 7T
+              or across manufacturers. Different field strengths and vendor DICOM encodings require specific flags
+              to avoid missing slice timing, merged volumes, or incorrect intensity scaling.
+            </p>
+          </div>
+        </div>
+
+        {/* Why it matters */}
+        <div className="rounded-xl p-5 mb-8 border border-gray-100" style={{ backgroundColor: 'rgba(124,58,237,0.04)' }}>
+          <div className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: '#7c3aed' }}>Known problem</div>
+          <p className="text-xs text-gray-600 leading-relaxed">
+            Generic dcm2niix commands from public tutorials frequently fail or produce silent errors when used with
+            7T scanners (especially Siemens Terra on XA30 firmware), Philips scanners, or multiband fMRI sequences.
+            Symptoms include: missing SliceTiming in the JSON sidecar, incorrect volume counts in 4D fMRI files,
+            intensity rescaling artifacts in MP2RAGE images, and merged slices from enhanced DICOM files.
+            The automation script below detects these conditions from your DICOM headers and applies the right flags automatically.
+          </p>
+        </div>
+
+        {/* Issues-by-scanner table */}
+        <h3 className="text-sm font-semibold text-gray-900 mb-3">Common issues by scanner and field strength</h3>
+        <div className="rounded-xl border border-gray-100 overflow-auto mb-8">
+          <table className="w-full text-left min-w-[640px]">
+            <thead style={{ backgroundColor: 'rgba(124,58,237,0.05)' }}>
+              <tr>
+                <th className="text-[10px] font-bold uppercase tracking-widest text-gray-500 py-2.5 px-4">Scanner</th>
+                <th className="text-[10px] font-bold uppercase tracking-widest text-gray-500 py-2.5 px-4">Field</th>
+                <th className="text-[10px] font-bold uppercase tracking-widest text-gray-500 py-2.5 px-4">Known issue</th>
+                <th className="text-[10px] font-bold uppercase tracking-widest text-gray-500 py-2.5 px-4">Fix</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white text-xs text-gray-600">
+              {[
+                ['Siemens (XA30 firmware)', '3T / 7T', 'Enhanced DICOM packs all slices into one file; dcm2niix may merge volumes incorrectly', <><code className="font-mono px-1 rounded" style={{ backgroundColor: 'rgba(124,58,237,0.07)', color: '#7c3aed' }}>-m n</code> disables slice merging</>],
+                ['Siemens 7T Terra', '7T', 'Multiband (SMS) SliceTiming encoded in CSA private header; trigger-time glitches can corrupt it', <><code className="font-mono px-1 rounded" style={{ backgroundColor: 'rgba(124,58,237,0.07)', color: '#7c3aed' }}>--ignore_trigger_times</code> + verify JSON output</>],
+                ['Siemens 7T (MP2RAGE)', '7T', 'INV1, INV2, UNI-Images, and T1map produced as derived series; default drops them', <><code className="font-mono px-1 rounded" style={{ backgroundColor: 'rgba(124,58,237,0.07)', color: '#7c3aed' }}>-i y</code> keeps all derived images</>],
+                ['Philips (all)', '3T / 7T', 'Philips applies proprietary intensity rescaling before DICOM export; distorts quantitative values', <><code className="font-mono px-1 rounded" style={{ backgroundColor: 'rgba(124,58,237,0.07)', color: '#7c3aed' }}>--philips_scaling 0</code> preserves raw values</>],
+                ['Philips fMRI', '3T / 7T', 'SliceTiming not always embedded in DICOM; may be absent from JSON sidecar', 'Obtain timing from MR physicist if missing from sidecar; add manually'],
+                ['GE (older firmware)', '3T', 'One DICOM file per volume; dcm2niix may misinterpret as a 3D series', <><code className="font-mono px-1 rounded" style={{ backgroundColor: 'rgba(124,58,237,0.07)', color: '#7c3aed' }}>-t y</code> forces per-file time point handling</>],
+                ['GE fMRI', '3T', 'SliceTiming not stored in standard DICOM tags on some GE sequences', 'Verify with scanner operator; add manually to JSON if absent'],
+                ['All scanners', '7T', 'B0 inhomogeneity is significantly higher; field maps become mandatory (not optional)', 'Always convert fmap/ series; set IntendedFor in field map JSON'],
+              ].map(([scanner, field, issue, fix], i) => (
+                <tr key={i} className="border-t border-gray-100">
+                  <td className="py-2.5 px-4 font-medium text-gray-800">{scanner}</td>
+                  <td className="py-2.5 px-4 whitespace-nowrap">{field}</td>
+                  <td className="py-2.5 px-4 leading-relaxed">{issue}</td>
+                  <td className="py-2.5 px-4 leading-relaxed">{fix}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Automation script */}
+        <h3 className="text-sm font-semibold text-gray-900 mb-1">Automation script</h3>
+        <p className="text-xs text-gray-500 mb-4 leading-relaxed">
+          The NeuroGate automation script reads your DICOM headers before calling dcm2niix,
+          detects manufacturer, field strength, and sequence type, then applies the correct flags automatically.
+          It also patches fMRI sidecars with the required TaskName field and verifies all GOV-001 required fields are present.
+        </p>
+        <CodeBlock label="Install dependency + run">{`# Install once
+pip install pydicom
+
+# Run on a single DICOM series folder
+python convert_dicom_auto.py /path/to/dicoms/T1_MPRAGE/ /path/to/output/ \\
+    --subject PENN001 --session preimplant
+
+# Run for an fMRI series (adds TaskName to sidecar automatically)
+python convert_dicom_auto.py /path/to/dicoms/BOLD_rest/ /path/to/output/ \\
+    --subject PENN001 --session preimplant --task rest
+
+# Dry run: print the command without executing
+python convert_dicom_auto.py /path/to/dicoms/T1/ /path/to/output/ \\
+    --subject PENN001 --dry-run
+
+# Batch: convert all series folders for a subject
+for series_dir in /data/sub-PENN001/dicoms/*/; do
+  python convert_dicom_auto.py "$series_dir" /data/sub-PENN001/nifti/ \\
+      --subject PENN001 --session preimplant
+done`}</CodeBlock>
+        <div className="mt-3">
+          <a
+            href="/docs/convert_dicom_auto.py"
+            download
+            className="inline-flex items-center gap-2 text-xs font-medium no-underline"
+            style={{ color: '#7c3aed' }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Download convert_dicom_auto.py
+          </a>
+        </div>
+
+        {/* fMRI-specific guidance */}
+        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div className="rounded-xl p-5 border border-gray-100" style={{ backgroundColor: 'rgba(1,31,91,0.04)' }}>
+            <div className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: PENN_BLUE }}>fMRI (BOLD)</div>
+            <p className="text-xs text-gray-600 leading-relaxed">
+              fMRI conversion requires SliceTiming in the JSON sidecar for motion correction pipelines (fMRIPrep, FSL FEAT).
+              On Siemens, dcm2niix extracts this from the private CSA header automatically. On Philips and GE it may be
+              absent. The automation script flags missing SliceTiming and prompts you to add it manually.
+              TaskName (e.g., <code className="font-mono">rest</code>) must also be injected; the script does this automatically.
+            </p>
+          </div>
+          <div className="rounded-xl p-5 border border-gray-100" style={{ backgroundColor: 'rgba(109,211,206,0.10)' }}>
+            <div className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: TEAL_TEXT }}>7T structural (MP2RAGE)</div>
+            <p className="text-xs text-gray-600 leading-relaxed">
+              7T Siemens scanners typically use MP2RAGE instead of MPRAGE for T1w. dcm2niix produces four volumes:
+              INV1, INV2, UNI-Images (the usable T1w), and T1map. Rename the UNI-Images output to
+              <code className="font-mono ml-1">_T1w.nii.gz</code> for BIDS compliance. Field maps are mandatory
+              at 7T and must include IntendedFor pointing to all BOLD and DWI series.
+            </p>
+          </div>
+        </div>
+
+        {/* Manual commands for each scanner type */}
+        <div className="mt-8">
+          <h3 className="text-sm font-semibold text-gray-900 mb-3">Manual commands by scanner type</h3>
+          <div className="space-y-5">
+            <div>
+              <div className="text-xs font-semibold text-gray-700 mb-2">Siemens 3T (Prisma / Skyra) — structural</div>
+              <CodeBlock>{`dcm2niix -z y -b y -ba y -v 2 \\
+  -f "sub-%i_ses-%j_%p" \\
+  -o /output/anat/ \\
+  /input/dicom/T1_MPRAGE/`}</CodeBlock>
+            </div>
+            <div>
+              <div className="text-xs font-semibold text-gray-700 mb-2">Siemens 7T (Terra XA30) — structural (MP2RAGE)</div>
+              <CodeBlock>{`# -m n: handle enhanced DICOM (all slices in one file)
+# -i y: keep all derived images (INV1, INV2, UNI, T1map)
+dcm2niix -z y -b y -ba y -v 2 -m n -i y \\
+  -f "sub-%i_ses-%j_%p_%s" \\
+  -o /output/anat/ \\
+  /input/dicom/MP2RAGE/`}</CodeBlock>
+            </div>
+            <div>
+              <div className="text-xs font-semibold text-gray-700 mb-2">Siemens 3T / 7T — fMRI (BOLD, multiband)</div>
+              <CodeBlock>{`# --ignore_trigger_times: prevents clock glitches corrupting SliceTiming
+# -m n: required for XA30 enhanced DICOM
+dcm2niix -z y -b y -ba y -v 2 -m n --ignore_trigger_times \\
+  -f "sub-%i_ses-%j_task-rest_bold" \\
+  -o /output/func/ \\
+  /input/dicom/BOLD_rest/
+
+# Inject TaskName into JSON after conversion (dcm2niix does not add this)
+python -c "
+import json, pathlib
+for p in pathlib.Path('/output/func/').glob('*.json'):
+    d = json.loads(p.read_text())
+    if 'RepetitionTime' in d and 'TaskName' not in d:
+        d['TaskName'] = 'rest'
+        p.write_text(json.dumps(d, indent=2))
+        print('Patched', p.name)
+"`}</CodeBlock>
+            </div>
+            <div>
+              <div className="text-xs font-semibold text-gray-700 mb-2">Philips 3T / 7T — all modalities</div>
+              <CodeBlock>{`# --philips_scaling 0: preserve raw scanner values (critical for MP2RAGE, ASL)
+dcm2niix -z y -b y -ba y -v 2 --philips_scaling 0 \\
+  -f "sub-%i_ses-%j_%p" \\
+  -o /output/ \\
+  /input/dicom/`}</CodeBlock>
+            </div>
+            <div>
+              <div className="text-xs font-semibold text-gray-700 mb-2">GE 3T — fMRI</div>
+              <CodeBlock>{`# -t y: treat each DICOM as a separate time point (older GE firmware)
+dcm2niix -z y -b y -ba y -v 2 -t y \\
+  -f "sub-%i_ses-%j_task-rest_bold" \\
+  -o /output/func/ \\
+  /input/dicom/BOLD_rest/`}</CodeBlock>
+            </div>
+          </div>
+        </div>
+
+        {/* Verify step */}
+        <div className="mt-8 rounded-xl p-5" style={{ backgroundColor: 'rgba(124,58,237,0.05)' }}>
+          <div className="flex items-start gap-3">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 mt-0.5">
+              <polyline points="9 11 12 14 22 4" />
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+            </svg>
+            <div>
+              <div className="text-sm font-semibold text-gray-900">Post-conversion verification checklist</div>
+              <ul className="text-xs text-gray-600 mt-2 leading-relaxed space-y-1 list-none">
+                <li>&#x2713;&nbsp; JSON sidecar exists alongside every .nii.gz file</li>
+                <li>&#x2713;&nbsp; <code className="font-mono">MagneticFieldStrength</code> matches your scanner (3 or 7)</li>
+                <li>&#x2713;&nbsp; fMRI sidecar contains <code className="font-mono">SliceTiming</code> array with one value per slice</li>
+                <li>&#x2713;&nbsp; fMRI sidecar contains <code className="font-mono">TaskName</code></li>
+                <li>&#x2713;&nbsp; <code className="font-mono">PatientName</code>, <code className="font-mono">PatientID</code>, <code className="font-mono">PatientBirthDate</code> are absent from all sidecars</li>
+                <li>&#x2713;&nbsp; 4D fMRI volume count matches expected number of time points</li>
+                <li>&#x2713;&nbsp; 7T field map JSON contains <code className="font-mono">IntendedFor</code> pointing to all BOLD and DWI files</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ TOOL 2: pydeface ═══════════════════════════════ */}}
       <section
         id="pydeface"
         className="rounded-2xl border border-gray-100 bg-white p-8 shadow-sm mb-14"
