@@ -87,20 +87,25 @@ function normalizeLabel(raw: string): string {
 /**
  * Determine modality from a list of channel labels.
  *
- * Logic:
- *   - If >= 3 labels match the scalp 10-20 set -> 'eeg'
- *   - If >= 3 labels match the depth/grid/strip pattern
- *     (1-4 letters + 1-3 digits, NOT in the scalp set) -> 'ieeg'
- *   - Otherwise -> null (too ambiguous)
+ * iEEG recordings (SEEG/ECoG) frequently include a small number of scalp
+ * reference channels (e.g. Fz, Cz, C3, C4) alongside hundreds of depth
+ * electrode contacts. Checking scalp count first would misclassify these
+ * as scalp EEG. Instead we use a majority/dominance approach:
  *
- * The threshold of 3 is intentional: a single matching label could be
- * noise, three consistent matches is reliable.
+ *   - Count iEEG-pattern channels (1-4 letters + 1-3 digits, not in scalp set)
+ *     e.g. LA1, LB3, G7, RA12 -- depth/grid/strip contacts
+ *   - Count scalp 10-20 channels (Fp1, C3, Fz, etc.)
+ *   - iEEG wins if ieegCount >= 3 AND ieegCount > scalpCount
+ *   - Scalp wins if scalpCount >= 3 AND scalpCount > ieegCount
+ *   - Tie or neither threshold met -> null (ambiguous)
+ *
+ * Real example (HUP282): 266 iEEG channels, 4 scalp refs -> 'ieeg' ✓
  */
 function inferModalityFromLabels(labels: string[]): 'ieeg' | 'eeg' | null {
   if (labels.length === 0) return null;
 
   // iEEG depth/grid/strip label pattern: 1-4 letters followed by 1-3 digits
-  // e.g. LA1, G3, LH10, RA2, LSTG1, ATD2
+  // e.g. LA1, G3, LH10, RA2, LOf1, ATD2
   const ieegPattern = /^[a-z]{1,4}\d{1,3}$/;
 
   let scalpCount = 0;
@@ -117,33 +122,45 @@ function inferModalityFromLabels(labels: string[]): 'ieeg' | 'eeg' | null {
     }
   }
 
-  if (scalpCount >= 3) return 'eeg';
-  if (ieegCount >= 3) return 'ieeg';
+  // Dominant modality wins -- iEEG recordings routinely include a few
+  // scalp reference channels so pure threshold checks are unreliable.
+  if (ieegCount >= 3 && ieegCount > scalpCount) return 'ieeg';
+  if (scalpCount >= 3 && scalpCount > ieegCount) return 'eeg';
   return null;
 }
 
 /**
- * Heuristic check for PHI in the patient ID / recording ID fields.
+ * Heuristic PHI check focused on the EDF patient ID field.
  *
- * EDF+ spec recommends the patient ID follow the format:
- *   "X X X X" (anonymous) or structured fields like:
- *   "MCH-0234567 F 02-MAY-1951 Haagse_Harry"
+ * EDF+ spec defines the patient ID field as four space-separated subfields:
+ *   patientCode sex birthdate patientName
+ *   e.g. "MCH-0234567 F 02-MAY-1951 Haagse_Harry"
  *
- * We flag if the field is non-empty and does NOT look like a purely
- * anonymized or blank value. We do NOT try to extract PHI, only
- * warn that it may be present so the user can review.
+ * Properly anonymized files replace each subfield with "X":
+ *   "X X X X"
+ *
+ * We only inspect the patient ID field -- the recording ID field routinely
+ * contains non-PHI text like equipment names and export software
+ * (e.g. "Exported_with_Persyst_EEGSuite") that would produce false positives.
+ *
+ * We flag if the patient ID is non-empty AND does not look like a fully
+ * anonymized placeholder. We do NOT extract PHI, only surface a warning
+ * so the user can review the file before sharing.
  */
-function detectPhi(patientId: string, recordingId: string): boolean {
-  const combined = (patientId + ' ' + recordingId).trim();
-  if (!combined) return false;
+function detectPhi(patientId: string, _recordingId: string): boolean {
+  if (!patientId) return false;
 
-  // Common anonymized placeholder values
-  const anonymous = /^(x+\s*)+$|^anonymous$|^unknown$|^n\/a$|^none$|^[0-9]+$/i;
-  if (anonymous.test(combined.trim())) return false;
+  // EDF+ anonymized placeholder: all subfields set to "X"
+  const fullyAnonymized = /^(x\s*)+$/i;
+  if (fullyAnonymized.test(patientId)) return false;
 
-  // If it has real text content (more than just digits/spaces/X), flag it
-  const hasRealContent = /[a-wyz]/i.test(combined); // any letter that isn't X
-  return hasRealContent;
+  // Other common anonymized placeholders
+  const genericAnon = /^(anonymous|unknown|n\/a|none|\d+)$/i;
+  if (genericAnon.test(patientId.trim())) return false;
+
+  // If it contains any letter that isn't X (case-insensitive), real content
+  // is present -- could be a patient name, MRN, sex code, or DOB.
+  return /[a-wyz]/i.test(patientId);
 }
 
 // ── EDF Header Parser ─────────────────────────────────────────────
