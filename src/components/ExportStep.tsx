@@ -10,6 +10,7 @@ import {
   getExportStats,
 } from '../lib/bids/exporter';
 import type { TreeNode } from '../lib/bids/exporter';
+import { generateSubjectDateShifts } from '../lib/deidentify/edfDeidentifier';
 
 interface ExportStepProps {
   detectionResults: DetectionResult[];
@@ -32,10 +33,20 @@ export default function ExportStep({
   const [exportProgress, setExportProgress] = useState<string>('');
   const [exported, setExported] = useState(false);
 
+  // Generate one random date shift per subject on mount -- these are used
+  // to de-identify EDF/BDF header dates at export time. The shifts are
+  // stable for the lifetime of this component instance (useMemo with no
+  // changing deps) so repeated clicks produce the same shifted output.
+  const dateShifts = useMemo(
+    () => generateSubjectDateShifts(subjects.map(s => s.subjectGroup)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [], // intentionally empty -- shifts must not change across renders
+  );
+
   // Build the file entries and tree on mount
   const fileEntries = useMemo(
-    () => buildFileEntries(detectionResults, subjects, datasetDescription),
-    [detectionResults, subjects, datasetDescription]
+    () => buildFileEntries(detectionResults, subjects, datasetDescription, dateShifts),
+    [detectionResults, subjects, datasetDescription, dateShifts]
   );
 
   const tree = useMemo(() => buildTreeFromEntries(fileEntries), [fileEntries]);
@@ -58,6 +69,21 @@ export default function ExportStep({
       const timestamp = new Date().toISOString().slice(0, 10);
       const prefix = institutionConfig.prefix || 'BIDS';
       downloadBlob(blob, `${prefix}_bids_export_${timestamp}.zip`);
+
+      // Download the date shift key as a separate restricted file.
+      // This must be stored securely -- it allows reversing date anonymization.
+      if (dateShifts.size > 0) {
+        const shiftKey = subjects.map(s => ({
+          subjectGroup: s.subjectGroup,
+          bidsSubjectId: s.bidsSubjectId,
+          dateShiftDays: dateShifts.get(s.subjectGroup) ?? 0,
+        }));
+        const keyBlob = new Blob(
+          [JSON.stringify({ generated: new Date().toISOString(), dateShiftKey: shiftKey }, null, 2)],
+          { type: 'application/json' },
+        );
+        downloadBlob(keyBlob, `${prefix}_date_shift_key_RESTRICTED_${timestamp}.json`);
+      }
 
       setExported(true);
       setExportProgress('');
