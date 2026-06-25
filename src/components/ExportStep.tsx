@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import Button from './Button';
 import type { DetectionResult } from '../types/detection';
 import type { SubjectMetadata, DatasetDescription, InstitutionConfig } from '../types/metadata';
@@ -6,7 +6,6 @@ import {
   buildFileEntries,
   buildTreeFromEntries,
   generateZip,
-  downloadBlob,
   getExportStats,
 } from '../lib/bids/exporter';
 import type { TreeNode } from '../lib/bids/exporter';
@@ -32,6 +31,17 @@ export default function ExportStep({
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState<string>('');
   const [exported, setExported] = useState(false);
+  // Stores the ready-to-download URLs so the user can click a real <a> link,
+  // bypassing the browser's user-activation expiry on async downloads.
+  const [downloadLinks, setDownloadLinks] = useState<{ url: string; filename: string }[]>([]);
+  const prevLinksRef = useRef<{ url: string; filename: string }[]>([]);
+
+  // Revoke object URLs when new ones replace them to avoid memory leaks.
+  useEffect(() => {
+    return () => {
+      prevLinksRef.current.forEach(l => URL.revokeObjectURL(l.url));
+    };
+  }, []);
 
   // Generate one random date shift per subject on mount -- these are used
   // to de-identify EDF/BDF header dates at export time. The shifts are
@@ -52,10 +62,15 @@ export default function ExportStep({
   const tree = useMemo(() => buildTreeFromEntries(fileEntries), [fileEntries]);
   const stats = useMemo(() => getExportStats(fileEntries), [fileEntries]);
 
-  // Handle ZIP download
+  // Handle ZIP generation -- builds the ZIP and stores object URLs so the
+  // user can trigger the actual download via a real <a> click (avoids the
+  // browser blocking programmatic downloads after async user-activation expiry).
   const handleExport = async () => {
     setIsExporting(true);
     setExportProgress('Preparing files...');
+    // Revoke any previous links before replacing them.
+    prevLinksRef.current.forEach(l => URL.revokeObjectURL(l.url));
+    setDownloadLinks([]);
 
     try {
       const blob = await generateZip(fileEntries, (progress) => {
@@ -68,10 +83,14 @@ export default function ExportStep({
 
       const timestamp = new Date().toISOString().slice(0, 10);
       const prefix = institutionConfig.prefix || 'BIDS';
-      downloadBlob(blob, `${prefix}_bids_export_${timestamp}.zip`);
+      const links: { url: string; filename: string }[] = [];
 
-      // Download the date shift key as a separate restricted file.
-      // This must be stored securely -- it allows reversing date anonymization.
+      links.push({
+        url: URL.createObjectURL(blob),
+        filename: `${prefix}_bids_export_${timestamp}.zip`,
+      });
+
+      // Include the date shift key as a separate restricted download.
       if (dateShifts.size > 0) {
         const shiftKey = subjects.map(s => ({
           subjectGroup: s.subjectGroup,
@@ -82,9 +101,14 @@ export default function ExportStep({
           [JSON.stringify({ generated: new Date().toISOString(), dateShiftKey: shiftKey }, null, 2)],
           { type: 'application/json' },
         );
-        downloadBlob(keyBlob, `${prefix}_date_shift_key_RESTRICTED_${timestamp}.json`);
+        links.push({
+          url: URL.createObjectURL(keyBlob),
+          filename: `${prefix}_date_shift_key_RESTRICTED_${timestamp}.json`,
+        });
       }
 
+      prevLinksRef.current = links;
+      setDownloadLinks(links);
       setExported(true);
       setExportProgress('');
       onExportComplete();
@@ -178,22 +202,38 @@ export default function ExportStep({
           Back to Validation
         </Button>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap justify-end">
           {isExporting && (
             <span className="text-sm text-gray-500">{exportProgress}</span>
           )}
-          <Button variant="primary" onClick={handleExport} disabled={isExporting} className="gap-2">
-            {isExporting ? (
-              <>
-                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Exporting...
-              </>
-            ) : exported ? (
-              'Download Again'
-            ) : (
-              'Download ZIP'
-            )}
-          </Button>
+          {downloadLinks.length > 0 ? (
+            <>
+              {downloadLinks.map((link) => (
+                <a
+                  key={link.filename}
+                  href={link.url}
+                  download={link.filename}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#011F5B] text-white hover:bg-[#022a7a] transition-colors"
+                >
+                  {link.filename.includes('RESTRICTED') ? 'Save Shift Key' : 'Save ZIP'}
+                </a>
+              ))}
+              <Button variant="secondary" onClick={handleExport} disabled={isExporting}>
+                Rebuild ZIP
+              </Button>
+            </>
+          ) : (
+            <Button variant="primary" onClick={handleExport} disabled={isExporting} className="gap-2">
+              {isExporting ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Exporting...
+                </>
+              ) : (
+                'Download ZIP'
+              )}
+            </Button>
+          )}
         </div>
       </div>
     </div>
