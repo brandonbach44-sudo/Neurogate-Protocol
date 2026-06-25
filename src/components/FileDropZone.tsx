@@ -201,13 +201,12 @@ export default function FileDropZone({ onFilesScanned }: FileDropZoneProps) {
         onChange={handleInputChange}
         {...({ webkitdirectory: '', directory: '' } as any)}
       />
-      {/* Individual file picker - supports EDF, NIfTI, and other neural data formats */}
+      {/* Individual file picker - no accept filter so all file types are visible */}
       <input
         ref={filesInputRef}
         type="file"
         className="hidden"
         multiple
-        accept=".edf,.nii,.gz,.json,.tsv,.csv,.txt,.bdf,.set,.fif,.cnt,.vhdr,.vmrk,.eeg"
         onChange={handleInputChange}
       />
     </div>
