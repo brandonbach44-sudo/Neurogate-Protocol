@@ -277,12 +277,20 @@ export async function generateZip(
         zip.file(`bids_output/${entry.path}`, buffer);
       } else if (entry.edfDeidentify) {
         // EDF/BDF -- de-identify the header before packing.
-        const result = await deidentifyEdf(entry.content, entry.edfDeidentify);
-        zip.file(`bids_output/${entry.path}`, await result.blob.arrayBuffer());
+        try {
+          const result = await deidentifyEdf(entry.content, entry.edfDeidentify);
+          zip.file(`bids_output/${entry.path}`, await result.blob.arrayBuffer());
+        } catch (err) {
+          throw new Error(`Cannot read "${entry.content.name}" — make sure the file is stored locally (not cloud-only) and try re-uploading it. (${(err as Error).message})`);
+        }
       } else {
         // Use cached buffer to avoid NotReadableError on stale File references.
-        const buffer = await readFileBuffer(entry.content);
-        zip.file(`bids_output/${entry.path}`, buffer);
+        try {
+          const buffer = await readFileBuffer(entry.content);
+          zip.file(`bids_output/${entry.path}`, buffer);
+        } catch (err) {
+          throw new Error(`Cannot read "${entry.content.name}" — make sure the file is stored locally (not cloud-only) and try re-uploading it. (${(err as Error).message})`);
+        }
       }
     } else {
       zip.file(`bids_output/${entry.path}`, entry.content);
