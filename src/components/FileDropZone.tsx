@@ -16,6 +16,7 @@ export default function FileDropZone({ onFilesScanned }: FileDropZoneProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const filesInputRef = useRef<HTMLInputElement>(null);
 
   /** Extract files from a DataTransferItem using webkitGetAsEntry for folder support */
   const scanDataTransferItems = useCallback(async (items: DataTransferItemList): Promise<ScannedFile[]> => {
@@ -102,6 +103,7 @@ export default function FileDropZone({ onFilesScanned }: FileDropZoneProps) {
     const scanned = scanInputFiles(e.target.files);
     onFilesScanned(scanned);
     setIsScanning(false);
+    e.target.value = '';
   }, [scanInputFiles, onFilesScanned]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -121,8 +123,7 @@ export default function FileDropZone({ onFilesScanned }: FileDropZoneProps) {
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
-        onClick={() => inputRef.current?.click()}
-        className="relative overflow-hidden border-2 border-dashed rounded-2xl p-16 text-center cursor-pointer transition-all duration-300"
+        className="relative overflow-hidden border-2 border-dashed rounded-2xl p-16 text-center transition-all duration-300"
         style={{
           backgroundColor: isDragging ? 'rgba(1,31,91,0.03)' : 'rgba(249,250,251,0.8)',
           borderColor: isDragging ? '#011F5B' : '#d1d5db',
@@ -150,10 +151,22 @@ export default function FileDropZone({ onFilesScanned }: FileDropZoneProps) {
             </div>
             <div>
               <p className="text-xl font-medium text-gray-800">
-                {isDragging ? 'Release to upload' : 'Drop your patient data folder here'}
+                {isDragging ? 'Release to upload' : 'Drop files or a folder here'}
               </p>
               <p className="mt-1.5 text-gray-500">
-                or <span className="font-medium underline underline-offset-2 text-[#011F5B]">click to browse</span>
+                <span
+                  className="font-medium underline underline-offset-2 text-[#011F5B] cursor-pointer"
+                  onClick={(e) => { e.stopPropagation(); inputRef.current?.click(); }}
+                >
+                  Browse folder
+                </span>
+                <span className="mx-2 text-gray-300">|</span>
+                <span
+                  className="font-medium underline underline-offset-2 text-[#011F5B] cursor-pointer"
+                  onClick={(e) => { e.stopPropagation(); filesInputRef.current?.click(); }}
+                >
+                  Select files
+                </span>
               </p>
             </div>
             <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
@@ -180,13 +193,22 @@ export default function FileDropZone({ onFilesScanned }: FileDropZoneProps) {
         )}
       </div>
 
-      {/* Hidden file input with webkitdirectory for folder selection */}
+      {/* Folder picker */}
       <input
         ref={inputRef}
         type="file"
         className="hidden"
         onChange={handleInputChange}
         {...({ webkitdirectory: '', directory: '' } as any)}
+      />
+      {/* Individual file picker - supports EDF, NIfTI, and other neural data formats */}
+      <input
+        ref={filesInputRef}
+        type="file"
+        className="hidden"
+        multiple
+        accept=".edf,.nii,.gz,.json,.tsv,.csv,.txt,.bdf,.set,.fif,.cnt,.vhdr,.vmrk,.eeg"
+        onChange={handleInputChange}
       />
     </div>
   );
