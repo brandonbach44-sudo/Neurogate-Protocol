@@ -30,6 +30,7 @@ export default function ExportStep({
 }: ExportStepProps) {
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState<string>('');
+  const [exportError, setExportError] = useState<string>('');
   const [zipUrl, setZipUrl] = useState<string | null>(null);
   const [zipFilename, setZipFilename] = useState<string>('');
 
@@ -56,6 +57,7 @@ export default function ExportStep({
   const handleBuild = async () => {
     setIsExporting(true);
     setZipUrl(null);
+    setExportError('');
     setExportProgress('Preparing files...');
 
     try {
@@ -76,8 +78,10 @@ export default function ExportStep({
       setZipFilename(filename);
       setExportProgress('');
     } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
       console.error('Export failed:', err);
-      setExportProgress('Export failed. Please try again.');
+      setExportError(`Export failed: ${msg}`);
+      setExportProgress('');
     } finally {
       setIsExporting(false);
     }
@@ -143,6 +147,12 @@ export default function ExportStep({
           ))}
         </div>
       </div>
+
+      {exportError && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+          <p className="text-sm font-medium text-red-800">{exportError}</p>
+        </div>
+      )}
 
       {zipUrl && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
