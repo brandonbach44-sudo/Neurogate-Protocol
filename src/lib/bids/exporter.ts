@@ -276,12 +276,11 @@ export async function generateZip(
         zip.file(`bids_output/${entry.path}`, buffer);
       } else if (entry.edfDeidentify) {
         // EDF/BDF -- de-identify the header before packing.
-        // Pass the Blob directly; JSZip accepts Blob without a full read.
         const result = await deidentifyEdf(entry.content, entry.edfDeidentify);
-        zip.file(`bids_output/${entry.path}`, result.blob);
+        zip.file(`bids_output/${entry.path}`, await result.blob.arrayBuffer());
       } else {
-        // Pass File directly -- JSZip accepts File/Blob without arrayBuffer().
-        zip.file(`bids_output/${entry.path}`, entry.content);
+        const buffer = await entry.content.arrayBuffer();
+        zip.file(`bids_output/${entry.path}`, buffer);
       }
     } else {
       zip.file(`bids_output/${entry.path}`, entry.content);
@@ -306,7 +305,7 @@ export function downloadBlob(blob: Blob, filename: string) {
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 10000);
+  URL.revokeObjectURL(url);
 }
 
 // ── Count stats for display ───────────────────────────────────────
