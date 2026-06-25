@@ -28,15 +28,15 @@ export default function FileDropZone({ onFilesScanned }: FileDropZoneProps) {
         const file = await new Promise<File>((resolve, reject) => {
           fileEntry.file(resolve, reject);
         });
-        // Eagerly cache all file content -- drag-and-drop File references
-        // (from FileSystemFileEntry.file()) lose read permission over time,
-        // causing NotReadableError at export. Reading now while permission
-        // is guaranteed and caching avoids this entirely.
+        // Eagerly cache file content. Also detects cloud-only files (e.g.
+        // OneDrive files not downloaded locally) before the user reaches
+        // the export step.
         try {
           const buffer = await file.arrayBuffer();
           cacheFileBuffer(file, buffer);
         } catch {
-          // If unreadable now, we'll surface the error at export time.
+          // Tag unreadable files so the UI can warn the user up front.
+          (file as any).__unreadable = true;
         }
         files.push({
           relativePath: path + file.name,
