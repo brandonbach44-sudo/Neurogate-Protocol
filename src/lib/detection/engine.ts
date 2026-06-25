@@ -203,10 +203,13 @@ export function runDetection(
           const ambiguous = modality === 'other' || (possibleModalities.includes('eeg') && possibleModalities.includes('ieeg'));
           if (ambiguous) {
             modality = edfInfo.modalityHint;
+            // Reading actual signal labels from the binary file is stronger
+            // evidence than a filename keyword. Weight 0.85 reflects that
+            // certainty -- higher than any keyword match (max 0.6-0.75).
             reasons.push({
               layer: 'sidecar',
-              message: `EDF signal labels (${edfInfo.signalLabels.slice(0, 5).join(', ')}${edfInfo.signalLabels.length > 5 ? '...' : ''}) suggest ${edfInfo.modalityHint === 'ieeg' ? 'intracranial EEG' : 'scalp EEG'}`,
-              weight: 0.7,
+              message: `EDF signal labels (${edfInfo.signalLabels.slice(0, 5).join(', ')}${edfInfo.signalLabels.length > 5 ? '...' : ''}) confirm ${edfInfo.modalityHint === 'ieeg' ? 'intracranial EEG' : 'scalp EEG'} - ${edfInfo.numSignals} channels read from file header`,
+              weight: 0.85,
             });
           }
         }
@@ -250,7 +253,7 @@ export function runDetection(
       modality = 'anat-T1w';
       reasons.push({
         layer: 'extension',
-        message: 'Defaulting ambiguous NIfTI to T1w (most common) — please verify',
+        message: 'Defaulting ambiguous NIfTI to T1w (most common) - please verify',
         weight: 0.1,
       });
     }
