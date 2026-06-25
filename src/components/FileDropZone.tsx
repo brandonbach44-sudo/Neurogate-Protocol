@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import type { ScannedFile } from '../types/files';
 
 interface FileDropZoneProps {
@@ -15,22 +15,7 @@ interface FileDropZoneProps {
 export default function FileDropZone({ onFilesScanned }: FileDropZoneProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
-  const [showBrowseMenu, setShowBrowseMenu] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const filesInputRef = useRef<HTMLInputElement>(null);
-  const browseMenuRef = useRef<HTMLDivElement>(null);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    if (!showBrowseMenu) return;
-    const handler = (e: MouseEvent) => {
-      if (!browseMenuRef.current?.contains(e.target as Node)) {
-        setShowBrowseMenu(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [showBrowseMenu]);
 
   /** Extract files from a DataTransferItem using webkitGetAsEntry for folder support */
   const scanDataTransferItems = useCallback(async (items: DataTransferItemList): Promise<ScannedFile[]> => {
@@ -165,43 +150,15 @@ export default function FileDropZone({ onFilesScanned }: FileDropZoneProps) {
             </div>
             <div>
               <p className="text-xl font-medium text-gray-800">
-                {isDragging ? 'Release to upload' : 'Drop your data here'}
+                {isDragging ? 'Release to upload' : 'Drop a folder or files here'}
               </p>
               <p className="mt-1.5 text-gray-500">
                 or{' '}
-                <span className="relative inline-block" ref={browseMenuRef}>
-                  <span
-                    className="font-medium underline underline-offset-2 text-[#011F5B] cursor-pointer"
-                    onClick={(e) => { e.stopPropagation(); setShowBrowseMenu(v => !v); }}
-                  >
-                    click to browse
-                  </span>
-                  {showBrowseMenu && (
-                    <div
-                      className="absolute left-1/2 mt-2 w-44 rounded-xl shadow-lg border border-gray-100 bg-white overflow-hidden z-50"
-                      style={{ transform: 'translateX(-50%)' }}
-                    >
-                      <button
-                        className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                        onClick={(e) => { e.stopPropagation(); setShowBrowseMenu(false); inputRef.current?.click(); }}
-                      >
-                        <svg className="w-4 h-4 text-[#011F5B] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-                        </svg>
-                        Select folder
-                      </button>
-                      <div className="border-t border-gray-100" />
-                      <button
-                        className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                        onClick={(e) => { e.stopPropagation(); setShowBrowseMenu(false); filesInputRef.current?.click(); }}
-                      >
-                        <svg className="w-4 h-4 text-[#011F5B] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        Select files
-                      </button>
-                    </div>
-                  )}
+                <span
+                  className="font-medium underline underline-offset-2 text-[#011F5B] cursor-pointer"
+                  onClick={(e) => { e.stopPropagation(); inputRef.current?.click(); }}
+                >
+                  click to browse
                 </span>
               </p>
             </div>
@@ -229,17 +186,9 @@ export default function FileDropZone({ onFilesScanned }: FileDropZoneProps) {
         )}
       </div>
 
-      {/* Folder picker */}
+      {/* File picker - shows all files; drag-and-drop handles full folder ingestion */}
       <input
         ref={inputRef}
-        type="file"
-        className="hidden"
-        onChange={handleInputChange}
-        {...({ webkitdirectory: '', directory: '' } as any)}
-      />
-      {/* Individual file picker - no accept filter so all file types are visible */}
-      <input
-        ref={filesInputRef}
         type="file"
         className="hidden"
         multiple
