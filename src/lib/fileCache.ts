@@ -17,10 +17,30 @@ export function cacheFileBuffer(file: File, buffer: ArrayBuffer): void {
 
 /**
  * Read a file's ArrayBuffer, preferring the cached copy.
- * Falls back to file.arrayBuffer() if not cached (e.g. for input-picker files).
+ * Falls back through two alternative read paths before giving up,
+ * to work around browser permission quirks on drag-and-drop files.
  */
 export async function readFileBuffer(file: File): Promise<ArrayBuffer> {
   const cached = cache.get(file);
   if (cached) return cached;
-  return file.arrayBuffer();
+
+  // Try direct arrayBuffer() first.
+  try {
+    return await file.arrayBuffer();
+  } catch { /* fall through */ }
+
+  // Some browsers handle File permissions differently via the Fetch/Response
+  // API compared to the direct arrayBuffer() call. Try that next.
+  try {
+    return await new Response(file).arrayBuffer();
+  } catch { /* fall through */ }
+
+  // Last resort: createObjectURL + fetch.
+  const url = URL.createObjectURL(file);
+  try {
+    const res = await fetch(url);
+    return await res.arrayBuffer();
+  } finally {
+    URL.revokeObjectURL(url);
+  }
 }
