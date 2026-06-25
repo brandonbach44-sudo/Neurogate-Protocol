@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Button from './Button';
 import type { DetectionResult } from '../types/detection';
 import type { SubjectMetadata, DatasetDescription, InstitutionConfig } from '../types/metadata';
@@ -6,7 +6,6 @@ import {
   buildFileEntries,
   buildTreeFromEntries,
   generateZip,
-  downloadBlob,
   getExportStats,
 } from '../lib/bids/exporter';
 import type { TreeNode } from '../lib/bids/exporter';
@@ -31,7 +30,13 @@ export default function ExportStep({
 }: ExportStepProps) {
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState<string>('');
-  const [exported, setExported] = useState(false);
+  const [zipUrl, setZipUrl] = useState<string | null>(null);
+  const [zipFilename, setZipFilename] = useState<string>('');
+
+  // Revoke the object URL when the component unmounts to free memory.
+  useEffect(() => {
+    return () => { if (zipUrl) URL.revokeObjectURL(zipUrl); };
+  }, [zipUrl]);
 
   const dateShifts = useMemo(
     () => generateSubjectDateShifts(subjects.map(s => s.subjectGroup)),
@@ -47,8 +52,10 @@ export default function ExportStep({
   const tree = useMemo(() => buildTreeFromEntries(fileEntries), [fileEntries]);
   const stats = useMemo(() => getExportStats(fileEntries), [fileEntries]);
 
-  const handleExport = async () => {
+  // Step 1: build the ZIP and store a blob URL — no download yet.
+  const handleBuild = async () => {
     setIsExporting(true);
+    setZipUrl(null);
     setExportProgress('Preparing files...');
 
     try {
@@ -62,30 +69,23 @@ export default function ExportStep({
 
       const timestamp = new Date().toISOString().slice(0, 10);
       const prefix = institutionConfig.prefix || 'BIDS';
-      downloadBlob(blob, `${prefix}_bids_export_${timestamp}.zip`);
+      const filename = `${prefix}_bids_export_${timestamp}.zip`;
 
-      if (dateShifts.size > 0) {
-        const shiftKey = subjects.map(s => ({
-          subjectGroup: s.subjectGroup,
-          bidsSubjectId: s.bidsSubjectId,
-          dateShiftDays: dateShifts.get(s.subjectGroup) ?? 0,
-        }));
-        const keyBlob = new Blob(
-          [JSON.stringify({ generated: new Date().toISOString(), dateShiftKey: shiftKey }, null, 2)],
-          { type: 'application/json' },
-        );
-        downloadBlob(keyBlob, `${prefix}_date_shift_key_RESTRICTED_${timestamp}.json`);
-      }
-
-      setExported(true);
+      if (zipUrl) URL.revokeObjectURL(zipUrl);
+      setZipUrl(URL.createObjectURL(blob));
+      setZipFilename(filename);
       setExportProgress('');
-      onExportComplete();
     } catch (err) {
       console.error('Export failed:', err);
       setExportProgress('Export failed. Please try again.');
     } finally {
       setIsExporting(false);
     }
+  };
+
+  // Step 2: called when user clicks the real <a> download link.
+  const handleDownloadClick = () => {
+    onExportComplete();
   };
 
   return (
@@ -144,17 +144,13 @@ export default function ExportStep({
         </div>
       </div>
 
-      {exported && (
+      {zipUrl && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
           <div className="flex items-center gap-2">
             <span className="text-green-600 text-lg">&#10003;</span>
-            <div>
-              <p className="text-sm font-medium text-green-800">Export complete!</p>
-              <p className="text-sm text-green-700 mt-0.5">
-                Your BIDS dataset has been downloaded. Unzip and upload the contents to your
-                site's chosen data infrastructure.
-              </p>
-            </div>
+            <p className="text-sm font-medium text-green-800">
+              ZIP ready — click <strong>Download</strong> to save it.
+            </p>
           </div>
         </div>
       )}
@@ -168,18 +164,27 @@ export default function ExportStep({
           {isExporting && (
             <span className="text-sm text-gray-500">{exportProgress}</span>
           )}
-          <Button variant="primary" onClick={handleExport} disabled={isExporting} className="gap-2">
-            {isExporting ? (
-              <>
-                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Exporting...
-              </>
-            ) : exported ? (
-              'Download Again'
-            ) : (
-              'Download'
-            )}
-          </Button>
+          {zipUrl ? (
+            <a
+              href={zipUrl}
+              download={zipFilename}
+              onClick={handleDownloadClick}
+              className="inline-flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold bg-[#011F5B] text-white hover:bg-[#022a7a] transition-colors"
+            >
+              Download
+            </a>
+          ) : (
+            <Button variant="primary" onClick={handleBuild} disabled={isExporting} className="gap-2">
+              {isExporting ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Building...
+                </>
+              ) : (
+                'Download'
+              )}
+            </Button>
+          )}
         </div>
       </div>
     </div>
