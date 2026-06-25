@@ -8,8 +8,13 @@ import {
   generateZip,
   getExportStats,
 } from '../lib/bids/exporter';
-import type { TreeNode } from '../lib/bids/exporter';
+import type { TreeNode, LargeFileEntry } from '../lib/bids/exporter';
 import { generateSubjectDateShifts } from '../lib/deidentify/edfDeidentifier';
+import {
+  hasServerApi,
+  serverDeidentifyEdf,
+} from '../lib/api/exportApi';
+import { getEffectiveSubjectGroup } from '../types/detection';
 
 interface ExportStepProps {
   detectionResults: DetectionResult[];
@@ -33,6 +38,15 @@ export default function ExportStep({
   const [exportError, setExportError] = useState<string>('');
   const [zipUrl, setZipUrl] = useState<string | null>(null);
   const [zipFilename, setZipFilename] = useState<string>('');
+
+  // Server upload results — populated when hasServerApi and large files exist
+  interface ServerEdfResult {
+    originalName: string;
+    bidsPath: string;
+    downloadUrl: string;
+    shiftKey: { dateShiftDays: number; originalDate: string; shiftedDate: string };
+  }
+  const [serverEdfResults, setServerEdfResults] = useState<ServerEdfResult[]>([]);
 
   // Warn up front if any file was unreadable at drop time (e.g. OneDrive cloud-only).
   const unreadableFiles = detectionResults
@@ -58,14 +72,56 @@ export default function ExportStep({
   const tree = useMemo(() => buildTreeFromEntries(fileEntries), [fileEntries]);
   const stats = useMemo(() => getExportStats(fileEntries), [fileEntries]);
 
-  // Step 1: build the ZIP and store a blob URL — no download yet.
+  // Step 1: build the ZIP (and optionally upload large files to the server).
   const handleBuild = async () => {
     setIsExporting(true);
     setZipUrl(null);
     setExportError('');
     setExportProgress('Preparing files...');
+    setServerEdfResults([]);
 
     try {
+      // ── Server upload path for large EDF files ──────────────────
+      if (hasServerApi && stats.largeFiles.length > 0) {
+        const subjectIdMap = new Map<string, string>();
+        for (const s of subjects) subjectIdMap.set(s.subjectGroup, s.bidsSubjectId);
+
+        const newServerResults: ServerEdfResult[] = [];
+
+        for (let i = 0; i < stats.largeFiles.length; i++) {
+          const lf = stats.largeFiles[i] as LargeFileEntry & { file?: File };
+
+          // Find the original DetectionResult to get the File + subject
+          const match = detectionResults.find(r => r.fileName === lf.originalName);
+          if (!match) continue;
+
+          const subjectGroup = getEffectiveSubjectGroup(match);
+          const subjectId = subjectIdMap.get(subjectGroup) ?? 'X';
+          const dateShiftDays = dateShifts.get(subjectGroup) ?? 0;
+
+          setExportProgress(`Uploading ${lf.originalName} to server (${i + 1}/${stats.largeFiles.length})...`);
+
+          const result = await serverDeidentifyEdf(
+            match.file,
+            { subjectId, dateShiftDays },
+            (p) => setExportProgress(
+              `Uploading ${lf.originalName} — ${p.percent}% (${i + 1}/${stats.largeFiles.length})`
+            ),
+          );
+
+          newServerResults.push({
+            originalName: lf.originalName,
+            bidsPath: lf.bidsPath,
+            downloadUrl: result.downloadUrl,
+            shiftKey: result.shiftKey,
+          });
+        }
+
+        setServerEdfResults(newServerResults);
+      }
+
+      // ── Build the metadata ZIP (skips large files as before) ────
+      setExportProgress('Building metadata ZIP...');
       const blob = await generateZip(fileEntries, (progress) => {
         if (progress.phase === 'building') {
           setExportProgress(`Adding file ${progress.current} of ${progress.total}...`);
@@ -167,6 +223,71 @@ export default function ExportStep({
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
           <p className="text-sm font-medium text-red-800">{exportError}</p>
         </div>
+      )}
+
+      {stats.largeFiles.length > 0 && (
+        hasServerApi ? (
+          // Server mode — show download links for processed EDFs
+          serverEdfResults.length > 0 ? (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+              <p className="text-sm font-semibold text-green-800 mb-2">
+                Large files de-identified on server — download below
+              </p>
+              <p className="text-sm text-green-700 mb-3">
+                Place each file in the path shown after extracting the ZIP.
+              </p>
+              {serverEdfResults.map(r => (
+                <div key={r.bidsPath} className="bg-white border border-green-200 rounded p-3 mb-2 flex items-center justify-between gap-3">
+                  <div className="font-mono text-xs text-gray-700 min-w-0">
+                    <span className="font-semibold text-gray-900">{r.originalName}</span>
+                    <span className="text-green-600 mx-2">→</span>
+                    <span className="break-all">bids_output/{r.bidsPath}</span>
+                  </div>
+                  <a
+                    href={r.downloadUrl}
+                    download
+                    className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded text-xs font-semibold bg-green-700 text-white hover:bg-green-800 transition-colors"
+                  >
+                    Download EDF
+                  </a>
+                </div>
+              ))}
+            </div>
+          ) : (
+            // Server configured but build not run yet — show info instead of amber warning
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <p className="text-sm font-semibold text-blue-800 mb-1">
+                Large files will be processed on the server
+              </p>
+              <p className="text-sm text-blue-700">
+                {stats.largeFiles.map(f => (
+                  <span key={f.bidsPath} className="block font-mono text-xs mt-1">
+                    {f.originalName} ({formatSize(f.sizeBytes)})
+                  </span>
+                ))}
+              </p>
+            </div>
+          )
+        ) : (
+          // No server — original copy-manually instructions
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+            <p className="text-sm font-semibold text-amber-800 mb-2">
+              Large files excluded from ZIP — copy manually
+            </p>
+            <p className="text-sm text-amber-700 mb-3">
+              The following files exceed 500 MB and cannot be packaged in the browser.
+              After extracting the ZIP, copy each file to the path shown.
+            </p>
+            {stats.largeFiles.map(f => (
+              <div key={f.bidsPath} className="bg-white border border-amber-200 rounded p-3 mb-2 font-mono text-xs text-gray-700">
+                <span className="font-semibold text-gray-900">{f.originalName}</span>
+                <span className="text-amber-600 mx-2">→</span>
+                <span>bids_output/{f.bidsPath}</span>
+                <span className="text-gray-400 ml-2">({formatSize(f.sizeBytes)})</span>
+              </div>
+            ))}
+          </div>
+        )
       )}
 
       {zipUrl && (

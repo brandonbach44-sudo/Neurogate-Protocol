@@ -102,24 +102,27 @@ function generateSessionsTsv(subject: SubjectMetadata): string {
 
 // ── Build the file map (path -> content) ──────────────────────────
 
+// Files larger than this cannot be loaded into a browser ArrayBuffer.
+// They are excluded from the ZIP and listed separately for manual copy.
+const LARGE_FILE_THRESHOLD_BYTES = 500 * 1024 * 1024; // 500 MB
+
 interface FileEntry {
   path: string;
   content: File | string;
-  /**
-   * True when content is an uncompressed .nii file that must be gzipped
-   * to .nii.gz during ZIP generation to be BIDS-compliant.
-   */
   needsGzip?: boolean;
-  /**
-   * When set, the file is an EDF/BDF recording and its header must be
-   * de-identified before inclusion in the ZIP. dateShiftDays is applied
-   * to all dates; anonymousSubjectId is written into the patient code
-   * subfield of the patient ID field.
-   */
   edfDeidentify?: {
     dateShiftDays: number;
     anonymousSubjectId?: string;
   };
+  /** True when the file exceeds LARGE_FILE_THRESHOLD_BYTES and must be copied manually. */
+  tooLarge?: boolean;
+}
+
+/** Files excluded from the ZIP because they are too large for browser memory. */
+export interface LargeFileEntry {
+  originalName: string;
+  bidsPath: string;
+  sizeBytes: number;
 }
 
 /** True for an uncompressed NIfTI file (.nii but not .nii.gz). */
@@ -191,10 +194,10 @@ export function buildFileEntries(
       path: result.bidsPath,
       content: result.file,
       needsGzip: isUncompressedNifti(result.fileName),
-      // Tag EDF/BDF files for header de-identification at ZIP time
       edfDeidentify: isEdfFile(result.fileName)
         ? { dateShiftDays, anonymousSubjectId: subjectId }
         : undefined,
+      tooLarge: result.file.size > LARGE_FILE_THRESHOLD_BYTES,
     });
   }
 
@@ -270,6 +273,12 @@ export async function generateZip(
     const entry = entries[i];
     onProgress?.({ phase: 'building', current: i + 1, total: entries.length });
 
+    if (entry.tooLarge) {
+      // Skip — browser cannot load files this large into memory.
+      // Listed separately in the UI so the user can copy them manually.
+      continue;
+    }
+
     if (entry.content instanceof File) {
       if (entry.needsGzip) {
         // Uncompressed .nii -- gzip to .nii.gz for BIDS compliance.
@@ -324,8 +333,18 @@ export function getExportStats(entries: FileEntry[]) {
   let totalFiles = 0;
   let totalSize = 0;
   const folders = new Set<string>();
+  const largeFiles: LargeFileEntry[] = [];
 
   for (const entry of entries) {
+    if (entry.tooLarge && entry.content instanceof File) {
+      largeFiles.push({
+        originalName: entry.content.name,
+        bidsPath: entry.path,
+        sizeBytes: entry.content.size,
+      });
+      continue;
+    }
+
     totalFiles++;
     if (entry.content instanceof File) {
       totalSize += entry.content.size;
@@ -333,12 +352,11 @@ export function getExportStats(entries: FileEntry[]) {
       totalSize += entry.content.length;
     }
 
-    // Track unique folders
     const parts = entry.path.split('/');
     for (let i = 1; i <= parts.length - 1; i++) {
       folders.add(parts.slice(0, i).join('/'));
     }
   }
 
-  return { totalFiles, totalSize, totalFolders: folders.size };
+  return { totalFiles, totalSize, totalFolders: folders.size, largeFiles };
 }
