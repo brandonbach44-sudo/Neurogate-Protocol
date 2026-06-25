@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo } from 'react';
 import Button from './Button';
 import type { DetectionResult } from '../types/detection';
 import type { SubjectMetadata, DatasetDescription, InstitutionConfig } from '../types/metadata';
@@ -6,6 +6,7 @@ import {
   buildFileEntries,
   buildTreeFromEntries,
   generateZip,
+  downloadBlob,
   getExportStats,
 } from '../lib/bids/exporter';
 import type { TreeNode } from '../lib/bids/exporter';
@@ -31,29 +32,13 @@ export default function ExportStep({
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState<string>('');
   const [exported, setExported] = useState(false);
-  // Stores the ready-to-download URLs so the user can click a real <a> link,
-  // bypassing the browser's user-activation expiry on async downloads.
-  const [downloadLinks, setDownloadLinks] = useState<{ url: string; filename: string }[]>([]);
-  const prevLinksRef = useRef<{ url: string; filename: string }[]>([]);
 
-  // Revoke object URLs when new ones replace them to avoid memory leaks.
-  useEffect(() => {
-    return () => {
-      prevLinksRef.current.forEach(l => URL.revokeObjectURL(l.url));
-    };
-  }, []);
-
-  // Generate one random date shift per subject on mount -- these are used
-  // to de-identify EDF/BDF header dates at export time. The shifts are
-  // stable for the lifetime of this component instance (useMemo with no
-  // changing deps) so repeated clicks produce the same shifted output.
   const dateShifts = useMemo(
     () => generateSubjectDateShifts(subjects.map(s => s.subjectGroup)),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [], // intentionally empty -- shifts must not change across renders
+    [],
   );
 
-  // Build the file entries and tree on mount
   const fileEntries = useMemo(
     () => buildFileEntries(detectionResults, subjects, datasetDescription, dateShifts),
     [detectionResults, subjects, datasetDescription, dateShifts]
@@ -62,35 +47,23 @@ export default function ExportStep({
   const tree = useMemo(() => buildTreeFromEntries(fileEntries), [fileEntries]);
   const stats = useMemo(() => getExportStats(fileEntries), [fileEntries]);
 
-  // Handle ZIP generation -- builds the ZIP and stores object URLs so the
-  // user can trigger the actual download via a real <a> click (avoids the
-  // browser blocking programmatic downloads after async user-activation expiry).
   const handleExport = async () => {
     setIsExporting(true);
     setExportProgress('Preparing files...');
-    // Revoke any previous links before replacing them.
-    prevLinksRef.current.forEach(l => URL.revokeObjectURL(l.url));
-    setDownloadLinks([]);
 
     try {
       const blob = await generateZip(fileEntries, (progress) => {
         if (progress.phase === 'building') {
           setExportProgress(`Adding file ${progress.current} of ${progress.total}...`);
         } else {
-          setExportProgress('Compressing ZIP...');
+          setExportProgress('Compressing...');
         }
       });
 
       const timestamp = new Date().toISOString().slice(0, 10);
       const prefix = institutionConfig.prefix || 'BIDS';
-      const links: { url: string; filename: string }[] = [];
+      downloadBlob(blob, `${prefix}_bids_export_${timestamp}.zip`);
 
-      links.push({
-        url: URL.createObjectURL(blob),
-        filename: `${prefix}_bids_export_${timestamp}.zip`,
-      });
-
-      // Include the date shift key as a separate restricted download.
       if (dateShifts.size > 0) {
         const shiftKey = subjects.map(s => ({
           subjectGroup: s.subjectGroup,
@@ -101,14 +74,9 @@ export default function ExportStep({
           [JSON.stringify({ generated: new Date().toISOString(), dateShiftKey: shiftKey }, null, 2)],
           { type: 'application/json' },
         );
-        links.push({
-          url: URL.createObjectURL(keyBlob),
-          filename: `${prefix}_date_shift_key_RESTRICTED_${timestamp}.json`,
-        });
+        downloadBlob(keyBlob, `${prefix}_date_shift_key_RESTRICTED_${timestamp}.json`);
       }
 
-      prevLinksRef.current = links;
-      setDownloadLinks(links);
       setExported(true);
       setExportProgress('');
       onExportComplete();
@@ -122,7 +90,6 @@ export default function ExportStep({
 
   return (
     <div className="w-full max-w-4xl mx-auto">
-      {/* Header */}
       <div className="text-center mb-8">
         <h2 className="text-2xl font-semibold text-gray-800">Export BIDS Dataset</h2>
         <p className="text-gray-500 mt-2">
@@ -130,7 +97,6 @@ export default function ExportStep({
         </p>
       </div>
 
-      {/* Stats banner */}
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
           <p className="text-2xl font-semibold text-[#011F5B]">{subjects.length}</p>
@@ -148,7 +114,6 @@ export default function ExportStep({
         </div>
       </div>
 
-      {/* Folder tree preview */}
       <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden mb-6">
         <div className="bg-gray-50 px-5 py-3 border-b border-gray-200 flex items-center justify-between">
           <span className="text-sm font-semibold text-gray-800">BIDS Output Structure</span>
@@ -159,7 +124,6 @@ export default function ExportStep({
         </div>
       </div>
 
-      {/* Generated metadata files info */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
         <p className="text-sm font-medium text-blue-800 mb-2">Auto-generated metadata files included:</p>
         <div className="grid grid-cols-2 gap-2">
@@ -180,7 +144,6 @@ export default function ExportStep({
         </div>
       </div>
 
-      {/* Export success message */}
       {exported && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
           <div className="flex items-center gap-2">
@@ -188,59 +151,40 @@ export default function ExportStep({
             <div>
               <p className="text-sm font-medium text-green-800">Export complete!</p>
               <p className="text-sm text-green-700 mt-0.5">
-                Your BIDS dataset has been downloaded. Unzip the file and upload the contents to your
-                site's chosen data infrastructure (SOP-PENNSIEVE-001 covers Pennsieve as an example).
+                Your BIDS dataset has been downloaded. Unzip and upload the contents to your
+                site's chosen data infrastructure.
               </p>
             </div>
           </div>
         </div>
       )}
 
-      {/* Action buttons */}
       <div className="flex justify-between">
         <Button variant="secondary" onClick={onBack} disabled={isExporting}>
           Back to Validation
         </Button>
 
-        <div className="flex items-center gap-3 flex-wrap justify-end">
+        <div className="flex items-center gap-3">
           {isExporting && (
             <span className="text-sm text-gray-500">{exportProgress}</span>
           )}
-          {downloadLinks.length > 0 ? (
-            <>
-              {downloadLinks.map((link) => (
-                <a
-                  key={link.filename}
-                  href={link.url}
-                  download={link.filename}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#011F5B] text-white hover:bg-[#022a7a] transition-colors"
-                >
-                  {link.filename.includes('RESTRICTED') ? 'Save Shift Key' : 'Save ZIP'}
-                </a>
-              ))}
-              <Button variant="secondary" onClick={handleExport} disabled={isExporting}>
-                Rebuild ZIP
-              </Button>
-            </>
-          ) : (
-            <Button variant="primary" onClick={handleExport} disabled={isExporting} className="gap-2">
-              {isExporting ? (
-                <>
-                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Exporting...
-                </>
-              ) : (
-                'Download ZIP'
-              )}
-            </Button>
-          )}
+          <Button variant="primary" onClick={handleExport} disabled={isExporting} className="gap-2">
+            {isExporting ? (
+              <>
+                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Exporting...
+              </>
+            ) : exported ? (
+              'Download Again'
+            ) : (
+              'Download'
+            )}
+          </Button>
         </div>
       </div>
     </div>
   );
 }
-
-// ── Tree view sub-component ───────────────────────────────────────
 
 function TreeView({ node, depth }: { node: TreeNode; depth: number }) {
   const [expanded, setExpanded] = useState(depth < 3);
@@ -285,8 +229,6 @@ function TreeView({ node, depth }: { node: TreeNode; depth: number }) {
     </div>
   );
 }
-
-// ── Utility ───────────────────────────────────────────────────────
 
 function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
