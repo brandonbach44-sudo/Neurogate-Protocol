@@ -265,19 +265,22 @@ export async function deidentifyEdf(
   file: File,
   options: EdfDeidentifyOptions,
 ): Promise<DeidentifyResult> {
-  const buffer = await file.arrayBuffer();
-  const bytes = new Uint8Array(buffer);
-
-  // Must have at least the 256-byte global header
-  if (bytes.length < 256) {
+  // Only read the 256-byte global header -- not the full file.
+  // EDF recordings can be multi-GB; reading the full file into memory
+  // would stall or OOM the browser. We modify only the header bytes and
+  // concatenate file.slice(256) (the data records) as-is.
+  if (file.size < 256) {
     return {
-      blob: new Blob([bytes], { type: 'application/octet-stream' }),
+      blob: file,
       originalPatientId: '',
       originalDate: '',
       shiftedDate: '',
       containedPhi: false,
     };
   }
+
+  const headerBuffer = await file.slice(0, 256).arrayBuffer();
+  const bytes = new Uint8Array(headerBuffer);
 
   const decoder = new TextDecoder('ascii');
 
@@ -314,8 +317,15 @@ export async function deidentifyEdf(
   writeField(bytes, 168, 8,  shiftedDate);
   // bytes 176-183 (start time) are intentionally left unchanged
 
+  // Reconstruct the file: modified 256-byte header + original data records.
+  // file.slice(256) is a lazy reference -- the browser does not copy the data.
+  const blob = new Blob(
+    [bytes, file.slice(256)],
+    { type: 'application/octet-stream' },
+  );
+
   return {
-    blob: new Blob([bytes], { type: 'application/octet-stream' }),
+    blob,
     originalPatientId,
     originalDate,
     shiftedDate,
