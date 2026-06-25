@@ -34,6 +34,11 @@ export default function ExportStep({
   const [zipUrl, setZipUrl] = useState<string | null>(null);
   const [zipFilename, setZipFilename] = useState<string>('');
 
+  // Warn up front if any file was unreadable at drop time (e.g. OneDrive cloud-only).
+  const unreadableFiles = detectionResults
+    .filter(r => (r.file as any).__unreadable)
+    .map(r => r.fileName);
+
   // Revoke the object URL when the component unmounts to free memory.
   useEffect(() => {
     return () => { if (zipUrl) URL.revokeObjectURL(zipUrl); };
@@ -147,6 +152,16 @@ export default function ExportStep({
           ))}
         </div>
       </div>
+
+      {unreadableFiles.length > 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+          <p className="text-sm font-semibold text-amber-800 mb-1">File not locally available</p>
+          <p className="text-sm text-amber-700">
+            <strong>{unreadableFiles.join(', ')}</strong> could not be read — it may be a cloud-only OneDrive file.
+            In Windows Explorer, right-click the file and choose <strong>"Always keep on this device"</strong>, then re-upload.
+          </p>
+        </div>
+      )}
 
       {exportError && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
