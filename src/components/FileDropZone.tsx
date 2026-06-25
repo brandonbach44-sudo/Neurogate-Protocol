@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import type { ScannedFile } from '../types/files';
+import { cacheFileBuffer } from '../lib/fileCache';
 
 interface FileDropZoneProps {
   onFilesScanned: (files: ScannedFile[]) => void;
@@ -27,6 +28,17 @@ export default function FileDropZone({ onFilesScanned }: FileDropZoneProps) {
         const file = await new Promise<File>((resolve, reject) => {
           fileEntry.file(resolve, reject);
         });
+        // Eagerly cache EDF/BDF content -- drag-and-drop File references can
+        // go stale by the time export runs, causing a NotReadableError.
+        const lower = file.name.toLowerCase();
+        if (lower.endsWith('.edf') || lower.endsWith('.bdf')) {
+          try {
+            const buffer = await file.arrayBuffer();
+            cacheFileBuffer(file, buffer);
+          } catch {
+            // If we can't read now, we'll surface the error at export time.
+          }
+        }
         files.push({
           relativePath: path + file.name,
           name: file.name,

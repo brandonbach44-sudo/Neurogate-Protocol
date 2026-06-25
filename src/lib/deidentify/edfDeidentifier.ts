@@ -265,10 +265,11 @@ export async function deidentifyEdf(
   file: File,
   options: EdfDeidentifyOptions,
 ): Promise<DeidentifyResult> {
-  // Only read the 256-byte global header -- not the full file.
-  // EDF recordings can be multi-GB; reading the full file into memory
-  // would stall or OOM the browser. We modify only the header bytes and
-  // concatenate file.slice(256) (the data records) as-is.
+  // Read the full file from the eager cache (populated at drop time).
+  // Direct file.arrayBuffer() calls on drag-and-drop Files fail with
+  // NotReadableError once the browser revokes the stale file permission.
+  const { readFileBuffer } = await import('../fileCache');
+
   if (file.size < 256) {
     return {
       blob: file,
@@ -279,8 +280,8 @@ export async function deidentifyEdf(
     };
   }
 
-  const headerBuffer = await file.slice(0, 256).arrayBuffer();
-  const bytes = new Uint8Array(headerBuffer);
+  const fullBuffer = await readFileBuffer(file);
+  const bytes = new Uint8Array(fullBuffer);
 
   const decoder = new TextDecoder('ascii');
 
@@ -317,12 +318,8 @@ export async function deidentifyEdf(
   writeField(bytes, 168, 8,  shiftedDate);
   // bytes 176-183 (start time) are intentionally left unchanged
 
-  // Reconstruct the file: modified 256-byte header + original data records.
-  // file.slice(256) is a lazy reference -- the browser does not copy the data.
-  const blob = new Blob(
-    [bytes, file.slice(256)],
-    { type: 'application/octet-stream' },
-  );
+  // Return the full buffer with the modified header in place.
+  const blob = new Blob([bytes], { type: 'application/octet-stream' });
 
   return {
     blob,
