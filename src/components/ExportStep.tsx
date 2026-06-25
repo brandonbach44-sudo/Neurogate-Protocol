@@ -229,7 +229,7 @@ function TreeView({ node, depth }: { node: TreeNode; depth: number }) {
         style={{ paddingLeft: indent }}
       >
         <span className="text-xs text-gray-500 w-3">
-          {expanded ? '&#9660;' : '&#9654;'}
+          {expanded ? '▼' : '▶'}
         </span>
         <span className="text-yellow-600 text-xs">&#128193;</span>
         <span>{node.name}/</span>
