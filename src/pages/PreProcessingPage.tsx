@@ -602,7 +602,7 @@ dcm2niix -z y -b y -ba y -v 2 -t y \\
         </div>
       </section>
 
-      {/* ═══ TOOL 2: pydeface ═══════════════════════════════ */}}
+      {/* ═══ TOOL 2: pydeface ═══════════════════════════════ */}
       <section
         id="pydeface"
         className="rounded-2xl border border-gray-100 bg-white p-8 shadow-sm mb-14"
