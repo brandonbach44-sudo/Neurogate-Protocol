@@ -28,16 +28,15 @@ export default function FileDropZone({ onFilesScanned }: FileDropZoneProps) {
         const file = await new Promise<File>((resolve, reject) => {
           fileEntry.file(resolve, reject);
         });
-        // Eagerly cache EDF/BDF content -- drag-and-drop File references can
-        // go stale by the time export runs, causing a NotReadableError.
-        const lower = file.name.toLowerCase();
-        if (lower.endsWith('.edf') || lower.endsWith('.bdf')) {
-          try {
-            const buffer = await file.arrayBuffer();
-            cacheFileBuffer(file, buffer);
-          } catch {
-            // If we can't read now, we'll surface the error at export time.
-          }
+        // Eagerly cache all file content -- drag-and-drop File references
+        // (from FileSystemFileEntry.file()) lose read permission over time,
+        // causing NotReadableError at export. Reading now while permission
+        // is guaranteed and caching avoids this entirely.
+        try {
+          const buffer = await file.arrayBuffer();
+          cacheFileBuffer(file, buffer);
+        } catch {
+          // If unreadable now, we'll surface the error at export time.
         }
         files.push({
           relativePath: path + file.name,
@@ -79,10 +78,16 @@ export default function FileDropZone({ onFilesScanned }: FileDropZoneProps) {
   }, []);
 
   /** Handle files from the <input> fallback (webkitdirectory) */
-  const scanInputFiles = useCallback((fileList: FileList): ScannedFile[] => {
+  const scanInputFiles = useCallback(async (fileList: FileList): Promise<ScannedFile[]> => {
     const files: ScannedFile[] = [];
     for (let i = 0; i < fileList.length; i++) {
       const file = fileList[i];
+      try {
+        const buffer = await file.arrayBuffer();
+        cacheFileBuffer(file, buffer);
+      } catch {
+        // Surface at export time if unreadable.
+      }
       files.push({
         relativePath: (file as any).webkitRelativePath || file.name,
         name: file.name,
@@ -108,10 +113,10 @@ export default function FileDropZone({ onFilesScanned }: FileDropZoneProps) {
     }
   }, [scanDataTransferItems, onFilesScanned]);
 
-  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.length) return;
     setIsScanning(true);
-    const scanned = scanInputFiles(e.target.files);
+    const scanned = await scanInputFiles(e.target.files);
     onFilesScanned(scanned);
     setIsScanning(false);
     e.target.value = '';

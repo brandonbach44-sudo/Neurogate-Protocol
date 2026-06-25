@@ -29,6 +29,7 @@
  */
 
 import JSZip from 'jszip';
+import { readFileBuffer } from '../fileCache';
 import type { DetectionResult } from '../../types/detection';
 import { getEffectiveSubjectGroup } from '../../types/detection';
 import { computeBidsNames } from './bidsNaming';
@@ -279,7 +280,8 @@ export async function generateZip(
         const result = await deidentifyEdf(entry.content, entry.edfDeidentify);
         zip.file(`bids_output/${entry.path}`, await result.blob.arrayBuffer());
       } else {
-        const buffer = await entry.content.arrayBuffer();
+        // Use cached buffer to avoid NotReadableError on stale File references.
+        const buffer = await readFileBuffer(entry.content);
         zip.file(`bids_output/${entry.path}`, buffer);
       }
     } else {
