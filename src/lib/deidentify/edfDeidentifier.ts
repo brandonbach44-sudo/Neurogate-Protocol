@@ -72,6 +72,8 @@ export interface DeidentifyResult {
   containedPhi: boolean;
 }
 
+import { readFileBuffer } from '../fileCache';
+
 // ── Month name tables ─────────────────────────────────────────────
 
 const MONTH_ABBR = [
@@ -268,7 +270,6 @@ export async function deidentifyEdf(
   // Read the full file from the eager cache (populated at drop time).
   // Direct file.arrayBuffer() calls on drag-and-drop Files fail with
   // NotReadableError once the browser revokes the stale file permission.
-  const { readFileBuffer } = await import('../fileCache');
 
   if (file.size < 256) {
     return {
