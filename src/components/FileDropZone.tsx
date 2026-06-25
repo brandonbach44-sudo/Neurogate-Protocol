@@ -150,7 +150,7 @@ export default function FileDropZone({ onFilesScanned }: FileDropZoneProps) {
             </div>
             <div>
               <p className="text-xl font-medium text-gray-800">
-                {isDragging ? 'Release to upload' : 'Drop a folder or files here'}
+                {isDragging ? 'Release to upload' : 'Drop your patient data folder here'}
               </p>
               <p className="mt-1.5 text-gray-500">
                 or{' '}
@@ -186,13 +186,13 @@ export default function FileDropZone({ onFilesScanned }: FileDropZoneProps) {
         )}
       </div>
 
-      {/* File picker - shows all files; drag-and-drop handles full folder ingestion */}
+      {/* Folder picker; drag-and-drop handles individual files */}
       <input
         ref={inputRef}
         type="file"
         className="hidden"
-        multiple
         onChange={handleInputChange}
+        {...({ webkitdirectory: '', directory: '' } as any)}
       />
     </div>
   );
