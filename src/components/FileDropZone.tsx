@@ -17,6 +17,7 @@ export default function FileDropZone({ onFilesScanned }: FileDropZoneProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   /** Extract files from a DataTransferItem using webkitGetAsEntry for folder support */
   const scanDataTransferItems = useCallback(async (items: DataTransferItemList): Promise<ScannedFile[]> => {
@@ -122,6 +123,15 @@ export default function FileDropZone({ onFilesScanned }: FileDropZoneProps) {
     e.target.value = '';
   }, [scanInputFiles, onFilesScanned]);
 
+  const handleFileInputChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files?.length) return;
+    setIsScanning(true);
+    const scanned = await scanInputFiles(e.target.files);
+    onFilesScanned(scanned);
+    setIsScanning(false);
+    e.target.value = '';
+  }, [scanInputFiles, onFilesScanned]);
+
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(true);
@@ -175,7 +185,14 @@ export default function FileDropZone({ onFilesScanned }: FileDropZoneProps) {
                   className="font-medium underline underline-offset-2 text-[#011F5B] cursor-pointer"
                   onClick={(e) => { e.stopPropagation(); inputRef.current?.click(); }}
                 >
-                  click to browse
+                  browse folder
+                </span>
+                {' '}·{' '}
+                <span
+                  className="font-medium underline underline-offset-2 text-[#011F5B] cursor-pointer"
+                  onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
+                >
+                  select files
                 </span>
               </p>
             </div>
@@ -203,13 +220,21 @@ export default function FileDropZone({ onFilesScanned }: FileDropZoneProps) {
         )}
       </div>
 
-      {/* Folder picker; drag-and-drop handles individual files */}
+      {/* Folder picker */}
       <input
         ref={inputRef}
         type="file"
         className="hidden"
         onChange={handleInputChange}
         {...({ webkitdirectory: '', directory: '' } as any)}
+      />
+      {/* Individual file picker (for single files or mixed selections) */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        className="hidden"
+        onChange={handleFileInputChange}
+        multiple
       />
     </div>
   );
