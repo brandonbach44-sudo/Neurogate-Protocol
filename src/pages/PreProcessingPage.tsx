@@ -376,7 +376,7 @@ dcm2niix \\
         </div>
       </section>
 
-      {      {/* ═══ SCANNER-AWARE CONVERSION ══════════════════════ */}
+      {/* ═══ SCANNER-AWARE CONVERSION ══════════════════════ */}
       <section
         id="scanner-aware"
         className="rounded-2xl border border-gray-100 bg-white p-8 shadow-sm mb-10"
