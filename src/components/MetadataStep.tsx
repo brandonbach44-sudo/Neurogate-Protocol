@@ -53,6 +53,21 @@ export default function MetadataStep({
   const [autoFilledDataset, setAutoFilledDataset] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
+  // ── Infer institution prefix from file/folder names ──────────
+  const inferredPrefix = useMemo(() => {
+    const names = scannedFiles.map(f => f.relativePath || f.name);
+    // Look for known patterns: sub-XXX, HUP###, or leading uppercase word
+    for (const name of names) {
+      // BIDS sub- prefix: sub-SITE### -> extract SITE
+      const bids = name.match(/sub-([A-Z]{2,6})\d*/);
+      if (bids) return bids[1];
+      // Bare institution code at start of filename: HUP282, CHOP001, etc.
+      const bare = name.match(/(?:^|\/)([A-Z]{2,6})\d+/);
+      if (bare) return bare[1];
+    }
+    return null;
+  }, [scannedFiles]);
+
   // ── Derive subject groups and sessions from detection results ──
   const subjectData = useMemo(() => {
     const groups = new Map<string, Set<string>>();
@@ -271,7 +286,7 @@ export default function MetadataStep({
                     ...prev,
                     prefix: e.target.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 6),
                   }))}
-                  placeholder="e.g., CHOP, PENN, HUP"
+                  placeholder={inferredPrefix ? `e.g., ${inferredPrefix}` : 'Institution prefix'}
                   maxLength={6}
                   className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2
                     hover:border-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none
