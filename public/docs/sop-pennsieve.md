@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | **Document ID** | SOP-PENNSIEVE-001 |
-| **Version** | 2.3 |
+| **Version** | 2.4 |
 | **Effective Date** | July 31, 2026 |
 | **Author** | Brandon Bach |
 | **Advisor** | Nishant Sinha |
@@ -15,7 +15,7 @@
 
 ## 1. Purpose
 
-This Standard Operating Procedure (SOP) provides step-by-step instructions for uploading BIDS-formatted neuroimaging data to the Pennsieve platform. It covers two upload methods: the Pennsieve web interface (drag and drop) and the Pennsieve Agent command-line interface (CLI). This document is intended for researchers and data managers at sites participating in the multi-site epilepsy data sharing initiative.
+This Standard Operating Procedure (SOP) provides step-by-step instructions for uploading BIDS-formatted neuroimaging data to the Pennsieve platform. It covers two upload methods: the Pennsieve web interface (drag and drop) and the Pennsieve Agent command-line interface (CLI). This document is intended for anyone uploading neural data to Pennsieve as part of a multi-site epilepsy data sharing effort.
 
 ## 2. Governance Traceability
 
@@ -406,3 +406,4 @@ Best for: multi-subject uploads, large files, unreliable connections (supports r
 | 2.1 | May 7, 2026 | Brandon Bach | Replaced "Penn team" references with project-role labels (project lead for site notifications, project administrator for workspace access and node ID delivery, project team for the data use agreement) for consistency with the multi-site framing; updated workspace references from "Penn Epilepsy workspace" to "your site's workspace" so each site uploads to their own dataset |
 | 2.2 | May 28, 2026 | Brandon Bach | Hygiene: updated parent document reference from GOV-001 v1.3 to v1.10 to reflect intervening framework revisions. No procedural changes. |
 | 2.3 | July 31, 2026 | Brandon Bach | Removed SOP-REDCAP-001 and ONBOARD-001 from Related Documents; removed the data use agreement prerequisite and its GOV-001 Section 7.3 citation (site onboarding deprecated). Updated Section 2 traceability table's stale GOV-001 section references (7.3 Site Onboarding removed; 7.1 and 6 renumbered to 6.1 and 5) and the corresponding in-text citations in Sections 7 and 9. Updated parent GOV-001 reference to v1.13. |
+| 2.4 | July 31, 2026 | Brandon Bach | Section 1 Purpose: rewrote the audience statement to describe anyone uploading to Pennsieve rather than "researchers and data managers at participating sites," removing the last institutional-role framing from this SOP. |
