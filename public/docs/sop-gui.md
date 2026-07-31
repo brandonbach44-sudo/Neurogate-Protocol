@@ -3,12 +3,12 @@
 | Field | Value |
 |---|---|
 | **Document ID** | SOP-GUI-001 |
-| **Version** | 1.3 |
-| **Effective Date** | 2026-05-04 |
+| **Version** | 1.4 |
+| **Effective Date** | 2026-07-31 |
 | **Author** | Brandon Bach |
 | **Status** | Draft |
-| **Parent Framework** | GOV-001 Regulatory Governance Framework v1.10 |
-| **Related Documents** | SOP-BIDS-001, SOP-PENNSIEVE-001, SOP-REDCAP-001, ONBOARD-001 |
+| **Parent Framework** | GOV-001 Regulatory Governance Framework v1.13 |
+| **Related Documents** | SOP-BIDS-001, SOP-PENNSIEVE-001 |
 
 ---
 
@@ -47,7 +47,6 @@ This SOP applies to all personnel at participating research sites who are respon
 - DICOM-to-NIfTI conversion (install scripts packaged in the same repository at `tools/dcm2niix/`)
 - Defacing of anatomical images (install scripts packaged in the same repository at `tools/pydeface/`)
 - Uploading the exported ZIP to a data infrastructure (SOP-PENNSIEVE-001 is a worked example for sites using Pennsieve)
-- Entering clinical metadata into REDCap (see SOP-REDCAP-001)
 
 ---
 
@@ -189,7 +188,7 @@ For each detected subject, enter:
 | Sex | Yes | Male / Female / Other |
 | Sessions included | Auto-filled | Which sessions are present for this subject |
 
-Additional clinical fields (epilepsy diagnosis, seizure type, localization) are captured in REDCap per SOP-REDCAP-001, not in this tool.
+Additional clinical fields (epilepsy diagnosis, seizure type, localization) are outside the scope of this tool. Sites that want to track them should maintain that data in their own local clinical records system.
 
 ### 8.4 Dataset Description
 
@@ -329,8 +328,7 @@ After downloading:
 1. **Verify the ZIP:** Extract and inspect the contents to confirm structure.
 2. **Run bids-validator (optional):** For additional assurance, run the official BIDS validator against the extracted folder (`npx bids-validator ./dataset/`).
 3. **Upload to your data infrastructure:** Use whatever platform your site has chosen. SOP-PENNSIEVE-001 is a worked example if your site uses Pennsieve.
-4. **Enter metadata in REDCap:** Follow SOP-REDCAP-001 to enter clinical and demographic metadata.
-5. **Archive the audit log:** Store the audit JSON with your site's study records for compliance documentation.
+4. **Archive the audit log:** Store the audit JSON with your site's study records for compliance documentation.
 
 ---
 
@@ -445,3 +443,4 @@ The audit log satisfies ALCOA+ requirements:
 | 1.1 | 2026-05-22 | Brandon Bach | Updated the supported-modality lists to add MR angiography, perfusion (ASL), fMRI, and field maps; documented that Layer 2 also reads dcm2niix JSON sidecar scan descriptions and that the engine defaults a session by modality when no other clue is found; noted that the export compresses `.nii` to `.nii.gz` and excludes localizer/scout scans; updated the parent GOV-001 reference to v1.8 |
 | 1.2 | 2026-05-25 | Brandon Bach | Documented the export naming behavior in Section 10: each data file's JSON sidecar is now included in the export, repeated acquisitions of the same modality receive `run-` entities, and field-map images are named `magnitude1` / `magnitude2` / `phasediff`. Updated the Export Contents tree to show sidecars, `run-` entities, a field-map folder, and the per-subject sessions.tsv. Updated the parent GOV-001 reference to v1.9. |
 | 1.3 | 2026-05-27 | Brandon Bach | Section 8.4 Dataset Description: dropped the (inaccurate) License auto-fill row and added the optional Funding row to match the actual form. Section 8.5 Defacing Attestation: rewritten to describe the simplified single-checkbox attestation; the tool no longer captures defacing tool name, version, or attestor identity. Updated the parent GOV-001 reference to v1.10. |
+| 1.4 | 2026-07-31 | Brandon Bach | Removed SOP-REDCAP-001 and ONBOARD-001 from Related Documents and all in-text REDCap references (Sections 3, 8.3, 10.5): additional clinical fields beyond age/sex/sessions are now described as out of scope for the tool rather than pointed to REDCap, and the After Export step for entering REDCap metadata was removed. Updated the parent GOV-001 reference to v1.13. |
