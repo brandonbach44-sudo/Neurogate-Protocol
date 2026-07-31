@@ -44,8 +44,6 @@ Internal developer notes in this repo:
 
 ## Project Lead
 
-Brandon Bach, brandon.bach44@gmail.com
+Brandon Bach
 
-## License
-
-TBD; not yet published.
+Paper draft link (Insert below)
