@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | **Document ID** | SOP-GUI-001 |
-| **Version** | 1.4 |
+| **Version** | 1.5 |
 | **Effective Date** | 2026-07-31 |
 | **Author** | Brandon Bach |
 | **Status** | Draft |
@@ -34,7 +34,7 @@ This SOP implements the following GOV-001 requirements:
 
 ## 3. Scope
 
-This SOP applies to all personnel at participating research sites who are responsible for preparing neural data files for sharing through the multi-site neural data sharing initiative in epilepsy. This includes research coordinators, data managers, imaging technologists, and principal investigators.
+This SOP applies to anyone preparing neural data files for sharing in epilepsy research, whether at a research site or working independently. This includes research coordinators, imaging technologists, and individual researchers.
 
 **In scope:**
 - Organizing raw neural data files (NIfTI for imaging, EDF for electrophysiology, JSON sidecars) into BIDS-compliant folder structures
@@ -444,3 +444,4 @@ The audit log satisfies ALCOA+ requirements:
 | 1.2 | 2026-05-25 | Brandon Bach | Documented the export naming behavior in Section 10: each data file's JSON sidecar is now included in the export, repeated acquisitions of the same modality receive `run-` entities, and field-map images are named `magnitude1` / `magnitude2` / `phasediff`. Updated the Export Contents tree to show sidecars, `run-` entities, a field-map folder, and the per-subject sessions.tsv. Updated the parent GOV-001 reference to v1.9. |
 | 1.3 | 2026-05-27 | Brandon Bach | Section 8.4 Dataset Description: dropped the (inaccurate) License auto-fill row and added the optional Funding row to match the actual form. Section 8.5 Defacing Attestation: rewritten to describe the simplified single-checkbox attestation; the tool no longer captures defacing tool name, version, or attestor identity. Updated the parent GOV-001 reference to v1.10. |
 | 1.4 | 2026-07-31 | Brandon Bach | Removed SOP-REDCAP-001 and ONBOARD-001 from Related Documents and all in-text REDCap references (Sections 3, 8.3, 10.5): additional clinical fields beyond age/sex/sessions are now described as out of scope for the tool rather than pointed to REDCap, and the After Export step for entering REDCap metadata was removed. Updated the parent GOV-001 reference to v1.13. |
+| 1.5 | 2026-07-31 | Brandon Bach | Section 3 Scope: rewrote the applicability statement to describe anyone preparing neural data (site-based or independent) rather than a role list assuming institutional participation and a principal investigator. |

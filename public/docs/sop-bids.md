@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | **Document ID** | SOP-BIDS-001 |
-| **Version** | 2.6 |
+| **Version** | 2.7 |
 | **Effective Date** | July 31, 2026 |
 | **Author** | Brandon Bach |
 | **Advisor** | Nishant Sinha |
@@ -318,7 +318,7 @@ Required columns:
 | session_id | string (required) | Session label (e.g., ses-preimplant) |
 | acq_time | string (recommended) | Date of acquisition (YYYY-MM-DD) |
 
-**Date handling:** Acquisition dates should be shifted or use relative timing only. Exact dates of service can identify individuals per HIPAA. Consult your site PI on date-shifting policy.
+**Date handling:** Acquisition dates should be shifted or use relative timing only. Exact dates of service can identify individuals per HIPAA. Consult your institution's data governance policy on date-shifting.
 
 ### 7.4 electrodes.tsv
 
@@ -574,3 +574,4 @@ dcm2niix -z y -f sub-<ID>_ses-<session>_<modality> -o ./output/ /path/to/dicom/
 | 2.4 | May 27, 2026 | Brandon Bach | Dropped License and DatasetDOI rows from the Section 7.1 dataset_description.json table to match GOV-001 v1.10 (the NeuroGate tool does not capture them). Marked GeneratedBy as Auto-filled. Updated the parent GOV-001 reference to v1.10. |
 | 2.5 | June 24, 2026 | Brandon Bach | Added Section 8.3 (Scanner-Aware DICOM Conversion) covering 3T/7T Siemens, Philips, and GE scanner-specific flags, fMRI SliceTiming and TaskName requirements, 7T field map and MP2RAGE naming requirements, and the NeuroGate automation script (convert_dicom_auto.py). Updated Section 6.1.1 DICOM conversion command to reference the automation script. Renumbered former 8.3/8.4 (EEG header cleaning, Filename PHI check) to 8.5/8.6. |
 | 2.6 | July 31, 2026 | Brandon Bach | Removed SOP-REDCAP-001 and ONBOARD-001 from Related Documents (both deprecated: standalone-tool pivot removes REDCap and site onboarding, see GOV-001 v1.12-1.13). Removed "Penn"/participating-sites framing from Section 1 Purpose and the "or provided by Penn" note in Section 7.1. Updated the Section 8.6 defacing-log cross-reference from GOV-001 Section 6 to Section 5 following GOV-001's renumbering. Updated parent GOV-001 reference to v1.13. |
+| 2.7 | July 31, 2026 | Brandon Bach | Replaced "Consult your site PI" in Section 7.3 date-handling guidance with "Consult your institution's data governance policy," removing the last named-role reference from this SOP. |

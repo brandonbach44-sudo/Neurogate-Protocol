@@ -33,9 +33,7 @@ User-facing documentation lives on the deployed site under `/docs` and is source
 - GOV-001: Regulatory Governance Framework
 - SOP-BIDS-001: BIDS Data Structure
 - SOP-PENNSIEVE-001: Pennsieve Upload Procedures (optional reference for sites using Pennsieve)
-- SOP-REDCAP-001: REDCap Metadata Entry
 - SOP-GUI-001: NeuroGate Compliance Tool User Guide
-- ONBOARD-001: Site Onboarding Checklist
 
 Internal developer notes in this repo:
 
