@@ -304,7 +304,7 @@ export default function AboutPage() {
             </h3>
             <p className="mt-3 text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.7)' }}>
               The tool runs in your browser with no installation. The documentation pages cover
-              the governance framework, four SOPs, and the site onboarding workflow.
+              the governance framework and four SOPs.
             </p>
           </div>
           <div className="flex flex-col gap-3 md:items-end">

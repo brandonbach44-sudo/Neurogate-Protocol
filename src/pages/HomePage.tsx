@@ -439,13 +439,13 @@ export default function HomePage() {
               </svg>
             </Link>
             <Link
-              to="/onboarding"
+              to="/docs"
               className="no-underline inline-flex items-center px-6 py-2.5 rounded-lg text-sm font-medium border transition-all"
               style={{ borderColor: 'rgba(255,255,255,0.3)', color: '#ffffff' }}
               onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#6DD3CE')}
               onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)')}
             >
-              Site Onboarding Guide
+              Read the Documentation
             </Link>
           </div>
         </div>
