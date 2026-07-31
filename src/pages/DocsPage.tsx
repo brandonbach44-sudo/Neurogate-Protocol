@@ -75,9 +75,9 @@ export default function DocsPage() {
             Documentation
           </span>
           <h1 className="text-3xl font-bold text-gray-900 mt-4 leading-tight">
-            SOPs, governance framework,
+            SOPs and governance
             <br />
-            and onboarding guides.
+            framework.
           </h1>
           <p className="mt-4 text-sm text-gray-500 leading-relaxed max-w-lg">
             All documentation follows the QMS structure defined in the governance framework.
@@ -87,7 +87,7 @@ export default function DocsPage() {
         </div>
         <div className="flex items-end md:justify-end">
           <div className="text-right">
-            <div className="text-3xl font-bold" style={{ color: '#011F5B' }}>6</div>
+            <div className="text-3xl font-bold" style={{ color: '#011F5B' }}>5</div>
             <div className="text-xs text-gray-500 uppercase tracking-wide mt-1">Documents</div>
           </div>
         </div>
@@ -102,7 +102,7 @@ export default function DocsPage() {
           <div className="p-8">
             <div className="flex items-center gap-2 mb-4">
               <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500">GOV-001</span>
-              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(1,31,91,0.06)', color: '#011F5B' }}>v1.11</span>
+              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(1,31,91,0.06)', color: '#011F5B' }}>v1.12</span>
               <span className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(234,179,8,0.1)', color: '#a16207' }}>Draft</span>
             </div>
             <h2 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-[#011F5B] transition-colors">
@@ -190,39 +190,6 @@ export default function DocsPage() {
           }
         />
       </div>
-
-      {/* Onboarding checklist */}
-      <Link
-        to="/docs/onboarding"
-        className="no-underline group block rounded-xl border border-gray-100 bg-white p-6 shadow-sm hover:shadow-md transition-all duration-300"
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div
-              className="w-11 h-11 rounded-lg flex items-center justify-center"
-              style={{ backgroundColor: 'rgba(124,58,237,0.08)' }}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
-                <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
-                <polyline points="9 11 12 14 16 10" />
-              </svg>
-            </div>
-            <div>
-              <div className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-0.5">ONBOARD-001</div>
-              <h3 className="text-sm font-semibold text-gray-900 group-hover:text-[#011F5B] transition-colors">Site Onboarding Checklist</h3>
-              <p className="text-xs text-gray-500 mt-1">5-phase checklist for onboarding external research sites, from initial contact through first validated upload.</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(1,31,91,0.06)', color: '#011F5B' }}>v2.6</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#011F5B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="5" y1="12" x2="19" y2="12" />
-              <polyline points="12 5 19 12 12 19" />
-            </svg>
-          </div>
-        </div>
-      </Link>
     </div>
   );
 }

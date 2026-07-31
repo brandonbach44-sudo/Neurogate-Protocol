@@ -94,13 +94,6 @@ export default function NotFoundPage() {
           accent={PENN_BLUE}
           bg="rgba(1,31,91,0.06)"
         />
-        <QuickLink
-          to="/onboarding"
-          label="Onboarding"
-          desc="Five-phase workflow for new participating sites."
-          accent="#7c3aed"
-          bg="rgba(124,58,237,0.08)"
-        />
       </div>
     </div>
   );

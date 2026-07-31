@@ -30,11 +30,6 @@ const DOC_META: Record<string, { title: string; id: string; file: string }> = {
     id: 'SOP-GUI-001',
     file: '/docs/sop-gui.md',
   },
-  'onboarding': {
-    title: 'Site Onboarding Checklist',
-    id: 'ONBOARD-001',
-    file: '/docs/onboarding.md',
-  },
 };
 
 /* ─── Helpers ───────────────────────────────────────────────── */
