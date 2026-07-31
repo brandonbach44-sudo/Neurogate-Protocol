@@ -20,11 +20,6 @@ const DOC_META: Record<string, { title: string; id: string; file: string }> = {
     id: 'SOP-PENNSIEVE-001',
     file: '/docs/sop-pennsieve.md',
   },
-  'sop-redcap': {
-    title: 'REDCap Metadata Entry',
-    id: 'SOP-REDCAP-001',
-    file: '/docs/sop-redcap.md',
-  },
   'sop-gui': {
     title: 'Compliance Tool User Guide',
     id: 'SOP-GUI-001',

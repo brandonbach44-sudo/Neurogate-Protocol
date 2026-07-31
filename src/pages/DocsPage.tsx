@@ -87,7 +87,7 @@ export default function DocsPage() {
         </div>
         <div className="flex items-end md:justify-end">
           <div className="text-right">
-            <div className="text-3xl font-bold" style={{ color: '#011F5B' }}>5</div>
+            <div className="text-3xl font-bold" style={{ color: '#011F5B' }}>4</div>
             <div className="text-xs text-gray-500 uppercase tracking-wide mt-1">Documents</div>
           </div>
         </div>
@@ -102,7 +102,7 @@ export default function DocsPage() {
           <div className="p-8">
             <div className="flex items-center gap-2 mb-4">
               <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500">GOV-001</span>
-              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(1,31,91,0.06)', color: '#011F5B' }}>v1.12</span>
+              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(1,31,91,0.06)', color: '#011F5B' }}>v1.13</span>
               <span className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(234,179,8,0.1)', color: '#a16207' }}>Draft</span>
             </div>
             <h2 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-[#011F5B] transition-colors">
@@ -131,7 +131,7 @@ export default function DocsPage() {
           title="BIDS Data Structure"
           description="Folder hierarchy, file naming conventions, modality organization, JSON sidecars, and de-identification requirements for BIDS-compliant neural data (imaging and electrophysiology)."
           status="Draft"
-          version="v2.4"
+          version="v2.6"
           to="/docs/sop-bids"
           accent="rgba(109,211,206)"
           icon={
@@ -145,7 +145,7 @@ export default function DocsPage() {
           title="Pennsieve Upload Procedures (optional reference)"
           description="Worked example for sites that choose Pennsieve as their data infrastructure. Covers Agent CLI and web interface upload, pre-upload validation, post-upload verification, and audit logging. Sites using different infrastructure should produce an equivalent SOP."
           status="Draft"
-          version="v2.2"
+          version="v2.3"
           to="/docs/sop-pennsieve"
           accent="rgba(1,31,91)"
           icon={
@@ -157,28 +157,11 @@ export default function DocsPage() {
           }
         />
         <DocCard
-          id="SOP-REDCAP-001"
-          title="REDCap Metadata Entry"
-          description="Clinical and demographic metadata fields, epilepsy-specific controlled vocabularies (ILAE 2017), imaging acquisition metadata, and REDCap data entry workflows."
-          status="Draft"
-          version="v1.3"
-          to="/docs/sop-redcap"
-          accent="rgba(220,38,38)"
-          icon={
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-              <polyline points="14 2 14 8 20 8" />
-              <line x1="9" y1="13" x2="15" y2="13" />
-              <line x1="9" y1="17" x2="13" y2="17" />
-            </svg>
-          }
-        />
-        <DocCard
           id="SOP-GUI-001"
           title="Compliance Tool User Guide"
           description="Complete instructions for using the NeuroGate web tool: file upload, auto-detection review, metadata entry, validation, BIDS export, and audit trail management."
           status="Draft"
-          version="v1.3"
+          version="v1.4"
           to="/docs/sop-gui"
           accent="rgba(109,211,206)"
           icon={

@@ -169,8 +169,8 @@ export default function AboutPage() {
             }
           />
           <PillarCard
-            title="Four operational SOPs"
-            body="BIDS data structure, REDCap metadata entry, the tool user guide, and an optional Pennsieve upload reference. Each SOP is procedural step-by-step, with quick-reference sections for day-to-day use."
+            title="Three operational SOPs"
+            body="BIDS data structure, the tool user guide, and an optional Pennsieve upload reference. Each SOP is procedural step-by-step, with quick-reference sections for day-to-day use."
             accent={TEAL_TEXT}
             bg="rgba(109,211,206,0.16)"
             icon={
@@ -205,7 +205,7 @@ export default function AboutPage() {
           <div className="hidden md:block w-px h-10 bg-gray-200" />
           <StatBlock value="3" label="Clinical sessions" />
           <div className="hidden md:block w-px h-10 bg-gray-200" />
-          <StatBlock value="6" label="Documents" />
+          <StatBlock value="4" label="Documents" />
           <div className="hidden md:block w-px h-10 bg-gray-200" />
           <StatBlock value="100%" label="Client-side" />
         </div>
@@ -217,10 +217,10 @@ export default function AboutPage() {
           <Eyebrow>Project status</Eyebrow>
           <h2 className="text-xl font-bold text-gray-900 mt-3 mb-3">Currently in beta</h2>
           <p className="text-sm text-gray-500 leading-relaxed">
-            The framework and SOPs are being validated internally first, then with one external
-            partner site before broader adoption. The tool is functional and the documentation is
-            in draft, pending review. NeuroGate is in active development and intended to be a
-            long-lived resource for the multi-site neural data sharing community in epilepsy.
+            The tool is functional and the documentation is in draft, pending review. NeuroGate is
+            a standalone tool that any site can use independently, with no requirement to
+            coordinate through a central team. It is in active development and intended to be a
+            long-lived resource for the neural data sharing community in epilepsy.
           </p>
           <div className="mt-5 inline-flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-full" style={{ backgroundColor: 'rgba(109,211,206,0.15)', color: TEAL_TEXT }}>
             <span style={{ color: TEAL }}>&#9679;</span>
@@ -304,7 +304,7 @@ export default function AboutPage() {
             </h3>
             <p className="mt-3 text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.7)' }}>
               The tool runs in your browser with no installation. The documentation pages cover
-              the governance framework and four SOPs.
+              the governance framework and three SOPs.
             </p>
           </div>
           <div className="flex flex-col gap-3 md:items-end">

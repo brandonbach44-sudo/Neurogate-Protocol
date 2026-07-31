@@ -3,13 +3,13 @@
 | Field | Value |
 |---|---|
 | **Document ID** | SOP-PENNSIEVE-001 |
-| **Version** | 2.2 |
-| **Effective Date** | May 28, 2026 |
+| **Version** | 2.3 |
+| **Effective Date** | July 31, 2026 |
 | **Author** | Brandon Bach |
 | **Advisor** | Nishant Sinha |
 | **Status** | Draft -- Pending Advisor Review |
-| **Parent Document** | GOV-001: Regulatory and Governance Framework (v1.10) |
-| **Related Documents** | SOP-BIDS-001, SOP-REDCAP-001, ONBOARD-001 |
+| **Parent Document** | GOV-001: Regulatory and Governance Framework (v1.13) |
+| **Related Documents** | SOP-BIDS-001 |
 
 ---
 
@@ -23,11 +23,11 @@ This SOP implements specific requirements from the Regulatory and Governance Fra
 
 | SOP Section | GOV-001 Section | Requirement |
 |---|---|---|
-| 4 (Account setup, workspace access) | 2.1 (FAIR Accessible), 7.3 (Site Onboarding) | Authenticated access via Pennsieve credentials; workspace permissions verified before upload |
+| 4 (Account setup, workspace access) | 2.1 (FAIR Accessible) | Authenticated access via Pennsieve credentials; workspace permissions verified before upload |
 | 5-6 (Upload methods) | 2.4 (NIH DMSP), 2.1 (FAIR Accessible) | Data preserved on Pennsieve per NIH sharing requirements; standardized retrieval with authentication |
-| 7 (Pre-upload validation) | 2.2 (ALCOA+ Accurate), 7.1 (Pre-Upload Checklist) | BIDS validator must report zero errors; all required files present before upload |
+| 7 (Pre-upload validation) | 2.2 (ALCOA+ Accurate), 6.1 (Pre-Upload Checklist) | BIDS validator must report zero errors; all required files present before upload |
 | 8 (Post-upload verification) | 2.2 (ALCOA+ Complete) | All files verified present and intact after upload |
-| 9 (Audit and logging) | 2.2 (ALCOA+), 6 (Audit Traceability) | Upload logs attributable, contemporaneous, and available for audit |
+| 9 (Audit and logging) | 2.2 (ALCOA+), 5 (Audit Traceability) | Upload logs attributable, contemporaneous, and available for audit |
 
 ## 3. Scope
 
@@ -48,7 +48,6 @@ Before beginning, ensure you have:
 - BIDS validation passed with zero errors (see Section 7)
 - De-identification completed per SOP-BIDS-001 Section 8 (DICOM headers stripped, defacing applied, EEG headers cleaned)
 - A Pennsieve account with access to your site's workspace (see Section 5)
-- A signed data use agreement on file with the project team (per GOV-001 Section 7.3)
 - Stable internet connection (neuroimaging uploads can be large, often several GB per subject)
 
 For CLI uploads only:
@@ -253,7 +252,7 @@ pennsieve upload manifest <ManifestID>
 
 ## 8. Pre-Upload Validation
 
-Per GOV-001 Section 7.1, the following must be verified before every upload. Do not upload data that fails any of these checks.
+Per GOV-001 Section 6.1, the following must be verified before every upload. Do not upload data that fails any of these checks.
 
 ### 8.1 If Using the GUI Tool
 
@@ -296,7 +295,7 @@ After uploading (by either method), complete this checklist:
 
 ## 10. Audit and Logging Requirements
 
-Per GOV-001 Section 6, every upload must be documented in the audit trail. The following records should be retained:
+Per GOV-001 Section 5, every upload must be documented in the audit trail. The following records should be retained:
 
 | Record | Source | What to Save |
 |---|---|---|
@@ -406,3 +405,4 @@ Best for: multi-subject uploads, large files, unreliable connections (supports r
 | 2.0 | April 28, 2026 | Brandon Bach | Major update: added GOV-001 traceability section, added pre-upload validation section (GUI and manual workflows), added audit and logging requirements section (ALCOA+ records), added data use agreement to prerequisites, expanded post-upload verification, updated section numbering |
 | 2.1 | May 7, 2026 | Brandon Bach | Replaced "Penn team" references with project-role labels (project lead for site notifications, project administrator for workspace access and node ID delivery, project team for the data use agreement) for consistency with the multi-site framing; updated workspace references from "Penn Epilepsy workspace" to "your site's workspace" so each site uploads to their own dataset |
 | 2.2 | May 28, 2026 | Brandon Bach | Hygiene: updated parent document reference from GOV-001 v1.3 to v1.10 to reflect intervening framework revisions. No procedural changes. |
+| 2.3 | July 31, 2026 | Brandon Bach | Removed SOP-REDCAP-001 and ONBOARD-001 from Related Documents; removed the data use agreement prerequisite and its GOV-001 Section 7.3 citation (site onboarding deprecated). Updated Section 2 traceability table's stale GOV-001 section references (7.3 Site Onboarding removed; 7.1 and 6 renumbered to 6.1 and 5) and the corresponding in-text citations in Sections 7 and 9. Updated parent GOV-001 reference to v1.13. |
