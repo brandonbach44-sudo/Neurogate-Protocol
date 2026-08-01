@@ -34,6 +34,7 @@ import type { DetectionResult } from '../../types/detection';
 import { getEffectiveSubjectGroup } from '../../types/detection';
 import { computeBidsNames } from './bidsNaming';
 import { deidentifyEdf } from '../deidentify/edfDeidentifier';
+import { deidentifyJsonSidecar, isJsonSidecarFile } from '../deidentify/jsonSidecarDeidentifier';
 import type {
   SubjectMetadata,
   DatasetDescription,
@@ -113,6 +114,14 @@ interface FileEntry {
   edfDeidentify?: {
     dateShiftDays: number;
     anonymousSubjectId?: string;
+  };
+  /**
+   * When set, this is a scan JSON sidecar and gets known-identifying
+   * fields blanked and known date fields shifted before export. See
+   * lib/deidentify/jsonSidecarDeidentifier.ts.
+   */
+  jsonDeidentify?: {
+    dateShiftDays: number;
   };
   /** True when the file exceeds LARGE_FILE_THRESHOLD_BYTES and must be copied manually. */
   tooLarge?: boolean;
@@ -196,6 +205,9 @@ export function buildFileEntries(
       needsGzip: isUncompressedNifti(result.fileName),
       edfDeidentify: isEdfFile(result.fileName)
         ? { dateShiftDays, anonymousSubjectId: subjectId }
+        : undefined,
+      jsonDeidentify: isJsonSidecarFile(result.fileName)
+        ? { dateShiftDays }
         : undefined,
       tooLarge: result.file.size > LARGE_FILE_THRESHOLD_BYTES,
     });
@@ -289,6 +301,18 @@ export async function generateZip(
         try {
           const result = await deidentifyEdf(entry.content, entry.edfDeidentify);
           zip.file(`bids_output/${entry.path}`, await result.blob.arrayBuffer());
+        } catch (err) {
+          throw new Error(`Cannot read "${entry.content.name}" — make sure the file is stored locally (not cloud-only) and try re-uploading it. (${(err as Error).message})`);
+        }
+      } else if (entry.jsonDeidentify) {
+        // Scan JSON sidecar -- blank identifying fields and shift dates
+        // before packing. Falls back to the raw bytes if the file can't
+        // be read as text (shouldn't happen for a real sidecar, but
+        // export must not fail because of one malformed file).
+        try {
+          const text = await entry.content.text();
+          const result = deidentifyJsonSidecar(text, entry.jsonDeidentify);
+          zip.file(`bids_output/${entry.path}`, result.text);
         } catch (err) {
           throw new Error(`Cannot read "${entry.content.name}" — make sure the file is stored locally (not cloud-only) and try re-uploading it. (${(err as Error).message})`);
         }

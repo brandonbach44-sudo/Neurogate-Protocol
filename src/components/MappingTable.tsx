@@ -106,6 +106,24 @@ export default function MappingTable({
     }
   };
 
+  // ── Ordered assign (Custom timepoints only) ─────────────────────
+  // Unlike applyBulkSession (one session applied to every selected file),
+  // this pairs each selected file with a different timepoint in order:
+  // the 1st selected file gets sessionOptions[0], the 2nd gets
+  // sessionOptions[1], etc. Selection order follows the order files were
+  // checked (Set insertion order), not table row order, so the user can
+  // click files in the sequence they belong to. Extra files beyond the
+  // number of defined timepoints are left unassigned.
+  const isCustomTimepoints = structure.presetId === 'custom-timepoints';
+  const orderedAssignCount = Math.min(selectedIndices.size, sessionOptions.length);
+  const applyOrderedAssign = () => {
+    const orderedIndices = Array.from(selectedIndices).slice(0, orderedAssignCount);
+    orderedIndices.forEach((index, i) => {
+      onUpdateResult(index, { userSession: sessionOptions[i].value });
+    });
+    setSelectedIndices(new Set());
+  };
+
   return (
     <div className="w-full max-w-7xl mx-auto">
       {/* ── Summary Bar ──────────────────────────────────────── */}
@@ -238,6 +256,23 @@ export default function MappingTable({
               Apply
             </button>
           </div>
+
+          {isCustomTimepoints && selectedIndices.size > 1 && (
+            <div className="flex items-center gap-2 border-l border-blue-200 pl-4">
+              <button
+                onClick={applyOrderedAssign}
+                disabled={orderedAssignCount === 0}
+                className="text-sm px-3 py-1.5 bg-[#011F5B] text-white rounded hover:bg-[#01326e] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                title="Assigns the 1st selected file to the earliest timepoint, the 2nd to the next, and so on."
+              >
+                Assign in order to timepoints
+              </button>
+              <span className="text-xs text-blue-700">
+                ({orderedAssignCount} of {selectedIndices.size} will be assigned
+                {selectedIndices.size > orderedAssignCount ? ` — only ${sessionOptions.length} timepoints defined` : ''})
+              </span>
+            </div>
+          )}
 
           <button
             onClick={() => setSelectedIndices(new Set())}
