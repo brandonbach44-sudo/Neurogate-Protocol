@@ -156,7 +156,7 @@ export function checkRequiredFiles(
         category: 'required-files',
         severity: 'error',
         title: 'Subject has no sessions',
-        description: `Subject group "${group}" has files but none are assigned to a session. Every file needs to be assigned to ses-preimplant, ses-postimplant, or ses-postsurgery.`,
+        description: `Subject group "${group}" has files but none are assigned to a session. Every file needs to be assigned to one of this dataset's sessions.`,
         affectedFiles,
         subjectGroup: group,
         dismissable: false,

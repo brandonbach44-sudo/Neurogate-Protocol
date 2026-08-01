@@ -34,6 +34,20 @@ import { getSidecarBaseName } from './sidecarReader';
 import type { SidecarInfo } from './sidecarReader';
 import { computeBidsNames } from '../bids/bidsNaming';
 import type { EdfHeaderInfo } from './edfHeaderReader';
+import { detectCustomSession } from './customSessionDetector';
+import { resolveSessionIds, createDefaultDatasetStructure } from '../../types/sessionStructure';
+import type { DatasetStructure } from '../../types/sessionStructure';
+
+// ── Session-structure awareness (Phase 1, July 2026) ────────────────
+// Everything below that guesses a session from fuzzy keywords (filename
+// keywords, folder path keywords, neighbor CT+iEEG inference, the
+// modality-based fallback) is specific to the Implant sessions preset --
+// there's no keyword vocabulary or clinical heuristic that generalizes to
+// an arbitrary study's Custom timepoints. When the active structure is
+// Custom timepoints, those fuzzy layers are skipped for session purposes
+// (they still run for modality, which is orthogonal to session structure)
+// and detectCustomSession() does a literal match against the known
+// timepoint labels instead. See Documents/Phase1_Flexible_Folder_Structure_Spec.md.
 
 // BIDS filename and path generation lives in lib/bids/bidsNaming.ts, the
 // single source of truth shared with the exporter and the validator.
@@ -106,7 +120,16 @@ export function runDetection(
    * files whose filename and folder give no modality clues.
    */
   edfHeaderMap?: Map<string, EdfHeaderInfo>,
+  /**
+   * The dataset's chosen session structure. Defaults to the Implant
+   * sessions preset, so existing callers that don't pass this yet see
+   * identical behavior to before Phase 1.
+   */
+  structure: DatasetStructure = createDefaultDatasetStructure(),
 ): DetectionResult[] {
+  const isCustomStructure = structure.presetId === 'custom-timepoints';
+  const knownSessionIds = isCustomStructure ? resolveSessionIds(structure) : [];
+
   // ── Pass 1: Run layers 1-3 on every file individually ───────
   // These layers only need the file itself, not context from others.
 
@@ -147,7 +170,11 @@ export function runDetection(
         modality = fnResult.modality;
       }
     }
-    if (fnResult.session) {
+    // Filename session keywords ("preop", "phase1", ...) are specific to
+    // the Implant sessions preset's clinical vocabulary; skip for Custom
+    // timepoints, where a session can only be one of the exact labels the
+    // user defined (matched below via detectCustomSession).
+    if (!isCustomStructure && fnResult.session) {
       session = fnResult.session;
     }
 
@@ -174,7 +201,7 @@ export function runDetection(
             modality = scResult.modality;
           }
         }
-        if (scResult.session && !session) {
+        if (!isCustomStructure && scResult.session && !session) {
           session = scResult.session;
         }
         // Keyword-match reasons from the sidecar text (modality/session).
@@ -242,8 +269,18 @@ export function runDetection(
     if (folderResult.modality && possibleModalities.includes(folderResult.modality) && modality === 'other') {
       modality = folderResult.modality;
     }
-    if (folderResult.session && !session) {
+    if (!isCustomStructure && folderResult.session && !session) {
       session = folderResult.session;
+    }
+
+    // Custom timepoints: literal match against the exact labels the user
+    // defined in structure setup (e.g. "ses-2mo"), not a fuzzy guess.
+    if (isCustomStructure && !session) {
+      const customResult = detectCustomSession(file.relativePath, knownSessionIds);
+      if (customResult.session) {
+        session = customResult.session;
+        reasons.push(...customResult.reasons);
+      }
     }
 
     // If we still have an ambiguous .nii.gz with no modality clues,
@@ -289,14 +326,19 @@ export function runDetection(
         modality = neighborResult.modality;
       }
     }
-    if (neighborResult.session && !session) {
+    // Neighbor session inference (e.g. "CT + iEEG in group -> post-implant")
+    // encodes implant-specific clinical logic; skip for Custom timepoints.
+    if (!isCustomStructure && neighborResult.session && !session) {
       session = neighborResult.session;
     }
 
     // Layer 5: Subject grouping
     const groupResult = groupIntoSubject(file, files);
     reasons.push(...groupResult.reasons);
-    if (groupResult.session && !session) {
+    // Subject grouping's embedded session inference uses the same implant
+    // keyword vocabulary as the filename/folder detectors; skip for Custom
+    // timepoints for the same reason.
+    if (!isCustomStructure && groupResult.session && !session) {
       session = groupResult.session;
     }
 
@@ -313,7 +355,14 @@ export function runDetection(
     // during pairing (see computeBidsNames in lib/bids/bidsNaming.ts).
     // This is a deliberately low-confidence guess the user can
     // override in the mapping table.
+    // This modality-based guess ("CT/iEEG implies post-implant, everything
+    // else implies pre-implant baseline") only makes sense for the Implant
+    // sessions preset. For Custom timepoints there's no generalizable
+    // heuristic, so an unmatched file is left with session = null and
+    // surfaces as unclassified in the mapping table for the user to assign
+    // manually -- correct behavior, not a bug, for an arbitrary study.
     if (
+      !isCustomStructure &&
       !session &&
       modality !== 'other' &&
       modality !== 'sidecar-json' &&
@@ -381,7 +430,19 @@ export function runDetection(
 /**
  * Generate a summary of detection results for display in the UI.
  */
-export function generateSummary(results: DetectionResult[]): DetectionSummary {
+export function generateSummary(
+  results: DetectionResult[],
+  /**
+   * The dataset's chosen session structure. Defaults to Implant sessions
+   * so existing callers see identical behavior to before Phase 1. The
+   * missing-required-file check below (T1w at pre-implant, CT+iEEG at
+   * post-implant) is specific to that preset's known clinical protocol --
+   * Custom timepoints datasets can represent any study protocol, so no
+   * per-timepoint modality requirement is enforced for them (confirmed
+   * with Brandon 2026-07-31; see the spec doc).
+   */
+  structure: DatasetStructure = createDefaultDatasetStructure(),
+): DetectionSummary {
   const summary: DetectionSummary = {
     totalFiles: results.length,
     highConfidence: 0,
@@ -415,7 +476,8 @@ export function generateSummary(results: DetectionResult[]): DetectionSummary {
   summary.subjectGroups = Array.from(groupSet).sort();
 
   // ── Check for missing required files per subject/session ────
-  for (const group of summary.subjectGroups) {
+  // Implant-specific: skip entirely for Custom timepoints (see param doc above).
+  for (const group of structure.presetId === 'custom-timepoints' ? [] : summary.subjectGroups) {
     const groupFiles = results.filter(r => r.subjectGroup === group);
 
     // Check ses-preimplant: T1w required

@@ -19,12 +19,16 @@ import {
 } from '../types/metadata';
 import type { ScannedFile } from '../types/files';
 import { autoFillFromDroppedFiles } from '../lib/metadata';
+import type { DatasetStructure } from '../types/sessionStructure';
+import { createDefaultDatasetStructure, resolveSessionIds } from '../types/sessionStructure';
 
 interface MetadataStepProps {
   detectionResults: DetectionResult[];
   scannedFiles: ScannedFile[];
   onContinue: (metadata: MetadataOutput) => void;
   onBack: () => void;
+  /** Active session structure; used to order sessions correctly for both presets. */
+  structure?: DatasetStructure;
 }
 
 /** Everything the metadata step produces */
@@ -42,6 +46,7 @@ export default function MetadataStep({
   scannedFiles,
   onContinue,
   onBack,
+  structure = createDefaultDatasetStructure(),
 }: MetadataStepProps) {
   const [activeTab, setActiveTab] = useState<TabId>('institution');
   const [institutionConfig, setInstitutionConfig] = useState<InstitutionConfig>(createDefaultInstitutionConfig());
@@ -150,8 +155,9 @@ export default function MetadataStep({
           });
         }
 
-        // Sort sessions in clinical order
-        const sessionOrder = ['ses-preimplant', 'ses-postimplant', 'ses-postsurgery'];
+        // Sort sessions in the dataset's defined order (clinical order for
+        // Implant sessions, chronological order for Custom timepoints).
+        const sessionOrder = resolveSessionIds(structure);
         sessions.sort((a, b) =>
           sessionOrder.indexOf(a.sessionId) - sessionOrder.indexOf(b.sessionId)
         );

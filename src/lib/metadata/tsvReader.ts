@@ -61,6 +61,13 @@ function findColumn(row: Record<string, string>, possibleNames: string[]): strin
 
 /**
  * Map a raw session name to our standard Session type.
+ *
+ * The keyword checks below are specific to the Implant sessions preset and
+ * intentionally not extended for Custom timepoints -- there's no keyword
+ * vocabulary for an arbitrary study's timepoints. Instead, if the raw value
+ * already looks like a literal "ses-<label>" id (e.g. a sessions.tsv
+ * exported from a prior NeuroGate run with Custom timepoints), it's passed
+ * through as-is so auto-fill still works for that case.
  */
 function normalizeSessionName(raw: string): Session | null {
   const lower = raw.toLowerCase().replace(/[-_\s]/g, '');
@@ -73,6 +80,12 @@ function normalizeSessionName(raw: string): Session | null {
   }
   if (lower.includes('postsurg') || lower.includes('postop') || lower.includes('resection') || lower === 'ses3' || lower === 'session3') {
     return 'ses-postsurgery';
+  }
+
+  // Literal pass-through for a Custom timepoints label, e.g. "ses-2mo".
+  const trimmed = raw.trim().toLowerCase();
+  if (/^ses-\d+(d|wk|mo|yr)$/.test(trimmed)) {
+    return trimmed;
   }
 
   return null;

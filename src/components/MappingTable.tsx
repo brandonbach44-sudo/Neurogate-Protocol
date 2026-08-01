@@ -8,13 +8,13 @@ import type {
   Confidence,
 } from '../types/detection';
 import {
-  SESSIONS,
   MODALITIES,
   getEffectiveSession,
   getEffectiveModality,
   getEffectiveSubjectGroup,
 } from '../types/detection';
 import { formatFileSize } from '../types/files';
+import { getSessionOptions, createDefaultDatasetStructure, type DatasetStructure } from '../types/sessionStructure';
 
 interface MappingTableProps {
   results: DetectionResult[];
@@ -24,6 +24,8 @@ interface MappingTableProps {
   onBulkUpdateModality: (indices: number[], modality: Modality) => void;
   onContinue: () => void;
   onBack: () => void;
+  /** Active session structure; defaults to Implant sessions if not passed. */
+  structure?: DatasetStructure;
 }
 
 // ── Confidence badge colors ───────────────────────────────────────
@@ -51,12 +53,14 @@ export default function MappingTable({
   onBulkUpdateModality,
   onContinue,
   onBack,
+  structure = createDefaultDatasetStructure(),
 }: MappingTableProps) {
   const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
   const [filterMode, setFilterMode] = useState<FilterMode>('all');
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
   const [bulkSession, setBulkSession] = useState<Session | ''>('');
   const [bulkModality, setBulkModality] = useState<Modality | ''>('');
+  const sessionOptions = useMemo(() => getSessionOptions(structure), [structure]);
 
   // ── Filter results based on confidence filter ─────────────────
   const filteredIndices = useMemo(() => {
@@ -201,7 +205,7 @@ export default function MappingTable({
               aria-label="Bulk-assign session to selected files"
             >
               <option value="">Set session...</option>
-              {SESSIONS.map(s => (
+              {sessionOptions.map(s => (
                 <option key={s.value} value={s.value}>{s.label}</option>
               ))}
             </select>
@@ -333,7 +337,7 @@ export default function MappingTable({
                       `}
                     >
                       <option value="">-- Select --</option>
-                      {SESSIONS.map(s => (
+                      {sessionOptions.map(s => (
                         <option key={s.value} value={s.value}>{s.label}</option>
                       ))}
                     </select>

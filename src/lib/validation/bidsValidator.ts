@@ -65,7 +65,7 @@ export function validateBidsStructure(
         category: 'bids-structure',
         severity: 'error',
         title: 'No session assigned',
-        description: `"${result.fileName}" has been classified as ${modality} but has no session assigned. Every data file needs a session (ses-preimplant, ses-postimplant, or ses-postsurgery) to be placed in the BIDS folder structure.`,
+        description: `"${result.fileName}" has been classified as ${modality} but has no session assigned. Every data file needs a session assigned to be placed in the BIDS folder structure.`,
         affectedFiles: [result.relativePath],
         subjectGroup: group,
         dismissable: false,

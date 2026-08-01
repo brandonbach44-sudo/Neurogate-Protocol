@@ -21,6 +21,8 @@
 
 import type { DetectionResult, DetectionSummary } from '../../types/detection';
 import type { ScannedFile } from '../../types/files';
+import type { DatasetStructure } from '../../types/sessionStructure';
+import { createDefaultDatasetStructure } from '../../types/sessionStructure';
 
 const STORAGE_KEY = 'neurogate-tool-session-v1';
 const MAX_AGE_MS = 12 * 60 * 60 * 1000; // 12 hours; clear stale sessions
@@ -39,12 +41,19 @@ export interface PersistedSession {
   fileSignatures: FileSignature[];
   detectionResults: PersistedDetectionResult[];
   summary: DetectionSummary;
+  /**
+   * Phase 1 addition (July 2026). Optional so sessions saved before this
+   * field existed still parse; callers should fall back to the default
+   * (Implant sessions) structure when it's missing.
+   */
+  structure?: DatasetStructure;
 }
 
 /** Persist the current detection state. Safe to call on every change. */
 export function saveToolSession(
   detectionResults: DetectionResult[],
   summary: DetectionSummary,
+  structure: DatasetStructure = createDefaultDatasetStructure(),
 ): void {
   if (typeof sessionStorage === 'undefined') return;
   if (detectionResults.length === 0) return;
@@ -64,6 +73,7 @@ export function saveToolSession(
         return rest;
       }),
       summary,
+      structure,
     };
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(persisted));
   } catch {
