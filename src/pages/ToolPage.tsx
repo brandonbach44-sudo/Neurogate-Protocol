@@ -8,6 +8,7 @@ import ExportStep from '../components/ExportStep';
 import AuditLogPanel from '../components/AuditLogPanel';
 import NeuralParticles from '../components/NeuralParticles';
 import Wordmark from '../components/Wordmark';
+import StructureSetupStep from '../components/StructureSetupStep';
 import type { MetadataOutput } from '../components/MetadataStep';
 import type { ScannedFile } from '../types/files';
 import type { DetectionResult, DetectionSummary, Session, Modality } from '../types/detection';
@@ -15,6 +16,8 @@ import { getEffectiveSession, getEffectiveModality } from '../types/detection';
 import { runDetection, generateSummary, readJsonSidecars, readEdfHeaders } from '../lib/detection';
 import { computeBidsNames } from '../lib/bids/bidsNaming';
 import { useAudit, downloadAuditJson } from '../lib/audit';
+import type { DatasetStructure } from '../types/sessionStructure';
+import { createDefaultDatasetStructure } from '../types/sessionStructure';
 import {
   saveToolSession,
   loadToolSession,
@@ -24,10 +27,11 @@ import {
   type PersistedSession,
 } from '../lib/session/toolSession';
 
-type AppStep = 'drop' | 'scanning' | 'mapping' | 'metadata' | 'validation' | 'export';
+type AppStep = 'structure' | 'drop' | 'scanning' | 'mapping' | 'metadata' | 'validation' | 'export';
 
 function ToolPage() {
-  const [step, setStep] = useState<AppStep>('drop');
+  const [step, setStep] = useState<AppStep>('structure');
+  const [datasetStructure, setDatasetStructure] = useState<DatasetStructure>(createDefaultDatasetStructure());
   const [scannedFiles, setScannedFiles] = useState<ScannedFile[]>([]);
   const [detectionResults, setDetectionResults] = useState<DetectionResult[]>([]);
   const [summary, setSummary] = useState<DetectionSummary | null>(null);
@@ -40,7 +44,14 @@ function ToolPage() {
   // ── Save/resume: on mount, check for a sessionStorage-saved session ──
   useEffect(() => {
     const saved = loadToolSession();
-    if (saved) setSavedSession(saved);
+    if (saved) {
+      setSavedSession(saved);
+      // A saved session implies a structure choice was already made; skip
+      // straight to the drop zone (where the restore banner lives) instead
+      // of asking again.
+      if (saved.structure) setDatasetStructure(saved.structure);
+      setStep('drop');
+    }
   }, []);
 
   // ── Save/resume: persist on every detection-state change ──────────────
@@ -48,9 +59,9 @@ function ToolPage() {
   // step contents. SessionStorage clears when the tab closes.
   useEffect(() => {
     if (detectionResults.length > 0 && summary) {
-      saveToolSession(detectionResults, summary);
+      saveToolSession(detectionResults, summary, datasetStructure);
     }
-  }, [detectionResults, summary]);
+  }, [detectionResults, summary, datasetStructure]);
 
   const handleDiscardSavedSession = useCallback(() => {
     clearToolSession();
@@ -70,6 +81,7 @@ function ToolPage() {
       if (restored) {
         setDetectionResults(computeBidsNames(restored));
         setSummary(savedSession.summary);
+        if (savedSession.structure) setDatasetStructure(savedSession.structure);
         setStep('mapping');
         setSavedSession(null);
         audit.addEntry(
@@ -98,8 +110,8 @@ function ToolPage() {
         readJsonSidecars(files),
         readEdfHeaders(files),
       ]);
-      const results = runDetection(files, sidecarMap, edfHeaderMap);
-      const sum = generateSummary(results);
+      const results = runDetection(files, sidecarMap, edfHeaderMap, datasetStructure);
+      const sum = generateSummary(results, datasetStructure);
       setDetectionResults(results);
       setSummary(sum);
       setStep('mapping');
@@ -114,7 +126,7 @@ function ToolPage() {
         sum.subjectGroups,
       );
     }, 500);
-  }, [audit, savedSession]);
+  }, [audit, savedSession, datasetStructure]);
 
   // ── Update a single detection result (user correction) ────────
   const handleUpdateResult = useCallback((index: number, updates: Partial<DetectionResult>) => {
@@ -137,10 +149,10 @@ function ToolPage() {
       // Recompute BIDS names so the preview, run- entities, and sidecar
       // pairing stay correct after the change.
       const renamed = computeBidsNames(next);
-      setSummary(generateSummary(renamed));
+      setSummary(generateSummary(renamed, datasetStructure));
       return renamed;
     });
-  }, [audit]);
+  }, [audit, datasetStructure]);
 
   // ── Bulk update session for selected files ────────────────────
   const handleBulkUpdateSession = useCallback((indices: number[], session: Session) => {
@@ -150,11 +162,11 @@ function ToolPage() {
         next[i] = { ...next[i], userSession: session };
       }
       const renamed = computeBidsNames(next);
-      setSummary(generateSummary(renamed));
+      setSummary(generateSummary(renamed, datasetStructure));
       return renamed;
     });
     audit.logBulkSessionApplied(indices.length, session);
-  }, [audit]);
+  }, [audit, datasetStructure]);
 
   // ── Bulk update modality for selected files ───────────────────
   const handleBulkUpdateModality = useCallback((indices: number[], modality: Modality) => {
@@ -164,11 +176,11 @@ function ToolPage() {
         next[i] = { ...next[i], userModality: modality };
       }
       const renamed = computeBidsNames(next);
-      setSummary(generateSummary(renamed));
+      setSummary(generateSummary(renamed, datasetStructure));
       return renamed;
     });
     audit.logBulkModalityApplied(indices.length, modality);
-  }, [audit]);
+  }, [audit, datasetStructure]);
 
   // ── Handle metadata completion ────────────────────────────────
   const handleMetadataComplete = useCallback((metadata: MetadataOutput) => {
@@ -204,11 +216,12 @@ function ToolPage() {
   // ── Get current step number for the indicator ─────────────────
   const stepNumber = (s: AppStep): number => {
     switch (s) {
-      case 'drop': case 'scanning': return 1;
-      case 'mapping': return 2;
-      case 'metadata': return 3;
-      case 'validation': return 4;
-      case 'export': return 5;
+      case 'structure': return 1;
+      case 'drop': case 'scanning': return 2;
+      case 'mapping': return 3;
+      case 'metadata': return 4;
+      case 'validation': return 5;
+      case 'export': return 6;
     }
   };
 
@@ -244,10 +257,11 @@ function ToolPage() {
           {/* Mobile-only compact step label */}
           <div className="flex md:hidden flex-col items-end text-right">
             <span className="text-[10px] uppercase tracking-widest text-blue-200">
-              Step {stepNumber(step)} of 5
+              Step {stepNumber(step)} of 6
             </span>
             <span className="text-xs font-semibold text-[#6DD3CE]">
-              {step === 'drop' || step === 'scanning' ? 'Drop Files' :
+              {step === 'structure' ? 'Structure' :
+                step === 'drop' || step === 'scanning' ? 'Drop Files' :
                 step === 'mapping' ? 'Mapping' :
                 step === 'metadata' ? 'Metadata' :
                 step === 'validation' ? 'Validate' :
@@ -258,11 +272,12 @@ function ToolPage() {
           {/* Desktop-only step indicator */}
           <div className="hidden md:flex items-center text-sm">
               {[
-                { num: 1, label: 'Drop Files' },
-                { num: 2, label: 'Mapping' },
-                { num: 3, label: 'Metadata' },
-                { num: 4, label: 'Validate' },
-                { num: 5, label: 'Export' },
+                { num: 1, label: 'Structure' },
+                { num: 2, label: 'Drop Files' },
+                { num: 3, label: 'Mapping' },
+                { num: 4, label: 'Metadata' },
+                { num: 5, label: 'Validate' },
+                { num: 6, label: 'Export' },
               ].map((s, i) => {
                 const current = stepNumber(step);
                 const isCompleted = current > s.num;
@@ -340,7 +355,18 @@ function ToolPage() {
         {/* Screen-reader page title (the visible brand mark is the wordmark) */}
         <h1 className="sr-only">NeuroGate Protocol: neural data organization tool</h1>
 
-        {/* Step 1: Drop zone */}
+        {/* Step 1: Dataset structure setup */}
+        {step === 'structure' && (
+          <StructureSetupStep
+            initialStructure={datasetStructure}
+            onContinue={(structure) => {
+              setDatasetStructure(structure);
+              setStep('drop');
+            }}
+          />
+        )}
+
+        {/* Step 2: Drop zone */}
         {step === 'drop' && (
           <div>
             {/* Hero section */}
@@ -462,6 +488,7 @@ function ToolPage() {
             onBulkUpdateModality={handleBulkUpdateModality}
             onContinue={() => setStep('metadata')}
             onBack={handleStartOver}
+            structure={datasetStructure}
           />
         )}
 
@@ -472,6 +499,7 @@ function ToolPage() {
             scannedFiles={scannedFiles}
             onContinue={handleMetadataComplete}
             onBack={() => setStep('mapping')}
+            structure={datasetStructure}
           />
         )}
 

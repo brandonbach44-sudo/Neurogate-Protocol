@@ -9,12 +9,23 @@
  */
 
 // ── Clinical Sessions ──────────────────────────────────────────────
-// These are the three phases of epilepsy surgical evaluation.
-// They are NOT numbered — they use clinical labels per SOP-BIDS-001.
+// A session is a BIDS session id string (e.g. "ses-preimplant",
+// "ses-2mo"). Which ids are valid for a given dataset depends on the
+// dataset's chosen session structure (see types/sessionStructure.ts,
+// added Phase 1 July 2026) -- this type does not enumerate them, so
+// both the built-in Implant sessions preset and user-defined Custom
+// timepoints can share the same Session type throughout the app.
+//
+// ImplantSession names the three specific ids used by the Implant
+// sessions preset (NeuroGate's original built-in structure, not a
+// universal BIDS standard). Code that specifically means "one of the
+// three implant sessions" should use ImplantSession; general detection
+// results, validation, and export code should use the wider Session.
 
-export type Session = 'ses-preimplant' | 'ses-postimplant' | 'ses-postsurgery';
+export type ImplantSession = 'ses-preimplant' | 'ses-postimplant' | 'ses-postsurgery';
+export type Session = string;
 
-export const SESSIONS: { value: Session; label: string; description: string }[] = [
+export const SESSIONS: { value: ImplantSession; label: string; description: string }[] = [
   { value: 'ses-preimplant', label: 'Pre-Implant', description: 'Baseline pre-surgical evaluation' },
   { value: 'ses-postimplant', label: 'Post-Implant', description: 'Intracranial monitoring (CT + iEEG)' },
   { value: 'ses-postsurgery', label: 'Post-Surgery', description: 'Post-resection imaging' },

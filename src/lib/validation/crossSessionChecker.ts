@@ -52,7 +52,7 @@ export function checkCrossSessionConsistency(
         category: 'cross-session',
         severity: 'info',
         title: `Single session only: ${sessionName}`,
-        description: `Subject "${group}" only has data for one session (${sessionName}). This is fine if you're only uploading partial data, but a complete epilepsy evaluation typically includes multiple sessions. You can add more sessions later.`,
+        description: `Subject "${group}" only has data for one session (${sessionName}). This is fine if you're only uploading partial data, but longitudinal studies typically include multiple sessions. You can add more sessions later.`,
         affectedFiles,
         subjectGroup: group,
         dismissable: true,
