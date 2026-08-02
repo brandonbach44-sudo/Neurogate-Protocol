@@ -91,7 +91,26 @@ function unitInfo(unit: TimepointUnit) {
  * bounded numeric input and unit comes from a fixed dropdown, so a site
  * name or PI name cannot end up here.
  */
+/**
+ * Defense-in-depth guard for the label generator. The Step 2 UI only ever
+ * feeds this a bounded, non-negative integer from a numeric input, so this
+ * should never fire in normal use -- but the engine itself had no check of
+ * its own, so a caller bypassing the UI (a future API path, a bug
+ * upstream) could silently produce an invalid BIDS label: a negative
+ * number yields a double-dash ("ses--3mo") and a non-integer yields a
+ * disallowed "." character ("ses-2.5mo"), since BIDS entity values must be
+ * alphanumeric only. Found via adversarial testing 2026-08-02.
+ */
+function assertValidTimepointNumber(n: number): void {
+  if (!Number.isInteger(n) || n < 0) {
+    throw new Error(
+      `Invalid custom timepoint number ${n}: must be a non-negative integer.`,
+    );
+  }
+}
+
 export function buildCustomSessionLabel(tp: CustomTimepoint): string {
+  assertValidTimepointNumber(tp.number);
   return `ses-${tp.number}${unitInfo(tp.unit).abbrev}`;
 }
 

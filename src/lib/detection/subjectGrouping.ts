@@ -46,6 +46,25 @@ const SUBJECT_ID_PATTERNS: RegExp[] = [
 ];
 
 /**
+ * True for a bare 4-digit number that falls in a plausible calendar-year
+ * range (1900-2099). Scan filenames very commonly embed the study/
+ * acquisition year (e.g. "scan_2026_alpha.nii.gz"), and that year is far
+ * more likely to appear in a flat (no-folder) drop than a real subject ID
+ * is. Used to guard the last-resort generic \b(\d{3,4})\b pattern below,
+ * which otherwise happily grabs the year and silently merges two
+ * different patients' files into one fake subject group. Bug found and
+ * confirmed 2026-08-02 via adversarial testing: two unrelated flat files
+ * sharing only a study year ("scan_2026_alpha.nii.gz",
+ * "scan_2026_beta.nii.gz") were both grouped under subject "2026".
+ * 3-digit matches are unaffected since no calendar year is 3 digits.
+ */
+function looksLikeCalendarYear(value: string): boolean {
+  if (!/^\d{4}$/.test(value)) return false;
+  const year = Number(value);
+  return year >= 1900 && year <= 2099;
+}
+
+/**
  * Extract subject ID from a filename using common patterns.
  */
 function extractSubjectIdFromFilename(fileName: string): string | null {
@@ -57,11 +76,22 @@ function extractSubjectIdFromFilename(fileName: string): string | null {
   // Without this, "_001_" won't match \b(\d{3,4})\b because _ is a word char.
   const normalized = nameWithoutExt.replace(/_/g, ' ');
 
-  for (const pattern of SUBJECT_ID_PATTERNS) {
-    const match = normalized.match(pattern);
-    if (match) {
-      return match[1];
+  for (let i = 0; i < SUBJECT_ID_PATTERNS.length; i++) {
+    const match = normalized.match(SUBJECT_ID_PATTERNS[i]);
+    if (!match) continue;
+
+    // The last pattern in the list is the generic "any bare 3-4 digit
+    // number" last resort. When it matches a 4-digit number that looks
+    // like a calendar year, skip it rather than risk merging unrelated
+    // patients -- a false "ungrouped" split is far safer than a silent
+    // false merge. Skipping this pattern's match still lets us try
+    // nothing further (it's already last), so we fall through to null.
+    const isLastResortGenericNumber = i === SUBJECT_ID_PATTERNS.length - 1;
+    if (isLastResortGenericNumber && looksLikeCalendarYear(match[1])) {
+      continue;
     }
+
+    return match[1];
   }
   return null;
 }
