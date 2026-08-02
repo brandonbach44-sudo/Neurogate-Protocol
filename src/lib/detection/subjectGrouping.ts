@@ -151,12 +151,48 @@ function getSessionFromSubfolder(relativePath: string): { session: Session | nul
 }
 
 /**
+ * True if a folder name looks like a session/timepoint label rather than
+ * a patient identifier. Used to disambiguate the single-top-level-folder
+ * case in groupIntoSubject below: "PatientFolder/ses-X/modality/file"
+ * (one patient, several session subfolders) and
+ * "StudyFolder/Patient01/session/modality/file" wrapped one level
+ * shallower, i.e. "Patient01/session/modality/file" with no separate
+ * study-root wrapper, look identical in raw folder depth -- both have
+ * exactly one top-level folder and multiple distinct second-level
+ * folders. Only the subfolder NAMES tell them apart. Bug found and
+ * confirmed 2026-08-02: without this check, a single patient dropped
+ * alone with the standard session-subfolder structure was being split
+ * into one fake "subject" per session folder. Multi-patient drops (2+
+ * top-level folders) never hit this code path and were unaffected.
+ *
+ * @param customSessionIds When set (Custom timepoints datasets), matches
+ *   exactly against the dataset's own defined labels instead of the
+ *   implant fuzzy vocabulary, since custom labels have no fixed keyword
+ *   set to pattern-match against.
+ */
+function looksLikeSessionFolder(folderName: string, customSessionIds?: string[]): boolean {
+  if (customSessionIds && customSessionIds.length > 0) {
+    return customSessionIds.some(id => id.toLowerCase() === folderName.toLowerCase());
+  }
+  const normalized = folderName.replace(/_/g, ' ').toLowerCase();
+  return /\b(pre[-\s]?implant|preimplant|pre[-\s]?op|preop|pre[-\s]?surg|baseline|post[-\s]?implant|postimplant|implant|monitoring|ictal|post[-\s]?surg|postsurg|post[-\s]?op|postop|resection|post[-\s]?surgery|phase[-\s]?[123]|session[-\s]?[123]|ses[-\s]?[123])\b/i.test(normalized)
+    || /^ses[-_]\w+$/i.test(folderName.trim());
+}
+
+/**
  * Group a single file into a subject cluster and try to infer
  * session from the folder structure.
+ *
+ * @param customSessionIds A Custom timepoints dataset's defined session
+ *   ids (e.g. ["ses-0mo", "ses-2mo"]), used only by
+ *   looksLikeSessionFolder's single-top-folder disambiguation above.
+ *   Omit for the Implant sessions preset, where the fuzzy vocabulary
+ *   already covers it.
  */
 export function groupIntoSubject(
   file: ScannedFile,
   allFiles: ScannedFile[],
+  customSessionIds?: string[],
 ): SubjectGroupResult {
   const reasons: DetectionReason[] = [];
   let groupName: string;
@@ -204,7 +240,18 @@ export function groupIntoSubject(
         .filter((f): f is string => f !== null)
     );
 
-    if (secondLevelFolders.size > 1) {
+    // Multiple second-level folders alone is ambiguous: it's consistent
+    // both with "several patient folders under a shared study root" AND
+    // "one patient with several session subfolders." Only treat it as
+    // multiple patients when the second-level folder names DON'T all
+    // look like session labels -- if they do, fall through to the
+    // single-top-folder branch below, which correctly treats topFolder
+    // as the one patient and looks for a session at the second level.
+    const allSecondLevelLookLikeSessions =
+      secondLevelFolders.size > 0 &&
+      [...secondLevelFolders].every(f => looksLikeSessionFolder(f, customSessionIds));
+
+    if (secondLevelFolders.size > 1 && !allSecondLevelLookLikeSessions) {
       // Multiple second-level folders → likely patient folders under a study parent
       const secondFolder = getSecondLevelFolder(file.relativePath);
       if (secondFolder) {
