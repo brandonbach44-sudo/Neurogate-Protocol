@@ -1,0 +1,14 @@
+node_modules
+server/node_modules
+dist
+demo-data
+docs
+public/docs
+.git
+.github
+*.log
+.env
+.env.local
+regression_expected.json
+regression_deidentify_expected.json
+baseline_results.json
