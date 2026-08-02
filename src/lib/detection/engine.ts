@@ -35,6 +35,8 @@ import type { SidecarInfo } from './sidecarReader';
 import { computeBidsNames } from '../bids/bidsNaming';
 import type { EdfHeaderInfo } from './edfHeaderReader';
 import { detectCustomSession } from './customSessionDetector';
+import { assignDateClusterSessions } from './dateClusterDetector';
+import type { DatedFile, DateClusterAssignment } from './dateClusterDetector';
 import { resolveSessionIds, createDefaultDatasetStructure } from '../../types/sessionStructure';
 import type { DatasetStructure } from '../../types/sessionStructure';
 
@@ -129,6 +131,54 @@ export function runDetection(
 ): DetectionResult[] {
   const isCustomStructure = structure.presetId === 'custom-timepoints';
   const knownSessionIds = isCustomStructure ? resolveSessionIds(structure) : [];
+
+  // ── Pass 0 (Custom timepoints only): date-cluster session assignment ──
+  // Layer A (spec Section 3.1). Needs full-subject visibility across all
+  // of a subject's files before any single file's session can be decided,
+  // so it runs once up front rather than inline in the per-file passes
+  // below. Skipped entirely for the Implant sessions preset.
+  const dateClusterAssignments = new Map<string, DateClusterAssignment>();
+  const dateClusterMismatchByFile = new Map<string, DetectionReason>();
+
+  if (isCustomStructure && knownSessionIds.length > 0) {
+    const subjectDatedFiles = new Map<string, DatedFile[]>();
+
+    for (const file of files) {
+      // Subject grouping is a pure function of filename/path patterns, so
+      // it's safe to compute here even though Pass 2 below computes it
+      // again per file for the final result -- cheap either way.
+      const groupResult = groupIntoSubject(file, files);
+
+      const lowerName = file.name.toLowerCase();
+      const isJsonFile = lowerName.endsWith('.json');
+      const isEdfFile = lowerName.endsWith('.edf') || lowerName.endsWith('.bdf');
+
+      let date: Date | null = null;
+      if (isEdfFile && edfHeaderMap) {
+        date = edfHeaderMap.get(file.name)?.acquisitionDate ?? null;
+      } else if (!isJsonFile && sidecarMap) {
+        date = sidecarMap.get(getSidecarBaseName(file.name))?.acquisitionDate ?? null;
+      }
+
+      if (date) {
+        const bucket = subjectDatedFiles.get(groupResult.groupName) ?? [];
+        bucket.push({ fileName: file.name, date });
+        subjectDatedFiles.set(groupResult.groupName, bucket);
+      }
+    }
+
+    for (const datedFiles of subjectDatedFiles.values()) {
+      const result = assignDateClusterSessions(datedFiles, knownSessionIds);
+      for (const [fileName, assignment] of result.assignments) {
+        dateClusterAssignments.set(fileName, assignment);
+      }
+      if (result.mismatchReason) {
+        for (const df of datedFiles) {
+          dateClusterMismatchByFile.set(df.fileName, result.mismatchReason);
+        }
+      }
+    }
+  }
 
   // ── Pass 1: Run layers 1-3 on every file individually ───────
   // These layers only need the file itself, not context from others.
@@ -280,6 +330,25 @@ export function runDetection(
       if (customResult.session) {
         session = customResult.session;
         reasons.push(...customResult.reasons);
+      }
+    }
+
+    // Custom timepoints Layer A fallback: date-cluster chronological
+    // ordering (see dateClusterDetector.ts / Pass 0 above). Only consulted
+    // when the literal label match just above found nothing. If this
+    // subject's date-cluster count didn't match its timepoint count, this
+    // surfaces the mismatch reason instead of silently leaving the file
+    // unexplained.
+    if (isCustomStructure && !session) {
+      const dateAssignment = dateClusterAssignments.get(file.name);
+      if (dateAssignment) {
+        session = dateAssignment.session;
+        reasons.push(...dateAssignment.reasons);
+      } else {
+        const mismatch = dateClusterMismatchByFile.get(file.name);
+        if (mismatch) {
+          reasons.push(mismatch);
+        }
       }
     }
 

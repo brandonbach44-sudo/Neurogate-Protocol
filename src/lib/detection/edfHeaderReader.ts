@@ -30,6 +30,15 @@ export interface EdfHeaderInfo {
   startDate: string;
   /** Start time string as stored in the header (hh.mm.ss). */
   startTime: string;
+  /**
+   * Parsed Date from startDate+startTime, or null if either field is
+   * blank/unparseable. EDF stores a 2-digit year with no century marker;
+   * assumed 20xx throughout, since NeuroGate targets recent clinical
+   * data, not legacy archives. Used only by the Custom timepoints
+   * date-cluster detector (dateClusterDetector.ts) -- unrelated to the
+   * existing informational display of startDate/startTime.
+   */
+  acquisitionDate: Date | null;
   /** Total number of signal channels in the recording. */
   numSignals: number;
   /** Raw signal labels read from the signal header, trimmed of whitespace. */
@@ -163,6 +172,31 @@ function detectPhi(patientId: string, _recordingId: string): boolean {
   return /[a-wyz]/i.test(patientId);
 }
 
+/**
+ * Parse EDF's "dd.mm.yy" start date + "hh.mm.ss" start time fields into a
+ * real Date. EDF has no century marker for the 2-digit year; NeuroGate's
+ * clinical data is all recent, so this always assumes 20xx rather than
+ * trying to guess a pivot year. Returns null for blank fields (all-space
+ * placeholder) or anything that doesn't parse as a valid date.
+ */
+function parseEdfDate(startDate: string, startTime: string): Date | null {
+  const dateMatch = startDate.trim().match(/^(\d{2})\.(\d{2})\.(\d{2})$/);
+  if (!dateMatch) return null;
+  const [, dd, mm, yy] = dateMatch;
+
+  let hh = 0, min = 0, ss = 0;
+  const timeMatch = startTime.trim().match(/^(\d{2})\.(\d{2})\.(\d{2})$/);
+  if (timeMatch) {
+    hh = Number(timeMatch[1]);
+    min = Number(timeMatch[2]);
+    ss = Number(timeMatch[3]);
+  }
+
+  const year = 2000 + Number(yy);
+  const date = new Date(year, Number(mm) - 1, Number(dd), hh, min, ss);
+  return isNaN(date.getTime()) ? null : date;
+}
+
 // ── EDF Header Parser ─────────────────────────────────────────────
 
 /**
@@ -202,6 +236,7 @@ function parseEdfHeader(buffer: ArrayBuffer): EdfHeaderInfo {
 
   const modalityHint = inferModalityFromLabels(signalLabels);
   const phiLikely = detectPhi(patientId, recordingId);
+  const acquisitionDate = parseEdfDate(startDate, startTime);
 
   return {
     patientId,
@@ -212,6 +247,7 @@ function parseEdfHeader(buffer: ArrayBuffer): EdfHeaderInfo {
     signalLabels,
     modalityHint,
     phiLikely,
+    acquisitionDate,
   };
 }
 
