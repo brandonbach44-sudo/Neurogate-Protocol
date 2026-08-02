@@ -17,7 +17,7 @@ import { finalizeReport } from '../../types/validation';
 import { getEffectiveModality } from '../../types/detection';
 
 import { validateBidsStructure } from './bidsValidator';
-import { scanForPhi } from './phiScanner';
+import { scanForPhi, scanSidecarContentForPhi } from './phiScanner';
 import { checkRequiredFiles } from './requiredFilesChecker';
 import { checkCrossSessionConsistency } from './crossSessionChecker';
 
@@ -35,7 +35,7 @@ export interface ValidationInput {
  *
  * Returns a ValidationReport with all issues found across all validators.
  */
-export function runValidation(input: ValidationInput): ValidationReport {
+export async function runValidation(input: ValidationInput): Promise<ValidationReport> {
   const allIssues: ValidationIssue[] = [];
 
   // ── 1. BIDS Structure ─────────────────────────────────────
@@ -45,6 +45,12 @@ export function runValidation(input: ValidationInput): ValidationReport {
   // ── 2. PHI Scanning ───────────────────────────────────────
   const phiIssues = scanForPhi(input.detectionResults, input.subjects);
   allIssues.push(...phiIssues);
+
+  // ── 2b. PHI scanning of sidecar JSON free-text content ─────
+  // (async: reads sidecar file contents, catches PHI in fields the
+  // automatic de-identifier deliberately leaves alone, e.g. SeriesDescription)
+  const sidecarPhiIssues = await scanSidecarContentForPhi(input.detectionResults);
+  allIssues.push(...sidecarPhiIssues);
 
   // ── 3. Required Files ─────────────────────────────────────
   const requiredIssues = checkRequiredFiles(input.detectionResults, input.subjects);

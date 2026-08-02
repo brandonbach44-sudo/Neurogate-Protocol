@@ -52,20 +52,27 @@ export default function ValidationStep({
 
   // ── Run validation on mount ───────────────────────────────
   useEffect(() => {
+    let cancelled = false;
+
     // Small delay so the UI shows the running state
     const timer = setTimeout(() => {
-      const result = runValidation({
+      runValidation({
         detectionResults,
         subjects,
         datasetDescription,
         defacingAttestation,
         institutionConfig,
+      }).then((result) => {
+        if (cancelled) return;
+        setReport(result);
+        setIsRunning(false);
       });
-      setReport(result);
-      setIsRunning(false);
     }, 800);
 
-    return () => clearTimeout(timer);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
   }, []);
 
   // ── Rerun validation ──────────────────────────────────────
@@ -73,15 +80,16 @@ export default function ValidationStep({
     setIsRunning(true);
     setDismissedIds(new Set());
     setTimeout(() => {
-      const result = runValidation({
+      runValidation({
         detectionResults,
         subjects,
         datasetDescription,
         defacingAttestation,
         institutionConfig,
+      }).then((result) => {
+        setReport(result);
+        setIsRunning(false);
       });
-      setReport(result);
-      setIsRunning(false);
     }, 500);
   };
 

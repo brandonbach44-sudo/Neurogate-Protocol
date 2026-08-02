@@ -31,7 +31,7 @@
 
 // ── Fields blanked outright (known-identifying, not needed for BIDS) ──
 
-const BLANK_STRING_FIELDS = [
+export const BLANK_STRING_FIELDS = [
   'PatientName',
   'PatientID',
   'PatientBirthDate',
@@ -52,7 +52,7 @@ const BLANK_STRING_FIELDS = [
 
 // ── Fields shifted (not blanked) by the subject's date-shift offset ───
 
-const DATE_FIELDS = [
+export const DATE_FIELDS = [
   'AcquisitionDateTime',
   'AcquisitionDate',
   'StudyDate',
