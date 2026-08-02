@@ -1,5 +1,5 @@
 /**
- * SVG icons for the Epilepsy Data Uploader.
+ * SVG icons for the NeuroGate neural data uploader.
  * Science/neurology themed where appropriate.
  */
 

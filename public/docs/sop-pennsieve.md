@@ -3,19 +3,19 @@
 | Field | Value |
 |---|---|
 | **Document ID** | SOP-PENNSIEVE-001 |
-| **Version** | 2.4 |
-| **Effective Date** | July 31, 2026 |
+| **Version** | 2.5 |
+| **Effective Date** | August 1, 2026 |
 | **Author** | Brandon Bach |
 | **Advisor** | Nishant Sinha |
 | **Status** | Draft -- Pending Advisor Review |
-| **Parent Document** | GOV-001: Regulatory and Governance Framework (v1.13) |
+| **Parent Document** | GOV-001: Regulatory and Governance Framework (v1.14) |
 | **Related Documents** | SOP-BIDS-001 |
 
 ---
 
 ## 1. Purpose
 
-This Standard Operating Procedure (SOP) provides step-by-step instructions for uploading BIDS-formatted neuroimaging data to the Pennsieve platform. It covers two upload methods: the Pennsieve web interface (drag and drop) and the Pennsieve Agent command-line interface (CLI). This document is intended for anyone uploading neural data to Pennsieve as part of a multi-site epilepsy data sharing effort.
+This Standard Operating Procedure (SOP) provides step-by-step instructions for uploading BIDS-formatted neural data to the Pennsieve platform. It covers two upload methods: the Pennsieve web interface (drag and drop) and the Pennsieve Agent command-line interface (CLI). This document is intended for anyone uploading neural data to Pennsieve as part of a multi-site data sharing effort. NeuroGate itself does not upload to or otherwise interact with Pennsieve; this SOP is a reference for sites that separately choose Pennsieve as their data infrastructure.
 
 ## 2. Governance Traceability
 
@@ -407,3 +407,4 @@ Best for: multi-subject uploads, large files, unreliable connections (supports r
 | 2.2 | May 28, 2026 | Brandon Bach | Hygiene: updated parent document reference from GOV-001 v1.3 to v1.10 to reflect intervening framework revisions. No procedural changes. |
 | 2.3 | July 31, 2026 | Brandon Bach | Removed SOP-REDCAP-001 and ONBOARD-001 from Related Documents; removed the data use agreement prerequisite and its GOV-001 Section 7.3 citation (site onboarding deprecated). Updated Section 2 traceability table's stale GOV-001 section references (7.3 Site Onboarding removed; 7.1 and 6 renumbered to 6.1 and 5) and the corresponding in-text citations in Sections 7 and 9. Updated parent GOV-001 reference to v1.13. |
 | 2.4 | July 31, 2026 | Brandon Bach | Section 1 Purpose: rewrote the audience statement to describe anyone uploading to Pennsieve rather than "researchers and data managers at participating sites," removing the last institutional-role framing from this SOP. |
+| 2.5 | August 1, 2026 | Brandon Bach | Section 1 Purpose: removed remaining "epilepsy" domain framing and "neuroimaging" wording (now "neural data" for consistency with the other SOPs); added a sentence clarifying NeuroGate itself does not upload to or interact with Pennsieve, this SOP is a reference for sites that separately choose it. Updated parent GOV-001 reference to v1.14. |

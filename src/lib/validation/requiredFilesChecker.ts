@@ -2,7 +2,7 @@
  * Required Files Checker
  *
  * Verifies that each subject/session combination has the required
- * files per the epilepsy BIDS specification:
+ * files for the Implant sessions preset:
  *
  * ses-preimplant:
  *   - Required: T1w MRI (anat/)

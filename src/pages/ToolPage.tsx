@@ -249,7 +249,7 @@ function ToolPage() {
             <div>
               <Wordmark size="lg" />
               <p className="hidden md:block text-sm mt-1 text-blue-200">
-                Multi-site neural data compliance tool for epilepsy
+                Multi-site neural data compliance tool
               </p>
             </div>
           </Link>

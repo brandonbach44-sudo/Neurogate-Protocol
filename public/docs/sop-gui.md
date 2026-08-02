@@ -3,11 +3,11 @@
 | Field | Value |
 |---|---|
 | **Document ID** | SOP-GUI-001 |
-| **Version** | 1.5 |
-| **Effective Date** | 2026-07-31 |
+| **Version** | 1.6 |
+| **Effective Date** | 2026-08-01 |
 | **Author** | Brandon Bach |
 | **Status** | Draft |
-| **Parent Framework** | GOV-001 Regulatory Governance Framework v1.13 |
+| **Parent Framework** | GOV-001 Regulatory Governance Framework v1.14 |
 | **Related Documents** | SOP-BIDS-001, SOP-PENNSIEVE-001 |
 
 ---
@@ -27,14 +27,14 @@ This SOP implements the following GOV-001 requirements:
 | 4.1 FAIR Principles | Data must be structured in machine-readable, interoperable formats | Tool enforces BIDS folder structure and JSON sidecar generation |
 | 4.2 ALCOA+ Data Integrity | All data transformations must be attributable and contemporaneous | Audit log captures every user action with timestamps and operator ID |
 | 4.3 HIPAA/PHI | PHI must be removed before data leaves the originating site | Validation step scans filenames for PHI patterns before export |
-| 5.1 QMS Documentation | SOPs must include step-by-step procedures | Sections 6-10 provide sequential workflow instructions |
+| 5.1 QMS Documentation | SOPs must include step-by-step procedures | Sections 6-11 provide sequential workflow instructions |
 | 5.3 Change Control | Corrections must be documented | User corrections to auto-detection are logged in the audit trail |
 
 ---
 
 ## 3. Scope
 
-This SOP applies to anyone preparing neural data files for sharing in epilepsy research, whether at a research site or working independently. This includes research coordinators, imaging technologists, and individual researchers.
+This SOP applies to anyone preparing neural data files for sharing, whether at a research site or working independently. This includes research coordinators, imaging technologists, and individual researchers.
 
 **In scope:**
 - Organizing raw neural data files (NIfTI for imaging, EDF for electrophysiology, JSON sidecars) into BIDS-compliant folder structures
@@ -68,30 +68,48 @@ Before using the NeuroGate tool, ensure:
 
 ## 5. Tool Overview
 
-NeuroGate operates as a 5-step linear workflow:
+NeuroGate operates as a 6-step linear workflow:
 
 | Step | Name | Purpose |
 |---|---|---|
-| 1 | File Drop | Upload your imaging files (drag-and-drop or file browser) |
-| 2 | Mapping Table | Review auto-detected classifications and correct any errors |
-| 3 | Metadata | Enter subject demographics, dataset description, and defacing attestation |
-| 4 | Validation | Review compliance checks and resolve any flagged issues |
-| 5 | Export | Download BIDS-formatted ZIP archive with audit log |
+| 1 | Choose Your Structure | Pick the Implant sessions preset or define Custom timepoints |
+| 2 | File Drop | Upload your imaging files (drag-and-drop or file browser) |
+| 3 | Mapping Table | Review auto-detected classifications and correct any errors |
+| 4 | Metadata | Enter subject demographics, dataset description, and defacing attestation |
+| 5 | Validation | Review compliance checks and resolve any flagged issues |
+| 6 | Export | Download BIDS-formatted ZIP archive with audit log |
 
 All processing happens locally in your browser. No data is transmitted to any server. Files remain on your machine throughout the workflow.
 
 ---
 
-## 6. Step 1: File Drop
+## 6. Step 1: Choose Your Structure
 
 ### 6.1 Procedure
+
+Before dropping any files, pick how this dataset's sessions are organized:
+
+1. **Implant sessions** -- NeuroGate's built-in preset: a fixed `ses-preimplant` / `ses-postimplant` / `ses-postsurgery` structure for implant-based surgical workups.
+2. **Custom timepoints** -- for any longitudinal study not organized around an implant procedure. Build your own timepoints from a number-and-unit picker (e.g. 0 months, 2 months, 6 months). There is no free-text entry anywhere in this step, so a site or PI name can never end up in a generated session label. Timepoints are automatically sorted chronologically and duplicate labels are blocked.
+
+This choice can be changed later by starting over, but it cannot be changed mid-dataset once files have been mapped, so pick correctly before proceeding.
+
+### 6.2 What This Affects
+
+The structure choice determines which session labels the Mapping Table (Step 3) offers, how the auto-detection engine classifies files by session (Section 8.2), and how the Metadata step orders sessions (Section 9.3). See SOP-BIDS-001 Section 5.3 for the full specification of both presets.
+
+---
+
+## 7. Step 2: File Drop
+
+### 7.1 Procedure
 
 1. Open the NeuroGate tool in your web browser.
 2. On the landing page, you will see the file drop zone in the center of the screen.
 3. Either drag and drop a folder containing your imaging files onto the drop zone, or click "browse" to select files using your system file picker.
 4. The tool accepts individual files or entire folder structures. Folder hierarchy is preserved and used by the detection engine.
 
-### 6.2 Accepted File Types
+### 7.2 Accepted File Types
 
 | Extension | Description |
 |---|---|
@@ -102,24 +120,24 @@ All processing happens locally in your browser. No data is transmitted to any se
 | .tsv | Tab-separated values (electrodes, channels) |
 | .csv | Comma-separated values (metadata tables) |
 
-### 6.3 What Happens Next
+### 7.3 What Happens Next
 
-After files are dropped, the tool displays a scanning animation while the 5-layer auto-detection engine analyzes your files. This typically completes in under 2 seconds. You will automatically advance to Step 2 (Mapping Table).
+After files are dropped, the tool displays a scanning animation while the 5-layer auto-detection engine analyzes your files. This typically completes in under 2 seconds. You will automatically advance to Step 3 (Mapping Table).
 
 ---
 
-## 7. Step 2: Mapping Table
+## 8. Step 3: Mapping Table
 
-### 7.1 Overview
+### 8.1 Overview
 
 The Mapping Table displays each file with its auto-detected classification:
 
 - **Subject Group:** Which subject the file belongs to (e.g., sub-PENN001)
-- **Session:** Clinical timepoint (pre-implant, post-implant, or post-surgery)
+- **Session:** The dataset's session label -- pre-implant/post-implant/post-surgery under the Implant sessions preset, or a site-defined timepoint label (e.g. ses-2mo) under Custom timepoints
 - **Modality:** Data type (T1w, T2w, FLAIR, MR angiography, CT, DWI, perfusion/ASL, fMRI, field map, EEG, iEEG)
 - **Confidence:** Detection confidence level (high, medium, low)
 
-### 7.2 Auto-Detection Engine
+### 8.2 Auto-Detection Engine
 
 The tool uses a 5-layer detection pipeline:
 
@@ -133,18 +151,18 @@ The tool uses a 5-layer detection pipeline:
 
 As part of Layer 2, when a dropped NIfTI file has a matching dcm2niix JSON sidecar, the engine also reads the sidecar's scan description (`SeriesDescription` and `ProtocolName`). This classifies files whose own filename is generic (for example, a scan exported as `sub-X_10.nii` whose sidecar identifies it as an ASL perfusion scan).
 
-When no layer can determine a session, the engine assigns a provisional one based on modality (structural and functional imaging defaults to pre-implant; CT and intracranial EEG default to post-implant) and flags it as low confidence for you to verify.
+Under the Implant sessions preset, when no layer can determine a session, the engine assigns a provisional one based on modality (structural and functional imaging defaults to pre-implant; CT and intracranial EEG default to post-implant) and flags it as low confidence for you to verify. Under Custom timepoints, there is no such fallback: a session is only auto-assigned when a file's folder path or filename literally contains one of the dataset's defined timepoint labels (e.g. `ses-2mo`), because there is no keyword vocabulary that generalizes across arbitrary studies' timepoints. Files that don't already carry a recognizable label are left unassigned for manual mapping; when several need to be assigned to different timepoints in order, select them and use "Assign in order to timepoints" instead of setting each one individually.
 
 Each layer adds confidence. Files classified by multiple agreeing layers receive "high" confidence; single-layer detections receive "medium" or "low."
 
-### 7.3 Reviewing and Correcting Classifications
+### 8.3 Reviewing and Correcting Classifications
 
 1. **Filter by confidence:** Use the filter buttons at the top to show only files needing attention (e.g., "Low" confidence files).
 2. **Correct a single file:** Click on the Session or Modality cell for any file to open a dropdown. Select the correct value.
 3. **Bulk correction:** Select multiple files using the checkboxes, then use the bulk action bar to assign a session or modality to all selected files at once.
 4. **Unclassified files:** Files that could not be classified will appear with no session/modality assigned. You must manually assign these before proceeding.
 
-### 7.4 Audit Trail
+### 8.4 Audit Trail
 
 Every correction you make is logged in the audit trail with:
 - Original auto-detected value
@@ -152,15 +170,15 @@ Every correction you make is logged in the audit trail with:
 - Timestamp
 - Field that was changed (session, modality, or subject group)
 
-### 7.5 Proceeding to Step 3
+### 8.5 Proceeding to Step 4
 
 Once all files have a valid session and modality assignment (no unclassified files remain), the "Continue to Metadata" button becomes active. Click it to proceed.
 
 ---
 
-## 8. Step 3: Metadata
+## 9. Step 4: Metadata
 
-### 8.1 Overview
+### 9.1 Overview
 
 The Metadata step collects three categories of information:
 
@@ -169,7 +187,7 @@ The Metadata step collects three categories of information:
 3. **Dataset Description** (BIDS dataset_description.json fields)
 4. **Defacing Attestation** (confirmation that anatomical images are defaced)
 
-### 8.2 Institution Configuration
+### 9.2 Institution Configuration
 
 | Field | Description | Example |
 |---|---|---|
@@ -178,7 +196,7 @@ The Metadata step collects three categories of information:
 
 The tool generates BIDS subject IDs in the format `sub-{PREFIX}{NUMBER}` (e.g., sub-PENN001, sub-PENN002).
 
-### 8.3 Subject Metadata
+### 9.3 Subject Metadata
 
 For each detected subject, enter:
 
@@ -188,9 +206,9 @@ For each detected subject, enter:
 | Sex | Yes | Male / Female / Other |
 | Sessions included | Auto-filled | Which sessions are present for this subject |
 
-Additional clinical fields (epilepsy diagnosis, seizure type, localization) are outside the scope of this tool. Sites that want to track them should maintain that data in their own local clinical records system.
+Additional clinical fields (diagnosis, condition-specific staging, localization) are outside the scope of this tool. Sites that want to track them should maintain that data in their own local clinical records system.
 
-### 8.4 Dataset Description
+### 9.4 Dataset Description
 
 | Field | Required | Description |
 |---|---|---|
@@ -199,23 +217,23 @@ Additional clinical fields (epilepsy diagnosis, seizure type, localization) are 
 | Acknowledgements | No | Funding sources or acknowledgements |
 | Funding | No | Grant numbers or funding source identifiers |
 
-### 8.5 Defacing Attestation
+### 9.5 Defacing Attestation
 
 You must confirm via checkbox that all T1w and T2w anatomical images in this upload have been defaced or de-identified before submission. Ticking the box records a timestamped `defacing-attested` entry in the audit log, which is exported with the dataset.
 
-### 8.6 Proceeding to Step 4
+### 9.6 Proceeding to Step 5
 
 Click "Continue to Validation" once all required fields are completed.
 
 ---
 
-## 9. Step 4: Validation
+## 10. Step 5: Validation
 
-### 9.1 Overview
+### 10.1 Overview
 
 The Validation step runs automated compliance checks against BIDS requirements and governance framework rules. Results are displayed as a list of checks, each marked as passed, warning, or failed.
 
-### 9.2 Validation Checks Performed
+### 10.2 Validation Checks Performed
 
 | Category | Check | Severity |
 |---|---|---|
@@ -232,12 +250,12 @@ The Validation step runs automated compliance checks against BIDS requirements a
 | Consistency | Subject numbering is sequential with no gaps | Warning |
 | Consistency | Sessions are consistent across subjects | Warning |
 
-### 9.3 Resolving Issues
+### 10.3 Resolving Issues
 
 - **Failures (red):** Must be resolved before export. Click the issue to see which file(s) are affected. Use the "Back" button to return to the relevant step and correct the problem.
 - **Warnings (yellow):** Do not block export but should be reviewed. Warnings indicate potential issues that may need explanation (e.g., a subject missing a session due to clinical circumstances).
 
-### 9.4 PHI Detection
+### 10.4 PHI Detection
 
 The PHI scanner checks filenames and folder paths for patterns that may indicate protected health information:
 
@@ -246,17 +264,17 @@ The PHI scanner checks filenames and folder paths for patterns that may indicate
 - Date patterns (MM/DD/YYYY, YYYY-MM-DD, etc.)
 - Social Security Number patterns
 
-If PHI is detected, you must rename the offending files outside the tool and re-upload.
+If PHI is detected, you must rename the offending files outside the tool and re-upload. This filename/path scan is separate from the automatic header de-identification described in Section 11.1, which requires no action from you and runs on every export regardless of whether the PHI scanner flagged anything.
 
-### 9.5 Proceeding to Step 5
+### 10.5 Proceeding to Step 6
 
 Once all failures are resolved, the "Continue to Export" button becomes active.
 
 ---
 
-## 10. Step 5: Export
+## 11. Step 6: Export
 
-### 10.1 Overview
+### 11.1 Overview
 
 The Export step generates a BIDS-compliant ZIP archive ready for upload to the site's chosen data infrastructure. SOP-PENNSIEVE-001 is provided as a worked example for sites using Pennsieve.
 
@@ -264,11 +282,13 @@ During export the tool finalizes several details automatically:
 
 - Uncompressed `.nii` files are compressed to `.nii.gz`.
 - Each data file's JSON sidecar is renamed to match its data file and placed alongside it, so the scanner metadata travels with the data.
+- Every EDF/BDF header is de-identified: patient name, ID, birthdate, and sex fields are blanked or replaced with the BIDS subject ID, and the recording date is shifted by a random per-subject offset (not zeroed) so relative timing between recordings is preserved. The offset is recorded in the audit log.
+- Every scan JSON sidecar is de-identified: known-identifying fields (patient name/ID/birthdate, institution, staff names, device serial) are blanked, and acquisition/study date fields are shifted by that subject's same offset.
 - When a session contains more than one acquisition of the same modality, each is given a `run-` entity (`run-1`, `run-2`, and so on) so that filenames stay unique.
 - Field-map images are named with their standard BIDS suffixes (`magnitude1`, `magnitude2`, `phasediff`).
 - Localizer and scout scans are left out of the archive, as they are acquisition aids rather than analyzable data.
 
-### 10.2 Export Contents
+### 11.2 Export Contents
 
 The generated ZIP contains:
 
@@ -305,7 +325,7 @@ dataset/
     ...
 ```
 
-### 10.3 Folder Tree Preview
+### 11.3 Folder Tree Preview
 
 Before downloading, the tool displays a preview of the BIDS folder tree that will be generated. Review this to confirm:
 - Subject IDs are correct
@@ -313,7 +333,7 @@ Before downloading, the tool displays a preview of the BIDS folder tree that wil
 - File naming follows BIDS conventions
 - Folder hierarchy matches expectations
 
-### 10.4 Downloading the Export
+### 11.4 Downloading the Export
 
 1. Click the "Export BIDS Dataset" button.
 2. The tool generates the ZIP archive in your browser.
@@ -321,7 +341,7 @@ Before downloading, the tool displays a preview of the BIDS folder tree that wil
    - `{dataset_name}_BIDS.zip` containing the full BIDS dataset
    - `audit_log_{timestamp}.json` containing the complete audit trail
 
-### 10.5 After Export
+### 11.5 After Export
 
 After downloading:
 
@@ -332,13 +352,13 @@ After downloading:
 
 ---
 
-## 11. Audit Trail
+## 12. Audit Trail
 
-### 11.1 Accessing the Audit Log During Use
+### 12.1 Accessing the Audit Log During Use
 
 Click the "Audit Log" button in the top-right corner of the header at any time to view the running log of actions taken during your session.
 
-### 11.2 Audit Log Contents
+### 12.2 Audit Log Contents
 
 Each entry records:
 
@@ -350,7 +370,7 @@ Each entry records:
 | Details | Structured data (file counts, old/new values, confidence scores) |
 | Actor | "system" for automated actions, "user" for manual corrections |
 
-### 11.3 ALCOA+ Compliance
+### 12.3 ALCOA+ Compliance
 
 The audit log satisfies ALCOA+ requirements:
 
@@ -368,7 +388,7 @@ The audit log satisfies ALCOA+ requirements:
 
 ---
 
-## 12. Troubleshooting
+## 13. Troubleshooting
 
 | Issue | Possible Cause | Resolution |
 |---|---|---|
@@ -381,7 +401,7 @@ The audit log satisfies ALCOA+ requirements:
 
 ---
 
-## 13. System Requirements and Limitations
+## 14. System Requirements and Limitations
 
 | Item | Details |
 |---|---|
@@ -394,7 +414,7 @@ The audit log satisfies ALCOA+ requirements:
 
 ---
 
-## 14. Contact and Support
+## 15. Contact and Support
 
 | Role | Contact |
 |---|---|
@@ -404,17 +424,18 @@ The audit log satisfies ALCOA+ requirements:
 
 ---
 
-## 15. Quick-Reference Guide
+## 16. Quick-Reference Guide
 
 ### Workflow Summary
 
 1. **Prepare files:** Convert DICOM to NIfTI, deface anatomical images
-2. **Drop files:** Drag folder into the tool
-3. **Review mapping:** Check auto-detections, correct any errors (focus on low-confidence files)
-4. **Enter metadata:** Site prefix, subject info, dataset name, defacing attestation
-5. **Validate:** Resolve any failures, review warnings
-6. **Export:** Download BIDS ZIP + audit log
-7. **Upload:** Upload to your site's chosen data infrastructure (SOP-PENNSIEVE-001 covers Pennsieve as an example)
+2. **Choose your structure:** Implant sessions, or define Custom timepoints
+3. **Drop files:** Drag folder into the tool
+4. **Review mapping:** Check auto-detections, correct any errors (focus on low-confidence files)
+5. **Enter metadata:** Site prefix, subject info, dataset name, defacing attestation
+6. **Validate:** Resolve any failures, review warnings
+7. **Export:** Download BIDS ZIP (with headers auto-de-identified) + audit log
+8. **Upload:** Upload to your site's chosen data infrastructure (SOP-PENNSIEVE-001 covers Pennsieve as an example)
 
 ### Key Rules
 
@@ -435,7 +456,7 @@ The audit log satisfies ALCOA+ requirements:
 
 ---
 
-## 16. Revision History
+## 17. Revision History
 
 | Version | Date | Author | Summary of Changes |
 |---|---|---|---|
@@ -445,3 +466,4 @@ The audit log satisfies ALCOA+ requirements:
 | 1.3 | 2026-05-27 | Brandon Bach | Section 8.4 Dataset Description: dropped the (inaccurate) License auto-fill row and added the optional Funding row to match the actual form. Section 8.5 Defacing Attestation: rewritten to describe the simplified single-checkbox attestation; the tool no longer captures defacing tool name, version, or attestor identity. Updated the parent GOV-001 reference to v1.10. |
 | 1.4 | 2026-07-31 | Brandon Bach | Removed SOP-REDCAP-001 and ONBOARD-001 from Related Documents and all in-text REDCap references (Sections 3, 8.3, 10.5): additional clinical fields beyond age/sex/sessions are now described as out of scope for the tool rather than pointed to REDCap, and the After Export step for entering REDCap metadata was removed. Updated the parent GOV-001 reference to v1.13. |
 | 1.5 | 2026-07-31 | Brandon Bach | Section 3 Scope: rewrote the applicability statement to describe anyone preparing neural data (site-based or independent) rather than a role list assuming institutional participation and a principal investigator. |
+| 1.6 | 2026-08-01 | Brandon Bach | Major update: the tool is now a 6-step workflow, not 5. Added new Section 6 (Step 1: Choose Your Structure) documenting the Implant sessions / Custom timepoints preset choice; renumbered former Sections 6-16 to 7-17. Updated Section 8 (Mapping Table) to describe preset-aware session detection, including that Custom timepoints has no modality-based fallback and instead requires either a literal label match or the "Assign in order to timepoints" bulk action. Updated Section 11.1 (Export) and Section 10.4 (PHI Detection) to document the tool's new automatic EDF header and JSON sidecar de-identification (date-shift, not blank, per subject). Updated the Quick-Reference workflow summary from 7 to 8 steps. Removed remaining "epilepsy" domain framing from Section 3 Scope. Updated the parent GOV-001 reference to v1.14. |
