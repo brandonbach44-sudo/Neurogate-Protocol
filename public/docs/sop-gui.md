@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | **Document ID** | SOP-GUI-001 |
-| **Version** | 1.6 |
+| **Version** | 1.7 |
 | **Effective Date** | 2026-08-01 |
 | **Author** | Brandon Bach |
 | **Status** | Draft |
@@ -257,14 +257,12 @@ The Validation step runs automated compliance checks against BIDS requirements a
 
 ### 10.4 PHI Detection
 
-The PHI scanner checks filenames and folder paths for patterns that may indicate protected health information:
+The PHI scanner runs two complementary checks:
 
-- Full names (sequences of capitalized words not matching known modality/session terms)
-- Medical record numbers (numeric sequences of 6+ digits)
-- Date patterns (MM/DD/YYYY, YYYY-MM-DD, etc.)
-- Social Security Number patterns
+- **Filenames and folder paths:** full names (sequences of capitalized words not matching known modality/session terms), medical record numbers (numeric sequences of 6+ digits), date patterns (MM/DD/YYYY, YYYY-MM-DD, etc.), and Social Security Number patterns.
+- **Sidecar JSON free-text fields:** the same patterns and keyword checks, applied to descriptive fields such as `SeriesDescription` and `ProtocolName` inside `.json` sidecars. These fields are needed for BIDS documentation and are not touched by the automatic de-identification in Section 11.1, so if a scanner operator typed a patient name or MRN into one of them, this is the check that catches it.
 
-If PHI is detected, you must rename the offending files outside the tool and re-upload. This filename/path scan is separate from the automatic header de-identification described in Section 11.1, which requires no action from you and runs on every export regardless of whether the PHI scanner flagged anything.
+If PHI is detected, you must correct the offending file (rename it, or edit the sidecar field) outside the tool and re-upload. Both of these scans are separate from the automatic header/date-field de-identification described in Section 11.1, which requires no action from you and runs on every export regardless of whether the PHI scanner flagged anything.
 
 ### 10.5 Proceeding to Step 6
 
@@ -467,3 +465,4 @@ The audit log satisfies ALCOA+ requirements:
 | 1.4 | 2026-07-31 | Brandon Bach | Removed SOP-REDCAP-001 and ONBOARD-001 from Related Documents and all in-text REDCap references (Sections 3, 8.3, 10.5): additional clinical fields beyond age/sex/sessions are now described as out of scope for the tool rather than pointed to REDCap, and the After Export step for entering REDCap metadata was removed. Updated the parent GOV-001 reference to v1.13. |
 | 1.5 | 2026-07-31 | Brandon Bach | Section 3 Scope: rewrote the applicability statement to describe anyone preparing neural data (site-based or independent) rather than a role list assuming institutional participation and a principal investigator. |
 | 1.6 | 2026-08-01 | Brandon Bach | Major update: the tool is now a 6-step workflow, not 5. Added new Section 6 (Step 1: Choose Your Structure) documenting the Implant sessions / Custom timepoints preset choice; renumbered former Sections 6-16 to 7-17. Updated Section 8 (Mapping Table) to describe preset-aware session detection, including that Custom timepoints has no modality-based fallback and instead requires either a literal label match or the "Assign in order to timepoints" bulk action. Updated Section 11.1 (Export) and Section 10.4 (PHI Detection) to document the tool's new automatic EDF header and JSON sidecar de-identification (date-shift, not blank, per subject). Updated the Quick-Reference workflow summary from 7 to 8 steps. Removed remaining "epilepsy" domain framing from Section 3 Scope. Updated the parent GOV-001 reference to v1.14. |
+| 1.7 | 2026-08-01 | Brandon Bach | Section 10.4 (PHI Detection): documented the second PHI scan added this pass, which reads sidecar JSON free-text fields (SeriesDescription, ProtocolName, etc.) for PHI patterns -- these fields are excluded from automatic de-identification because they're needed for BIDS documentation, so this scan is the safeguard against a scanner operator typing identifying information into one of them. |

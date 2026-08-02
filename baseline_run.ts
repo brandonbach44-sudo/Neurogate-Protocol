@@ -96,7 +96,7 @@ async function runSample(sampleName: string) {
   const institutionConfig = createDefaultInstitutionConfig();
   institutionConfig.prefix = 'BASE';
 
-  const validationReport = runValidation({
+  const validationReport = await runValidation({
     detectionResults,
     subjects,
     datasetDescription,

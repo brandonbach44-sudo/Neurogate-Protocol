@@ -19,6 +19,7 @@
 import type { DetectionResult } from '../../types/detection';
 import type { SubjectMetadata } from '../../types/metadata';
 import type { ValidationIssue } from '../../types/validation';
+import { isJsonSidecarFile, BLANK_STRING_FIELDS, DATE_FIELDS } from '../deidentify/jsonSidecarDeidentifier';
 
 // ── PHI Detection Patterns ──────────────────────────────────────
 
@@ -197,6 +198,112 @@ export function scanForPhi(
         subjectGroup: group,
         dismissable: false,
       });
+    }
+  }
+
+  return issues;
+}
+
+// ── Sidecar JSON content scanning ───────────────────────────────
+//
+// deidentifyJsonSidecar() (see jsonSidecarDeidentifier.ts) blanks a fixed
+// list of known-identifying fields and shifts known date fields, but it
+// deliberately leaves free-text descriptive fields (SeriesDescription,
+// ProtocolName, ImageComments, etc.) untouched -- those are needed for
+// BIDS documentation and can't be blanked outright. If a scanner operator
+// typed a patient name or MRN into one of those free-text fields, nothing
+// in the automatic de-identification pipeline would catch it.
+//
+// This scans every string value in every sidecar JSON (skipping the
+// fields the de-identifier already handles) against the same PHI_PATTERNS
+// and PHI_KEYWORDS used for filenames. Reading sidecar files is async
+// (File.text()), so this is a separate async entry point rather than
+// folded into the synchronous scanForPhi() above.
+
+const FIELDS_HANDLED_BY_DEIDENTIFIER = new Set<string>([
+  ...BLANK_STRING_FIELDS,
+  ...DATE_FIELDS,
+]);
+
+/** Recursively collect {path, value} for every string in a parsed JSON value. */
+function collectStringValues(
+  value: unknown,
+  path: string,
+  out: { path: string; value: string }[],
+): void {
+  if (typeof value === 'string') {
+    if (value.trim().length > 0) out.push({ path, value });
+    return;
+  }
+  if (Array.isArray(value)) {
+    value.forEach((v, i) => collectStringValues(v, `${path}[${i}]`, out));
+    return;
+  }
+  if (value && typeof value === 'object') {
+    for (const [key, v] of Object.entries(value as Record<string, unknown>)) {
+      if (FIELDS_HANDLED_BY_DEIDENTIFIER.has(key)) continue; // already de-identified on export
+      collectStringValues(v, path ? `${path}.${key}` : key, out);
+    }
+  }
+}
+
+/**
+ * Scan sidecar JSON file content (not just filenames) for PHI patterns.
+ * Complements scanForPhi(), which only looks at filenames/paths.
+ */
+export async function scanSidecarContentForPhi(
+  results: DetectionResult[],
+): Promise<ValidationIssue[]> {
+  const issues: ValidationIssue[] = [];
+  const sidecarResults = results.filter(r => isJsonSidecarFile(r.fileName));
+  if (sidecarResults.length === 0) return issues;
+
+  const scans = await Promise.all(
+    sidecarResults.map(async (result) => {
+      try {
+        const text = await result.file.text();
+        const parsed = JSON.parse(text) as Record<string, unknown>;
+        const strings: { path: string; value: string }[] = [];
+        collectStringValues(parsed, '', strings);
+        return { result, strings };
+      } catch {
+        return { result, strings: [] as { path: string; value: string }[] };
+      }
+    }),
+  );
+
+  for (const { result, strings } of scans) {
+    for (const { path, value } of strings) {
+      for (const phiPattern of PHI_PATTERNS) {
+        if (phiPattern.pattern.test(value)) {
+          issues.push({
+            id: nextId(),
+            category: 'phi-risk',
+            severity: phiPattern.severity,
+            title: `Potential ${phiPattern.name} in sidecar JSON`,
+            description: `${phiPattern.description}\n\nFound in field "${path}" of ${result.fileName}. This field is a free-text descriptive field and is NOT touched by automatic de-identification -- if this is patient data, correct it in the source file before re-uploading.`,
+            affectedFiles: [result.relativePath],
+            dismissable: phiPattern.severity === 'warning',
+          });
+          break; // one flag per pattern per field is enough
+        }
+      }
+
+      const lowerValue = value.toLowerCase();
+      for (const keyword of PHI_KEYWORDS) {
+        if (lowerValue.includes(keyword)) {
+          issues.push({
+            id: nextId(),
+            category: 'phi-risk',
+            severity: 'warning',
+            title: `PHI keyword detected in sidecar JSON: "${keyword}"`,
+            description: `The keyword "${keyword}" was found in field "${path}" of ${result.fileName}. This is a free-text field not covered by automatic de-identification. Please verify no patient-identifying data is present.`,
+            affectedFiles: [result.relativePath],
+            dismissable: true,
+          });
+          break;
+        }
+      }
     }
   }
 
