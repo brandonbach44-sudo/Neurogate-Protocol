@@ -38,6 +38,8 @@ import type { EdfHeaderInfo } from './edfHeaderReader';
 import { detectCustomSession } from './customSessionDetector';
 import { assignDateClusterSessions } from './dateClusterDetector';
 import type { DatedFile, DateClusterAssignment } from './dateClusterDetector';
+import { assignFolderClusterSessions } from './folderClusterDetector';
+import type { FolderedFile, FolderClusterAssignment } from './folderClusterDetector';
 import { resolveSessionIds, createDefaultDatasetStructure } from '../../types/sessionStructure';
 import type { DatasetStructure } from '../../types/sessionStructure';
 
@@ -133,22 +135,28 @@ export function runDetection(
   const isCustomStructure = structure.presetId === 'custom-timepoints';
   const knownSessionIds = isCustomStructure ? resolveSessionIds(structure) : [];
 
-  // ── Pass 0 (Custom timepoints only): date-cluster session assignment ──
-  // Layer A (spec Section 3.1). Needs full-subject visibility across all
-  // of a subject's files before any single file's session can be decided,
-  // so it runs once up front rather than inline in the per-file passes
-  // below. Skipped entirely for the Implant sessions preset.
+  // ── Pass 0 (Custom timepoints only): date-cluster + folder-cluster ──
+  // session assignment. Layer A (date, spec Section 3.1) and Layer B
+  // (folder structure, spec Section 3.2). Both need full-subject
+  // visibility across all of a subject's files before any single file's
+  // session can be decided, so they run once up front, sharing one pass
+  // over `files` (and one groupIntoSubject call per file) rather than
+  // duplicating that work in two separate loops. Skipped entirely for
+  // the Implant sessions preset.
   const dateClusterAssignments = new Map<string, DateClusterAssignment>();
   const dateClusterMismatchByFile = new Map<string, DetectionReason>();
+  const folderClusterAssignments = new Map<string, FolderClusterAssignment>();
+  const folderClusterMismatchByFile = new Map<string, DetectionReason>();
 
   if (isCustomStructure && knownSessionIds.length > 0) {
     const subjectDatedFiles = new Map<string, DatedFile[]>();
+    const subjectFolderedFiles = new Map<string, FolderedFile[]>();
 
     for (const file of files) {
       // Subject grouping is a pure function of filename/path patterns, so
       // it's safe to compute here even though Pass 2 below computes it
       // again per file for the final result -- cheap either way.
-      const groupResult = groupIntoSubject(file, files, isCustomStructure ? knownSessionIds : undefined);
+      const groupResult = groupIntoSubject(file, files, knownSessionIds);
 
       const lowerName = file.name.toLowerCase();
       const isJsonFile = lowerName.endsWith('.json');
@@ -166,6 +174,12 @@ export function runDetection(
         bucket.push({ fileName: file.name, date });
         subjectDatedFiles.set(groupResult.groupName, bucket);
       }
+
+      // Layer B needs every file's immediate folder, regardless of
+      // whether it has a date -- the folder count/order is what matters.
+      const folderBucket = subjectFolderedFiles.get(groupResult.groupName) ?? [];
+      folderBucket.push({ fileName: file.name, folder: getFolderPath(file.relativePath) });
+      subjectFolderedFiles.set(groupResult.groupName, folderBucket);
     }
 
     for (const datedFiles of subjectDatedFiles.values()) {
@@ -176,6 +190,31 @@ export function runDetection(
       if (result.mismatchReason) {
         for (const df of datedFiles) {
           dateClusterMismatchByFile.set(df.fileName, result.mismatchReason);
+        }
+      }
+    }
+
+    for (const [groupName, folderedFiles] of subjectFolderedFiles) {
+      // Layer B is only meant for subjects with no usable acquisition
+      // date on ANY file at all (spec Section 3.2's precondition). If
+      // this subject had even one dated file, Layer A already had a
+      // real signal to work with -- either it resolved things (in which
+      // case there's nothing left for Layer B to do), or it hit a
+      // cluster/timepoint mismatch, which means the dates actively
+      // disagreed with the defined structure. Either way, a naive
+      // folder-identity match (e.g. "everything's in one folder, and
+      // there's only one timepoint, so trivially it matches") must not
+      // silently override that. Skip Layer B entirely for this subject
+      // and let the mismatch stand.
+      if (subjectDatedFiles.has(groupName)) continue;
+
+      const result = assignFolderClusterSessions(folderedFiles, knownSessionIds);
+      for (const [fileName, assignment] of result.assignments) {
+        folderClusterAssignments.set(fileName, assignment);
+      }
+      if (result.mismatchReason) {
+        for (const ff of folderedFiles) {
+          folderClusterMismatchByFile.set(ff.fileName, result.mismatchReason);
         }
       }
     }
@@ -347,6 +386,23 @@ export function runDetection(
         reasons.push(...dateAssignment.reasons);
       } else {
         const mismatch = dateClusterMismatchByFile.get(file.name);
+        if (mismatch) {
+          reasons.push(mismatch);
+        }
+      }
+    }
+
+    // Custom timepoints Layer B fallback: folder-cluster structural
+    // ordering (see folderClusterDetector.ts / Pass 0 above). Only
+    // reached if neither the literal label match nor the date-cluster
+    // layer above found anything for this file.
+    if (isCustomStructure && !session) {
+      const folderAssignment = folderClusterAssignments.get(file.name);
+      if (folderAssignment) {
+        session = folderAssignment.session;
+        reasons.push(...folderAssignment.reasons);
+      } else {
+        const mismatch = folderClusterMismatchByFile.get(file.name);
         if (mismatch) {
           reasons.push(mismatch);
         }
