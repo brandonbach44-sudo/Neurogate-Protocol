@@ -62,7 +62,17 @@ function parseSidecarDate(value: unknown): Date | null {
     const day = Number(trimmed.slice(6, 8));
     if (year < 1990) return null; // de-identified placeholder (e.g. "19000101")
     const date = new Date(year, month - 1, day);
-    return isNaN(date.getTime()) ? null : date;
+    if (isNaN(date.getTime())) return null;
+    // The Date(year, month, day) constructor silently rolls invalid
+    // calendar dates forward (e.g. Feb 30 -> Mar 2) instead of rejecting
+    // them. That would let a corrupted timestamp quietly shift a
+    // date-cluster assignment with no warning. Reject anything that
+    // didn't round-trip back to the exact date written. Found via
+    // adversarial testing 2026-08-02.
+    if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+      return null;
+    }
+    return date;
   }
 
   // ISO-ish AcquisitionDateTime, e.g. "2026-05-27T14:32:00" or with offset.
