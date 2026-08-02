@@ -1,21 +1,21 @@
-# Standard Operating Procedure: BIDS Data Structure for Multi-Site Epilepsy Data Sharing
+# Standard Operating Procedure: BIDS Data Structure for Multi-Site Neural Data Sharing
 
 | Field | Value |
 |---|---|
 | **Document ID** | SOP-BIDS-001 |
-| **Version** | 2.7 |
-| **Effective Date** | July 31, 2026 |
+| **Version** | 2.8 |
+| **Effective Date** | August 1, 2026 |
 | **Author** | Brandon Bach |
 | **Advisor** | Nishant Sinha |
 | **Status** | Draft -- Pending Advisor Review |
-| **Parent Document** | GOV-001: Regulatory and Governance Framework (v1.13) |
+| **Parent Document** | GOV-001: Regulatory and Governance Framework (v1.14) |
 | **Related Documents** | SOP-PENNSIEVE-001 |
 
 ---
 
 ## 1. Purpose
 
-This Standard Operating Procedure (SOP) defines a standardized data structure for organizing neural data (imaging + electrophysiology) in epilepsy research for cross-site sharing. By adopting a common BIDS-compliant structure, a site's data remains consistent and interoperable, making it straightforward to share with collaborators while meeting data sharing compliance standards.
+This Standard Operating Procedure (SOP) defines a standardized data structure for organizing neural data (imaging + electrophysiology) for cross-site sharing. By adopting a common BIDS-compliant structure, a site's data remains consistent and interoperable, making it straightforward to share with collaborators while meeting data sharing compliance standards.
 
 ## 2. Governance Traceability
 
@@ -24,22 +24,22 @@ This SOP implements specific requirements from the Regulatory and Governance Fra
 | SOP Section | GOV-001 Section | Requirement |
 |---|---|---|
 | 4.1 (Subject ID format) | 2.3 (HIPAA/PHI Protection) | Coded subject IDs with no PHI; key stored only at originating site |
-| 5-6 (Folder structure, session requirements) | 3 (Data Standards by Modality) | BIDS-compliant organization for all modalities across 3 sessions |
-| 7 (Metadata files) | 2.1, 2.2, 4 (FAIR, ALCOA+, Metadata Completeness) | Complete, standardized metadata for findability, attributability, and reusability |
-| 7.5 (Channels cross-validation) | 2.2 (ALCOA+ Accuracy) | Channel names must match electrodes.tsv for data integrity |
-| 8 (De-identification and defacing) | 2.3 (HIPAA/PHI) | DICOM stripping, facial defacing, EEG header cleaning, filename PHI checks |
-| 9 (GUI tool) | 2.2 (ALCOA+ Legible, Consistent) | Automated compliance reduces human error across sites |
-| 10.1 (BIDS validation) | 2.2 (ALCOA+ Accurate), 7.1 (Pre-Upload Checklist) | Validator must report zero errors before upload |
+| 5-7 (Folder structure, structure presets, session requirements) | 3 (Data Standards by Modality) | BIDS-compliant organization for all modalities, under either the Implant sessions or Custom timepoints preset |
+| 8 (Metadata files) | 2.1, 2.2, 4 (FAIR, ALCOA+, Metadata Completeness) | Complete, standardized metadata for findability, attributability, and reusability |
+| 8.5 (Channels cross-validation) | 2.2 (ALCOA+ Accuracy) | Channel names must match electrodes.tsv for data integrity |
+| 9 (De-identification and defacing) | 2.3 (HIPAA/PHI) | DICOM stripping, facial defacing, EDF/JSON sidecar header de-identification, filename PHI checks |
+| 10 (GUI tool) | 2.2 (ALCOA+ Legible, Consistent) | Automated compliance reduces human error across sites |
+| 11.1 (BIDS validation) | 2.2 (ALCOA+ Accurate), 7.1 (Pre-Upload Checklist) | Validator must report zero errors before upload |
 
 ## 3. Scope
 
-This SOP applies to all sites participating in the multi-site epilepsy data sharing initiative. It covers:
+This SOP applies to any site organizing neural data for multi-site sharing. It covers:
 
 - Required folder hierarchy and naming conventions
 - File formats for each modality (MRI, MR angiography, fMRI, perfusion/ASL, field maps, CT, DWI, EEG, iEEG)
 - Metadata requirements (JSON sidecars, TSV files)
 - De-identification and defacing requirements
-- Session-based organization (pre-implant, post-implant, post-surgery)
+- Session-based organization, under either the Implant sessions preset (pre-implant, post-implant, post-surgery) or a Custom timepoints preset for other longitudinal study designs
 
 ## 4. Prerequisites
 
@@ -64,7 +64,7 @@ Subject IDs must contain only alphanumeric characters (no spaces, hyphens, under
 
 ## 5. Dataset Structure Overview
 
-The standardized dataset structure follows a BIDS-compliant layout with three clinical sessions per subject. Each session corresponds to a phase in the patient's surgical evaluation and treatment.
+The standardized dataset structure follows a BIDS-compliant layout. Every subject's data is organized into session folders; which sessions exist depends on the structure preset chosen for the dataset (see Section 5.3).
 
 ### 5.1 Root Directory Structure
 
@@ -72,10 +72,10 @@ The top-level dataset directory contains:
 
 ```
 dataset_root/
-├── dataset_description.json   # Dataset metadata (provided by Penn)
+├── dataset_description.json   # Dataset metadata (auto-generated by the tool)
 ├── participants.json          # Participant metadata schema
 ├── participants.tsv           # Participant demographic data
-├── derivatives/               # Processed data outputs
+├── derivatives/               # Processed data outputs (site-specific analysis pipelines)
 │   ├── freesurfer/
 │   ├── ieeg_recon/
 │   ├── post_to_pre/
@@ -84,11 +84,11 @@ dataset_root/
     └── sub-<ID>/              # Subject directories
 ```
 
-**Note:** External sites will primarily work within the `primary/` directory. The `derivatives/` folder contains processed outputs generated by Penn analysis pipelines.
+**Note:** The NeuroGate tool populates and exports the `primary/` directory. The `derivatives/` folder is where a site places outputs from its own downstream analysis pipelines; the tool does not generate or populate it.
 
 ### 5.2 Subject Directory Structure
 
-Each subject has three session folders corresponding to clinical phases:
+Under the Implant sessions preset, each subject has three session folders corresponding to clinical phases:
 
 ```
 primary/
@@ -112,7 +112,19 @@ primary/
 
 When a session contains more than one acquisition of the same modality (for example two T2w scans, or a TOF angiography scan together with its derived reconstructions), each acquisition is given a BIDS `run-` entity so that every file has a unique name: `sub-<ID>_ses-preimplant_run-1_T2w.nii.gz`, `sub-<ID>_ses-preimplant_run-2_T2w.nii.gz`, and so on. A scan's companion files (its JSON sidecar, and the `.bval` / `.bvec` for diffusion) share the same run number. The NeuroGate tool assigns these entities automatically. The single-file examples in Section 6 omit the `run-` entity for readability; it is added only when a modality repeats within a session.
 
-## 6. Session-by-Session Requirements
+### 5.3 Two Structure Presets
+
+Every dataset is organized under one of two session-structure presets, chosen at the start of the NeuroGate tool workflow (Section 10, Step 1). This choice determines which session labels exist for the dataset; both presets share everything else in this SOP (naming conventions, metadata files, de-identification requirements).
+
+**Implant sessions** is NeuroGate's original built-in preset: a fixed set of three sessions (`ses-preimplant`, `ses-postimplant`, `ses-postsurgery`) corresponding to phases of a surgical evaluation and treatment. It is not a universal BIDS standard -- BIDS itself does not prescribe session names -- it is simply the structure NeuroGate was first built around. Section 6 documents this preset's per-session, per-modality file requirements in detail.
+
+**Custom timepoints** is for any longitudinal study that is not organized around an implant procedure. Instead of the three fixed sessions above, the site defines its own timepoints from a number-and-unit picker in the tool (e.g. 0 months, 2 months, 6 months), which generates literal session labels such as `ses-0mo`, `ses-2mo`, `ses-6mo`. There is no free-text entry anywhere in this step, so a site name or PI name can never end up in a session label. Section 7 documents this preset's requirements, which are structurally different from Section 6: there are no fixed per-timepoint modality requirements, because an arbitrary study's timepoints cannot be assumed to follow a clinical evaluation sequence.
+
+A dataset uses exactly one preset; the two are not combined within a single dataset.
+
+## 6. Implant Sessions Preset: Session-by-Session Requirements
+
+This section applies only to datasets using the Implant sessions preset (Section 5.3). For Custom timepoints datasets, see Section 7.
 
 ### 6.1 Session 1: Pre-Implant (ses-preimplant)
 
@@ -137,7 +149,7 @@ Time-of-flight (TOF) MR angiography uses the `_angio` suffix and is placed in th
 
 **DICOM to NIfTI Conversion:**
 
-Use the NeuroGate automation script (`convert_dicom_auto.py`, available on the Pre-Processing page) to detect your scanner type automatically and apply the correct flags. For manual conversion, use the commands in Section 8.5 (Scanner-Aware Conversion) below.
+Use the NeuroGate automation script (`convert_dicom_auto.py`, available on the Pre-Processing page) to detect your scanner type automatically and apply the correct flags. For manual conversion, use the commands in Section 9.3 (Scanner-Aware Conversion) below.
 
 ```bash
 # Recommended: automation script (handles 3T, 7T, fMRI, and all manufacturers)
@@ -275,9 +287,41 @@ Accepted iEEG formats:
 
 **Defacing note:** Post-surgery structural MRI files (T1w, FLAIR) must also be defaced before submission.
 
-## 7. Metadata Files
+## 7. Custom Timepoints Preset: File Requirements
 
-### 7.1 dataset_description.json
+This section applies only to datasets using the Custom timepoints preset (Section 5.3).
+
+### 7.1 Session Labels
+
+Session labels are generated by the tool from a number and a unit (days, weeks, months, or years), e.g. `ses-0mo`, `ses-2mo`, `ses-6mo`. By convention, a timepoint numbered 0 (of any unit) represents the study baseline. Labels are always sorted chronologically by elapsed time, regardless of the order timepoints were entered in. Duplicate labels within a dataset are blocked by the tool.
+
+### 7.2 No Fixed Per-Timepoint Modality Requirements
+
+Unlike the Implant sessions preset (Section 6), Custom timepoints datasets have no required-file table per session. An arbitrary study's timepoints cannot be assumed to follow a clinical evaluation sequence, so the tool does not enforce that a given modality (e.g. a CT scan, or a T1w MRI) must appear at a particular timepoint. Any modality is permitted at any timepoint. All other requirements in this SOP still apply: correct BIDS naming and folder placement (Section 7.3), JSON sidecar completeness for whatever modalities are present (per the relevant modality subsection in Section 6.1), and all de-identification requirements in Section 9.
+
+### 7.3 Folder Structure Example
+
+```
+primary/
+└── sub-<ID>/
+    ├── sub-<ID>_sessions.tsv
+    ├── ses-0mo/
+    │   └── anat/    sub-<ID>_ses-0mo_T1w.nii.gz
+    ├── ses-2mo/
+    │   └── anat/    sub-<ID>_ses-2mo_T1w.nii.gz
+    └── ses-6mo/
+        └── anat/    sub-<ID>_ses-6mo_T1w.nii.gz
+```
+
+### 7.4 Detection and Manual Mapping
+
+The tool's auto-detection engine only recognizes a Custom timepoints session when a file's folder path or filename literally contains one of the labels defined for that dataset (e.g. a file inside a `ses-2mo/` folder, or named `sub-01_ses-2mo_T1w.nii.gz`). There is no fuzzy keyword matching for Custom timepoints, unlike the Implant sessions preset's filename/folder heuristics (e.g. recognizing "preop" as `ses-preimplant`) -- there is no keyword vocabulary that generalizes across arbitrary studies' timepoints.
+
+Files that do not already carry a recognizable label must be mapped to a session manually in the tool's mapping table. When several files need to be assigned to different timepoints in sequence (for example, five T1w scans, one per visit), select them in order and use "Assign in order to timepoints" to pair the 1st selected file with the earliest timepoint, the 2nd with the next, and so on, rather than setting each file's session individually.
+
+## 8. Metadata Files
+
+### 8.1 dataset_description.json
 
 This file lives at the dataset root and is generated by the GUI tool on first upload. Required fields per GOV-001 Section 4:
 
@@ -291,7 +335,7 @@ This file lives at the dataset root and is generated by the GUI tool on first up
 | Funding | array | Optional | List of grant numbers |
 | GeneratedBy | array | Auto-filled | Tools used to generate the dataset (NeuroGate fills this in) |
 
-### 7.2 participants.tsv
+### 8.2 participants.tsv
 
 The participants file stores demographic and clinical data for all subjects. This file lives at the root level of the dataset.
 
@@ -307,7 +351,7 @@ Additional recommended columns: handedness, pathology, implant_type.
 
 **PHI warning:** The participants.tsv file must not contain direct identifiers. Use age (integer, not date of birth), sex codes (M/F/O), and coded subject IDs only. No names, MRNs, or dates of birth per GOV-001 Section 2.3.
 
-### 7.3 sessions.tsv
+### 8.3 sessions.tsv
 
 Each subject should have a `sub-<ID>_sessions.tsv` file listing their sessions and acquisition dates.
 
@@ -320,7 +364,7 @@ Required columns:
 
 **Date handling:** Acquisition dates should be shifted or use relative timing only. Exact dates of service can identify individuals per HIPAA. Consult your institution's data governance policy on date-shifting.
 
-### 7.4 electrodes.tsv
+### 8.4 electrodes.tsv
 
 The electrodes file describes the electrode implant configuration. Required columns:
 
@@ -341,7 +385,7 @@ LA2	-35.1	-10.8	43.7	2.0
 RA1	28.9	-15.6	42.1	2.0
 ```
 
-### 7.5 channels.tsv
+### 8.5 channels.tsv
 
 The channels file describes recording channels. Required columns:
 
@@ -353,11 +397,11 @@ The channels file describes recording channels. Required columns:
 | sampling_frequency | float (required) | Sampling rate in Hz |
 | status | string (recommended) | good or bad |
 
-## 8. De-identification and Defacing Requirements
+## 9. De-identification and Defacing Requirements
 
 Per GOV-001 Section 2.3, all 18 HIPAA identifiers must be removed before data leaves the originating institution. For neural data, this involves multiple steps.
 
-### 8.1 DICOM Header Stripping
+### 9.1 DICOM Header Stripping
 
 All DICOM files must be converted to NIfTI using dcm2niix, which strips most identifying headers automatically. After conversion, verify that no patient name, date of birth, or medical record number remains in the output JSON sidecar. Key DICOM tags that must be absent:
 
@@ -365,7 +409,7 @@ All DICOM files must be converted to NIfTI using dcm2niix, which strips most ide
 - PatientBirthDate (0010,0030)
 - PatientID (0010,0020), unless it equals the BIDS subject ID
 
-### 8.2 Facial Defacing
+### 9.2 Facial Defacing
 
 All structural MRI files (T1w, T2w, FLAIR) in both ses-preimplant and ses-postsurgery must be defaced before submission. Defacing removes facial features from brain scans that could be used to reconstruct a patient's identity.
 
@@ -379,11 +423,11 @@ After defacing, visually inspect each file to confirm the face and ears are remo
 
 The GUI tool requires a defacing attestation checkbox before export. This attestation is recorded in the ALCOA+ audit log with user, timestamp, and tool information.
 
-### 8.3 Scanner-Aware DICOM Conversion
+### 9.3 Scanner-Aware DICOM Conversion
 
 Generic dcm2niix commands from public tutorials frequently fail or produce silent errors when used with 7T scanners, Philips scanners, or multiband fMRI sequences. Sites must use scanner-appropriate flags or the NeuroGate automation script.
 
-#### 8.3.1 Supported scanner configurations
+#### 9.3.1 Supported scanner configurations
 
 | Scanner | Field | Sequence type | Approach |
 |---|---|---|---|
@@ -396,7 +440,7 @@ Generic dcm2niix commands from public tutorials frequently fail or produce silen
 | GE Discovery / Signa | 3T | Structural | Standard flags; use latest dcm2niix (v1.0.20240202+) |
 | GE Discovery / Signa | 3T | fMRI | Add `-t y` for older firmware; verify SliceTiming manually |
 
-#### 8.3.2 fMRI (BOLD) requirements across all scanners
+#### 9.3.2 fMRI (BOLD) requirements across all scanners
 
 fMRI conversion has two requirements beyond standard structural conversion.
 
@@ -417,7 +461,7 @@ for p in pathlib.Path('./func/').glob('*.json'):
 "
 ```
 
-#### 8.3.3 7T-specific requirements
+#### 9.3.3 7T-specific requirements
 
 At 7T, two requirements go beyond the standard 3T workflow.
 
@@ -434,7 +478,7 @@ At 7T, two requirements go beyond the standard 3T workflow.
 
 **MP2RAGE naming.** Siemens 7T MP2RAGE sequences produce four derived volumes: INV1, INV2, UNI-Images, and T1map. dcm2niix names them with series-number suffixes. The UNI-Images volume must be renamed to `_T1w.nii.gz` for BIDS compliance. INV1, INV2, and T1map should be placed in a `derivatives/mp2rage/` folder rather than `anat/`.
 
-#### 8.3.4 Automation script
+#### 9.3.4 Automation script
 
 The NeuroGate automation script (`convert_dicom_auto.py`) reads DICOM headers before conversion, detects manufacturer, field strength, and sequence type, and applies all required flags without manual intervention. It also patches fMRI sidecars with TaskName and verifies all GOV-001 required fields are present after conversion.
 
@@ -446,23 +490,34 @@ python convert_dicom_auto.py /path/to/dicom/ /output/ \
 
 Download the script from the NeuroGate Pre-Processing page. After conversion, visually QA at least one volume per modality before proceeding to defacing and BIDS validation.
 
-### 8.5 EEG/iEEG Header Cleaning
+### 9.5 EEG/iEEG Header Cleaning
 
 EDF and BDF files contain a patient identification field in the header. Before submission, replace this field with the BIDS subject ID. For Persyst (.dat/.lay) files, verify the .lay header does not contain patient names or MRNs.
 
-### 8.6 Filename PHI Check
+**Automated by the tool:** the NeuroGate GUI tool performs this step automatically on every export -- no manual editing is required when using the tool. The EDF/BDF header's patient ID, name, birthdate, and sex subfields are blanked or replaced with the BIDS subject ID, and the recording start date is shifted by a random offset generated per subject (not zeroed), so relative timing between a subject's recordings is preserved while the absolute calendar date is removed. The shift offset is recorded in the export's ALCOA+ audit log.
+
+### 9.6 Filename PHI Check
 
 File names must never contain patient names, medical record numbers, dates of birth, or other identifiers. The BIDS naming convention (`sub-<ID>_ses-<session>_<modality>`) replaces all original filenames. If you are organizing files manually (not using the GUI tool), double-check that no source filenames with PHI are carried over.
 
-## 9. Using the GUI Tool
+### 9.7 Scan JSON Sidecar De-identification
+
+DICOM-to-NIfTI conversion tools (including dcm2niix) can carry DICOM header fields through into the `.json` sidecar written alongside each scan, depending on the site's conversion settings: patient name, patient ID, birthdate, institution name and address, referring/performing physician, scanner operator name, station name, and device serial number, among others. These are separate from the scan-descriptive fields (`SeriesDescription`, `ProtocolName`, etc.) that BIDS tooling needs and that this SOP does not require removing.
+
+**Automated by the tool:** on every export, the NeuroGate GUI tool blanks the known-identifying fields listed above in every scan's JSON sidecar, and shifts any acquisition/study date fields present (`AcquisitionDate`, `AcquisitionDateTime`, `StudyDate`, `SeriesDate`) by that subject's same random offset used for their EDF files, for the same relative-timing-preserved reasoning described in Section 9.5. This applies to every dataset regardless of session structure preset.
+
+If you are organizing files manually (not using the GUI tool), verify none of the fields listed above appear with real values in any `.json` sidecar before sharing the dataset.
+
+## 10. Using the GUI Tool
 
 The NeuroGate tool can automate much of this process. Instead of manually organizing files:
 
-1. **Drop your files** into the GUI (any folder structure is accepted)
-2. **Review auto-detection** of sessions and modalities in the mapping table
-3. **Enter metadata** (institution prefix, study info) and confirm defacing
-4. **Run validation** to catch any issues before upload
-5. **Export** the BIDS-organized output folder
+1. **Choose your structure** (Section 5.3): Implant sessions, or Custom timepoints
+2. **Drop your files** into the GUI (any folder structure is accepted)
+3. **Review auto-detection** of sessions and modalities in the mapping table
+4. **Enter metadata** (institution prefix, study info) and confirm defacing
+5. **Run validation** to catch any issues before upload
+6. **Export** the BIDS-organized output folder, with EDF and JSON sidecar headers automatically de-identified (Section 9.5, 9.7)
 
 The GUI generates compliant folder structures, filenames, and metadata files automatically. See the GUI documentation for detailed instructions.
 
@@ -470,9 +525,9 @@ The GUI generates compliant folder structures, filenames, and metadata files aut
 
 **Uncompressed NIfTI:** Files dropped as uncompressed `.nii` are accepted and compressed to `.nii.gz` automatically during export, so a separate manual compression step is not required.
 
-## 10. Troubleshooting and Common Issues
+## 11. Troubleshooting and Common Issues
 
-### 10.1 BIDS Validation
+### 11.1 BIDS Validation
 
 Run the BIDS validator before uploading to catch common errors:
 
@@ -484,7 +539,7 @@ npm install -g bids-validator
 bids-validator /path/to/dataset/
 ```
 
-### 10.2 Common Errors and Fixes
+### 11.2 Common Errors and Fixes
 
 | Error | Solution |
 |---|---|
@@ -495,7 +550,7 @@ bids-validator /path/to/dataset/
 | Subject ID format error | Use only alphanumeric characters, no spaces or special characters |
 | Missing electrodes.tsv | Required for any session containing iEEG recordings |
 
-## 11. Contact and Support
+## 12. Contact and Support
 
 For questions or assistance with data organization:
 
@@ -503,7 +558,7 @@ For questions or assistance with data organization:
 - **BIDS Specification:** https://bids-specification.readthedocs.io/
 - **iEEG-BIDS Extension:** https://bids-specification.readthedocs.io/en/stable/modality-specific-files/intracranial-electroencephalography.html
 
-## 12. Quick Reference
+## 13. Quick Reference
 
 This section summarizes the key information from this SOP for day-to-day use.
 
@@ -511,7 +566,7 @@ This section summarizes the key information from this SOP for day-to-day use.
 
 `sub-{PREFIX}{###}` where PREFIX is your 2-6 letter institution code (e.g., sub-CHOP016, sub-PENN042).
 
-### Folder Structure at a Glance
+### Folder Structure at a Glance (Implant sessions preset)
 
 ```
 primary/sub-<ID>/
@@ -530,13 +585,25 @@ primary/sub-<ID>/
     └── anat/    Post-op T1w (.nii.gz + .json)
 ```
 
-### Required vs. Optional by Session
+### Folder Structure at a Glance (Custom timepoints preset)
+
+```
+primary/sub-<ID>/
+├── sub-<ID>_sessions.tsv
+├── ses-0mo/   any modality, no fixed requirements (Section 7.2)
+├── ses-2mo/
+└── ses-6mo/   ...one folder per defined timepoint, chronologically labeled
+```
+
+### Required vs. Optional by Session (Implant sessions preset)
 
 | Session | Required | Recommended / If Available |
 |---|---|---|
 | ses-preimplant | T1w + JSON | T2w, FLAIR, MR angiography, DWI, perfusion (ASL), fMRI, field maps, scalp EEG |
 | ses-postimplant | CT + JSON, iEEG + JSON + channels.tsv + electrodes.tsv | events.tsv |
 | ses-postsurgery | (none strictly required) | Post-op T1w + JSON |
+
+Custom timepoints datasets have no per-session required/optional table -- see Section 7.2.
 
 ### File Format Rules
 
@@ -560,7 +627,7 @@ dcm2niix -z y -f sub-<ID>_ses-<session>_<modality> -o ./output/ /path/to/dicom/
 
 ---
 
-## 13. Revision History
+## 14. Revision History
 
 | Version | Date | Author | Changes |
 |---|---|---|---|
@@ -575,3 +642,4 @@ dcm2niix -z y -f sub-<ID>_ses-<session>_<modality> -o ./output/ /path/to/dicom/
 | 2.5 | June 24, 2026 | Brandon Bach | Added Section 8.3 (Scanner-Aware DICOM Conversion) covering 3T/7T Siemens, Philips, and GE scanner-specific flags, fMRI SliceTiming and TaskName requirements, 7T field map and MP2RAGE naming requirements, and the NeuroGate automation script (convert_dicom_auto.py). Updated Section 6.1.1 DICOM conversion command to reference the automation script. Renumbered former 8.3/8.4 (EEG header cleaning, Filename PHI check) to 8.5/8.6. |
 | 2.6 | July 31, 2026 | Brandon Bach | Removed SOP-REDCAP-001 and ONBOARD-001 from Related Documents (both deprecated: standalone-tool pivot removes REDCap and site onboarding, see GOV-001 v1.12-1.13). Removed "Penn"/participating-sites framing from Section 1 Purpose and the "or provided by Penn" note in Section 7.1. Updated the Section 8.6 defacing-log cross-reference from GOV-001 Section 6 to Section 5 following GOV-001's renumbering. Updated parent GOV-001 reference to v1.13. |
 | 2.7 | July 31, 2026 | Brandon Bach | Replaced "Consult your site PI" in Section 7.3 date-handling guidance with "Consult your institution's data governance policy," removing the last named-role reference from this SOP. |
+| 2.8 | August 1, 2026 | Brandon Bach | Major restructure: this SOP now covers two session-structure presets, not just Implant sessions. Added Section 5.3 (Two Structure Presets), retitled Section 6 to scope it explicitly to the Implant sessions preset, and added new Section 7 (Custom Timepoints Preset: File Requirements) documenting session-label generation, the absence of fixed per-timepoint modality requirements, and literal-match detection. Renumbered former Sections 7-13 to 8-14 to make room. Removed remaining "epilepsy" domain framing from the title, Section 1, and Section 3 Scope. Corrected Section 9.3's cross-reference (previously pointed to the wrong section number). Fixed stale "provided by Penn" / "generated by Penn analysis pipelines" wording in Section 5.1, left over from the standalone-tool pivot. Added Section 9.5 note and new Section 9.7 documenting the tool's automatic EDF header and JSON sidecar de-identification on export (date-shift, not blank, per-subject). Updated Section 10's workflow list from 5 to 6 steps (added the structure-choice step). Split the Quick Reference folder-structure and required/optional tables by preset. Updated the parent GOV-001 reference to v1.14. |

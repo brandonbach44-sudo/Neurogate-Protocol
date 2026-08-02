@@ -153,8 +153,8 @@ function nextSparseId(): string {
 /**
  * Warn when the dataset appears to be a single-file or very sparse upload.
  *
- * A full epilepsy BIDS dataset typically has 10+ files per subject
- * (T1w, CT, iEEG recording, electrodes.tsv, channels.tsv, sidecars, etc.).
+ * A full multi-modal BIDS dataset typically has 10+ files per subject
+ * (e.g. T1w, CT, iEEG recording, electrodes.tsv, channels.tsv, sidecars).
  * If the entire upload contains only 1-3 data files, it almost certainly
  * represents an intentional single-file workflow (e.g. de-identifying one
  * iEEG recording before export), and the user should be reminded that the
@@ -195,7 +195,7 @@ function checkSparseDataset(input: ValidationInput): ValidationIssue[] {
         category: 'required-files',
         severity: 'warning',
         title: 'Sparse dataset: only a few files uploaded',
-        description: `Subject "${group}" has only ${count} data file${count === 1 ? '' : 's'}. A complete epilepsy BIDS dataset typically includes a T1w MRI, CT scan, iEEG recording, and companion metadata files. If you intentionally uploaded a single file (e.g. to de-identify one recording), you can ignore this warning. Otherwise, verify that you selected the correct folder and that no files were accidentally left out.`,
+        description: `Subject "${group}" has only ${count} data file${count === 1 ? '' : 's'}. A complete multi-modal dataset typically includes several imaging and/or recording files plus companion metadata files. If you intentionally uploaded a single file (e.g. to de-identify one recording), you can ignore this warning. Otherwise, verify that you selected the correct folder and that no files were accidentally left out.`,
         affectedFiles: fileNames,
         subjectGroup: group,
         dismissable: true,

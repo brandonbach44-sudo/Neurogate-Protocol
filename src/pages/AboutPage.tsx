@@ -91,14 +91,14 @@ export default function AboutPage() {
           <h1 className="text-3xl font-bold text-gray-900 mt-4 leading-tight">
             A governance framework
             <br />
-            for neural data
+            for neural data,
             <br />
-            <span style={{ color: PENN_BLUE }}>in epilepsy.</span>
+            <span style={{ color: PENN_BLUE }}>ready to share.</span>
           </h1>
           <p className="mt-4 text-sm text-gray-500 leading-relaxed max-w-lg">
             NeuroGate Protocol combines a regulatory governance framework with a browser-based
             tool that helps research sites organize, validate, and prepare BIDS-compliant
-            neural data in epilepsy ready for multi-site sharing through cloud and on-premise
+            neural data ready for multi-site sharing through cloud and on-premise
             standardized data infrastructure toward building a learning health system. The
             framework is the spine; the tool is one of its implementations.
           </p>
@@ -140,7 +140,7 @@ export default function AboutPage() {
         <Eyebrow>The problem</Eyebrow>
         <h2 className="text-2xl font-bold text-gray-900 mt-3 mb-4">Sharing neural data is hard for the right reasons.</h2>
         <p className="text-sm text-gray-600 leading-relaxed max-w-3xl">
-          Multi-site epilepsy research depends on sharing neural data across institutions, and
+          Multi-site neural data research depends on sharing data across institutions, and
           that data is sensitive: imaging carries facial features and identifying headers,
           electrophysiology carries patient identifiers in recording headers, and all of it
           carries clinical context that needs careful handling. Each site has its own conventions,
@@ -184,7 +184,7 @@ export default function AboutPage() {
           />
           <PillarCard
             title="A browser-based tool"
-            body="A 5-step workflow that organizes, validates, and exports BIDS-compliant datasets entirely client-side. PHI scanning, defacing attestation, and a full ALCOA+ audit log are built in."
+            body="A 6-step workflow that organizes, validates, and exports BIDS-compliant datasets entirely client-side. PHI scanning, header de-identification, defacing attestation, and a full ALCOA+ audit log are built in."
             accent="#7c3aed"
             bg="rgba(124,58,237,0.08)"
             icon={
@@ -203,7 +203,7 @@ export default function AboutPage() {
         <div className="grid grid-cols-2 md:flex md:items-center md:justify-around gap-6 md:gap-0">
           <StatBlock value="11" label="Modalities" />
           <div className="hidden md:block w-px h-10 bg-gray-200" />
-          <StatBlock value="3" label="Clinical sessions" />
+          <StatBlock value="2" label="Structure presets" />
           <div className="hidden md:block w-px h-10 bg-gray-200" />
           <StatBlock value="4" label="Documents" />
           <div className="hidden md:block w-px h-10 bg-gray-200" />
@@ -220,7 +220,7 @@ export default function AboutPage() {
             The tool is functional and the documentation is in draft, pending review. NeuroGate is
             a standalone tool that any site can use independently, with no requirement to
             coordinate through a central team. It is in active development and intended to be a
-            long-lived resource for the neural data sharing community in epilepsy.
+            long-lived resource for the neural data sharing community.
           </p>
           <div className="mt-5 inline-flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-full" style={{ backgroundColor: 'rgba(109,211,206,0.15)', color: TEAL_TEXT }}>
             <span style={{ color: TEAL }}>&#9679;</span>
@@ -233,7 +233,7 @@ export default function AboutPage() {
           <p className="text-sm text-gray-500 leading-relaxed">
             Project lead, framework author, and tool developer. The work spans regulatory writing,
             front-end engineering, and biomedical informatics, anchored on the goal of making
-            multi-site neural data sharing in epilepsy easier to do correctly.
+            multi-site neural data sharing easier to do correctly.
           </p>
           <div className="mt-5 flex flex-wrap items-center gap-3">
             <button

@@ -2,7 +2,7 @@
  * BIDS Structure Validator
  *
  * Checks that the generated BIDS paths and filenames follow the
- * BIDS specification for iEEG/epilepsy data:
+ * BIDS specification for iEEG/neural data:
  *
  * - Correct folder hierarchy: primary/sub-XXX/ses-XXX/modality/
  * - Valid BIDS filename format: sub-XXX_ses-XXX_suffix.ext

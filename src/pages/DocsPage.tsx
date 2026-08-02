@@ -102,7 +102,7 @@ export default function DocsPage() {
           <div className="p-8">
             <div className="flex items-center gap-2 mb-4">
               <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500">GOV-001</span>
-              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(1,31,91,0.06)', color: '#011F5B' }}>v1.13</span>
+              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(1,31,91,0.06)', color: '#011F5B' }}>v1.14</span>
               <span className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(234,179,8,0.1)', color: '#a16207' }}>Draft</span>
             </div>
             <h2 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-[#011F5B] transition-colors">
@@ -110,8 +110,8 @@ export default function DocsPage() {
             </h2>
             <p className="text-sm text-gray-500 leading-relaxed max-w-lg">
               The foundational document defining regulatory requirements, data standards,
-              compliance mechanisms, and QMS structure for multi-site neural data sharing in
-              epilepsy. All SOPs trace back to this framework.
+              compliance mechanisms, and QMS structure for multi-site neural data sharing.
+              All SOPs trace back to this framework.
             </p>
             <div className="mt-5 flex items-center gap-1 text-sm font-medium" style={{ color: '#011F5B' }}>
               Read framework
@@ -131,7 +131,7 @@ export default function DocsPage() {
           title="BIDS Data Structure"
           description="Folder hierarchy, file naming conventions, modality organization, JSON sidecars, and de-identification requirements for BIDS-compliant neural data (imaging and electrophysiology)."
           status="Draft"
-          version="v2.7"
+          version="v2.8"
           to="/docs/sop-bids"
           accent="rgba(109,211,206)"
           icon={
@@ -145,7 +145,7 @@ export default function DocsPage() {
           title="Pennsieve Upload Procedures (optional reference)"
           description="Worked example for sites that choose Pennsieve as their data infrastructure. Covers Agent CLI and web interface upload, pre-upload validation, post-upload verification, and audit logging. Sites using different infrastructure should produce an equivalent SOP."
           status="Draft"
-          version="v2.4"
+          version="v2.5"
           to="/docs/sop-pennsieve"
           accent="rgba(1,31,91)"
           icon={
@@ -161,7 +161,7 @@ export default function DocsPage() {
           title="Compliance Tool User Guide"
           description="Complete instructions for using the NeuroGate web tool: file upload, auto-detection review, metadata entry, validation, BIDS export, and audit trail management."
           status="Draft"
-          version="v1.5"
+          version="v1.6"
           to="/docs/sop-gui"
           accent="rgba(109,211,206)"
           icon={
