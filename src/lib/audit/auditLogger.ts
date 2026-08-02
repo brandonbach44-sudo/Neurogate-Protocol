@@ -42,6 +42,15 @@ export function createAuditLogger() {
 
   // ── Convenience methods for common actions ──────────────────
 
+  function logStructureSelected(presetId: string, sessionCount: number, sessionIds: string[]) {
+    addEntry('structure-selected',
+      presetId === 'custom-timepoints'
+        ? `Structure selected: Custom timepoints (${sessionCount} timepoint${sessionCount !== 1 ? 's' : ''}: ${sessionIds.join(', ')})`
+        : `Structure selected: Implant sessions (${sessionCount} fixed sessions: ${sessionIds.join(', ')})`,
+      { presetId, sessionCount, sessionIds },
+    );
+  }
+
   function logFilesScanned(fileCount: number, totalSizeBytes: number) {
     addEntry('files-scanned', `Scanned ${fileCount} files (${formatBytes(totalSizeBytes)})`, {
       fileCount,
@@ -190,6 +199,7 @@ export function createAuditLogger() {
     // Raw entry
     addEntry,
     // Convenience loggers
+    logStructureSelected,
     logFilesScanned,
     logDetectionCompleted,
     logSessionCorrected,
