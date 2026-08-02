@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | **Document ID** | SOP-GUI-001 |
-| **Version** | 1.7 |
+| **Version** | 1.8 |
 | **Effective Date** | 2026-08-01 |
 | **Author** | Brandon Bach |
 | **Status** | Draft |
@@ -466,3 +466,4 @@ The audit log satisfies ALCOA+ requirements:
 | 1.5 | 2026-07-31 | Brandon Bach | Section 3 Scope: rewrote the applicability statement to describe anyone preparing neural data (site-based or independent) rather than a role list assuming institutional participation and a principal investigator. |
 | 1.6 | 2026-08-01 | Brandon Bach | Major update: the tool is now a 6-step workflow, not 5. Added new Section 6 (Step 1: Choose Your Structure) documenting the Implant sessions / Custom timepoints preset choice; renumbered former Sections 6-16 to 7-17. Updated Section 8 (Mapping Table) to describe preset-aware session detection, including that Custom timepoints has no modality-based fallback and instead requires either a literal label match or the "Assign in order to timepoints" bulk action. Updated Section 11.1 (Export) and Section 10.4 (PHI Detection) to document the tool's new automatic EDF header and JSON sidecar de-identification (date-shift, not blank, per subject). Updated the Quick-Reference workflow summary from 7 to 8 steps. Removed remaining "epilepsy" domain framing from Section 3 Scope. Updated the parent GOV-001 reference to v1.14. |
 | 1.7 | 2026-08-01 | Brandon Bach | Section 10.4 (PHI Detection): documented the second PHI scan added this pass, which reads sidecar JSON free-text fields (SeriesDescription, ProtocolName, etc.) for PHI patterns -- these fields are excluded from automatic de-identification because they're needed for BIDS documentation, so this scan is the safeguard against a scanner operator typing identifying information into one of them. |
+| 1.8 | 2026-08-01 | Brandon Bach | Testing surfaced a gap in the v1.7 sidecar content scan: bare two-word names in prose (e.g. "John Smith Brain MRI") weren't caught because the existing name patterns require a keyword or comma trigger that filenames have but free text doesn't. Added a dedicated bare-name heuristic for sidecar content only, with a stoplist of common radiology/scan vocabulary to avoid flagging legitimate Title Case descriptions (e.g. "Axial Flair Post Contrast"). Flagged as a dismissable warning, not an error, since it is a lower-confidence heuristic. Also fixed a cosmetic bug where three PHI pattern titles rendered as "Potential Potential ..." |

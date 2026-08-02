@@ -68,7 +68,7 @@ const PHI_PATTERNS: PhiPattern[] = [
   },
   // Full dates that might be DOB (MM/DD/YYYY or MM-DD-YYYY)
   {
-    name: 'Potential date (PHI risk)',
+    name: 'date (PHI risk)',
     pattern: /\b(?:0[1-9]|1[0-2])[\/\-](?:0[1-9]|[12]\d|3[01])[\/\-](?:19|20)\d{2}\b/,
     severity: 'warning',
     description: 'This contains a date in MM/DD/YYYY format. If this is a patient date of birth or admission date, it constitutes PHI.',
@@ -76,14 +76,14 @@ const PHI_PATTERNS: PhiPattern[] = [
   // Common name patterns in filenames (FirstLast, First_Last, etc.)
   // Only flag if it looks like a person's name alongside medical terms
   {
-    name: 'Potential patient name',
+    name: 'patient name',
     pattern: /\b(?:patient|pt|subj|subject)[_\-\s]?[A-Z][a-z]+[_\-\s]?[A-Z][a-z]+\b/,
     severity: 'error',
     description: 'This appears to contain a patient name. Patient names are PHI and must be replaced with de-identified subject IDs.',
   },
   // Last name, First name pattern
   {
-    name: 'Potential name (Last, First)',
+    name: 'name (Last, First)',
     pattern: /[A-Z][a-z]+,\s?[A-Z][a-z]+/,
     severity: 'warning',
     description: 'This matches a "Last, First" name pattern. If this is a patient name, it must be removed.',
@@ -225,6 +225,62 @@ const FIELDS_HANDLED_BY_DEIDENTIFIER = new Set<string>([
   ...DATE_FIELDS,
 ]);
 
+// ── Bare-name heuristic for sidecar free text ───────────────────
+//
+// PHI_PATTERNS' name checks ("patient_John_Smith", "Smith, John") require
+// a keyword or comma trigger, because that's how names show up in
+// filenames. Sidecar free text is prose ("John Smith Brain MRI"), so a
+// name can appear as a plain two-word Title Case phrase with no trigger
+// at all. This checks for that pattern directly, but only in sidecar
+// content -- doing this on filenames/paths would be far too noisy.
+//
+// False-positive risk: legitimate scan descriptions are also frequently
+// Title Case ("Axial Flair", "Post Contrast"). SCAN_VOCAB is a stoplist
+// of common radiology/imaging terms; a two-word match is only flagged if
+// NEITHER word is in the stoplist. This is a heuristic, not a guarantee --
+// uncommon scan vocabulary not in this list can still produce a false
+// positive, and an uncommon real name can still slip through if either
+// word happens to collide with the stoplist. Flagged as a dismissable
+// warning (not an error) for that reason -- a human reviews it either way.
+
+const SCAN_VOCAB = new Set([
+  'axial', 'sagittal', 'coronal', 'oblique', 'volumetric', 'isotropic',
+  'flair', 'weighted', 'contrast', 'enhanced', 'post', 'pre', 'gad',
+  'fat', 'water', 'sat', 'saturation', 'suppression', 'diffusion',
+  'perfusion', 'spin', 'echo', 'gradient', 'fast', 'spoiled', 'recalled',
+  'interpolated', 'brain', 'spine', 'cervical', 'thoracic', 'lumbar',
+  'head', 'neck', 'chest', 'abdomen', 'pelvis', 'whole', 'body',
+  'research', 'study', 'clinical', 'protocol', 'standard', 'high',
+  'resolution', 'thin', 'thick', 'slice', 'localizer', 'scout', 'survey',
+  'calibration', 'reference', 'series', 'sequence', 'multi', 'single',
+  'shot', 'turbo', 'susceptibility', 'imaging', 'angiography',
+  'venography', 'tensor', 'functional', 'resting', 'state', 'task',
+  'motor', 'language', 'memory', 'field', 'map', 'phase', 'magnitude',
+  'short', 'long', 'inversion', 'recovery', 'dark', 'bright', 'blood',
+  'vessel', 'wall', 'time', 'flight', 'dynamic', 'static', 'anatomical',
+  'structural', 'localiser', 'repeat', 'redo', 'rescan', 'motion',
+  'corrected', 'raw', 'processed', 'derived', 'left', 'right', 'bilateral',
+  'anterior', 'posterior', 'superior', 'inferior', 'medial', 'lateral',
+]);
+
+/** True if a word is common scan/imaging vocabulary, not likely a name token. */
+function isScanVocabWord(word: string): boolean {
+  return SCAN_VOCAB.has(word.toLowerCase());
+}
+
+/** Find bare "Firstname Lastname"-shaped phrases not explained by scan vocabulary. */
+function findBareNameCandidates(value: string): string[] {
+  const matches: string[] = [];
+  const re = /\b([A-Z][a-z]{1,15})\s+([A-Z][a-z]{1,15})\b/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(value)) !== null) {
+    const [full, w1, w2] = m;
+    if (isScanVocabWord(w1) || isScanVocabWord(w2)) continue;
+    matches.push(full);
+  }
+  return matches;
+}
+
 /** Recursively collect {path, value} for every string in a parsed JSON value. */
 function collectStringValues(
   value: unknown,
@@ -303,6 +359,19 @@ export async function scanSidecarContentForPhi(
           });
           break;
         }
+      }
+
+      const bareNames = findBareNameCandidates(value);
+      for (const candidate of bareNames) {
+        issues.push({
+          id: nextId(),
+          category: 'phi-risk',
+          severity: 'warning',
+          title: 'Potential name in sidecar text (unconfirmed)',
+          description: `The phrase "${candidate}" in field "${path}" of ${result.fileName} looks like it could be a person's name. This is a low-confidence heuristic check -- it also fires on uncommon scan-vocabulary phrases -- so review before dismissing. This field is not covered by automatic de-identification.`,
+          affectedFiles: [result.relativePath],
+          dismissable: true,
+        });
       }
     }
   }

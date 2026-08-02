@@ -161,7 +161,7 @@ export default function DocsPage() {
           title="Compliance Tool User Guide"
           description="Complete instructions for using the NeuroGate web tool: file upload, auto-detection review, metadata entry, validation, BIDS export, and audit trail management."
           status="Draft"
-          version="v1.7"
+          version="v1.8"
           to="/docs/sop-gui"
           accent="rgba(109,211,206)"
           icon={
