@@ -148,7 +148,7 @@ export function runDetection(
       // Subject grouping is a pure function of filename/path patterns, so
       // it's safe to compute here even though Pass 2 below computes it
       // again per file for the final result -- cheap either way.
-      const groupResult = groupIntoSubject(file, files);
+      const groupResult = groupIntoSubject(file, files, isCustomStructure ? knownSessionIds : undefined);
 
       const lowerName = file.name.toLowerCase();
       const isJsonFile = lowerName.endsWith('.json');
