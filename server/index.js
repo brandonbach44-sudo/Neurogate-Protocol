@@ -18,6 +18,8 @@
 
 require('dotenv').config();
 
+const path = require('path');
+const fs = require('fs');
 const express = require('express');
 const cors = require('cors');
 
@@ -27,6 +29,13 @@ const downloadRouter = require('./routes/download');
 const app = express();
 const PORT = process.env.PORT || 3001;
 const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5173';
+
+// SERVE_STATIC is only set inside the Dockerized desktop build (see
+// ../Dockerfile). The hosted deployment keeps the frontend on S3/CloudFront
+// and never sets this, so this block is inert there -- same server code,
+// two delivery modes.
+const SERVE_STATIC = process.env.SERVE_STATIC === 'true';
+const STATIC_DIR = path.join(__dirname, '..', 'dist');
 
 // ── Middleware ────────────────────────────────────────────────────────
 
