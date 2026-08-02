@@ -1,10 +1,8 @@
-# Governance Requirements — Extracted for Implementation
+# Governance Requirements: Extracted for Implementation
 
 > This file extracts rules the GUI must enforce. Sources: GOV-001 and SOP-BIDS-001 (`public/docs/gov-001.md`, `public/docs/sop-bids.md`). Update this file whenever either source changes.
->
-> **Known stale as of 2026-08-01:** this file predates the Custom timepoints preset (only the fixed Implant sessions structure is documented below) and the automatic EDF/JSON sidecar de-identification on export. See SOP-BIDS-001 Sections 5.3, 7, and 9.5/9.7 for the current, authoritative versions of both. Site onboarding and Penn Dataset 49 references below have been removed as deprecated; a fuller refresh covering the two presets is still open.
 
-**Last sync:** 2026-06-12 (against GOV-001 v1.2 and SOP-BIDS-001 v1.2) -- superseded by GOV-001 v1.14 / SOP-BIDS-001 v2.8, not yet fully reconciled here.
+**Last sync:** 2026-08-02 (against GOV-001 v1.14 and SOP-BIDS-001 v2.8).
 
 ---
 
@@ -12,11 +10,11 @@
 
 The tool enforces compliance with:
 
-- **FAIR Principles** — Findable, Accessible, Interoperable, Reusable
-- **ALCOA+** — Attributable, Legible, Contemporaneous, Original, Accurate, Complete, Consistent, Enduring, Available
-- **HIPAA / PHI** — No protected health information in filenames, metadata, or file contents
+- **FAIR Principles**: Findable, Accessible, Interoperable, Reusable
+- **ALCOA+**: Attributable, Legible, Contemporaneous, Original, Accurate, Complete, Consistent, Enduring, Available
+- **HIPAA / PHI**: No protected health information in filenames, metadata, or file contents
 - **NIH Data Management and Sharing Policy (2023)**
-- **QMS Document Hierarchy** — Every action logged with version, author, timestamp
+- **QMS Document Hierarchy**: Every action logged with version, author, timestamp
 
 ---
 
@@ -36,25 +34,39 @@ dataset_root/
 
 ---
 
-## Subject Directory Structure
+## Two Structure Presets
+
+Every dataset uses one of two session-structure presets, chosen at the start of the tool workflow. This choice determines which session labels exist; everything else in this document (naming conventions, metadata files, de-identification) applies to both.
+
+- **Implant sessions**: NeuroGate's original built-in preset, a fixed set of three sessions (`ses-preimplant`, `ses-postimplant`, `ses-postsurgery`) for a surgical evaluation and treatment timeline. It is not a universal BIDS standard, since BIDS itself does not prescribe session names. It is simply the structure NeuroGate was first built around. Documented below in "Implant Sessions Preset."
+- **Custom timepoints**: for any longitudinal study not organized around an implant procedure. The site picks its own timepoints from a number-and-unit control (e.g. 0 months, 2 months, 6 months), which generates session labels like `ses-0mo`, `ses-2mo`, `ses-6mo`. No free-text entry, so a site or PI name can never end up in a session label. Documented below in "Custom Timepoints Preset."
+
+A dataset uses exactly one preset; the two are not combined within a single dataset.
+
+**Repeated acquisitions:** when a session has more than one scan of the same modality, files get a `run-` entity (`sub-<ID>_ses-preimplant_run-1_T2w.nii.gz`, `run-2`, ...) so every filename stays unique. The tool assigns these automatically. Examples below omit `run-` for readability; it only appears when a modality repeats within a session.
+
+---
+
+## Implant Sessions Preset
 
 ```
 sub-<ID>/                                  # e.g., sub-CHOP016
     ├── sub-<ID>_sessions.tsv              # Session metadata (date, age at visit)
     ├── ses-preimplant/                    # Pre-surgical evaluation
-    │   ├── anat/                          # T1w, T2w
+    │   ├── anat/                          # T1w, T2w, FLAIR, angio
     │   ├── dwi/                           # Diffusion
     │   ├── eeg/                           # Scalp EEG
+    │   ├── perf/                          # Perfusion / ASL
     │   ├── fmap/                          # Field maps
     │   └── func/                          # Functional MRI
     ├── ses-postimplant/                   # Intracranial monitoring
     │   ├── ct/                            # CT with electrodes
     │   └── ieeg/                          # Intracranial EEG
     └── ses-postsurgery/                   # Post-resection
-        └── anat/                          # Post-op MRI
+        └── anat/                          # Post-op MRI, FLAIR
 ```
 
-**Subject ID format:** `sub-{INSTITUTION_PREFIX}{###}` — e.g., `sub-CHOP016`, `sub-PENN042`.
+**Subject ID format:** `sub-{INSTITUTION_PREFIX}{###}` (e.g., `sub-CHOP016`, `sub-PENN042`).
 Three-digit zero-padded counter, scoped per institution. User supplies starting number.
 
 **Session names (NOT numbered):**
@@ -62,22 +74,21 @@ Three-digit zero-padded counter, scoped per institution. User supplies starting 
 - `ses-postimplant`
 - `ses-postsurgery`
 
----
+### Required Files by Session and Modality
 
-## Required Files by Session and Modality
+#### Session: ses-preimplant
 
-### Session: ses-preimplant
-
-**anat/ (Anatomical MRI) — required**
+**anat/ (Anatomical MRI and angiography): T1w required, rest as noted**
 
 | File | Format | Required |
 |------|--------|----------|
 | `sub-<ID>_ses-preimplant_T1w.nii.gz` | NIfTI gzipped | **Yes** |
 | `sub-<ID>_ses-preimplant_T1w.json` | JSON sidecar | **Yes** |
-| `sub-<ID>_ses-preimplant_T2w.nii.gz` | NIfTI gzipped | Recommended |
-| `sub-<ID>_ses-preimplant_T2w.json` | JSON sidecar | Recommended |
+| `sub-<ID>_ses-preimplant_T2w.nii.gz` / `.json` | NIfTI gzipped / JSON | Recommended |
+| `sub-<ID>_ses-preimplant_FLAIR.nii.gz` / `.json` | NIfTI gzipped / JSON | If available |
+| `sub-<ID>_ses-preimplant_angio.nii.gz` / `.json` | NIfTI gzipped / JSON | If available (TOF angiography) |
 
-**dwi/ (Diffusion MRI) — if available**
+**dwi/ (Diffusion MRI): if available**
 
 | File | Format | Description |
 |------|--------|-------------|
@@ -86,7 +97,7 @@ Three-digit zero-padded counter, scoped per institution. User supplies starting 
 | `sub-<ID>_ses-preimplant_dwi.bval` | Text | b-values |
 | `sub-<ID>_ses-preimplant_dwi.bvec` | Text | b-vectors |
 
-**eeg/ (Scalp EEG) — if available**
+**eeg/ (Scalp EEG): if available**
 
 | File | Format | Description |
 |------|--------|-------------|
@@ -94,11 +105,11 @@ Three-digit zero-padded counter, scoped per institution. User supplies starting 
 | `sub-<ID>_ses-preimplant_task-<name>_eeg.json` | JSON | EEG metadata |
 | `sub-<ID>_ses-preimplant_task-<name>_channels.tsv` | TSV | Channel descriptions |
 
-**fmap/ (Field maps) and func/ (Functional MRI):** when present, follow standard BIDS conventions.
+**perf/ (Perfusion / ASL), fmap/ (Field maps), func/ (Functional MRI):** if available, follow standard BIDS conventions and modality-specific JSON sidecar requirements per GOV-001 Section 3.
 
-### Session: ses-postimplant
+#### Session: ses-postimplant
 
-**ct/ (CT with electrodes) — required**
+**ct/ (CT with electrodes): required**
 
 | File | Format | Required |
 |------|--------|----------|
@@ -107,7 +118,7 @@ Three-digit zero-padded counter, scoped per institution. User supplies starting 
 
 The post-implant CT must clearly show electrode positions for accurate localization.
 
-**ieeg/ (Intracranial EEG) — required**
+**ieeg/ (Intracranial EEG): required**
 
 | File | Format | Required |
 |------|--------|----------|
@@ -118,29 +129,53 @@ The post-implant CT must clearly show electrode positions for accurate localizat
 | `sub-<ID>_ses-postimplant_task-<name>_events.tsv` | TSV | Recommended |
 
 **Accepted iEEG formats:**
-- `.edf` / `.bdf` — European Data Format
-- `.nwb` — Neurodata Without Borders
-- `.dat` + `.lay` — Persyst format (BOTH files required, validate as a pair)
+- `.edf` / `.bdf`: European Data Format
+- `.nwb`: Neurodata Without Borders
+- `.dat` + `.lay`: Persyst format (BOTH files required, validate as a pair)
 
 **Minimum recording:** 48 hours of continuous iEEG required.
 
-### Session: ses-postsurgery
+#### Session: ses-postsurgery
 
-**anat/ (Post-resection MRI) — if available**
+**anat/ (Post-resection MRI): if available**
 
 | File | Format | Required |
 |------|--------|----------|
-| `sub-<ID>_ses-postsurgery_T1w.nii.gz` | NIfTI gzipped | If available |
-| `sub-<ID>_ses-postsurgery_T1w.json` | JSON sidecar | If available |
+| `sub-<ID>_ses-postsurgery_T1w.nii.gz` / `.json` | NIfTI gzipped / JSON sidecar | If available |
+| `sub-<ID>_ses-postsurgery_FLAIR.nii.gz` / `.json` | NIfTI gzipped / JSON sidecar | If available |
+
+**Defacing note:** T1w and FLAIR here must also be defaced before submission.
+
+---
+
+## Custom Timepoints Preset
+
+Session labels are generated by the tool from a number and a unit (days, weeks, months, or years), e.g. `ses-0mo`, `ses-2mo`, `ses-6mo`. A timepoint numbered 0 (of any unit) is the study baseline by convention. Labels sort chronologically by elapsed time regardless of entry order; duplicate labels within a dataset are blocked by the tool.
+
+**No fixed per-timepoint modality requirements.** Unlike Implant sessions, there is no required-file table per timepoint: an arbitrary study's timepoints can't be assumed to follow a clinical evaluation sequence, so any modality is permitted at any timepoint. Correct BIDS naming/placement, JSON sidecar completeness for whatever modalities are present, and all de-identification requirements below still apply.
+
+```
+primary/
+└── sub-<ID>/
+    ├── sub-<ID>_sessions.tsv
+    ├── ses-0mo/
+    │   └── anat/    sub-<ID>_ses-0mo_T1w.nii.gz
+    ├── ses-2mo/
+    │   └── anat/    sub-<ID>_ses-2mo_T1w.nii.gz
+    └── ses-6mo/
+        └── anat/    sub-<ID>_ses-6mo_T1w.nii.gz
+```
+
+**Detection:** the tool only auto-recognizes a Custom timepoints session when a file's path or filename literally contains one of the labels defined for that dataset (e.g. inside a `ses-2mo/` folder, or named `..._ses-2mo_...`): literal matching, not the fuzzy keyword inference ("preop" → `ses-preimplant`) used for Implant sessions, since there's no keyword vocabulary that generalizes across arbitrary studies. Unrecognized files are mapped manually in the tool's mapping table; when several files map to timepoints in sequence, "Assign in order to timepoints" pairs the 1st selected file with the earliest timepoint, the 2nd with the next, and so on.
 
 ---
 
 ## Metadata File Specs
 
-### electrodes.tsv (required for ses-postimplant/ieeg/)
+### electrodes.tsv (required for ses-postimplant/ieeg/ or the ieeg/ folder of any Custom timepoint that has one)
 
 | Column | Type | Description |
-|--------|------|-------------|
+|--------|------|--------------|
 | `name` | string (required) | Electrode contact name (e.g., LA1, RA2) |
 | `x` | float (required) | X coordinate in mm |
 | `y` | float (required) | Y coordinate in mm |
@@ -150,8 +185,8 @@ The post-implant CT must clearly show electrode positions for accurate localizat
 ### channels.tsv (required for eeg/ and ieeg/)
 
 | Column | Type | Description |
-|--------|------|-------------|
-| `name` | string (required) | Channel label — must match electrodes.tsv |
+|--------|------|--------------|
+| `name` | string (required) | Channel label: must match electrodes.tsv |
 | `type` | string (required) | ECOG, SEEG, EEG, ECG, EMG, etc. |
 | `units` | string (required) | Measurement units (typically µV or mV) |
 | `sampling_frequency` | float (required) | Sampling rate in Hz |
@@ -161,23 +196,23 @@ The post-implant CT must clearly show electrode positions for accurate localizat
 
 ### sub-<ID>_sessions.tsv (required at subject root)
 
-Lists sessions for the subject with at minimum: `session_id`, `acq_time` (acquisition date in ISO 8601), and `age` (years at session — optional).
+Lists sessions for the subject with at minimum: `session_id`, `acq_time` (acquisition date in ISO 8601), and `age` (years at session, optional).
 
 ### dataset_description.json (tool generates on first upload)
 
 Required fields:
-- `Name` — study name
-- `BIDSVersion` — currently 1.8.0
-- `DatasetType` — "raw"
-- `Authors` — list of contributing institution authors
-- `Acknowledgements` — optional
-- `Funding` — optional list of grants
+- `Name`: study name
+- `BIDSVersion`: currently 1.8.0
+- `DatasetType`: "raw"
+- `Authors`: list of contributing institution authors
+- `Acknowledgements`: optional
+- `Funding`: optional list of grants
 
 ---
 
 ## File Format Rules (Hard Requirements)
 
-- Imaging files: `.nii.gz` (NEVER `.nii`)
+- Imaging files: `.nii.gz` (NEVER `.nii`); uncompressed `.nii` is accepted on import, and the tool compresses it automatically on export
 - Tabular files: `.tsv` (NEVER `.csv`)
 - JSON sidecars: one per imaging or recording file, same basename
 - Subject IDs: alphanumeric only, no spaces or special characters
@@ -204,9 +239,21 @@ Required fields:
 
 ---
 
+## Automatic De-identification on Export
+
+Per GOV-001 Section 2.3, all 18 HIPAA identifiers must be removed before data leaves the originating institution. Two of these steps are automated by the tool itself on every export, not left to manual site procedure:
+
+**EDF/BDF and Persyst header cleaning.** The tool blanks or replaces the EDF/BDF header's patient ID, name, birthdate, and sex subfields with the BIDS subject ID, and shifts the recording start date by a random offset generated per subject (not zeroed) so relative timing between a subject's recordings is preserved while the absolute calendar date is removed. The offset is recorded in the export's ALCOA+ audit log.
+
+**JSON sidecar de-identification.** DICOM-to-NIfTI conversion (including dcm2niix) can carry identifying DICOM header fields into a scan's `.json` sidecar depending on site conversion settings: patient name, patient ID, birthdate, institution name/address, referring/performing physician, scanner operator, station name, device serial number. On export, the tool blanks these known-identifying fields in every sidecar and shifts any acquisition/study date fields (`AcquisitionDate`, `AcquisitionDateTime`, `StudyDate`, `SeriesDate`) by that subject's same random offset. This applies to both structure presets. Scan-descriptive fields BIDS tooling needs (`SeriesDescription`, `ProtocolName`, etc.) are left alone.
+
+Manual DICOM header stripping (via dcm2niix) and facial defacing (T1w/T2w/FLAIR in ses-preimplant and ses-postsurgery, or in any Custom timepoint anat/ folder) remain site responsibilities: the tool cannot verify these were done correctly and requires a defacing attestation checkbox before export instead.
+
+---
+
 ## Defacing Requirements
 
-Structural MRI (T1w, T2w) in `ses-preimplant/anat/` and `ses-postsurgery/anat/` must be defaced before upload. The tool:
+Structural MRI (T1w, T2w, FLAIR) in preimplant/postsurgery sessions (or the equivalent anat/ folders in a Custom timepoints dataset) must be defaced before upload. The tool:
 
 1. Requires user **attestation via checkbox** that defacing was performed.
 2. Records in audit log: user, timestamp, tool name and version.
@@ -233,8 +280,9 @@ Every upload generates an audit log with:
 - Folder drop (file count, total size)
 - Modality detection (per file: detected value, user correction if any)
 - Session detection (per folder: detected session, user correction)
-- Metadata entry (per field: value, source — user / auto-filled / DICOM tag)
+- Metadata entry (per field: value, source: user / auto-filled / DICOM tag)
 - Defacing attestation (timestamp, tool, user)
+- De-identification offset (per subject: random date-shift value applied to EDF/sidecar dates)
 - Validation run (per check: pass/fail, details on fail)
 - Export start/complete (subject count, file count, total bytes, ZIP filename)
 - Errors encountered
@@ -245,14 +293,14 @@ Every upload generates an audit log with:
 
 Validation runs in stages, each producing errors/warnings:
 
-1. **Structural** — Folder hierarchy matches `primary/sub-<ID>/ses-{preimplant|postimplant|postsurgery}/<modality>/` pattern. Filenames match BIDS regex.
-2. **Required files** — Per session, the required files from the tables above are present.
-3. **Metadata** — JSON sidecars present and valid; required fields populated.
-4. **Cross-file consistency** — channels.tsv names match electrodes.tsv names; sessions.tsv lists all session folders present.
-5. **Content sanity** — NIfTI headers parse; dimensions reasonable.
-6. **PHI** — Filename + DICOM tag scan.
-7. **Cross-session consistency (within batch)** — same subject ID across all 3 sessions; acquisition dates in chronological order (preimplant < postimplant < postsurgery); constant metadata (site, scanner) doesn't contradict.
-8. **iEEG-specific** — minimum 48hr recording; valid format combinations (Persyst requires both .dat and .lay).
+1. **Structural**: Folder hierarchy matches the active preset's pattern (`primary/sub-<ID>/ses-{preimplant|postimplant|postsurgery}/<modality>/` for Implant sessions, or `primary/sub-<ID>/ses-<custom-label>/<modality>/` for Custom timepoints). Filenames match BIDS regex.
+2. **Required files**: For Implant sessions, per-session required files from the tables above must be present. For Custom timepoints, there is no fixed per-timepoint requirement, only that whatever modalities are present have complete file sets.
+3. **Metadata**: JSON sidecars present and valid; required fields populated.
+4. **Cross-file consistency**: channels.tsv names match electrodes.tsv names; sessions.tsv lists all session folders present.
+5. **Content sanity**: NIfTI headers parse; dimensions reasonable.
+6. **PHI**: Filename + DICOM tag scan, plus JSON sidecar free-text scan (Section "Automatic De-identification" above).
+7. **Cross-session consistency (within batch)**: same subject ID across sessions; for Implant sessions, acquisition dates must be chronological (preimplant < postimplant < postsurgery); constant metadata (site, scanner) doesn't contradict.
+8. **iEEG-specific**: minimum 48hr recording; valid format combinations (Persyst requires both .dat and .lay).
 
 ---
 
