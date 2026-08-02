@@ -1,8 +1,10 @@
 # Governance Requirements — Extracted for Implementation
 
-> This file extracts rules the GUI must enforce. Sources: `Regulatory_Governance_Framework.docx` (GOV-001) and `SOP_BIDS_Data_Structure.docx` (SOP-BIDS-001). Update this file whenever either source changes.
+> This file extracts rules the GUI must enforce. Sources: GOV-001 and SOP-BIDS-001 (`public/docs/gov-001.md`, `public/docs/sop-bids.md`). Update this file whenever either source changes.
+>
+> **Known stale as of 2026-08-01:** this file predates the Custom timepoints preset (only the fixed Implant sessions structure is documented below) and the automatic EDF/JSON sidecar de-identification on export. See SOP-BIDS-001 Sections 5.3, 7, and 9.5/9.7 for the current, authoritative versions of both. Site onboarding and Penn Dataset 49 references below have been removed as deprecated; a fuller refresh covering the two presets is still open.
 
-**Last sync:** 2026-06-12 (against GOV-001 v1.2 and SOP-BIDS-001 v1.2)
+**Last sync:** 2026-06-12 (against GOV-001 v1.2 and SOP-BIDS-001 v1.2) -- superseded by GOV-001 v1.14 / SOP-BIDS-001 v2.8, not yet fully reconciled here.
 
 ---
 
@@ -216,7 +218,7 @@ Structural MRI (T1w, T2w) in `ses-preimplant/anat/` and `ses-postsurgery/anat/` 
 
 Every upload generates an audit log with:
 
-- **Attributable:** Site data manager name (entered at session start)
+- **Attributable:** Recorded per-action, not tied to a named role -- the tool has no login/user-management system
 - **Legible:** Human-readable JSON + CSV export
 - **Contemporaneous:** Timestamps at action time
 - **Original:** Created at event, never edited
@@ -254,31 +256,18 @@ Validation runs in stages, each producing errors/warnings:
 
 ---
 
-## Site Onboarding Requirements
-
-Before a site uses the tool:
-
-1. Institution prefix assigned (2-6 uppercase letters, unique across all participating sites)
-2. Data infrastructure confirmed (Pennsieve, institutional cloud, on-premise archive, etc.)
-3. Completed onboarding checklist (ONBOARD-001)
-4. Designated data custodian for the ID-to-MRN mapping (which never leaves the site)
-5. Test dataset successfully validated and exported through the tool before live data contribution
-
----
-
 ## What the Tool Does NOT Enforce
 
 - Clinical accuracy of metadata content
 - Image quality (blurry MRIs upload fine; site QC issue)
 - IRB or consent documentation (handled outside the tool)
-- Data use agreements (handled between institutions before onboarding; outside tool scope)
+- Data use agreements (handled between institutions; outside tool scope)
 - Anything in the `derivatives/` folder
 
 ---
 
 **Source documents:**
-- `Regulatory_Governance_Framework.docx` (GOV-001 v1.2)
-- `SOP_BIDS_Data_Structure.docx` (SOP-BIDS-001 v1.0)
+- `public/docs/gov-001.md` (GOV-001, currently v1.14)
+- `public/docs/sop-bids.md` (SOP-BIDS-001, currently v2.8)
 - BIDS Specification: https://bids-specification.readthedocs.io
 - iEEG-BIDS Extension: https://bids-specification.readthedocs.io/en/stable/modality-specific-files/intracranial-electroencephalography.html
-- Reference dataset (Penn Dataset 49): https://discover.pennsieve.io/datasets/431

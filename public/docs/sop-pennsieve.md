@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | **Document ID** | SOP-PENNSIEVE-001 |
-| **Version** | 2.5 |
+| **Version** | 2.6 |
 | **Effective Date** | August 1, 2026 |
 | **Author** | Brandon Bach |
 | **Advisor** | Nishant Sinha |
@@ -46,7 +46,7 @@ Before beginning, ensure you have:
 
 - Data organized in BIDS format per SOP-BIDS-001, either manually or using the GUI tool
 - BIDS validation passed with zero errors (see Section 7)
-- De-identification completed per SOP-BIDS-001 Section 8 (DICOM headers stripped, defacing applied, EEG headers cleaned)
+- De-identification completed per SOP-BIDS-001 Section 9 (DICOM headers stripped, defacing applied, EEG headers and scan JSON sidecars automatically de-identified by the tool on export)
 - A Pennsieve account with access to your site's workspace (see Section 5)
 - Stable internet connection (neuroimaging uploads can be large, often several GB per subject)
 
@@ -256,12 +256,12 @@ Per GOV-001 Section 6.1, the following must be verified before every upload. Do 
 
 ### 8.1 If Using the GUI Tool
 
-The GUI tool handles validation automatically. Before exporting:
+The GUI tool handles validation and de-identification automatically. Before exporting:
 
-1. Complete all 5 steps (File Drop, Mapping, Metadata, Validation, Export)
+1. Complete all 6 steps (Choose Your Structure, File Drop, Mapping, Metadata, Validation, Export)
 2. Validation step must show **zero errors** (warnings are acceptable if understood)
 3. Confirm the defacing attestation checkbox
-4. Export the BIDS ZIP file
+4. Export the BIDS ZIP file -- EDF headers and scan JSON sidecars are de-identified automatically as part of export, no separate step required
 5. Download the ALCOA+ audit log from the export screen
 6. Unzip the exported file to get your BIDS-organized folder, then upload using Method 1 or 2 above
 
@@ -276,22 +276,22 @@ bids-validator /path/to/your/bids_dataset/
 
 The validator must report **zero errors**. Warnings are acceptable if documented. Additionally, verify:
 
-- [ ] All required files present per SOP-BIDS-001 Section 6
+- [ ] All required files present per SOP-BIDS-001 Section 6 (Implant sessions preset) or Section 7 (Custom timepoints preset)
 - [ ] All JSON sidecars present with required fields per SOP-BIDS-001
-- [ ] De-identification complete (DICOM headers, defacing, EEG headers, filenames) per SOP-BIDS-001 Section 8
-- [ ] PHI Clearance Form signed
+- [ ] De-identification complete (DICOM headers, defacing, EEG headers, scan JSON sidecars, filenames) per SOP-BIDS-001 Section 9
+- [ ] Pre-export checklist confirmed (GOV-001 Section 6.1)
 - [ ] File sizes consistent with expected data volumes
 
 ## 9. Post-Upload Verification
 
 After uploading (by either method), complete this checklist:
 
-- [ ] All three session folders present (ses-preimplant, ses-postimplant, ses-postsurgery)
-- [ ] T1w MRI file and JSON sidecar in ses-preimplant/anat/
-- [ ] CT file and JSON sidecar in ses-postimplant/ct/
-- [ ] iEEG files, channels.tsv, and electrodes.tsv in ses-postimplant/ieeg/
+- [ ] All expected session folders present -- three (ses-preimplant, ses-postimplant, ses-postsurgery) under the Implant sessions preset, or the site's defined timepoints under Custom timepoints
+- [ ] T1w MRI file and JSON sidecar in ses-preimplant/anat/ (Implant sessions preset)
+- [ ] CT file and JSON sidecar in ses-postimplant/ct/ (Implant sessions preset)
+- [ ] iEEG files, channels.tsv, and electrodes.tsv in ses-postimplant/ieeg/ (Implant sessions preset)
 - [ ] File sizes match local files (no truncation during upload)
-- [ ] Notify the project lead (brandon.bach44@gmail.com) that upload is complete
+- [ ] File the upload record per GOV-001 Section 5
 
 ## 10. Audit and Logging Requirements
 
@@ -408,3 +408,4 @@ Best for: multi-subject uploads, large files, unreliable connections (supports r
 | 2.3 | July 31, 2026 | Brandon Bach | Removed SOP-REDCAP-001 and ONBOARD-001 from Related Documents; removed the data use agreement prerequisite and its GOV-001 Section 7.3 citation (site onboarding deprecated). Updated Section 2 traceability table's stale GOV-001 section references (7.3 Site Onboarding removed; 7.1 and 6 renumbered to 6.1 and 5) and the corresponding in-text citations in Sections 7 and 9. Updated parent GOV-001 reference to v1.13. |
 | 2.4 | July 31, 2026 | Brandon Bach | Section 1 Purpose: rewrote the audience statement to describe anyone uploading to Pennsieve rather than "researchers and data managers at participating sites," removing the last institutional-role framing from this SOP. |
 | 2.5 | August 1, 2026 | Brandon Bach | Section 1 Purpose: removed remaining "epilepsy" domain framing and "neuroimaging" wording (now "neural data" for consistency with the other SOPs); added a sentence clarifying NeuroGate itself does not upload to or interact with Pennsieve, this SOP is a reference for sites that separately choose it. Updated parent GOV-001 reference to v1.14. |
+| 2.6 | August 1, 2026 | Brandon Bach | QC pass following the two-preset structure and automatic de-identification changes: Section 8.1 workflow step count corrected from 5 to 6 (added Choose Your Structure) and a de-identification note added to the export step; Section 8.2 checklist updated to reference SOP-BIDS-001 Section 6 or 7 (preset-dependent) and Section 9, replaced deprecated "PHI Clearance Form" language with GOV-001 Section 6.1 pre-export checklist reference; Section 9 post-upload verification made preset-aware instead of assuming the fixed three-session structure, removed deprecated "notify the project lead" line; Section 4 prerequisites updated to describe automatic EDF header and scan JSON sidecar de-identification on export with corrected SOP-BIDS-001 section citation. |
