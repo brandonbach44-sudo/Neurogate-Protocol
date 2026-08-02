@@ -28,8 +28,9 @@ import type {
 import { detectFromExtension } from './extensionDetector';
 import { detectFromFilename, detectFromSidecarText } from './filenameDetector';
 import { detectFromFolderPath } from './folderDetector';
-import { inferFromNeighbors } from './neighborInference';
+import { inferFromNeighbors, getFolderPath } from './neighborInference';
 import { groupIntoSubject } from './subjectGrouping';
+import { buildFolderSessionMap, neighborPropagationReason } from './customSessionNeighborPropagation';
 import { getSidecarBaseName } from './sidecarReader';
 import type { SidecarInfo } from './sidecarReader';
 import { computeBidsNames } from '../bids/bidsNaming';
@@ -375,6 +376,20 @@ export function runDetection(
     }
   }
 
+  // ── Custom timepoints Layer C: neighbor propagation (spec Section 3.3) ──
+  // Built once from every file already resolved by the literal match or
+  // Layer A (date-cluster) above, so an undated file (channels.tsv,
+  // electrodes.tsv, a sidecar-less data file) can inherit its folder
+  // neighbor's session in Pass 2 below. Folders where resolved files
+  // disagree are excluded (see customSessionNeighborPropagation.ts).
+  const customFolderSessionMap = isCustomStructure
+    ? buildFolderSessionMap(
+        intermediateResults
+          .filter((r): r is typeof r & { session: string } => r.session !== null)
+          .map(r => ({ fileName: r.file.name, relativePath: r.file.relativePath, session: r.session })),
+      )
+    : new Map<string, string>();
+
   // ── Pass 2: Run layers 4-5 with context ─────────────────────
 
   const finalResults: DetectionResult[] = [];
@@ -409,6 +424,18 @@ export function runDetection(
     // timepoints for the same reason.
     if (!isCustomStructure && groupResult.session && !session) {
       session = groupResult.session;
+    }
+
+    // Layer C: neighbor propagation (Custom timepoints only, spec Section
+    // 3.3). Only reached if the literal match and date-cluster layer
+    // (both applied earlier, in Pass 1) found nothing for this file.
+    if (isCustomStructure && !session) {
+      const folder = getFolderPath(file.relativePath);
+      const propagated = customFolderSessionMap.get(folder);
+      if (propagated) {
+        session = propagated;
+        reasons.push(neighborPropagationReason(propagated));
+      }
     }
 
     // ── Session fallback: default by modality ──────────────────

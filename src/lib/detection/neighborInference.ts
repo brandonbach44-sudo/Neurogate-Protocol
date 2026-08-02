@@ -29,8 +29,11 @@ export interface NeighborResult {
 
 /**
  * Get the folder path of a file (everything before the last /).
+ * Exported so other custom-timepoints-only layers (e.g.
+ * customSessionNeighborPropagation.ts) can group files by folder the same
+ * way this file's own rules do, without duplicating the logic.
  */
-function getFolderPath(relativePath: string): string {
+export function getFolderPath(relativePath: string): string {
   const lastSlash = relativePath.lastIndexOf('/');
   return lastSlash === -1 ? '' : relativePath.substring(0, lastSlash);
 }
