@@ -33,12 +33,59 @@ const SCAN_NAME_FIELDS = [
   'ImageType',
 ];
 
+/**
+ * Date fields dcm2niix may write into a sidecar, in preference order.
+ * AcquisitionDateTime is most precise (includes time-of-day, usually an
+ * ISO-ish string); StudyDate and SeriesDate are DICOM-format plain dates
+ * (YYYYMMDD, no separators, no time). Used by the Custom timepoints
+ * date-cluster detector (dateClusterDetector.ts) -- not currently used
+ * for anything else. See
+ * Documents/Phase1b_Custom_Timepoint_Detection_Spec.md Section 4.
+ */
+const DATE_FIELDS = ['AcquisitionDateTime', 'StudyDate', 'SeriesDate'];
+
+/**
+ * Parse a DICOM-derived date value into a real Date, handling both the
+ * ISO-ish AcquisitionDateTime strings dcm2niix writes and the plain
+ * YYYYMMDD strings used by StudyDate/SeriesDate. Returns null if the
+ * value isn't a usable date (missing, malformed, or clearly a
+ * de-identified placeholder like "19000101").
+ */
+function parseSidecarDate(value: unknown): Date | null {
+  if (typeof value !== 'string' || !value.trim()) return null;
+  const trimmed = value.trim();
+
+  // Plain DICOM date: YYYYMMDD (8 digits, no separators, no time).
+  if (/^\d{8}$/.test(trimmed)) {
+    const year = Number(trimmed.slice(0, 4));
+    const month = Number(trimmed.slice(4, 6));
+    const day = Number(trimmed.slice(6, 8));
+    if (year < 1990) return null; // de-identified placeholder (e.g. "19000101")
+    const date = new Date(year, month - 1, day);
+    return isNaN(date.getTime()) ? null : date;
+  }
+
+  // ISO-ish AcquisitionDateTime, e.g. "2026-05-27T14:32:00" or with offset.
+  const date = new Date(trimmed);
+  if (isNaN(date.getTime())) return null;
+  if (date.getFullYear() < 1990) return null;
+  return date;
+}
+
 /** What a paired sidecar tells us about a data file. */
 export interface SidecarInfo {
   /** Combined scan-name text pulled from the sidecar's descriptive fields. */
   scanText: string;
   /** The sidecar file name, used in audit / reason messages. */
   sidecarName: string;
+  /**
+   * Acquisition date parsed from AcquisitionDateTime / StudyDate /
+   * SeriesDate (first present, in that order). Null if none of those
+   * fields were present or parseable. Used only by the Custom timepoints
+   * date-cluster detector -- unrelated to the existing scan-name text
+   * matching this reader was originally built for.
+   */
+  acquisitionDate: Date | null;
 }
 
 /**
@@ -87,11 +134,18 @@ export async function readJsonSidecars(
           }
         }
 
+        let acquisitionDate: Date | null = null;
+        for (const field of DATE_FIELDS) {
+          acquisitionDate = parseSidecarDate(parsed[field]);
+          if (acquisitionDate) break;
+        }
+
         const scanText = parts.join(' ').trim();
-        if (scanText) {
+        if (scanText || acquisitionDate) {
           map.set(getSidecarBaseName(jf.name), {
             scanText,
             sidecarName: jf.name,
+            acquisitionDate,
           });
         }
       } catch {
