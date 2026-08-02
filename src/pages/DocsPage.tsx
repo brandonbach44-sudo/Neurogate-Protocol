@@ -145,7 +145,7 @@ export default function DocsPage() {
           title="Pennsieve Upload Procedures (optional reference)"
           description="Worked example for sites that choose Pennsieve as their data infrastructure. Covers Agent CLI and web interface upload, pre-upload validation, post-upload verification, and audit logging. Sites using different infrastructure should produce an equivalent SOP."
           status="Draft"
-          version="v2.5"
+          version="v2.6"
           to="/docs/sop-pennsieve"
           accent="rgba(1,31,91)"
           icon={

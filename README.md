@@ -1,6 +1,6 @@
 # NeuroGate
 
-A browser-based tool and governance framework for organizing multi-site neural data in epilepsy into BIDS-compliant format, ready for sharing through cloud and on-premise standardized data infrastructure toward building a learning health system. "Neural data" covers all epilepsy research modalities: structural and functional MRI, CT, DWI, scalp EEG, and intracranial EEG.
+A browser-based tool and governance framework for organizing multi-site neural data into BIDS-compliant format, ready for sharing through cloud and on-premise standardized data infrastructure toward building a learning health system. "Neural data" covers structural and functional MRI, CT, DWI, scalp EEG, and intracranial EEG.
 
 ## Status
 
@@ -8,14 +8,14 @@ Beta, in active development. Tool is functional; documentation is in draft, pend
 
 ## What It Does
 
-Research staff at participating sites drag a folder of patient data into the web app. The tool:
+Anyone can drag a folder of patient data into the web app, independently, with no requirement to coordinate through a central team. The tool:
 
-1. Auto-detects imaging modalities and proposes BIDS-compliant names
-2. Lets users correct the mapping inline
-3. Collects required metadata per modality
-4. Validates the dataset against BIDS plus a governance framework (PHI scan, metadata completeness, session consistency)
-5. Exports a BIDS-organized folder ready for upload
-6. Generates an ALCOA+ compliant audit log
+1. Lets the user choose a session structure: the Implant sessions preset, or a Custom timepoints preset for other longitudinal study designs
+2. Auto-detects imaging modalities and proposes BIDS-compliant names
+3. Lets users correct the mapping inline
+4. Collects required metadata per modality
+5. Validates the dataset against BIDS plus a governance framework (PHI scan, metadata completeness, session consistency)
+6. Exports a BIDS-organized folder ready for upload, with EDF headers and scan JSON sidecars automatically de-identified (date-shift, not blank, per subject) and an ALCOA+ compliant audit log
 
 Users are assumed to have already converted DICOM to NIfTI and de-identified structural MRI. The tool validates and attests; it does not perform those steps. After the tool exports the BIDS folder, the site uploads it to its chosen data infrastructure. SOP-PENNSIEVE-001 is a worked example for sites using Pennsieve.
 

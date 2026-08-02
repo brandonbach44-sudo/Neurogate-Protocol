@@ -19,7 +19,7 @@ User browser
 
 **Decision:** Browser-to-Pennsieve direct upload is not feasible. Pennsieve does not support the CORS headers required for browser-initiated REST API calls, and adding a backend proxy would conflict with the tool's static, client-side-only design.
 
-**Final approach:** The tool exports a validated BIDS ZIP file to the user's local machine. The site coordinator then uploads that ZIP to their chosen data infrastructure (Pennsieve web interface, Pennsieve Agent CLI, institutional cloud, etc.) per SOP-PENNSIEVE-001 or their site-specific equivalent. This keeps the tool fully static and deployable as a plain web URL with no backend.
+**Final approach:** The tool exports a validated BIDS ZIP file to the user's local machine. The user then uploads that ZIP to their chosen data infrastructure (Pennsieve web interface, Pennsieve Agent CLI, institutional cloud, etc.) per SOP-PENNSIEVE-001 or their site-specific equivalent. This keeps the tool fully static and deployable as a plain web URL with no backend.
 
 The audit log (JSON + CSV) auto-downloads alongside the BIDS ZIP so sites have an ALCOA+-compliant record regardless of which upload method they use.
 
@@ -99,7 +99,7 @@ Implemented as an append-only array in session state. Each entry:
 interface AuditEntry {
   id: string;            // UUID v4
   timestamp: string;     // ISO 8601 with ms
-  user: string;          // Pennsieve username
+  user: string;          // 'user' | 'system' -- the tool has no login/user-management system
   action: AuditAction;   // typed enum of tracked actions
   payload: unknown;      // action-specific details
   sessionId: string;     // groups entries from one upload session
@@ -112,7 +112,7 @@ Exported as JSON + CSV at end of session for the site to retain per their record
 
 ## Deployment
 
-- **Frontend:** Static build → GitHub Pages or Cloudflare Pages. Auto-deploy from `main` branch.
+- **Frontend:** Static build, auto-deployed from `main` branch (currently Vercel; AWS relaunch planned -- see the phase roadmap notes for status).
 - **CI:** GitHub Actions for lint + test on every PR.
 
 ---
