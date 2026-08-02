@@ -1,0 +1,107 @@
+{
+  "jsonSidecar": {
+    "fullyIdentifying": {
+      "strippedFields": [
+        "DeviceSerialNumber",
+        "InstitutionName",
+        "OperatorsName",
+        "PatientBirthDate",
+        "PatientID",
+        "PatientName",
+        "ReferringPhysicianName",
+        "StationName"
+      ],
+      "shiftedFields": [
+        "AcquisitionDate",
+        "AcquisitionDateTime",
+        "StudyDate"
+      ],
+      "output": {
+        "PatientName": "X",
+        "PatientID": "X",
+        "PatientBirthDate": "X",
+        "InstitutionName": "X",
+        "ReferringPhysicianName": "X",
+        "OperatorsName": "X",
+        "StationName": "X",
+        "DeviceSerialNumber": "X",
+        "AcquisitionDate": "2024-05-02",
+        "AcquisitionDateTime": "2024-05-02T10:30:00",
+        "StudyDate": "2024-05-02",
+        "Manufacturer": "Siemens",
+        "MagneticFieldStrength": 3
+      }
+    },
+    "noIdentifyingFields": {
+      "strippedFields": [],
+      "shiftedFields": [],
+      "output": {
+        "Manufacturer": "Siemens",
+        "MagneticFieldStrength": 3,
+        "RepetitionTime": 2.3,
+        "SeriesDescription": "T1_MPRAGE"
+      }
+    },
+    "emptyStringFields": {
+      "strippedFields": [],
+      "shiftedFields": [],
+      "output": {
+        "PatientName": "",
+        "PatientID": null,
+        "Manufacturer": "GE"
+      }
+    },
+    "malformedJson": {
+      "strippedFields": [],
+      "shiftedFields": [],
+      "output": {
+        "__raw": "{ this is not valid json "
+      }
+    },
+    "dateOnly": {
+      "strippedFields": [],
+      "shiftedFields": [
+        "ContentDate",
+        "InstanceCreationDate"
+      ],
+      "output": {
+        "ContentDate": "2024-01-11",
+        "InstanceCreationDate": "2024-01-11T00:00:00.500"
+      }
+    }
+  },
+  "edf": {
+    "edfPlusWithPhi": {
+      "containedPhi": true,
+      "originalPatientId": "HUP282 M 22-APR-1990 Smith_John",
+      "shiftedDate": "02.05.24",
+      "outputPatientIdField": "sub-TEST001 X X X",
+      "outputRecordingIdField": "Startdate 02-MAY-2024 X X Exported_with_Persyst_EEGSuite",
+      "outputStartDateField": "02.05.24",
+      "outputStartTimeField": "00.00.00"
+    },
+    "alreadyAnonymized": {
+      "containedPhi": false,
+      "originalPatientId": "X X X X",
+      "shiftedDate": "11.01.20",
+      "outputPatientIdField": "sub-TEST001 X X X",
+      "outputRecordingIdField": "Startdate 11-JAN-2020 X X SomeSoftware",
+      "outputStartDateField": "11.01.20",
+      "outputStartTimeField": "00.00.00"
+    },
+    "nonEdfPlusFreeText": {
+      "containedPhi": true,
+      "originalPatientId": "Smith_John",
+      "shiftedDate": "02.05.24",
+      "outputPatientIdField": "X X X X",
+      "outputRecordingIdField": "recorded 02-MAY-2024 by tech",
+      "outputStartDateField": "02.05.24",
+      "outputStartTimeField": "00.00.00"
+    }
+  },
+  "subjectShiftShape": {
+    "subjectCount": 3,
+    "hasAllGroups": true,
+    "allInRange": true
+  }
+}

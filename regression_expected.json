@@ -1,0 +1,2049 @@
+{
+  "results": [
+    {
+      "sample": "Patient_001",
+      "fileCount": 35,
+      "detection": [
+        {
+          "relativePath": "Patient_001/Session_implant/anat/CT_electrodes_001.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_ct.json",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/ct/sub-Session_implant_ses-postimplant_ct.json"
+        },
+        {
+          "relativePath": "Patient_001/Session_implant/anat/CT_electrodes_001.nii.gz",
+          "detectedModality": "ct",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_ct.nii.gz",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/ct/sub-Session_implant_ses-postimplant_ct.nii.gz"
+        },
+        {
+          "relativePath": "Patient_001/Session_implant/anat/FLAIR_001_implant.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_FLAIR.json",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/anat/sub-Session_implant_ses-postimplant_FLAIR.json"
+        },
+        {
+          "relativePath": "Patient_001/Session_implant/anat/FLAIR_001_implant.nii.gz",
+          "detectedModality": "anat-FLAIR",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_FLAIR.nii.gz",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/anat/sub-Session_implant_ses-postimplant_FLAIR.nii.gz"
+        },
+        {
+          "relativePath": "Patient_001/Session_implant/anat/T1w_MPRAGE_001_implant.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_T1w.json",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/anat/sub-Session_implant_ses-postimplant_T1w.json"
+        },
+        {
+          "relativePath": "Patient_001/Session_implant/anat/T1w_MPRAGE_001_implant.nii.gz",
+          "detectedModality": "anat-T1w",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_T1w.nii.gz",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/anat/sub-Session_implant_ses-postimplant_T1w.nii.gz"
+        },
+        {
+          "relativePath": "Patient_001/Session_implant/anat/T2w_SPACE_001_implant.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_T2w.json",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/anat/sub-Session_implant_ses-postimplant_T2w.json"
+        },
+        {
+          "relativePath": "Patient_001/Session_implant/anat/T2w_SPACE_001_implant.nii.gz",
+          "detectedModality": "anat-T2w",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_T2w.nii.gz",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/anat/sub-Session_implant_ses-postimplant_T2w.nii.gz"
+        },
+        {
+          "relativePath": "Patient_001/Session_implant/ieeg/channels_001.tsv",
+          "detectedModality": "channels",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_task-monitor_channels.tsv",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/ieeg/sub-Session_implant_ses-postimplant_task-monitor_channels.tsv"
+        },
+        {
+          "relativePath": "Patient_001/Session_implant/ieeg/electrodes_001.tsv",
+          "detectedModality": "electrodes",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_electrodes.tsv",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/ieeg/sub-Session_implant_ses-postimplant_electrodes.tsv"
+        },
+        {
+          "relativePath": "Patient_001/Session_implant/ieeg/events_001.tsv",
+          "detectedModality": "events",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_task-monitor_events.tsv",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/ieeg/sub-Session_implant_ses-postimplant_task-monitor_events.tsv"
+        },
+        {
+          "relativePath": "Patient_001/Session_implant/ieeg/intracranial_001.edf",
+          "detectedModality": "ieeg",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_task-monitor_ieeg.edf",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/ieeg/sub-Session_implant_ses-postimplant_task-monitor_ieeg.edf"
+        },
+        {
+          "relativePath": "Patient_001/Session_implant/ieeg/intracranial_001.nwb",
+          "detectedModality": "ieeg",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_task-monitor_ieeg.nwb",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/ieeg/sub-Session_implant_ses-postimplant_task-monitor_ieeg.nwb"
+        },
+        {
+          "relativePath": "Patient_001/Session_postop/anat/FLAIR_001_postop.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_FLAIR.json",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/anat/sub-Session_postop_ses-postsurgery_FLAIR.json"
+        },
+        {
+          "relativePath": "Patient_001/Session_postop/anat/FLAIR_001_postop.nii.gz",
+          "detectedModality": "anat-FLAIR",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_FLAIR.nii.gz",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/anat/sub-Session_postop_ses-postsurgery_FLAIR.nii.gz"
+        },
+        {
+          "relativePath": "Patient_001/Session_postop/anat/T1w_MPRAGE_001_postop.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_T1w.json",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/anat/sub-Session_postop_ses-postsurgery_T1w.json"
+        },
+        {
+          "relativePath": "Patient_001/Session_postop/anat/T1w_MPRAGE_001_postop.nii.gz",
+          "detectedModality": "anat-T1w",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_T1w.nii.gz",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/anat/sub-Session_postop_ses-postsurgery_T1w.nii.gz"
+        },
+        {
+          "relativePath": "Patient_001/Session_postop/anat/T2w_SPACE_001_postop.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_T2w.json",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/anat/sub-Session_postop_ses-postsurgery_T2w.json"
+        },
+        {
+          "relativePath": "Patient_001/Session_postop/anat/T2w_SPACE_001_postop.nii.gz",
+          "detectedModality": "anat-T2w",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_T2w.nii.gz",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/anat/sub-Session_postop_ses-postsurgery_T2w.nii.gz"
+        },
+        {
+          "relativePath": "Patient_001/Session_postop/dwi/DWI_001_postop.bval",
+          "detectedModality": "dwi",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_dwi.bval",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/dwi/sub-Session_postop_ses-postsurgery_dwi.bval"
+        },
+        {
+          "relativePath": "Patient_001/Session_postop/dwi/DWI_001_postop.bvec",
+          "detectedModality": "dwi",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_dwi.bvec",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/dwi/sub-Session_postop_ses-postsurgery_dwi.bvec"
+        },
+        {
+          "relativePath": "Patient_001/Session_postop/dwi/DWI_001_postop.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_dwi.json",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/dwi/sub-Session_postop_ses-postsurgery_dwi.json"
+        },
+        {
+          "relativePath": "Patient_001/Session_postop/dwi/DWI_001_postop.nii.gz",
+          "detectedModality": "dwi",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_dwi.nii.gz",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/dwi/sub-Session_postop_ses-postsurgery_dwi.nii.gz"
+        },
+        {
+          "relativePath": "Patient_001/Session_preimplant/anat/FLAIR_001_preimplant.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_FLAIR.json",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/anat/sub-Session_preimplant_ses-preimplant_FLAIR.json"
+        },
+        {
+          "relativePath": "Patient_001/Session_preimplant/anat/FLAIR_001_preimplant.nii.gz",
+          "detectedModality": "anat-FLAIR",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_FLAIR.nii.gz",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/anat/sub-Session_preimplant_ses-preimplant_FLAIR.nii.gz"
+        },
+        {
+          "relativePath": "Patient_001/Session_preimplant/anat/T1w_MPRAGE_001_preimplant.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_T1w.json",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/anat/sub-Session_preimplant_ses-preimplant_T1w.json"
+        },
+        {
+          "relativePath": "Patient_001/Session_preimplant/anat/T1w_MPRAGE_001_preimplant.nii.gz",
+          "detectedModality": "anat-T1w",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_T1w.nii.gz",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/anat/sub-Session_preimplant_ses-preimplant_T1w.nii.gz"
+        },
+        {
+          "relativePath": "Patient_001/Session_preimplant/anat/T2w_SPACE_001_preimplant.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_T2w.json",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/anat/sub-Session_preimplant_ses-preimplant_T2w.json"
+        },
+        {
+          "relativePath": "Patient_001/Session_preimplant/anat/T2w_SPACE_001_preimplant.nii.gz",
+          "detectedModality": "anat-T2w",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_T2w.nii.gz",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/anat/sub-Session_preimplant_ses-preimplant_T2w.nii.gz"
+        },
+        {
+          "relativePath": "Patient_001/Session_preimplant/dwi/DWI_001_preimplant.bval",
+          "detectedModality": "dwi",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_dwi.bval",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/dwi/sub-Session_preimplant_ses-preimplant_dwi.bval"
+        },
+        {
+          "relativePath": "Patient_001/Session_preimplant/dwi/DWI_001_preimplant.bvec",
+          "detectedModality": "dwi",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_dwi.bvec",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/dwi/sub-Session_preimplant_ses-preimplant_dwi.bvec"
+        },
+        {
+          "relativePath": "Patient_001/Session_preimplant/dwi/DWI_001_preimplant.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_dwi.json",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/dwi/sub-Session_preimplant_ses-preimplant_dwi.json"
+        },
+        {
+          "relativePath": "Patient_001/Session_preimplant/dwi/DWI_001_preimplant.nii.gz",
+          "detectedModality": "dwi",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_dwi.nii.gz",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/dwi/sub-Session_preimplant_ses-preimplant_dwi.nii.gz"
+        },
+        {
+          "relativePath": "Patient_001/Session_preimplant/eeg/channels_001.tsv",
+          "detectedModality": "channels",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_task-monitor_channels.tsv",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/ieeg/sub-Session_preimplant_ses-preimplant_task-monitor_channels.tsv"
+        },
+        {
+          "relativePath": "Patient_001/Session_preimplant/eeg/scalp_eeg_001.edf",
+          "detectedModality": "eeg",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_task-monitor_eeg.edf",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/eeg/sub-Session_preimplant_ses-preimplant_task-monitor_eeg.edf"
+        }
+      ],
+      "detectionSummary": {
+        "totalFiles": 35,
+        "highConfidence": 35,
+        "mediumConfidence": 0,
+        "lowConfidence": 0,
+        "unclassified": 0,
+        "subjectGroups": [
+          "Session_implant",
+          "Session_postop",
+          "Session_preimplant"
+        ],
+        "missingRequired": [],
+        "warnings": []
+      },
+      "validationSummary": {
+        "passed": true,
+        "issueCount": 3,
+        "issues": [
+          {
+            "id": "cross-1",
+            "category": "cross-session",
+            "severity": "info",
+            "title": "Single session only: ses-postimplant",
+            "description": "Subject \"Session_implant\" only has data for one session (ses-postimplant). This is fine if you're only uploading partial data, but longitudinal studies typically include multiple sessions. You can add more sessions later.",
+            "affectedFiles": [
+              "Patient_001/Session_implant/anat/CT_electrodes_001.json",
+              "Patient_001/Session_implant/anat/CT_electrodes_001.nii.gz",
+              "Patient_001/Session_implant/anat/FLAIR_001_implant.json",
+              "Patient_001/Session_implant/anat/FLAIR_001_implant.nii.gz",
+              "Patient_001/Session_implant/anat/T1w_MPRAGE_001_implant.json",
+              "Patient_001/Session_implant/anat/T1w_MPRAGE_001_implant.nii.gz",
+              "Patient_001/Session_implant/anat/T2w_SPACE_001_implant.json",
+              "Patient_001/Session_implant/anat/T2w_SPACE_001_implant.nii.gz",
+              "Patient_001/Session_implant/ieeg/channels_001.tsv",
+              "Patient_001/Session_implant/ieeg/electrodes_001.tsv",
+              "Patient_001/Session_implant/ieeg/events_001.tsv",
+              "Patient_001/Session_implant/ieeg/intracranial_001.edf",
+              "Patient_001/Session_implant/ieeg/intracranial_001.nwb"
+            ],
+            "subjectGroup": "Session_implant",
+            "dismissable": true
+          },
+          {
+            "id": "cross-2",
+            "category": "cross-session",
+            "severity": "info",
+            "title": "Single session only: ses-postsurgery",
+            "description": "Subject \"Session_postop\" only has data for one session (ses-postsurgery). This is fine if you're only uploading partial data, but longitudinal studies typically include multiple sessions. You can add more sessions later.",
+            "affectedFiles": [
+              "Patient_001/Session_postop/anat/FLAIR_001_postop.json",
+              "Patient_001/Session_postop/anat/FLAIR_001_postop.nii.gz",
+              "Patient_001/Session_postop/anat/T1w_MPRAGE_001_postop.json",
+              "Patient_001/Session_postop/anat/T1w_MPRAGE_001_postop.nii.gz",
+              "Patient_001/Session_postop/anat/T2w_SPACE_001_postop.json",
+              "Patient_001/Session_postop/anat/T2w_SPACE_001_postop.nii.gz",
+              "Patient_001/Session_postop/dwi/DWI_001_postop.bval",
+              "Patient_001/Session_postop/dwi/DWI_001_postop.bvec",
+              "Patient_001/Session_postop/dwi/DWI_001_postop.json",
+              "Patient_001/Session_postop/dwi/DWI_001_postop.nii.gz"
+            ],
+            "subjectGroup": "Session_postop",
+            "dismissable": true
+          },
+          {
+            "id": "cross-3",
+            "category": "cross-session",
+            "severity": "info",
+            "title": "Single session only: ses-preimplant",
+            "description": "Subject \"Session_preimplant\" only has data for one session (ses-preimplant). This is fine if you're only uploading partial data, but longitudinal studies typically include multiple sessions. You can add more sessions later.",
+            "affectedFiles": [
+              "Patient_001/Session_preimplant/anat/FLAIR_001_preimplant.json",
+              "Patient_001/Session_preimplant/anat/FLAIR_001_preimplant.nii.gz",
+              "Patient_001/Session_preimplant/anat/T1w_MPRAGE_001_preimplant.json",
+              "Patient_001/Session_preimplant/anat/T1w_MPRAGE_001_preimplant.nii.gz",
+              "Patient_001/Session_preimplant/anat/T2w_SPACE_001_preimplant.json",
+              "Patient_001/Session_preimplant/anat/T2w_SPACE_001_preimplant.nii.gz",
+              "Patient_001/Session_preimplant/dwi/DWI_001_preimplant.bval",
+              "Patient_001/Session_preimplant/dwi/DWI_001_preimplant.bvec",
+              "Patient_001/Session_preimplant/dwi/DWI_001_preimplant.json",
+              "Patient_001/Session_preimplant/dwi/DWI_001_preimplant.nii.gz",
+              "Patient_001/Session_preimplant/eeg/channels_001.tsv",
+              "Patient_001/Session_preimplant/eeg/scalp_eeg_001.edf"
+            ],
+            "subjectGroup": "Session_preimplant",
+            "dismissable": true
+          }
+        ]
+      }
+    },
+    {
+      "sample": "Patient_002",
+      "fileCount": 35,
+      "detection": [
+        {
+          "relativePath": "Patient_002/Session_implant/anat/CT_electrodes_002.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_ct.json",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/ct/sub-Session_implant_ses-postimplant_ct.json"
+        },
+        {
+          "relativePath": "Patient_002/Session_implant/anat/CT_electrodes_002.nii.gz",
+          "detectedModality": "ct",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_ct.nii.gz",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/ct/sub-Session_implant_ses-postimplant_ct.nii.gz"
+        },
+        {
+          "relativePath": "Patient_002/Session_implant/anat/FLAIR_002_implant.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_FLAIR.json",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/anat/sub-Session_implant_ses-postimplant_FLAIR.json"
+        },
+        {
+          "relativePath": "Patient_002/Session_implant/anat/FLAIR_002_implant.nii.gz",
+          "detectedModality": "anat-FLAIR",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_FLAIR.nii.gz",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/anat/sub-Session_implant_ses-postimplant_FLAIR.nii.gz"
+        },
+        {
+          "relativePath": "Patient_002/Session_implant/anat/T1w_MPRAGE_002_implant.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_T1w.json",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/anat/sub-Session_implant_ses-postimplant_T1w.json"
+        },
+        {
+          "relativePath": "Patient_002/Session_implant/anat/T1w_MPRAGE_002_implant.nii.gz",
+          "detectedModality": "anat-T1w",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_T1w.nii.gz",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/anat/sub-Session_implant_ses-postimplant_T1w.nii.gz"
+        },
+        {
+          "relativePath": "Patient_002/Session_implant/anat/T2w_SPACE_002_implant.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_T2w.json",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/anat/sub-Session_implant_ses-postimplant_T2w.json"
+        },
+        {
+          "relativePath": "Patient_002/Session_implant/anat/T2w_SPACE_002_implant.nii.gz",
+          "detectedModality": "anat-T2w",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_T2w.nii.gz",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/anat/sub-Session_implant_ses-postimplant_T2w.nii.gz"
+        },
+        {
+          "relativePath": "Patient_002/Session_implant/ieeg/channels_002.tsv",
+          "detectedModality": "channels",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_task-monitor_channels.tsv",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/ieeg/sub-Session_implant_ses-postimplant_task-monitor_channels.tsv"
+        },
+        {
+          "relativePath": "Patient_002/Session_implant/ieeg/electrodes_002.tsv",
+          "detectedModality": "electrodes",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_electrodes.tsv",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/ieeg/sub-Session_implant_ses-postimplant_electrodes.tsv"
+        },
+        {
+          "relativePath": "Patient_002/Session_implant/ieeg/events_002.tsv",
+          "detectedModality": "events",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_task-monitor_events.tsv",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/ieeg/sub-Session_implant_ses-postimplant_task-monitor_events.tsv"
+        },
+        {
+          "relativePath": "Patient_002/Session_implant/ieeg/intracranial_002.edf",
+          "detectedModality": "ieeg",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_task-monitor_ieeg.edf",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/ieeg/sub-Session_implant_ses-postimplant_task-monitor_ieeg.edf"
+        },
+        {
+          "relativePath": "Patient_002/Session_implant/ieeg/intracranial_002.nwb",
+          "detectedModality": "ieeg",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_task-monitor_ieeg.nwb",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/ieeg/sub-Session_implant_ses-postimplant_task-monitor_ieeg.nwb"
+        },
+        {
+          "relativePath": "Patient_002/Session_postop/anat/FLAIR_002_postop.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_FLAIR.json",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/anat/sub-Session_postop_ses-postsurgery_FLAIR.json"
+        },
+        {
+          "relativePath": "Patient_002/Session_postop/anat/FLAIR_002_postop.nii.gz",
+          "detectedModality": "anat-FLAIR",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_FLAIR.nii.gz",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/anat/sub-Session_postop_ses-postsurgery_FLAIR.nii.gz"
+        },
+        {
+          "relativePath": "Patient_002/Session_postop/anat/T1w_MPRAGE_002_postop.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_T1w.json",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/anat/sub-Session_postop_ses-postsurgery_T1w.json"
+        },
+        {
+          "relativePath": "Patient_002/Session_postop/anat/T1w_MPRAGE_002_postop.nii.gz",
+          "detectedModality": "anat-T1w",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_T1w.nii.gz",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/anat/sub-Session_postop_ses-postsurgery_T1w.nii.gz"
+        },
+        {
+          "relativePath": "Patient_002/Session_postop/anat/T2w_SPACE_002_postop.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_T2w.json",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/anat/sub-Session_postop_ses-postsurgery_T2w.json"
+        },
+        {
+          "relativePath": "Patient_002/Session_postop/anat/T2w_SPACE_002_postop.nii.gz",
+          "detectedModality": "anat-T2w",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_T2w.nii.gz",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/anat/sub-Session_postop_ses-postsurgery_T2w.nii.gz"
+        },
+        {
+          "relativePath": "Patient_002/Session_postop/dwi/DWI_002_postop.bval",
+          "detectedModality": "dwi",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_dwi.bval",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/dwi/sub-Session_postop_ses-postsurgery_dwi.bval"
+        },
+        {
+          "relativePath": "Patient_002/Session_postop/dwi/DWI_002_postop.bvec",
+          "detectedModality": "dwi",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_dwi.bvec",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/dwi/sub-Session_postop_ses-postsurgery_dwi.bvec"
+        },
+        {
+          "relativePath": "Patient_002/Session_postop/dwi/DWI_002_postop.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_dwi.json",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/dwi/sub-Session_postop_ses-postsurgery_dwi.json"
+        },
+        {
+          "relativePath": "Patient_002/Session_postop/dwi/DWI_002_postop.nii.gz",
+          "detectedModality": "dwi",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_dwi.nii.gz",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/dwi/sub-Session_postop_ses-postsurgery_dwi.nii.gz"
+        },
+        {
+          "relativePath": "Patient_002/Session_preimplant/anat/FLAIR_002_preimplant.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_FLAIR.json",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/anat/sub-Session_preimplant_ses-preimplant_FLAIR.json"
+        },
+        {
+          "relativePath": "Patient_002/Session_preimplant/anat/FLAIR_002_preimplant.nii.gz",
+          "detectedModality": "anat-FLAIR",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_FLAIR.nii.gz",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/anat/sub-Session_preimplant_ses-preimplant_FLAIR.nii.gz"
+        },
+        {
+          "relativePath": "Patient_002/Session_preimplant/anat/T1w_MPRAGE_002_preimplant.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_T1w.json",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/anat/sub-Session_preimplant_ses-preimplant_T1w.json"
+        },
+        {
+          "relativePath": "Patient_002/Session_preimplant/anat/T1w_MPRAGE_002_preimplant.nii.gz",
+          "detectedModality": "anat-T1w",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_T1w.nii.gz",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/anat/sub-Session_preimplant_ses-preimplant_T1w.nii.gz"
+        },
+        {
+          "relativePath": "Patient_002/Session_preimplant/anat/T2w_SPACE_002_preimplant.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_T2w.json",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/anat/sub-Session_preimplant_ses-preimplant_T2w.json"
+        },
+        {
+          "relativePath": "Patient_002/Session_preimplant/anat/T2w_SPACE_002_preimplant.nii.gz",
+          "detectedModality": "anat-T2w",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_T2w.nii.gz",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/anat/sub-Session_preimplant_ses-preimplant_T2w.nii.gz"
+        },
+        {
+          "relativePath": "Patient_002/Session_preimplant/dwi/DWI_002_preimplant.bval",
+          "detectedModality": "dwi",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_dwi.bval",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/dwi/sub-Session_preimplant_ses-preimplant_dwi.bval"
+        },
+        {
+          "relativePath": "Patient_002/Session_preimplant/dwi/DWI_002_preimplant.bvec",
+          "detectedModality": "dwi",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_dwi.bvec",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/dwi/sub-Session_preimplant_ses-preimplant_dwi.bvec"
+        },
+        {
+          "relativePath": "Patient_002/Session_preimplant/dwi/DWI_002_preimplant.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_dwi.json",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/dwi/sub-Session_preimplant_ses-preimplant_dwi.json"
+        },
+        {
+          "relativePath": "Patient_002/Session_preimplant/dwi/DWI_002_preimplant.nii.gz",
+          "detectedModality": "dwi",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_dwi.nii.gz",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/dwi/sub-Session_preimplant_ses-preimplant_dwi.nii.gz"
+        },
+        {
+          "relativePath": "Patient_002/Session_preimplant/eeg/channels_002.tsv",
+          "detectedModality": "channels",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_task-monitor_channels.tsv",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/ieeg/sub-Session_preimplant_ses-preimplant_task-monitor_channels.tsv"
+        },
+        {
+          "relativePath": "Patient_002/Session_preimplant/eeg/scalp_eeg_002.edf",
+          "detectedModality": "eeg",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_task-monitor_eeg.edf",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/eeg/sub-Session_preimplant_ses-preimplant_task-monitor_eeg.edf"
+        }
+      ],
+      "detectionSummary": {
+        "totalFiles": 35,
+        "highConfidence": 35,
+        "mediumConfidence": 0,
+        "lowConfidence": 0,
+        "unclassified": 0,
+        "subjectGroups": [
+          "Session_implant",
+          "Session_postop",
+          "Session_preimplant"
+        ],
+        "missingRequired": [],
+        "warnings": []
+      },
+      "validationSummary": {
+        "passed": true,
+        "issueCount": 3,
+        "issues": [
+          {
+            "id": "cross-1",
+            "category": "cross-session",
+            "severity": "info",
+            "title": "Single session only: ses-postimplant",
+            "description": "Subject \"Session_implant\" only has data for one session (ses-postimplant). This is fine if you're only uploading partial data, but longitudinal studies typically include multiple sessions. You can add more sessions later.",
+            "affectedFiles": [
+              "Patient_002/Session_implant/anat/CT_electrodes_002.json",
+              "Patient_002/Session_implant/anat/CT_electrodes_002.nii.gz",
+              "Patient_002/Session_implant/anat/FLAIR_002_implant.json",
+              "Patient_002/Session_implant/anat/FLAIR_002_implant.nii.gz",
+              "Patient_002/Session_implant/anat/T1w_MPRAGE_002_implant.json",
+              "Patient_002/Session_implant/anat/T1w_MPRAGE_002_implant.nii.gz",
+              "Patient_002/Session_implant/anat/T2w_SPACE_002_implant.json",
+              "Patient_002/Session_implant/anat/T2w_SPACE_002_implant.nii.gz",
+              "Patient_002/Session_implant/ieeg/channels_002.tsv",
+              "Patient_002/Session_implant/ieeg/electrodes_002.tsv",
+              "Patient_002/Session_implant/ieeg/events_002.tsv",
+              "Patient_002/Session_implant/ieeg/intracranial_002.edf",
+              "Patient_002/Session_implant/ieeg/intracranial_002.nwb"
+            ],
+            "subjectGroup": "Session_implant",
+            "dismissable": true
+          },
+          {
+            "id": "cross-2",
+            "category": "cross-session",
+            "severity": "info",
+            "title": "Single session only: ses-postsurgery",
+            "description": "Subject \"Session_postop\" only has data for one session (ses-postsurgery). This is fine if you're only uploading partial data, but longitudinal studies typically include multiple sessions. You can add more sessions later.",
+            "affectedFiles": [
+              "Patient_002/Session_postop/anat/FLAIR_002_postop.json",
+              "Patient_002/Session_postop/anat/FLAIR_002_postop.nii.gz",
+              "Patient_002/Session_postop/anat/T1w_MPRAGE_002_postop.json",
+              "Patient_002/Session_postop/anat/T1w_MPRAGE_002_postop.nii.gz",
+              "Patient_002/Session_postop/anat/T2w_SPACE_002_postop.json",
+              "Patient_002/Session_postop/anat/T2w_SPACE_002_postop.nii.gz",
+              "Patient_002/Session_postop/dwi/DWI_002_postop.bval",
+              "Patient_002/Session_postop/dwi/DWI_002_postop.bvec",
+              "Patient_002/Session_postop/dwi/DWI_002_postop.json",
+              "Patient_002/Session_postop/dwi/DWI_002_postop.nii.gz"
+            ],
+            "subjectGroup": "Session_postop",
+            "dismissable": true
+          },
+          {
+            "id": "cross-3",
+            "category": "cross-session",
+            "severity": "info",
+            "title": "Single session only: ses-preimplant",
+            "description": "Subject \"Session_preimplant\" only has data for one session (ses-preimplant). This is fine if you're only uploading partial data, but longitudinal studies typically include multiple sessions. You can add more sessions later.",
+            "affectedFiles": [
+              "Patient_002/Session_preimplant/anat/FLAIR_002_preimplant.json",
+              "Patient_002/Session_preimplant/anat/FLAIR_002_preimplant.nii.gz",
+              "Patient_002/Session_preimplant/anat/T1w_MPRAGE_002_preimplant.json",
+              "Patient_002/Session_preimplant/anat/T1w_MPRAGE_002_preimplant.nii.gz",
+              "Patient_002/Session_preimplant/anat/T2w_SPACE_002_preimplant.json",
+              "Patient_002/Session_preimplant/anat/T2w_SPACE_002_preimplant.nii.gz",
+              "Patient_002/Session_preimplant/dwi/DWI_002_preimplant.bval",
+              "Patient_002/Session_preimplant/dwi/DWI_002_preimplant.bvec",
+              "Patient_002/Session_preimplant/dwi/DWI_002_preimplant.json",
+              "Patient_002/Session_preimplant/dwi/DWI_002_preimplant.nii.gz",
+              "Patient_002/Session_preimplant/eeg/channels_002.tsv",
+              "Patient_002/Session_preimplant/eeg/scalp_eeg_002.edf"
+            ],
+            "subjectGroup": "Session_preimplant",
+            "dismissable": true
+          }
+        ]
+      }
+    },
+    {
+      "sample": "Patient_003",
+      "fileCount": 35,
+      "detection": [
+        {
+          "relativePath": "Patient_003/Session_implant/anat/CT_electrodes_003.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_ct.json",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/ct/sub-Session_implant_ses-postimplant_ct.json"
+        },
+        {
+          "relativePath": "Patient_003/Session_implant/anat/CT_electrodes_003.nii.gz",
+          "detectedModality": "ct",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_ct.nii.gz",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/ct/sub-Session_implant_ses-postimplant_ct.nii.gz"
+        },
+        {
+          "relativePath": "Patient_003/Session_implant/anat/FLAIR_003_implant.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_FLAIR.json",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/anat/sub-Session_implant_ses-postimplant_FLAIR.json"
+        },
+        {
+          "relativePath": "Patient_003/Session_implant/anat/FLAIR_003_implant.nii.gz",
+          "detectedModality": "anat-FLAIR",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_FLAIR.nii.gz",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/anat/sub-Session_implant_ses-postimplant_FLAIR.nii.gz"
+        },
+        {
+          "relativePath": "Patient_003/Session_implant/anat/T1w_MPRAGE_003_implant.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_T1w.json",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/anat/sub-Session_implant_ses-postimplant_T1w.json"
+        },
+        {
+          "relativePath": "Patient_003/Session_implant/anat/T1w_MPRAGE_003_implant.nii.gz",
+          "detectedModality": "anat-T1w",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_T1w.nii.gz",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/anat/sub-Session_implant_ses-postimplant_T1w.nii.gz"
+        },
+        {
+          "relativePath": "Patient_003/Session_implant/anat/T2w_SPACE_003_implant.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_T2w.json",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/anat/sub-Session_implant_ses-postimplant_T2w.json"
+        },
+        {
+          "relativePath": "Patient_003/Session_implant/anat/T2w_SPACE_003_implant.nii.gz",
+          "detectedModality": "anat-T2w",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_T2w.nii.gz",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/anat/sub-Session_implant_ses-postimplant_T2w.nii.gz"
+        },
+        {
+          "relativePath": "Patient_003/Session_implant/ieeg/channels_003.tsv",
+          "detectedModality": "channels",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_task-monitor_channels.tsv",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/ieeg/sub-Session_implant_ses-postimplant_task-monitor_channels.tsv"
+        },
+        {
+          "relativePath": "Patient_003/Session_implant/ieeg/electrodes_003.tsv",
+          "detectedModality": "electrodes",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_electrodes.tsv",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/ieeg/sub-Session_implant_ses-postimplant_electrodes.tsv"
+        },
+        {
+          "relativePath": "Patient_003/Session_implant/ieeg/events_003.tsv",
+          "detectedModality": "events",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_task-monitor_events.tsv",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/ieeg/sub-Session_implant_ses-postimplant_task-monitor_events.tsv"
+        },
+        {
+          "relativePath": "Patient_003/Session_implant/ieeg/intracranial_003.edf",
+          "detectedModality": "ieeg",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_task-monitor_ieeg.edf",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/ieeg/sub-Session_implant_ses-postimplant_task-monitor_ieeg.edf"
+        },
+        {
+          "relativePath": "Patient_003/Session_implant/ieeg/intracranial_003.nwb",
+          "detectedModality": "ieeg",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_task-monitor_ieeg.nwb",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/ieeg/sub-Session_implant_ses-postimplant_task-monitor_ieeg.nwb"
+        },
+        {
+          "relativePath": "Patient_003/Session_postop/anat/FLAIR_003_postop.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_FLAIR.json",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/anat/sub-Session_postop_ses-postsurgery_FLAIR.json"
+        },
+        {
+          "relativePath": "Patient_003/Session_postop/anat/FLAIR_003_postop.nii.gz",
+          "detectedModality": "anat-FLAIR",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_FLAIR.nii.gz",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/anat/sub-Session_postop_ses-postsurgery_FLAIR.nii.gz"
+        },
+        {
+          "relativePath": "Patient_003/Session_postop/anat/T1w_MPRAGE_003_postop.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_T1w.json",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/anat/sub-Session_postop_ses-postsurgery_T1w.json"
+        },
+        {
+          "relativePath": "Patient_003/Session_postop/anat/T1w_MPRAGE_003_postop.nii.gz",
+          "detectedModality": "anat-T1w",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_T1w.nii.gz",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/anat/sub-Session_postop_ses-postsurgery_T1w.nii.gz"
+        },
+        {
+          "relativePath": "Patient_003/Session_postop/anat/T2w_SPACE_003_postop.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_T2w.json",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/anat/sub-Session_postop_ses-postsurgery_T2w.json"
+        },
+        {
+          "relativePath": "Patient_003/Session_postop/anat/T2w_SPACE_003_postop.nii.gz",
+          "detectedModality": "anat-T2w",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_T2w.nii.gz",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/anat/sub-Session_postop_ses-postsurgery_T2w.nii.gz"
+        },
+        {
+          "relativePath": "Patient_003/Session_postop/dwi/DWI_003_postop.bval",
+          "detectedModality": "dwi",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_dwi.bval",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/dwi/sub-Session_postop_ses-postsurgery_dwi.bval"
+        },
+        {
+          "relativePath": "Patient_003/Session_postop/dwi/DWI_003_postop.bvec",
+          "detectedModality": "dwi",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_dwi.bvec",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/dwi/sub-Session_postop_ses-postsurgery_dwi.bvec"
+        },
+        {
+          "relativePath": "Patient_003/Session_postop/dwi/DWI_003_postop.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_dwi.json",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/dwi/sub-Session_postop_ses-postsurgery_dwi.json"
+        },
+        {
+          "relativePath": "Patient_003/Session_postop/dwi/DWI_003_postop.nii.gz",
+          "detectedModality": "dwi",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_dwi.nii.gz",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/dwi/sub-Session_postop_ses-postsurgery_dwi.nii.gz"
+        },
+        {
+          "relativePath": "Patient_003/Session_preimplant/anat/FLAIR_003_preimplant.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_FLAIR.json",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/anat/sub-Session_preimplant_ses-preimplant_FLAIR.json"
+        },
+        {
+          "relativePath": "Patient_003/Session_preimplant/anat/FLAIR_003_preimplant.nii.gz",
+          "detectedModality": "anat-FLAIR",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_FLAIR.nii.gz",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/anat/sub-Session_preimplant_ses-preimplant_FLAIR.nii.gz"
+        },
+        {
+          "relativePath": "Patient_003/Session_preimplant/anat/T1w_MPRAGE_003_preimplant.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_T1w.json",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/anat/sub-Session_preimplant_ses-preimplant_T1w.json"
+        },
+        {
+          "relativePath": "Patient_003/Session_preimplant/anat/T1w_MPRAGE_003_preimplant.nii.gz",
+          "detectedModality": "anat-T1w",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_T1w.nii.gz",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/anat/sub-Session_preimplant_ses-preimplant_T1w.nii.gz"
+        },
+        {
+          "relativePath": "Patient_003/Session_preimplant/anat/T2w_SPACE_003_preimplant.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_T2w.json",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/anat/sub-Session_preimplant_ses-preimplant_T2w.json"
+        },
+        {
+          "relativePath": "Patient_003/Session_preimplant/anat/T2w_SPACE_003_preimplant.nii.gz",
+          "detectedModality": "anat-T2w",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_T2w.nii.gz",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/anat/sub-Session_preimplant_ses-preimplant_T2w.nii.gz"
+        },
+        {
+          "relativePath": "Patient_003/Session_preimplant/dwi/DWI_003_preimplant.bval",
+          "detectedModality": "dwi",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_dwi.bval",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/dwi/sub-Session_preimplant_ses-preimplant_dwi.bval"
+        },
+        {
+          "relativePath": "Patient_003/Session_preimplant/dwi/DWI_003_preimplant.bvec",
+          "detectedModality": "dwi",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_dwi.bvec",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/dwi/sub-Session_preimplant_ses-preimplant_dwi.bvec"
+        },
+        {
+          "relativePath": "Patient_003/Session_preimplant/dwi/DWI_003_preimplant.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_dwi.json",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/dwi/sub-Session_preimplant_ses-preimplant_dwi.json"
+        },
+        {
+          "relativePath": "Patient_003/Session_preimplant/dwi/DWI_003_preimplant.nii.gz",
+          "detectedModality": "dwi",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_dwi.nii.gz",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/dwi/sub-Session_preimplant_ses-preimplant_dwi.nii.gz"
+        },
+        {
+          "relativePath": "Patient_003/Session_preimplant/eeg/channels_003.tsv",
+          "detectedModality": "channels",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_task-monitor_channels.tsv",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/ieeg/sub-Session_preimplant_ses-preimplant_task-monitor_channels.tsv"
+        },
+        {
+          "relativePath": "Patient_003/Session_preimplant/eeg/scalp_eeg_003.edf",
+          "detectedModality": "eeg",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_task-monitor_eeg.edf",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/eeg/sub-Session_preimplant_ses-preimplant_task-monitor_eeg.edf"
+        }
+      ],
+      "detectionSummary": {
+        "totalFiles": 35,
+        "highConfidence": 35,
+        "mediumConfidence": 0,
+        "lowConfidence": 0,
+        "unclassified": 0,
+        "subjectGroups": [
+          "Session_implant",
+          "Session_postop",
+          "Session_preimplant"
+        ],
+        "missingRequired": [],
+        "warnings": []
+      },
+      "validationSummary": {
+        "passed": true,
+        "issueCount": 3,
+        "issues": [
+          {
+            "id": "cross-1",
+            "category": "cross-session",
+            "severity": "info",
+            "title": "Single session only: ses-postimplant",
+            "description": "Subject \"Session_implant\" only has data for one session (ses-postimplant). This is fine if you're only uploading partial data, but longitudinal studies typically include multiple sessions. You can add more sessions later.",
+            "affectedFiles": [
+              "Patient_003/Session_implant/anat/CT_electrodes_003.json",
+              "Patient_003/Session_implant/anat/CT_electrodes_003.nii.gz",
+              "Patient_003/Session_implant/anat/FLAIR_003_implant.json",
+              "Patient_003/Session_implant/anat/FLAIR_003_implant.nii.gz",
+              "Patient_003/Session_implant/anat/T1w_MPRAGE_003_implant.json",
+              "Patient_003/Session_implant/anat/T1w_MPRAGE_003_implant.nii.gz",
+              "Patient_003/Session_implant/anat/T2w_SPACE_003_implant.json",
+              "Patient_003/Session_implant/anat/T2w_SPACE_003_implant.nii.gz",
+              "Patient_003/Session_implant/ieeg/channels_003.tsv",
+              "Patient_003/Session_implant/ieeg/electrodes_003.tsv",
+              "Patient_003/Session_implant/ieeg/events_003.tsv",
+              "Patient_003/Session_implant/ieeg/intracranial_003.edf",
+              "Patient_003/Session_implant/ieeg/intracranial_003.nwb"
+            ],
+            "subjectGroup": "Session_implant",
+            "dismissable": true
+          },
+          {
+            "id": "cross-2",
+            "category": "cross-session",
+            "severity": "info",
+            "title": "Single session only: ses-postsurgery",
+            "description": "Subject \"Session_postop\" only has data for one session (ses-postsurgery). This is fine if you're only uploading partial data, but longitudinal studies typically include multiple sessions. You can add more sessions later.",
+            "affectedFiles": [
+              "Patient_003/Session_postop/anat/FLAIR_003_postop.json",
+              "Patient_003/Session_postop/anat/FLAIR_003_postop.nii.gz",
+              "Patient_003/Session_postop/anat/T1w_MPRAGE_003_postop.json",
+              "Patient_003/Session_postop/anat/T1w_MPRAGE_003_postop.nii.gz",
+              "Patient_003/Session_postop/anat/T2w_SPACE_003_postop.json",
+              "Patient_003/Session_postop/anat/T2w_SPACE_003_postop.nii.gz",
+              "Patient_003/Session_postop/dwi/DWI_003_postop.bval",
+              "Patient_003/Session_postop/dwi/DWI_003_postop.bvec",
+              "Patient_003/Session_postop/dwi/DWI_003_postop.json",
+              "Patient_003/Session_postop/dwi/DWI_003_postop.nii.gz"
+            ],
+            "subjectGroup": "Session_postop",
+            "dismissable": true
+          },
+          {
+            "id": "cross-3",
+            "category": "cross-session",
+            "severity": "info",
+            "title": "Single session only: ses-preimplant",
+            "description": "Subject \"Session_preimplant\" only has data for one session (ses-preimplant). This is fine if you're only uploading partial data, but longitudinal studies typically include multiple sessions. You can add more sessions later.",
+            "affectedFiles": [
+              "Patient_003/Session_preimplant/anat/FLAIR_003_preimplant.json",
+              "Patient_003/Session_preimplant/anat/FLAIR_003_preimplant.nii.gz",
+              "Patient_003/Session_preimplant/anat/T1w_MPRAGE_003_preimplant.json",
+              "Patient_003/Session_preimplant/anat/T1w_MPRAGE_003_preimplant.nii.gz",
+              "Patient_003/Session_preimplant/anat/T2w_SPACE_003_preimplant.json",
+              "Patient_003/Session_preimplant/anat/T2w_SPACE_003_preimplant.nii.gz",
+              "Patient_003/Session_preimplant/dwi/DWI_003_preimplant.bval",
+              "Patient_003/Session_preimplant/dwi/DWI_003_preimplant.bvec",
+              "Patient_003/Session_preimplant/dwi/DWI_003_preimplant.json",
+              "Patient_003/Session_preimplant/dwi/DWI_003_preimplant.nii.gz",
+              "Patient_003/Session_preimplant/eeg/channels_003.tsv",
+              "Patient_003/Session_preimplant/eeg/scalp_eeg_003.edf"
+            ],
+            "subjectGroup": "Session_preimplant",
+            "dismissable": true
+          }
+        ]
+      }
+    },
+    {
+      "sample": "Patient_004",
+      "fileCount": 35,
+      "detection": [
+        {
+          "relativePath": "Patient_004/Session_implant/anat/CT_electrodes_004.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_ct.json",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/ct/sub-Session_implant_ses-postimplant_ct.json"
+        },
+        {
+          "relativePath": "Patient_004/Session_implant/anat/CT_electrodes_004.nii.gz",
+          "detectedModality": "ct",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_ct.nii.gz",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/ct/sub-Session_implant_ses-postimplant_ct.nii.gz"
+        },
+        {
+          "relativePath": "Patient_004/Session_implant/anat/FLAIR_004_implant.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_FLAIR.json",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/anat/sub-Session_implant_ses-postimplant_FLAIR.json"
+        },
+        {
+          "relativePath": "Patient_004/Session_implant/anat/FLAIR_004_implant.nii.gz",
+          "detectedModality": "anat-FLAIR",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_FLAIR.nii.gz",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/anat/sub-Session_implant_ses-postimplant_FLAIR.nii.gz"
+        },
+        {
+          "relativePath": "Patient_004/Session_implant/anat/T1w_MPRAGE_004_implant.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_T1w.json",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/anat/sub-Session_implant_ses-postimplant_T1w.json"
+        },
+        {
+          "relativePath": "Patient_004/Session_implant/anat/T1w_MPRAGE_004_implant.nii.gz",
+          "detectedModality": "anat-T1w",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_T1w.nii.gz",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/anat/sub-Session_implant_ses-postimplant_T1w.nii.gz"
+        },
+        {
+          "relativePath": "Patient_004/Session_implant/anat/T2w_SPACE_004_implant.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_T2w.json",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/anat/sub-Session_implant_ses-postimplant_T2w.json"
+        },
+        {
+          "relativePath": "Patient_004/Session_implant/anat/T2w_SPACE_004_implant.nii.gz",
+          "detectedModality": "anat-T2w",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_T2w.nii.gz",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/anat/sub-Session_implant_ses-postimplant_T2w.nii.gz"
+        },
+        {
+          "relativePath": "Patient_004/Session_implant/ieeg/channels_004.tsv",
+          "detectedModality": "channels",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_task-monitor_channels.tsv",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/ieeg/sub-Session_implant_ses-postimplant_task-monitor_channels.tsv"
+        },
+        {
+          "relativePath": "Patient_004/Session_implant/ieeg/electrodes_004.tsv",
+          "detectedModality": "electrodes",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_electrodes.tsv",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/ieeg/sub-Session_implant_ses-postimplant_electrodes.tsv"
+        },
+        {
+          "relativePath": "Patient_004/Session_implant/ieeg/events_004.tsv",
+          "detectedModality": "events",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_task-monitor_events.tsv",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/ieeg/sub-Session_implant_ses-postimplant_task-monitor_events.tsv"
+        },
+        {
+          "relativePath": "Patient_004/Session_implant/ieeg/intracranial_004.edf",
+          "detectedModality": "ieeg",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_task-monitor_ieeg.edf",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/ieeg/sub-Session_implant_ses-postimplant_task-monitor_ieeg.edf"
+        },
+        {
+          "relativePath": "Patient_004/Session_implant/ieeg/intracranial_004.nwb",
+          "detectedModality": "ieeg",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_task-monitor_ieeg.nwb",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/ieeg/sub-Session_implant_ses-postimplant_task-monitor_ieeg.nwb"
+        },
+        {
+          "relativePath": "Patient_004/Session_postop/anat/FLAIR_004_postop.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_FLAIR.json",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/anat/sub-Session_postop_ses-postsurgery_FLAIR.json"
+        },
+        {
+          "relativePath": "Patient_004/Session_postop/anat/FLAIR_004_postop.nii.gz",
+          "detectedModality": "anat-FLAIR",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_FLAIR.nii.gz",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/anat/sub-Session_postop_ses-postsurgery_FLAIR.nii.gz"
+        },
+        {
+          "relativePath": "Patient_004/Session_postop/anat/T1w_MPRAGE_004_postop.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_T1w.json",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/anat/sub-Session_postop_ses-postsurgery_T1w.json"
+        },
+        {
+          "relativePath": "Patient_004/Session_postop/anat/T1w_MPRAGE_004_postop.nii.gz",
+          "detectedModality": "anat-T1w",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_T1w.nii.gz",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/anat/sub-Session_postop_ses-postsurgery_T1w.nii.gz"
+        },
+        {
+          "relativePath": "Patient_004/Session_postop/anat/T2w_SPACE_004_postop.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_T2w.json",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/anat/sub-Session_postop_ses-postsurgery_T2w.json"
+        },
+        {
+          "relativePath": "Patient_004/Session_postop/anat/T2w_SPACE_004_postop.nii.gz",
+          "detectedModality": "anat-T2w",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_T2w.nii.gz",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/anat/sub-Session_postop_ses-postsurgery_T2w.nii.gz"
+        },
+        {
+          "relativePath": "Patient_004/Session_postop/dwi/DWI_004_postop.bval",
+          "detectedModality": "dwi",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_dwi.bval",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/dwi/sub-Session_postop_ses-postsurgery_dwi.bval"
+        },
+        {
+          "relativePath": "Patient_004/Session_postop/dwi/DWI_004_postop.bvec",
+          "detectedModality": "dwi",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_dwi.bvec",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/dwi/sub-Session_postop_ses-postsurgery_dwi.bvec"
+        },
+        {
+          "relativePath": "Patient_004/Session_postop/dwi/DWI_004_postop.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_dwi.json",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/dwi/sub-Session_postop_ses-postsurgery_dwi.json"
+        },
+        {
+          "relativePath": "Patient_004/Session_postop/dwi/DWI_004_postop.nii.gz",
+          "detectedModality": "dwi",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_dwi.nii.gz",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/dwi/sub-Session_postop_ses-postsurgery_dwi.nii.gz"
+        },
+        {
+          "relativePath": "Patient_004/Session_preimplant/anat/FLAIR_004_preimplant.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_FLAIR.json",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/anat/sub-Session_preimplant_ses-preimplant_FLAIR.json"
+        },
+        {
+          "relativePath": "Patient_004/Session_preimplant/anat/FLAIR_004_preimplant.nii.gz",
+          "detectedModality": "anat-FLAIR",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_FLAIR.nii.gz",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/anat/sub-Session_preimplant_ses-preimplant_FLAIR.nii.gz"
+        },
+        {
+          "relativePath": "Patient_004/Session_preimplant/anat/T1w_MPRAGE_004_preimplant.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_T1w.json",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/anat/sub-Session_preimplant_ses-preimplant_T1w.json"
+        },
+        {
+          "relativePath": "Patient_004/Session_preimplant/anat/T1w_MPRAGE_004_preimplant.nii.gz",
+          "detectedModality": "anat-T1w",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_T1w.nii.gz",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/anat/sub-Session_preimplant_ses-preimplant_T1w.nii.gz"
+        },
+        {
+          "relativePath": "Patient_004/Session_preimplant/anat/T2w_SPACE_004_preimplant.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_T2w.json",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/anat/sub-Session_preimplant_ses-preimplant_T2w.json"
+        },
+        {
+          "relativePath": "Patient_004/Session_preimplant/anat/T2w_SPACE_004_preimplant.nii.gz",
+          "detectedModality": "anat-T2w",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_T2w.nii.gz",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/anat/sub-Session_preimplant_ses-preimplant_T2w.nii.gz"
+        },
+        {
+          "relativePath": "Patient_004/Session_preimplant/dwi/DWI_004_preimplant.bval",
+          "detectedModality": "dwi",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_dwi.bval",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/dwi/sub-Session_preimplant_ses-preimplant_dwi.bval"
+        },
+        {
+          "relativePath": "Patient_004/Session_preimplant/dwi/DWI_004_preimplant.bvec",
+          "detectedModality": "dwi",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_dwi.bvec",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/dwi/sub-Session_preimplant_ses-preimplant_dwi.bvec"
+        },
+        {
+          "relativePath": "Patient_004/Session_preimplant/dwi/DWI_004_preimplant.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_dwi.json",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/dwi/sub-Session_preimplant_ses-preimplant_dwi.json"
+        },
+        {
+          "relativePath": "Patient_004/Session_preimplant/dwi/DWI_004_preimplant.nii.gz",
+          "detectedModality": "dwi",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_dwi.nii.gz",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/dwi/sub-Session_preimplant_ses-preimplant_dwi.nii.gz"
+        },
+        {
+          "relativePath": "Patient_004/Session_preimplant/eeg/channels_004.tsv",
+          "detectedModality": "channels",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_task-monitor_channels.tsv",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/ieeg/sub-Session_preimplant_ses-preimplant_task-monitor_channels.tsv"
+        },
+        {
+          "relativePath": "Patient_004/Session_preimplant/eeg/scalp_eeg_004.edf",
+          "detectedModality": "eeg",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_task-monitor_eeg.edf",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/eeg/sub-Session_preimplant_ses-preimplant_task-monitor_eeg.edf"
+        }
+      ],
+      "detectionSummary": {
+        "totalFiles": 35,
+        "highConfidence": 35,
+        "mediumConfidence": 0,
+        "lowConfidence": 0,
+        "unclassified": 0,
+        "subjectGroups": [
+          "Session_implant",
+          "Session_postop",
+          "Session_preimplant"
+        ],
+        "missingRequired": [],
+        "warnings": []
+      },
+      "validationSummary": {
+        "passed": true,
+        "issueCount": 3,
+        "issues": [
+          {
+            "id": "cross-1",
+            "category": "cross-session",
+            "severity": "info",
+            "title": "Single session only: ses-postimplant",
+            "description": "Subject \"Session_implant\" only has data for one session (ses-postimplant). This is fine if you're only uploading partial data, but longitudinal studies typically include multiple sessions. You can add more sessions later.",
+            "affectedFiles": [
+              "Patient_004/Session_implant/anat/CT_electrodes_004.json",
+              "Patient_004/Session_implant/anat/CT_electrodes_004.nii.gz",
+              "Patient_004/Session_implant/anat/FLAIR_004_implant.json",
+              "Patient_004/Session_implant/anat/FLAIR_004_implant.nii.gz",
+              "Patient_004/Session_implant/anat/T1w_MPRAGE_004_implant.json",
+              "Patient_004/Session_implant/anat/T1w_MPRAGE_004_implant.nii.gz",
+              "Patient_004/Session_implant/anat/T2w_SPACE_004_implant.json",
+              "Patient_004/Session_implant/anat/T2w_SPACE_004_implant.nii.gz",
+              "Patient_004/Session_implant/ieeg/channels_004.tsv",
+              "Patient_004/Session_implant/ieeg/electrodes_004.tsv",
+              "Patient_004/Session_implant/ieeg/events_004.tsv",
+              "Patient_004/Session_implant/ieeg/intracranial_004.edf",
+              "Patient_004/Session_implant/ieeg/intracranial_004.nwb"
+            ],
+            "subjectGroup": "Session_implant",
+            "dismissable": true
+          },
+          {
+            "id": "cross-2",
+            "category": "cross-session",
+            "severity": "info",
+            "title": "Single session only: ses-postsurgery",
+            "description": "Subject \"Session_postop\" only has data for one session (ses-postsurgery). This is fine if you're only uploading partial data, but longitudinal studies typically include multiple sessions. You can add more sessions later.",
+            "affectedFiles": [
+              "Patient_004/Session_postop/anat/FLAIR_004_postop.json",
+              "Patient_004/Session_postop/anat/FLAIR_004_postop.nii.gz",
+              "Patient_004/Session_postop/anat/T1w_MPRAGE_004_postop.json",
+              "Patient_004/Session_postop/anat/T1w_MPRAGE_004_postop.nii.gz",
+              "Patient_004/Session_postop/anat/T2w_SPACE_004_postop.json",
+              "Patient_004/Session_postop/anat/T2w_SPACE_004_postop.nii.gz",
+              "Patient_004/Session_postop/dwi/DWI_004_postop.bval",
+              "Patient_004/Session_postop/dwi/DWI_004_postop.bvec",
+              "Patient_004/Session_postop/dwi/DWI_004_postop.json",
+              "Patient_004/Session_postop/dwi/DWI_004_postop.nii.gz"
+            ],
+            "subjectGroup": "Session_postop",
+            "dismissable": true
+          },
+          {
+            "id": "cross-3",
+            "category": "cross-session",
+            "severity": "info",
+            "title": "Single session only: ses-preimplant",
+            "description": "Subject \"Session_preimplant\" only has data for one session (ses-preimplant). This is fine if you're only uploading partial data, but longitudinal studies typically include multiple sessions. You can add more sessions later.",
+            "affectedFiles": [
+              "Patient_004/Session_preimplant/anat/FLAIR_004_preimplant.json",
+              "Patient_004/Session_preimplant/anat/FLAIR_004_preimplant.nii.gz",
+              "Patient_004/Session_preimplant/anat/T1w_MPRAGE_004_preimplant.json",
+              "Patient_004/Session_preimplant/anat/T1w_MPRAGE_004_preimplant.nii.gz",
+              "Patient_004/Session_preimplant/anat/T2w_SPACE_004_preimplant.json",
+              "Patient_004/Session_preimplant/anat/T2w_SPACE_004_preimplant.nii.gz",
+              "Patient_004/Session_preimplant/dwi/DWI_004_preimplant.bval",
+              "Patient_004/Session_preimplant/dwi/DWI_004_preimplant.bvec",
+              "Patient_004/Session_preimplant/dwi/DWI_004_preimplant.json",
+              "Patient_004/Session_preimplant/dwi/DWI_004_preimplant.nii.gz",
+              "Patient_004/Session_preimplant/eeg/channels_004.tsv",
+              "Patient_004/Session_preimplant/eeg/scalp_eeg_004.edf"
+            ],
+            "subjectGroup": "Session_preimplant",
+            "dismissable": true
+          }
+        ]
+      }
+    },
+    {
+      "sample": "Patient_005",
+      "fileCount": 35,
+      "detection": [
+        {
+          "relativePath": "Patient_005/Session_implant/anat/CT_electrodes_005.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_ct.json",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/ct/sub-Session_implant_ses-postimplant_ct.json"
+        },
+        {
+          "relativePath": "Patient_005/Session_implant/anat/CT_electrodes_005.nii.gz",
+          "detectedModality": "ct",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_ct.nii.gz",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/ct/sub-Session_implant_ses-postimplant_ct.nii.gz"
+        },
+        {
+          "relativePath": "Patient_005/Session_implant/anat/FLAIR_005_implant.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_FLAIR.json",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/anat/sub-Session_implant_ses-postimplant_FLAIR.json"
+        },
+        {
+          "relativePath": "Patient_005/Session_implant/anat/FLAIR_005_implant.nii.gz",
+          "detectedModality": "anat-FLAIR",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_FLAIR.nii.gz",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/anat/sub-Session_implant_ses-postimplant_FLAIR.nii.gz"
+        },
+        {
+          "relativePath": "Patient_005/Session_implant/anat/T1w_MPRAGE_005_implant.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_T1w.json",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/anat/sub-Session_implant_ses-postimplant_T1w.json"
+        },
+        {
+          "relativePath": "Patient_005/Session_implant/anat/T1w_MPRAGE_005_implant.nii.gz",
+          "detectedModality": "anat-T1w",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_T1w.nii.gz",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/anat/sub-Session_implant_ses-postimplant_T1w.nii.gz"
+        },
+        {
+          "relativePath": "Patient_005/Session_implant/anat/T2w_SPACE_005_implant.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_T2w.json",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/anat/sub-Session_implant_ses-postimplant_T2w.json"
+        },
+        {
+          "relativePath": "Patient_005/Session_implant/anat/T2w_SPACE_005_implant.nii.gz",
+          "detectedModality": "anat-T2w",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_T2w.nii.gz",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/anat/sub-Session_implant_ses-postimplant_T2w.nii.gz"
+        },
+        {
+          "relativePath": "Patient_005/Session_implant/ieeg/channels_005.tsv",
+          "detectedModality": "channels",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_task-monitor_channels.tsv",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/ieeg/sub-Session_implant_ses-postimplant_task-monitor_channels.tsv"
+        },
+        {
+          "relativePath": "Patient_005/Session_implant/ieeg/electrodes_005.tsv",
+          "detectedModality": "electrodes",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_electrodes.tsv",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/ieeg/sub-Session_implant_ses-postimplant_electrodes.tsv"
+        },
+        {
+          "relativePath": "Patient_005/Session_implant/ieeg/events_005.tsv",
+          "detectedModality": "events",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_task-monitor_events.tsv",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/ieeg/sub-Session_implant_ses-postimplant_task-monitor_events.tsv"
+        },
+        {
+          "relativePath": "Patient_005/Session_implant/ieeg/intracranial_005.edf",
+          "detectedModality": "ieeg",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_task-monitor_ieeg.edf",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/ieeg/sub-Session_implant_ses-postimplant_task-monitor_ieeg.edf"
+        },
+        {
+          "relativePath": "Patient_005/Session_implant/ieeg/intracranial_005.nwb",
+          "detectedModality": "ieeg",
+          "detectedSession": "ses-postimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_implant",
+          "bidsFilename": "sub-Session_implant_ses-postimplant_task-monitor_ieeg.nwb",
+          "bidsPath": "primary/sub-Session_implant/ses-postimplant/ieeg/sub-Session_implant_ses-postimplant_task-monitor_ieeg.nwb"
+        },
+        {
+          "relativePath": "Patient_005/Session_postop/anat/FLAIR_005_postop.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_FLAIR.json",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/anat/sub-Session_postop_ses-postsurgery_FLAIR.json"
+        },
+        {
+          "relativePath": "Patient_005/Session_postop/anat/FLAIR_005_postop.nii.gz",
+          "detectedModality": "anat-FLAIR",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_FLAIR.nii.gz",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/anat/sub-Session_postop_ses-postsurgery_FLAIR.nii.gz"
+        },
+        {
+          "relativePath": "Patient_005/Session_postop/anat/T1w_MPRAGE_005_postop.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_T1w.json",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/anat/sub-Session_postop_ses-postsurgery_T1w.json"
+        },
+        {
+          "relativePath": "Patient_005/Session_postop/anat/T1w_MPRAGE_005_postop.nii.gz",
+          "detectedModality": "anat-T1w",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_T1w.nii.gz",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/anat/sub-Session_postop_ses-postsurgery_T1w.nii.gz"
+        },
+        {
+          "relativePath": "Patient_005/Session_postop/anat/T2w_SPACE_005_postop.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_T2w.json",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/anat/sub-Session_postop_ses-postsurgery_T2w.json"
+        },
+        {
+          "relativePath": "Patient_005/Session_postop/anat/T2w_SPACE_005_postop.nii.gz",
+          "detectedModality": "anat-T2w",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_T2w.nii.gz",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/anat/sub-Session_postop_ses-postsurgery_T2w.nii.gz"
+        },
+        {
+          "relativePath": "Patient_005/Session_postop/dwi/DWI_005_postop.bval",
+          "detectedModality": "dwi",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_dwi.bval",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/dwi/sub-Session_postop_ses-postsurgery_dwi.bval"
+        },
+        {
+          "relativePath": "Patient_005/Session_postop/dwi/DWI_005_postop.bvec",
+          "detectedModality": "dwi",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_dwi.bvec",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/dwi/sub-Session_postop_ses-postsurgery_dwi.bvec"
+        },
+        {
+          "relativePath": "Patient_005/Session_postop/dwi/DWI_005_postop.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_dwi.json",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/dwi/sub-Session_postop_ses-postsurgery_dwi.json"
+        },
+        {
+          "relativePath": "Patient_005/Session_postop/dwi/DWI_005_postop.nii.gz",
+          "detectedModality": "dwi",
+          "detectedSession": "ses-postsurgery",
+          "confidence": "high",
+          "subjectGroup": "Session_postop",
+          "bidsFilename": "sub-Session_postop_ses-postsurgery_dwi.nii.gz",
+          "bidsPath": "primary/sub-Session_postop/ses-postsurgery/dwi/sub-Session_postop_ses-postsurgery_dwi.nii.gz"
+        },
+        {
+          "relativePath": "Patient_005/Session_preimplant/anat/FLAIR_005_preimplant.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_FLAIR.json",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/anat/sub-Session_preimplant_ses-preimplant_FLAIR.json"
+        },
+        {
+          "relativePath": "Patient_005/Session_preimplant/anat/FLAIR_005_preimplant.nii.gz",
+          "detectedModality": "anat-FLAIR",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_FLAIR.nii.gz",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/anat/sub-Session_preimplant_ses-preimplant_FLAIR.nii.gz"
+        },
+        {
+          "relativePath": "Patient_005/Session_preimplant/anat/T1w_MPRAGE_005_preimplant.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_T1w.json",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/anat/sub-Session_preimplant_ses-preimplant_T1w.json"
+        },
+        {
+          "relativePath": "Patient_005/Session_preimplant/anat/T1w_MPRAGE_005_preimplant.nii.gz",
+          "detectedModality": "anat-T1w",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_T1w.nii.gz",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/anat/sub-Session_preimplant_ses-preimplant_T1w.nii.gz"
+        },
+        {
+          "relativePath": "Patient_005/Session_preimplant/anat/T2w_SPACE_005_preimplant.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_T2w.json",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/anat/sub-Session_preimplant_ses-preimplant_T2w.json"
+        },
+        {
+          "relativePath": "Patient_005/Session_preimplant/anat/T2w_SPACE_005_preimplant.nii.gz",
+          "detectedModality": "anat-T2w",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_T2w.nii.gz",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/anat/sub-Session_preimplant_ses-preimplant_T2w.nii.gz"
+        },
+        {
+          "relativePath": "Patient_005/Session_preimplant/dwi/DWI_005_preimplant.bval",
+          "detectedModality": "dwi",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_dwi.bval",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/dwi/sub-Session_preimplant_ses-preimplant_dwi.bval"
+        },
+        {
+          "relativePath": "Patient_005/Session_preimplant/dwi/DWI_005_preimplant.bvec",
+          "detectedModality": "dwi",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_dwi.bvec",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/dwi/sub-Session_preimplant_ses-preimplant_dwi.bvec"
+        },
+        {
+          "relativePath": "Patient_005/Session_preimplant/dwi/DWI_005_preimplant.json",
+          "detectedModality": "sidecar-json",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_dwi.json",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/dwi/sub-Session_preimplant_ses-preimplant_dwi.json"
+        },
+        {
+          "relativePath": "Patient_005/Session_preimplant/dwi/DWI_005_preimplant.nii.gz",
+          "detectedModality": "dwi",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_dwi.nii.gz",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/dwi/sub-Session_preimplant_ses-preimplant_dwi.nii.gz"
+        },
+        {
+          "relativePath": "Patient_005/Session_preimplant/eeg/channels_005.tsv",
+          "detectedModality": "channels",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_task-monitor_channels.tsv",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/ieeg/sub-Session_preimplant_ses-preimplant_task-monitor_channels.tsv"
+        },
+        {
+          "relativePath": "Patient_005/Session_preimplant/eeg/scalp_eeg_005.edf",
+          "detectedModality": "eeg",
+          "detectedSession": "ses-preimplant",
+          "confidence": "high",
+          "subjectGroup": "Session_preimplant",
+          "bidsFilename": "sub-Session_preimplant_ses-preimplant_task-monitor_eeg.edf",
+          "bidsPath": "primary/sub-Session_preimplant/ses-preimplant/eeg/sub-Session_preimplant_ses-preimplant_task-monitor_eeg.edf"
+        }
+      ],
+      "detectionSummary": {
+        "totalFiles": 35,
+        "highConfidence": 35,
+        "mediumConfidence": 0,
+        "lowConfidence": 0,
+        "unclassified": 0,
+        "subjectGroups": [
+          "Session_implant",
+          "Session_postop",
+          "Session_preimplant"
+        ],
+        "missingRequired": [],
+        "warnings": []
+      },
+      "validationSummary": {
+        "passed": true,
+        "issueCount": 3,
+        "issues": [
+          {
+            "id": "cross-1",
+            "category": "cross-session",
+            "severity": "info",
+            "title": "Single session only: ses-postimplant",
+            "description": "Subject \"Session_implant\" only has data for one session (ses-postimplant). This is fine if you're only uploading partial data, but longitudinal studies typically include multiple sessions. You can add more sessions later.",
+            "affectedFiles": [
+              "Patient_005/Session_implant/anat/CT_electrodes_005.json",
+              "Patient_005/Session_implant/anat/CT_electrodes_005.nii.gz",
+              "Patient_005/Session_implant/anat/FLAIR_005_implant.json",
+              "Patient_005/Session_implant/anat/FLAIR_005_implant.nii.gz",
+              "Patient_005/Session_implant/anat/T1w_MPRAGE_005_implant.json",
+              "Patient_005/Session_implant/anat/T1w_MPRAGE_005_implant.nii.gz",
+              "Patient_005/Session_implant/anat/T2w_SPACE_005_implant.json",
+              "Patient_005/Session_implant/anat/T2w_SPACE_005_implant.nii.gz",
+              "Patient_005/Session_implant/ieeg/channels_005.tsv",
+              "Patient_005/Session_implant/ieeg/electrodes_005.tsv",
+              "Patient_005/Session_implant/ieeg/events_005.tsv",
+              "Patient_005/Session_implant/ieeg/intracranial_005.edf",
+              "Patient_005/Session_implant/ieeg/intracranial_005.nwb"
+            ],
+            "subjectGroup": "Session_implant",
+            "dismissable": true
+          },
+          {
+            "id": "cross-2",
+            "category": "cross-session",
+            "severity": "info",
+            "title": "Single session only: ses-postsurgery",
+            "description": "Subject \"Session_postop\" only has data for one session (ses-postsurgery). This is fine if you're only uploading partial data, but longitudinal studies typically include multiple sessions. You can add more sessions later.",
+            "affectedFiles": [
+              "Patient_005/Session_postop/anat/FLAIR_005_postop.json",
+              "Patient_005/Session_postop/anat/FLAIR_005_postop.nii.gz",
+              "Patient_005/Session_postop/anat/T1w_MPRAGE_005_postop.json",
+              "Patient_005/Session_postop/anat/T1w_MPRAGE_005_postop.nii.gz",
+              "Patient_005/Session_postop/anat/T2w_SPACE_005_postop.json",
+              "Patient_005/Session_postop/anat/T2w_SPACE_005_postop.nii.gz",
+              "Patient_005/Session_postop/dwi/DWI_005_postop.bval",
+              "Patient_005/Session_postop/dwi/DWI_005_postop.bvec",
+              "Patient_005/Session_postop/dwi/DWI_005_postop.json",
+              "Patient_005/Session_postop/dwi/DWI_005_postop.nii.gz"
+            ],
+            "subjectGroup": "Session_postop",
+            "dismissable": true
+          },
+          {
+            "id": "cross-3",
+            "category": "cross-session",
+            "severity": "info",
+            "title": "Single session only: ses-preimplant",
+            "description": "Subject \"Session_preimplant\" only has data for one session (ses-preimplant). This is fine if you're only uploading partial data, but longitudinal studies typically include multiple sessions. You can add more sessions later.",
+            "affectedFiles": [
+              "Patient_005/Session_preimplant/anat/FLAIR_005_preimplant.json",
+              "Patient_005/Session_preimplant/anat/FLAIR_005_preimplant.nii.gz",
+              "Patient_005/Session_preimplant/anat/T1w_MPRAGE_005_preimplant.json",
+              "Patient_005/Session_preimplant/anat/T1w_MPRAGE_005_preimplant.nii.gz",
+              "Patient_005/Session_preimplant/anat/T2w_SPACE_005_preimplant.json",
+              "Patient_005/Session_preimplant/anat/T2w_SPACE_005_preimplant.nii.gz",
+              "Patient_005/Session_preimplant/dwi/DWI_005_preimplant.bval",
+              "Patient_005/Session_preimplant/dwi/DWI_005_preimplant.bvec",
+              "Patient_005/Session_preimplant/dwi/DWI_005_preimplant.json",
+              "Patient_005/Session_preimplant/dwi/DWI_005_preimplant.nii.gz",
+              "Patient_005/Session_preimplant/eeg/channels_005.tsv",
+              "Patient_005/Session_preimplant/eeg/scalp_eeg_005.edf"
+            ],
+            "subjectGroup": "Session_preimplant",
+            "dismissable": true
+          }
+        ]
+      }
+    }
+  ]
+}
