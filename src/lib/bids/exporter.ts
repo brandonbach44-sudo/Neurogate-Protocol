@@ -39,6 +39,8 @@ import type {
   SubjectMetadata,
   DatasetDescription,
 } from '../../types/metadata';
+import type { DatasetStructure } from '../../types/sessionStructure';
+import { resolveSessionIds } from '../../types/sessionStructure';
 
 // ── Public types ──────────────────────────────────────────────────
 
@@ -60,7 +62,27 @@ export type ExportProgressCallback = (progress: {
 
 // ── Metadata file generators ──────────────────────────────────────
 
-function generateDatasetDescription(desc: DatasetDescription): string {
+/**
+ * Describe the dataset's session-structure preset for the GeneratedBy
+ * entry below. GeneratedBy is the BIDS-sanctioned place for a tool to
+ * record its own provenance metadata (arbitrary Description text is
+ * allowed there), so this doesn't require a nonstandard top-level key
+ * that a strict validator might flag. See
+ * Documents/Phase1b_Custom_Timepoint_Detection_Spec.md Section 5.2 --
+ * this closes the gap where the structure choice only survived in
+ * sessionStorage for the current browser tab and was lost once the ZIP
+ * was downloaded.
+ */
+function describeStructure(structure?: DatasetStructure): string | undefined {
+  if (!structure) return undefined;
+  const sessionIds = resolveSessionIds(structure);
+  if (structure.presetId === 'implant') {
+    return `Session structure: Implant sessions preset (${sessionIds.join(', ')})`;
+  }
+  return `Session structure: Custom timepoints preset (${sessionIds.join(', ')})`;
+}
+
+function generateDatasetDescription(desc: DatasetDescription, structure?: DatasetStructure): string {
   const obj: Record<string, unknown> = {
     Name: desc.name,
     BIDSVersion: desc.bidsVersion,
@@ -77,9 +99,11 @@ function generateDatasetDescription(desc: DatasetDescription): string {
     obj.Funding = funding;
   }
 
+  const structureDescription = describeStructure(structure);
   obj.GeneratedBy = [{
     Name: 'NeuroGate',
     Version: '1.0.0',
+    ...(structureDescription ? { Description: structureDescription } : {}),
   }];
 
   return JSON.stringify(obj, null, 2);
@@ -156,13 +180,15 @@ export function buildFileEntries(
    * When provided, all EDF/BDF files get their headers de-identified on export.
    */
   dateShifts?: Map<string, number>,
+  /** The dataset's chosen session structure, recorded in GeneratedBy. Optional so existing callers don't break; omitting it just omits the Description field. */
+  structure?: DatasetStructure,
 ): FileEntry[] {
   const entries: FileEntry[] = [];
 
   // ── Dataset-level metadata files ────────────────────────────
   entries.push({
     path: 'dataset_description.json',
-    content: generateDatasetDescription(datasetDescription),
+    content: generateDatasetDescription(datasetDescription, structure),
   });
 
   entries.push({

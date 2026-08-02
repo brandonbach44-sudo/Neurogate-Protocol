@@ -17,7 +17,7 @@ import { runDetection, generateSummary, readJsonSidecars, readEdfHeaders } from 
 import { computeBidsNames } from '../lib/bids/bidsNaming';
 import { useAudit, downloadAuditJson } from '../lib/audit';
 import type { DatasetStructure } from '../types/sessionStructure';
-import { createDefaultDatasetStructure } from '../types/sessionStructure';
+import { createDefaultDatasetStructure, resolveSessionIds } from '../types/sessionStructure';
 import {
   saveToolSession,
   loadToolSession,
@@ -361,6 +361,8 @@ function ToolPage() {
             initialStructure={datasetStructure}
             onContinue={(structure) => {
               setDatasetStructure(structure);
+              const sessionIds = resolveSessionIds(structure);
+              audit.logStructureSelected(structure.presetId, sessionIds.length, sessionIds);
               setStep('drop');
             }}
           />
@@ -528,6 +530,7 @@ function ToolPage() {
             subjects={metadataOutput.subjects}
             datasetDescription={metadataOutput.datasetDescription}
             institutionConfig={metadataOutput.institutionConfig}
+            structure={datasetStructure}
             onBack={() => setStep('validation')}
             onExportComplete={() => {
               // Record the export event in the audit log BEFORE downloading,

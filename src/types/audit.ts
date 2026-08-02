@@ -16,6 +16,8 @@
 // ── Action Categories ─────────────────────────────────────────
 
 export type AuditAction =
+  // Structure setup
+  | 'structure-selected'      // User chose a session-structure preset (Step 1)
   // File scanning
   | 'files-scanned'           // User dropped files, scanning completed
   | 'session-restored'        // Tool restored a saved session from sessionStorage

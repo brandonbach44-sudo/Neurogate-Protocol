@@ -15,6 +15,7 @@ import {
   serverDeidentifyEdf,
 } from '../lib/api/exportApi';
 import { getEffectiveSubjectGroup } from '../types/detection';
+import type { DatasetStructure } from '../types/sessionStructure';
 
 interface ExportStepProps {
   detectionResults: DetectionResult[];
@@ -23,6 +24,8 @@ interface ExportStepProps {
   institutionConfig: InstitutionConfig;
   onBack: () => void;
   onExportComplete: () => void;
+  /** The dataset's chosen session structure, recorded in dataset_description.json's GeneratedBy field. */
+  structure?: DatasetStructure;
 }
 
 export default function ExportStep({
@@ -32,6 +35,7 @@ export default function ExportStep({
   institutionConfig,
   onBack,
   onExportComplete,
+  structure,
 }: ExportStepProps) {
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState<string>('');
@@ -65,8 +69,8 @@ export default function ExportStep({
   );
 
   const fileEntries = useMemo(
-    () => buildFileEntries(detectionResults, subjects, datasetDescription, dateShifts),
-    [detectionResults, subjects, datasetDescription, dateShifts]
+    () => buildFileEntries(detectionResults, subjects, datasetDescription, dateShifts, structure),
+    [detectionResults, subjects, datasetDescription, dateShifts, structure]
   );
 
   const tree = useMemo(() => buildTreeFromEntries(fileEntries), [fileEntries]);

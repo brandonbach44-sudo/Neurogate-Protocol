@@ -16,9 +16,8 @@ import {
 
 /**
  * Phase 1 addition (July 2026): the structure-setup screen shown before
- * file organization begins. Not yet wired into the /tool flow -- this is
- * Stage 1 of the flexible folder structure build (foundation UI, additive
- * only). See Documents/Phase1_Flexible_Folder_Structure_Spec.md.
+ * file organization begins. Wired in as Step 1 of 6 in ToolPage.tsx's
+ * /tool flow. See Documents/Phase1_Flexible_Folder_Structure_Spec.md.
  *
  * Step 1: pick a session-structure preset from an extensible list.
  * Step 2 (Custom timepoints only): build timepoints from a number + unit
