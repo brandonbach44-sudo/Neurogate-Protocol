@@ -229,6 +229,14 @@ export function runDetection(
     session: Session | null;
     reasons: DetectionReason[];
     possibleModalities: Modality[];
+    /**
+     * Set when a folder name matched the ambiguous bare "post-op" pattern
+     * (see folderDetector.ts) and nothing else resolved a session for
+     * this file yet. Consulted in Pass 2, after Layer 4 neighbor
+     * inference has had a chance to resolve the file to post-implant via
+     * real CT/iEEG evidence. Implant sessions preset only.
+     */
+    ambiguousSessionCandidate: Session | null;
   }[] = [];
 
   for (const file of files) {
@@ -236,6 +244,7 @@ export function runDetection(
     let modality: Modality = 'other';
     let session: Session | null = null;
     let possibleModalities: Modality[] = [];
+    let ambiguousSessionCandidate: Session | null = null;
 
     // Layer 1: Extension
     const extResult = detectFromExtension(file.name, file.relativePath);
@@ -279,29 +288,48 @@ export function runDetection(
       const sidecar = sidecarMap.get(getSidecarBaseName(file.name));
       if (sidecar) {
         const scResult = detectFromSidecarText(sidecar.scanText);
-        if (scResult.modality) {
-          // Apply the sidecar's modality when the file's own name and
-          // extension left it ambiguous, and only when the result is
-          // compatible with what the extension says is possible.
-          const fileNameAmbiguous = modality === 'other' || possibleModalities.length > 1;
-          const compatible =
-            possibleModalities.length === 0 ||
-            possibleModalities.includes(scResult.modality);
-          if (fileNameAmbiguous && compatible) {
-            modality = scResult.modality;
+        // Compatible when the sidecar's modality guess isn't ruled out by
+        // what this file's own extension says is possible (e.g. a .edf
+        // file's possibleModalities is [eeg, ieeg] -- a sidecar claiming
+        // "ct" can't be describing this file).
+        const compatible =
+          !scResult.modality ||
+          possibleModalities.length === 0 ||
+          possibleModalities.includes(scResult.modality);
+
+        if (compatible) {
+          if (scResult.modality) {
+            // Apply the sidecar's modality when the file's own name and
+            // extension left it ambiguous.
+            const fileNameAmbiguous = modality === 'other' || possibleModalities.length > 1;
+            if (fileNameAmbiguous) {
+              modality = scResult.modality;
+            }
           }
+          if (!isCustomStructure && scResult.session && !session) {
+            session = scResult.session;
+          }
+          // Keyword-match reasons from the sidecar text (modality/session).
+          reasons.push(...scResult.reasons);
+          // Record which sidecar was consulted, for transparency.
+          reasons.push({
+            layer: 'sidecar',
+            message: `Read scan name from sidecar "${sidecar.sidecarName}": "${sidecar.scanText}"`,
+            weight: 0,
+          });
+        } else {
+          // The sidecar's content points to a modality this file's own
+          // extension rules out entirely -- almost certainly an unrelated
+          // file that happens to share a base name (e.g. a lab metadata
+          // .json sitting next to an .edf), not a real dcm2niix sidecar
+          // for this file. Ignore its content rather than surface a
+          // misleading reason. Found via adversarial testing 2026-08-02.
+          reasons.push({
+            layer: 'sidecar',
+            message: `Sidecar "${sidecar.sidecarName}" was found but its content ("${sidecar.scanText}") is incompatible with this file's type -- likely an unrelated file sharing the same base name, ignored.`,
+            weight: 0,
+          });
         }
-        if (!isCustomStructure && scResult.session && !session) {
-          session = scResult.session;
-        }
-        // Keyword-match reasons from the sidecar text (modality/session).
-        reasons.push(...scResult.reasons);
-        // Record which sidecar was consulted, for transparency.
-        reasons.push({
-          layer: 'sidecar',
-          message: `Read scan name from sidecar "${sidecar.sidecarName}": "${sidecar.scanText}"`,
-          weight: 0,
-        });
       }
     }
 
@@ -362,6 +390,13 @@ export function runDetection(
     if (!isCustomStructure && folderResult.session && !session) {
       session = folderResult.session;
     }
+    // Ambiguous bare "post-op" folder match: stash the candidate instead
+    // of committing to it now, so Layer 4 neighbor inference (below, Pass
+    // 2) gets a chance to resolve it via real CT/iEEG evidence first. See
+    // folderDetector.ts's FolderResult.ambiguousSessionCandidate.
+    if (!isCustomStructure && !session && folderResult.ambiguousSessionCandidate) {
+      ambiguousSessionCandidate = folderResult.ambiguousSessionCandidate;
+    }
 
     // Custom timepoints: literal match against the exact labels the user
     // defined in structure setup (e.g. "ses-2mo"), not a fuzzy guess.
@@ -421,7 +456,7 @@ export function runDetection(
       });
     }
 
-    intermediateResults.push({ file, modality, session, reasons, possibleModalities });
+    intermediateResults.push({ file, modality, session, reasons, possibleModalities, ambiguousSessionCandidate });
   }
 
   // ── Build known modalities map for neighbor inference ────────
@@ -469,7 +504,22 @@ export function runDetection(
     // Neighbor session inference (e.g. "CT + iEEG in group -> post-implant")
     // encodes implant-specific clinical logic; skip for Custom timepoints.
     if (!isCustomStructure && neighborResult.session && !session) {
-      session = neighborResult.session;
+      // Guard: a file with a pending ambiguous "post-op" candidate (see
+      // the ambiguous-postop resolution block below) can never
+      // legitimately resolve to pre-implant -- a "post-" folder cannot
+      // also be "pre-implant." Without this guard, neighborInference.ts's
+      // generic "no CT/iEEG nearby -> preimplant" default (a much weaker,
+      // catch-all rule) fires first and silently overrides the pending
+      // candidate with a contradictory answer before the dedicated
+      // ambiguous-postop fallback below ever gets a turn. The stronger
+      // "CT + iEEG -> postimplant" neighbor rule is unaffected by this
+      // guard, since it never proposes preimplant. Found via adversarial
+      // testing 2026-08-02 while verifying the post-op-ambiguity fix.
+      const wouldContradictPendingPostOp =
+        intermediate.ambiguousSessionCandidate === 'ses-postsurgery' && neighborResult.session === 'ses-preimplant';
+      if (!wouldContradictPendingPostOp) {
+        session = neighborResult.session;
+      }
     }
 
     // Layer 5: Subject grouping
@@ -480,6 +530,32 @@ export function runDetection(
     // timepoints for the same reason.
     if (!isCustomStructure && groupResult.session && !session) {
       session = groupResult.session;
+    }
+
+    // Ambiguous "post-op" folder-name resolution (Implant sessions only).
+    // A bare "post-op"/"postop" folder name deliberately did NOT set a
+    // session in Pass 1 or in Layer 5 above, so that Layer 4's neighbor
+    // inference (just above) had a real chance to resolve it correctly
+    // via CT/iEEG evidence in the group -- that rule already exists and
+    // now actually gets to run for this case. If neighbor inference still
+    // didn't find CT+iEEG (e.g. only a lone CT, or imaging-only), fall
+    // back to the site's most likely original intent (post-surgery) here,
+    // with an explicit lower-confidence corrective reason -- this must
+    // run BEFORE the generic default-by-modality fallback below, which
+    // would otherwise guess pre-implant baseline for an imaging-only file
+    // and be equally likely wrong. Bug found via full-pipeline adversarial
+    // testing 2026-08-02 (a "PostOp/CT" folder was silently misclassified
+    // as post-surgery every time).
+    if (!isCustomStructure && !session) {
+      const ambiguousSessionCandidate = intermediate.ambiguousSessionCandidate ?? groupResult.ambiguousSessionCandidate;
+      if (ambiguousSessionCandidate) {
+        session = ambiguousSessionCandidate;
+        reasons.push({
+          layer: 'folder',
+          message: `Ambiguous "post-op" folder name: no CT/iEEG evidence found nearby to indicate post-implant monitoring, so assumed post-surgery follow-up instead. Please verify this session assignment.`,
+          weight: 0.2,
+        });
+      }
     }
 
     // Layer C: neighbor propagation (Custom timepoints only, spec Section

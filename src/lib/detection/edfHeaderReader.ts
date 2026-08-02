@@ -193,8 +193,18 @@ function parseEdfDate(startDate: string, startTime: string): Date | null {
   }
 
   const year = 2000 + Number(yy);
-  const date = new Date(year, Number(mm) - 1, Number(dd), hh, min, ss);
-  return isNaN(date.getTime()) ? null : date;
+  const month = Number(mm);
+  const day = Number(dd);
+  const date = new Date(year, month - 1, day, hh, min, ss);
+  if (isNaN(date.getTime())) return null;
+  // Same silent-rollover risk as the sidecar date parser (e.g. day "30" in
+  // a month with 29 days rolls forward instead of being rejected). Reject
+  // anything that didn't round-trip back to the exact date written.
+  // Found via adversarial testing 2026-08-02.
+  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+    return null;
+  }
+  return date;
 }
 
 // ── EDF Header Parser ─────────────────────────────────────────────

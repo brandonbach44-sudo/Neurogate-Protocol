@@ -29,7 +29,21 @@ export interface SubjectGroupResult {
   session: Session | null;
   /** Reasons for the grouping */
   reasons: DetectionReason[];
+  /**
+   * Set when a session-level subfolder matched the bare "post-op"/"postop"
+   * pattern and nothing else resolved a session. See
+   * folderDetector.ts's FolderResult.ambiguousSessionCandidate for the
+   * full rationale -- same deferred-to-modality-evidence resolution,
+   * applied here for the folder-depth patterns this module checks.
+   */
+  ambiguousSessionCandidate: Session | null;
 }
+
+/**
+ * Bare "post-op"/"postop" -- ambiguous between post-implant and
+ * post-surgery. Mirrors AMBIGUOUS_POSTOP_PATTERN in folderDetector.ts.
+ */
+const AMBIGUOUS_POSTOP_PATTERN = /\b(post[-\s]?op|postop)\b/i;
 
 // ── Common subject ID patterns in filenames ───────────────────────
 const SUBJECT_ID_PATTERNS: RegExp[] = [
@@ -127,36 +141,40 @@ function getSecondLevelFolder(relativePath: string): string | null {
  * Given "StudyFolder/Patient_001/Session_preimplant/modality/file.nii.gz",
  * checks "Session_preimplant".
  */
-function getSessionFromThirdLevel(relativePath: string): { session: Session | null; folderName: string | null } {
+function getSessionFromThirdLevel(relativePath: string): { session: Session | null; folderName: string | null; ambiguousSessionCandidate: Session | null } {
   const parts = relativePath.split('/').filter(s => s.length > 0);
   if (parts.length < 4) {
-    return { session: null, folderName: null };
+    return { session: null, folderName: null, ambiguousSessionCandidate: null };
   }
 
   // Normalize underscores to spaces for word boundary matching
   const subfolder = parts[2].replace(/_/g, ' ').toLowerCase();
 
   if (/\b(pre[-\s]?implant|preimplant|pre[-\s]?op|preop|pre[-\s]?surg|baseline|phase[-\s]?1|session[-\s]?1|ses[-\s]?1)\b/i.test(subfolder)) {
-    return { session: 'ses-preimplant', folderName: parts[2] };
+    return { session: 'ses-preimplant', folderName: parts[2], ambiguousSessionCandidate: null };
   }
   if (/\b(post[-\s]?implant|postimplant|implant|monitoring|ictal|phase[-\s]?2|session[-\s]?2|ses[-\s]?2)\b/i.test(subfolder)) {
-    return { session: 'ses-postimplant', folderName: parts[2] };
+    return { session: 'ses-postimplant', folderName: parts[2], ambiguousSessionCandidate: null };
   }
-  if (/\b(post[-\s]?surg|postsurg|post[-\s]?op|postop|resection|post[-\s]?surgery|phase[-\s]?3|session[-\s]?3|ses[-\s]?3)\b/i.test(subfolder)) {
-    return { session: 'ses-postsurgery', folderName: parts[2] };
+  // Bare "post-op"/"postop" excluded here -- ambiguous, see AMBIGUOUS_POSTOP_PATTERN.
+  if (/\b(post[-\s]?surg|postsurg|resection|post[-\s]?surgery|phase[-\s]?3|session[-\s]?3|ses[-\s]?3)\b/i.test(subfolder)) {
+    return { session: 'ses-postsurgery', folderName: parts[2], ambiguousSessionCandidate: null };
+  }
+  if (AMBIGUOUS_POSTOP_PATTERN.test(subfolder)) {
+    return { session: null, folderName: parts[2], ambiguousSessionCandidate: 'ses-postsurgery' };
   }
 
-  return { session: null, folderName: null };
+  return { session: null, folderName: null, ambiguousSessionCandidate: null };
 }
 
 /**
  * Check if the second-level folder suggests a session.
  * Given "Patient01/PreOp/MRI/file.nii.gz", checks "PreOp".
  */
-function getSessionFromSubfolder(relativePath: string): { session: Session | null; folderName: string | null } {
+function getSessionFromSubfolder(relativePath: string): { session: Session | null; folderName: string | null; ambiguousSessionCandidate: Session | null } {
   const parts = relativePath.split('/').filter(s => s.length > 0);
   if (parts.length < 3) {
-    return { session: null, folderName: null };
+    return { session: null, folderName: null, ambiguousSessionCandidate: null };
   }
 
   // Normalize underscores to spaces so \b word boundaries work correctly
@@ -164,20 +182,24 @@ function getSessionFromSubfolder(relativePath: string): { session: Session | nul
 
   // Pre-implant patterns
   if (/\b(pre[-\s]?implant|preimplant|pre[-\s]?op|preop|pre[-\s]?surg|baseline|phase[-\s]?1|session[-\s]?1|ses[-\s]?1)\b/i.test(subfolder)) {
-    return { session: 'ses-preimplant', folderName: parts[1] };
+    return { session: 'ses-preimplant', folderName: parts[1], ambiguousSessionCandidate: null };
   }
 
   // Post-implant patterns
   if (/\b(post[-\s]?implant|postimplant|implant|monitoring|ictal|phase[-\s]?2|session[-\s]?2|ses[-\s]?2)\b/i.test(subfolder)) {
-    return { session: 'ses-postimplant', folderName: parts[1] };
+    return { session: 'ses-postimplant', folderName: parts[1], ambiguousSessionCandidate: null };
   }
 
-  // Post-surgery patterns
-  if (/\b(post[-\s]?surg|postsurg|post[-\s]?op|postop|resection|post[-\s]?surgery|phase[-\s]?3|session[-\s]?3|ses[-\s]?3)\b/i.test(subfolder)) {
-    return { session: 'ses-postsurgery', folderName: parts[1] };
+  // Post-surgery patterns. Bare "post-op"/"postop" excluded -- ambiguous,
+  // see AMBIGUOUS_POSTOP_PATTERN.
+  if (/\b(post[-\s]?surg|postsurg|resection|post[-\s]?surgery|phase[-\s]?3|session[-\s]?3|ses[-\s]?3)\b/i.test(subfolder)) {
+    return { session: 'ses-postsurgery', folderName: parts[1], ambiguousSessionCandidate: null };
+  }
+  if (AMBIGUOUS_POSTOP_PATTERN.test(subfolder)) {
+    return { session: null, folderName: parts[1], ambiguousSessionCandidate: 'ses-postsurgery' };
   }
 
-  return { session: null, folderName: null };
+  return { session: null, folderName: null, ambiguousSessionCandidate: null };
 }
 
 /**
@@ -259,7 +281,7 @@ export function groupIntoSubject(
         });
       }
 
-      return { groupName, session, reasons };
+      return { groupName, session, reasons, ambiguousSessionCandidate: subfolderSession.ambiguousSessionCandidate };
     }
 
     // Only one top-level folder (the dropped parent, e.g., "EpilepsyStudy_Raw").
@@ -303,7 +325,7 @@ export function groupIntoSubject(
           });
         }
 
-        return { groupName, session, reasons };
+        return { groupName, session, reasons, ambiguousSessionCandidate: thirdLevelSession.ambiguousSessionCandidate };
       }
     }
 
@@ -328,7 +350,7 @@ export function groupIntoSubject(
         });
       }
 
-      return { groupName, session, reasons };
+      return { groupName, session, reasons, ambiguousSessionCandidate: subfolderSession.ambiguousSessionCandidate };
     }
 
     // Fall through to using top folder even though there's only one
@@ -349,7 +371,7 @@ export function groupIntoSubject(
       });
     }
 
-    return { groupName, session, reasons };
+    return { groupName, session, reasons, ambiguousSessionCandidate: subfolderSession.ambiguousSessionCandidate };
   }
 
   // ── Strategy 2: No folder structure — try filename ──────────
@@ -361,7 +383,7 @@ export function groupIntoSubject(
       message: `Subject ID extracted from filename: "${subjectId}"`,
       weight: 0.4,
     });
-    return { groupName, session, reasons };
+    return { groupName, session, reasons, ambiguousSessionCandidate: null };
   }
 
   // ── Strategy 3: Can't determine — single group ─────────────
@@ -372,5 +394,5 @@ export function groupIntoSubject(
     weight: 0.1,
   });
 
-  return { groupName, session, reasons };
+  return { groupName, session, reasons, ambiguousSessionCandidate: null };
 }
