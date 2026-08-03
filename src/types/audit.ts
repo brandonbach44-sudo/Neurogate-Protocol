@@ -45,6 +45,7 @@ export type AuditAction =
   // Export
   | 'validation-passed'       // Validation passed, moving to export
   | 'export-completed'        // BIDS dataset exported as ZIP
+  | 'deidentification-summary' // What de-identification actions were taken during export (which fields were stripped/shifted, whether PHI was detected). Deliberately excludes raw date-shift day values -- see logDeidentificationSummary in auditLogger.ts.
   | 'audit-log-exported';     // User exported the audit log itself
 
 // ── Single Audit Entry ────────────────────────────────────────

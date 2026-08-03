@@ -8,7 +8,7 @@ import {
   generateZip,
   getExportStats,
 } from '../lib/bids/exporter';
-import type { TreeNode, LargeFileEntry } from '../lib/bids/exporter';
+import type { TreeNode, LargeFileEntry, DeidentificationSummary } from '../lib/bids/exporter';
 import { generateSubjectDateShifts } from '../lib/deidentify/edfDeidentifier';
 import {
   hasServerApi,
@@ -23,7 +23,7 @@ interface ExportStepProps {
   datasetDescription: DatasetDescription;
   institutionConfig: InstitutionConfig;
   onBack: () => void;
-  onExportComplete: () => void;
+  onExportComplete: (deidentifySummary: DeidentificationSummary) => void;
   /** The dataset's chosen session structure, recorded in dataset_description.json's GeneratedBy field. */
   structure?: DatasetStructure;
 }
@@ -51,6 +51,7 @@ export default function ExportStep({
     shiftKey: { dateShiftDays: number; originalDate: string; shiftedDate: string };
   }
   const [serverEdfResults, setServerEdfResults] = useState<ServerEdfResult[]>([]);
+  const [deidentifySummary, setDeidentifySummary] = useState<DeidentificationSummary | null>(null);
 
   // Warn up front if any file was unreadable at drop time (e.g. OneDrive cloud-only).
   const unreadableFiles = detectionResults
@@ -126,13 +127,39 @@ export default function ExportStep({
 
       // ── Build the metadata ZIP (skips large files as before) ────
       setExportProgress('Building metadata ZIP...');
-      const blob = await generateZip(fileEntries, (progress) => {
+      const { blob, summary } = await generateZip(fileEntries, (progress) => {
         if (progress.phase === 'building') {
           setExportProgress(`Adding file ${progress.current} of ${progress.total}...`);
         } else {
           setExportProgress('Compressing...');
         }
       });
+
+      // Merge in the server-upload path's large EDF files -- those were
+      // de-identified server-side (serverDeidentifyEdf above) and never
+      // went through generateZip's own de-identify calls, so they're not
+      // in `summary` yet. The server doesn't currently report back
+      // whether PHI was detected, so containedPhi is left unknown for
+      // these rather than guessed. subjectGroup isn't tracked in
+      // ServerEdfResult; look it up from detectionResults by filename.
+      const subjectIdMap = new Map<string, string>();
+      for (const s of subjects) subjectIdMap.set(s.subjectGroup, s.bidsSubjectId);
+      const mergedSummary: DeidentificationSummary = {
+        edfFiles: [
+          ...summary.edfFiles,
+          ...serverEdfResults.map(r => {
+            const match = detectionResults.find(d => d.fileName === r.originalName);
+            const subjectGroup = match ? getEffectiveSubjectGroup(match) : '';
+            return {
+              bidsPath: r.bidsPath,
+              subjectGroup,
+              dateShifted: r.shiftKey.dateShiftDays !== 0,
+            };
+          }),
+        ],
+        jsonSidecars: summary.jsonSidecars,
+      };
+      setDeidentifySummary(mergedSummary);
 
       const timestamp = new Date().toISOString().slice(0, 10);
       const prefix = institutionConfig.prefix || 'BIDS';
@@ -154,7 +181,7 @@ export default function ExportStep({
 
   // Step 2: called when user clicks the real <a> download link.
   const handleDownloadClick = () => {
-    onExportComplete();
+    onExportComplete(deidentifySummary ?? { edfFiles: [], jsonSidecars: [] });
   };
 
   return (
