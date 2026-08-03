@@ -380,12 +380,26 @@ export function runDetection(
     // Layer 3: Folder path
     const folderResult = detectFromFolderPath(file.relativePath);
     reasons.push(...folderResult.reasons);
+    // A folder name (e.g. "anat") can only assign a modality when the
+    // file's own extension doesn't actively rule it out. Extension
+    // possibleModalities is ['other'] for an unrecognized or
+    // non-scan-data extension -- e.g. a Thumbs.db thumbnail-cache file,
+    // or any other stray non-imaging file, sitting inside an "anat"
+    // folder. Without this compatibility check, ANY file in a
+    // modality-named folder was silently classified (high confidence)
+    // as that modality regardless of what the file actually was, which
+    // meant it could be exported as fabricated patient data. The
+    // previous code had a second, correctly-gated check right after
+    // this one, but it was permanently dead: by the time it ran,
+    // `modality` was no longer 'other' because the first (ungated)
+    // check above had already blindly overwritten it. Bug found via
+    // adversarial junk-file testing 2026-08-02.
     if (folderResult.modality && modality === 'other') {
-      modality = folderResult.modality;
-    }
-    // Folder path can also narrow down ambiguous extension results
-    if (folderResult.modality && possibleModalities.includes(folderResult.modality) && modality === 'other') {
-      modality = folderResult.modality;
+      const extensionAllowsThisModality =
+        possibleModalities.length === 0 || possibleModalities.includes(folderResult.modality);
+      if (extensionAllowsThisModality) {
+        modality = folderResult.modality;
+      }
     }
     if (!isCustomStructure && folderResult.session && !session) {
       session = folderResult.session;
