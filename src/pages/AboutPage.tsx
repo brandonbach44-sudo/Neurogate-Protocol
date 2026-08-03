@@ -169,8 +169,8 @@ export default function AboutPage() {
             }
           />
           <PillarCard
-            title="Three operational SOPs"
-            body="BIDS data structure, the tool user guide, and an optional Pennsieve upload reference. Each SOP is procedural step-by-step, with quick-reference sections for day-to-day use."
+            title="Operational SOPs"
+            body="BIDS data structure and the tool user guide. Each SOP is procedural step-by-step, with quick-reference sections for day-to-day use."
             accent={TEAL_TEXT}
             bg="rgba(109,211,206,0.16)"
             icon={

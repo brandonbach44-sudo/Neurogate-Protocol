@@ -2,7 +2,7 @@
 
 > This file extracts rules the GUI must enforce. Sources: GOV-001 and SOP-BIDS-001 (`public/docs/gov-001.md`, `public/docs/sop-bids.md`). Update this file whenever either source changes.
 
-**Last sync:** 2026-08-02 (against GOV-001 v1.14 and SOP-BIDS-001 v2.8).
+**Last sync:** 2026-08-02 (against GOV-001 v1.15 and SOP-BIDS-001 v2.9).
 
 ---
 
@@ -30,7 +30,7 @@ dataset_root/
 └── sub-<ID>/                    # Subject directories
 ```
 
-**Tool scope:** the tool generates a self-contained BIDS ZIP. How the site organizes this within their chosen data infrastructure (Pennsieve, institutional cloud, on-premise archive, etc.) is outside the tool's scope and covered by the site's upload SOP (SOP-PENNSIEVE-001 is the worked example for Pennsieve users).
+**Tool scope:** the tool generates a self-contained BIDS ZIP. How the site organizes this within their chosen data infrastructure (institutional cloud, on-premise archive, etc.) is outside the tool's scope and covered by the site's own upload procedure.
 
 ---
 

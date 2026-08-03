@@ -17,7 +17,7 @@ Anyone can drag a folder of patient data into the web app, independently, with n
 5. Validates the dataset against BIDS plus a governance framework (PHI scan, metadata completeness, session consistency)
 6. Exports a BIDS-organized folder ready for upload, with EDF headers and scan JSON sidecars automatically de-identified (date-shift, not blank, per subject) and an ALCOA+ compliant audit log
 
-Users are assumed to have already converted DICOM to NIfTI and de-identified structural MRI. The tool validates and attests; it does not perform those steps. After the tool exports the BIDS folder, the site uploads it to its chosen data infrastructure. SOP-PENNSIEVE-001 is a worked example for sites using Pennsieve.
+Users are assumed to have already converted DICOM to NIfTI and de-identified structural MRI. The tool validates and attests; it does not perform those steps. After the tool exports the BIDS folder, the site uploads it to its chosen data infrastructure -- upload itself is out of scope for the tool.
 
 ## Development
 
@@ -32,7 +32,6 @@ User-facing documentation lives on the deployed site under `/docs` and is source
 
 - GOV-001: Regulatory Governance Framework
 - SOP-BIDS-001: BIDS Data Structure
-- SOP-PENNSIEVE-001: Pennsieve Upload Procedures (optional reference for sites using Pennsieve)
 - SOP-GUI-001: NeuroGate Compliance Tool User Guide
 
 Internal developer notes in this repo:

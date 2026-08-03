@@ -3,18 +3,18 @@
 | Field | Value |
 |---|---|
 | **Document ID** | SOP-GUI-001 |
-| **Version** | 1.8 |
-| **Effective Date** | 2026-08-01 |
+| **Version** | 1.9 |
+| **Effective Date** | 2026-08-02 |
 | **Author** | Brandon Bach |
 | **Status** | Draft |
-| **Parent Framework** | GOV-001 Regulatory Governance Framework v1.14 |
-| **Related Documents** | SOP-BIDS-001, SOP-PENNSIEVE-001 |
+| **Parent Framework** | GOV-001 Regulatory Governance Framework v1.15 |
+| **Related Documents** | SOP-BIDS-001 |
 
 ---
 
 ## 1. Purpose
 
-This SOP provides instructions for using the NeuroGate web-based compliance tool to organize, validate, and export neuroimaging data in Brain Imaging Data Structure (BIDS) format. The tool automates file classification, enforces BIDS naming conventions, scans for protected health information (PHI), and generates an audit trail compliant with ALCOA+ data integrity principles. The exported BIDS folder is then uploaded by the site to whatever data infrastructure they have chosen (Pennsieve, institutional cloud, etc.); platform upload is out of scope for this SOP.
+This SOP provides instructions for using the NeuroGate web-based compliance tool to organize, validate, and export neuroimaging data in Brain Imaging Data Structure (BIDS) format. The tool automates file classification, enforces BIDS naming conventions, scans for protected health information (PHI), and generates an audit trail compliant with ALCOA+ data integrity principles. The exported BIDS folder is then uploaded by the site to whatever data infrastructure they have chosen; platform upload is out of scope for this SOP.
 
 ---
 
@@ -46,7 +46,7 @@ This SOP applies to anyone preparing neural data files for sharing, whether at a
 **Out of scope:**
 - DICOM-to-NIfTI conversion (install scripts packaged in the same repository at `tools/dcm2niix/`)
 - Defacing of anatomical images (install scripts packaged in the same repository at `tools/pydeface/`)
-- Uploading the exported ZIP to a data infrastructure (SOP-PENNSIEVE-001 is a worked example for sites using Pennsieve)
+- Uploading the exported ZIP to a data infrastructure (each site follows its own upload procedure for the infrastructure it has chosen)
 
 ---
 
@@ -274,7 +274,7 @@ Once all failures are resolved, the "Continue to Export" button becomes active.
 
 ### 11.1 Overview
 
-The Export step generates a BIDS-compliant ZIP archive ready for upload to the site's chosen data infrastructure. SOP-PENNSIEVE-001 is provided as a worked example for sites using Pennsieve.
+The Export step generates a BIDS-compliant ZIP archive ready for upload to the site's chosen data infrastructure.
 
 During export the tool finalizes several details automatically:
 
@@ -345,7 +345,7 @@ After downloading:
 
 1. **Verify the ZIP:** Extract and inspect the contents to confirm structure.
 2. **Run bids-validator (optional):** For additional assurance, run the official BIDS validator against the extracted folder (`npx bids-validator ./dataset/`).
-3. **Upload to your data infrastructure:** Use whatever platform your site has chosen. SOP-PENNSIEVE-001 is a worked example if your site uses Pennsieve.
+3. **Upload to your data infrastructure:** Use whatever platform your site has chosen.
 4. **Archive the audit log:** Store the audit JSON with your site's study records for compliance documentation.
 
 ---
@@ -433,7 +433,7 @@ The audit log satisfies ALCOA+ requirements:
 5. **Enter metadata:** Site prefix, subject info, dataset name, defacing attestation
 6. **Validate:** Resolve any failures, review warnings
 7. **Export:** Download BIDS ZIP (with headers auto-de-identified) + audit log
-8. **Upload:** Upload to your site's chosen data infrastructure (SOP-PENNSIEVE-001 covers Pennsieve as an example)
+8. **Upload:** Upload to your site's chosen data infrastructure
 
 ### Key Rules
 
@@ -467,3 +467,4 @@ The audit log satisfies ALCOA+ requirements:
 | 1.6 | 2026-08-01 | Brandon Bach | Major update: the tool is now a 6-step workflow, not 5. Added new Section 6 (Step 1: Choose Your Structure) documenting the Implant sessions / Custom timepoints preset choice; renumbered former Sections 6-16 to 7-17. Updated Section 8 (Mapping Table) to describe preset-aware session detection, including that Custom timepoints has no modality-based fallback and instead requires either a literal label match or the "Assign in order to timepoints" bulk action. Updated Section 11.1 (Export) and Section 10.4 (PHI Detection) to document the tool's new automatic EDF header and JSON sidecar de-identification (date-shift, not blank, per subject). Updated the Quick-Reference workflow summary from 7 to 8 steps. Removed remaining "epilepsy" domain framing from Section 3 Scope. Updated the parent GOV-001 reference to v1.14. |
 | 1.7 | 2026-08-01 | Brandon Bach | Section 10.4 (PHI Detection): documented the second PHI scan added this pass, which reads sidecar JSON free-text fields (SeriesDescription, ProtocolName, etc.) for PHI patterns -- these fields are excluded from automatic de-identification because they're needed for BIDS documentation, so this scan is the safeguard against a scanner operator typing identifying information into one of them. |
 | 1.8 | 2026-08-01 | Brandon Bach | Testing surfaced a gap in the v1.7 sidecar content scan: bare two-word names in prose (e.g. "John Smith Brain MRI") weren't caught because the existing name patterns require a keyword or comma trigger that filenames have but free text doesn't. Added a dedicated bare-name heuristic for sidecar content only, with a stoplist of common radiology/scan vocabulary to avoid flagging legitimate Title Case descriptions (e.g. "Axial Flair Post Contrast"). Flagged as a dismissable warning, not an error, since it is a lower-confidence heuristic. Also fixed a cosmetic bug where three PHI pattern titles rendered as "Potential Potential ..." |
+| 1.9 | 2026-08-02 | Brandon Bach | Removed SOP-PENNSIEVE-001 from Related Documents and all in-text Pennsieve references (Sections 1, 11.1, 11.5, Quick Reference workflow list): the tool is a general organization tool, not tied to any specific upload target, so upload guidance no longer names a specific platform. Updated the parent GOV-001 reference to v1.15. |

@@ -15,11 +15,6 @@ const DOC_META: Record<string, { title: string; id: string; file: string }> = {
     id: 'SOP-BIDS-001',
     file: '/docs/sop-bids.md',
   },
-  'sop-pennsieve': {
-    title: 'Pennsieve Upload Procedures',
-    id: 'SOP-PENNSIEVE-001',
-    file: '/docs/sop-pennsieve.md',
-  },
   'sop-gui': {
     title: 'Compliance Tool User Guide',
     id: 'SOP-GUI-001',
