@@ -68,6 +68,15 @@ export async function runValidation(input: ValidationInput): Promise<ValidationR
   const sparseIssues = checkSparseDataset(input);
   allIssues.push(...sparseIssues);
 
+  // ── 7. Empty dataset (zero files at all) ───────────────────
+  // Every other check above operates per-subject/per-file, so a totally
+  // empty upload (e.g. the file picker silently failed, or the user
+  // cleared their selection) produces zero issues from any of them and
+  // reports a clean "passed" with nothing to show for it. Found via
+  // adversarial validation testing 2026-08-02.
+  const emptyIssues = checkEmptyDataset(input);
+  allIssues.push(...emptyIssues);
+
   // ── Finalize report ───────────────────────────────────────
   return finalizeReport(allIssues);
 }
@@ -207,6 +216,39 @@ function checkSparseDataset(input: ValidationInput): ValidationIssue[] {
         dismissable: true,
       });
     }
+  }
+
+  return issues;
+}
+
+// ── Empty dataset check ────────────────────────────────────────────
+
+let emptyCounter = 0;
+function nextEmptyId(): string {
+  return `empty-${++emptyCounter}`;
+}
+
+/**
+ * Flag a totally empty upload. Every other validator in this pipeline is
+ * per-subject or per-file, so zero files means zero issues from any of
+ * them -- an accidentally-empty upload (failed file picker, cleared
+ * selection, wrong folder) would otherwise report a clean "passed" with
+ * nothing wrong, which is misleading: there's nothing to export.
+ */
+function checkEmptyDataset(input: ValidationInput): ValidationIssue[] {
+  emptyCounter = 0;
+  const issues: ValidationIssue[] = [];
+
+  if (input.detectionResults.length === 0) {
+    issues.push({
+      id: nextEmptyId(),
+      category: 'required-files',
+      severity: 'error',
+      title: 'No files uploaded',
+      description: 'This dataset has no files at all. Go back to the file drop step and verify your folder selection -- there is nothing here to export.',
+      affectedFiles: [],
+      dismissable: false,
+    });
   }
 
   return issues;
