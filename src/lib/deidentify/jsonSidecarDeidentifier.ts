@@ -78,6 +78,18 @@ export interface JsonSidecarDeidentifyResult {
   strippedFields: string[];
   /** Names of date fields that were shifted. */
   shiftedFields: string[];
+  /**
+   * Names of DATE_FIELDS present with a non-empty value that didn't match
+   * any recognized date format and were therefore blanked to "X" rather
+   * than shifted. Tracked separately from strippedFields/shiftedFields so
+   * this is distinguishable in the audit trail: this is a "fail closed"
+   * safety fallback, not a normal known-identifying-field strip or a
+   * successful shift. Fail closed (blank) rather than fail open (leave
+   * the real, unshifted absolute date in the export) because the cost of
+   * losing one field's relative-timing value is far lower than the cost
+   * of a silent PHI-adjacent date leak. Decided with Brandon 2026-08-02.
+   */
+  unparseableDateFields: string[];
 }
 
 /**
@@ -156,11 +168,12 @@ export function deidentifyJsonSidecar(
   try {
     parsed = JSON.parse(jsonText);
   } catch {
-    return { text: jsonText, strippedFields: [], shiftedFields: [] };
+    return { text: jsonText, strippedFields: [], shiftedFields: [], unparseableDateFields: [] };
   }
 
   const strippedFields: string[] = [];
   const shiftedFields: string[] = [];
+  const unparseableDateFields: string[] = [];
 
   for (const field of BLANK_STRING_FIELDS) {
     if (field in parsed && parsed[field] !== '' && parsed[field] != null) {
@@ -176,6 +189,17 @@ export function deidentifyJsonSidecar(
       if (shifted) {
         parsed[field] = shifted;
         shiftedFields.push(field);
+      } else {
+        // Fail closed: a present date value in an unrecognized format
+        // must not be left in the export with its real, unshifted
+        // absolute value -- that would defeat the entire purpose of this
+        // field's de-identification. Blank it instead, and track it
+        // separately from strippedFields/shiftedFields so this specific
+        // "unknown format, safety fallback" case is visible in the audit
+        // trail rather than looking identical to a normal strip or a
+        // successful shift. Decided with Brandon 2026-08-02.
+        parsed[field] = 'X';
+        unparseableDateFields.push(field);
       }
     }
   }
@@ -184,6 +208,7 @@ export function deidentifyJsonSidecar(
     text: JSON.stringify(parsed, null, 2),
     strippedFields,
     shiftedFields,
+    unparseableDateFields,
   };
 }
 
