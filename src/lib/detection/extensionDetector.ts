@@ -22,10 +22,51 @@ export interface ExtensionResult {
 }
 
 /**
+ * Filenames operating systems and file managers drop into any folder
+ * automatically -- never real scan data, but extremely common in real
+ * folder drops (Thumbs.db in particular is silently created by Windows
+ * Explorer in any folder containing images, so it's essentially
+ * guaranteed to show up in an "anat" folder sooner or later). Checked
+ * first, before any extension-specific logic, so these can never be
+ * mistaken for real data regardless of extension or folder name. Found
+ * via adversarial testing 2026-08-02: a Thumbs.db file dropped in an
+ * "anat" folder was being classified as a high-confidence T1w MRI scan
+ * (see the folder/extension-compatibility fix in engine.ts) and would
+ * have been silently exported as fabricated patient data.
+ */
+const OS_JUNK_FILENAMES = new Set([
+  'thumbs.db', 'ehthumbs.db', 'ehthumbs_vista.db', // Windows
+  '.ds_store', '.spotlight-v100', '.trashes', '.fseventsd', 'icon\r', // macOS
+  'desktop.ini', // Windows folder customization
+  '.directory', // Linux/KDE
+]);
+
+export function isOsJunkFile(fileName: string): boolean {
+  const lower = fileName.toLowerCase();
+  if (OS_JUNK_FILENAMES.has(lower)) return true;
+  // macOS AppleDouble resource-fork sidecar files, e.g. "._scan.nii.gz"
+  if (lower.startsWith('._')) return true;
+  return false;
+}
+
+/**
  * Analyze a file's extension and return possible modalities.
  */
 export function detectFromExtension(fileName: string, _relativePath: string): ExtensionResult {
   const lower = fileName.toLowerCase();
+
+  // ── Operating system junk files — never real data ───────────
+  if (isOsJunkFile(fileName)) {
+    return {
+      possibleModalities: ['other'],
+      bestGuess: 'other',
+      reason: {
+        layer: 'extension',
+        message: `Operating system metadata file ("${fileName}") — not scan data, excluded from export`,
+        weight: 0,
+      },
+    };
+  }
 
   // ── NIfTI (gzipped) — imaging file ──────────────────────────
   // Could be anatomical MRI (T1w, T2w), CT, DWI, fMRI, or field map.
