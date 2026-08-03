@@ -15,16 +15,27 @@
  * - "Custom timepoints" lets any study define its own timepoints from a
  *   number + unit picker, with no free-text entry anywhere in the flow, so
  *   no site name or PI name can ever end up in a generated session label.
+ *   Includes a "session" unit (no time interval) for plain sequential
+ *   labels like ses-1, ses-2, ses-3.
+ * - "Single session" is for datasets with no follow-up timepoints at all
+ *   (cross-sectional studies, or a single-block acute/implant recording):
+ *   one folder per subject, no ses- folders.
  *
  * The registry (SESSION_PRESETS) is a list, not a hardcoded two-way fork, so
  * a future preset can be added without redesigning the Step 1 picker.
+ *
+ * Phase 2 addition (August 2026): the "session" timepoint unit and the
+ * Single session preset below are foundation-only, following the same
+ * staging Phase 1 used -- new, additive types and generator logic, not yet
+ * wired into detection/validation/export/UI. See
+ * Documents/Phase2_Additional_Dataset_Presets_Spec.md.
  */
 
 import { SESSIONS, type Session } from './detection';
 
 // ── Preset registry (Step 1) ──────────────────────────────────────
 
-export type PresetId = 'implant' | 'custom-timepoints';
+export type PresetId = 'implant' | 'custom-timepoints' | 'single-session';
 
 export interface SessionPresetInfo {
   id: PresetId;
@@ -50,17 +61,32 @@ export const SESSION_PRESETS: SessionPresetInfo[] = [
     description:
       'For longitudinal studies without an implant procedure. Build your own timepoints below, no free text.',
   },
+  {
+    id: 'single-session',
+    label: 'Single session',
+    description:
+      'One folder per subject, no session folders. For cross-sectional studies or a single-block acute/implant recording with no follow-up timepoints.',
+  },
 ];
 
 // ── Custom timepoint generator (Step 2) ───────────────────────────
 
-export type TimepointUnit = 'day' | 'week' | 'month' | 'year';
+export type TimepointUnit = 'day' | 'week' | 'month' | 'year' | 'session';
 
+/**
+ * "session" is a no-time-interval unit for studies that want plain
+ * sequential labels (ses-1, ses-2, ses-3) without committing to a day/
+ * week/month/year cadence. Its abbrev is intentionally empty --
+ * buildCustomSessionLabel special-cases it to omit the suffix entirely
+ * rather than emitting "ses-1session". Its `days` value is unused for
+ * ordering (see elapsedDays) since there's no time to convert.
+ */
 export const TIMEPOINT_UNITS: { value: TimepointUnit; label: string; abbrev: string; days: number }[] = [
   { value: 'day', label: 'days', abbrev: 'd', days: 1 },
   { value: 'week', label: 'weeks', abbrev: 'wk', days: 7 },
   { value: 'month', label: 'months', abbrev: 'mo', days: 30 },
   { value: 'year', label: 'years', abbrev: 'yr', days: 365 },
+  { value: 'session', label: 'sessions (no time interval)', abbrev: '', days: 1 },
 ];
 
 /**
@@ -111,11 +137,27 @@ function assertValidTimepointNumber(n: number): void {
 
 export function buildCustomSessionLabel(tp: CustomTimepoint): string {
   assertValidTimepointNumber(tp.number);
+  // "session" unit has no time abbreviation -- ses-1, not ses-1session.
+  if (tp.unit === 'session') {
+    return `ses-${tp.number}`;
+  }
   return `ses-${tp.number}${unitInfo(tp.unit).abbrev}`;
 }
 
-/** Elapsed time in days, used only for chronological sorting -- never stored or displayed. */
+/**
+ * Elapsed time in days, used only for chronological sorting -- never
+ * stored or displayed. For the "session" unit there's no real elapsed
+ * time to compute; this falls back to the raw sequence number so a list
+ * of session-unit rows still sorts in the order the numbers imply
+ * (ses-1, ses-2, ses-3...). Mixing "session" rows with time-based rows
+ * in the same dataset isn't a supported combination -- the Step 2 UI
+ * should discourage it once wired, since comparing "session 2" against
+ * "2 months" has no defined meaning.
+ */
 function elapsedDays(tp: CustomTimepoint): number {
+  if (tp.unit === 'session') {
+    return tp.number;
+  }
   return tp.number * unitInfo(tp.unit).days;
 }
 
@@ -154,7 +196,8 @@ export function findDuplicateTimepoints(timepoints: CustomTimepoint[]): number[]
  */
 export type DatasetStructure =
   | { presetId: 'implant' }
-  | { presetId: 'custom-timepoints'; timepoints: CustomTimepoint[] };
+  | { presetId: 'custom-timepoints'; timepoints: CustomTimepoint[] }
+  | { presetId: 'single-session' };
 
 export function createDefaultDatasetStructure(): DatasetStructure {
   return { presetId: 'implant' };
@@ -177,6 +220,14 @@ export function resolveSessionIds(structure: DatasetStructure): string[] {
   if (structure.presetId === 'implant') {
     return IMPLANT_SESSIONS.map(s => s.value);
   }
+  if (structure.presetId === 'single-session') {
+    // Open question (spec Section 6): whether this should omit the ses-
+    // folder layer entirely (empty list, current behavior) or resolve to
+    // one implicit fixed id (e.g. "ses-1") for structural consistency
+    // with the other presets. Not yet decided -- not wired into
+    // detection/export until it is.
+    return [];
+  }
   return sortTimepoints(structure.timepoints).map(buildCustomSessionLabel);
 }
 
@@ -195,6 +246,11 @@ export interface SessionOption {
 export function getSessionOptions(structure: DatasetStructure): SessionOption[] {
   if (structure.presetId === 'implant') {
     return IMPLANT_SESSIONS.map(s => ({ value: s.value, label: s.label }));
+  }
+  if (structure.presetId === 'single-session') {
+    // Same open question as resolveSessionIds above -- no session dropdown
+    // needed until the ses-folder decision is made.
+    return [];
   }
   return sortTimepoints(structure.timepoints).map(tp => {
     const label = buildCustomSessionLabel(tp);
