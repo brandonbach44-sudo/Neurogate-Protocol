@@ -15,6 +15,7 @@ import type { DetectionResult } from '../../types/detection';
 import { getEffectiveSession, getEffectiveModality, getEffectiveSubjectGroup } from '../../types/detection';
 import type { SubjectMetadata } from '../../types/metadata';
 import type { ValidationIssue } from '../../types/validation';
+import { isOsJunkFile } from '../detection/extensionDetector';
 
 // Characters not allowed in BIDS filenames/paths (beyond normal filesystem)
 const ILLEGAL_CHARS = /[^a-zA-Z0-9\-_./]/;
@@ -49,6 +50,16 @@ export function validateBidsStructure(
     const modality = getEffectiveModality(result);
     const group = getEffectiveSubjectGroup(result);
     const bidsId = subjectIdMap.get(group) || group; void bidsId;
+
+    // OS junk files (Thumbs.db, .DS_Store, desktop.ini, etc.) are never
+    // real data -- they're excluded from export at the detection layer
+    // already (see isOsJunkFile in extensionDetector.ts). Reporting them
+    // as "Unclassified file" or "Subject has no BIDS ID" is just noise
+    // that obscures the validation issues that actually need attention.
+    // Skip all per-file checks below for these entirely.
+    if (isOsJunkFile(result.fileName)) {
+      continue;
+    }
 
     // ── Check: File has no session assigned ──────────────────
     // Localizer/scout scans are excluded from the BIDS export, so they

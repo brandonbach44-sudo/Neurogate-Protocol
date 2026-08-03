@@ -14,6 +14,7 @@ import type { DetectionResult } from '../../types/detection';
 import { getEffectiveSession, getEffectiveModality, getEffectiveSubjectGroup } from '../../types/detection';
 import type { SubjectMetadata } from '../../types/metadata';
 import type { ValidationIssue } from '../../types/validation';
+import { isOsJunkFile } from '../detection/extensionDetector';
 
 let issueCounter = 0;
 function nextId(): string {
@@ -81,6 +82,12 @@ export function checkCrossSessionConsistency(
 ): ValidationIssue[] {
   issueCounter = 0;
   const issues: ValidationIssue[] = [];
+
+  // OS junk files pad out affectedFiles lists ("Single session only",
+  // duplicate-ID, etc.) without being relevant to any of these checks.
+  // Excluded up front, same as requiredFilesChecker.ts and
+  // bidsValidator.ts.
+  results = results.filter(r => !isOsJunkFile(r.fileName));
 
   // ── Check: Subjects with only one session ─────────────────
   const subjectSessions = new Map<string, Set<string>>();

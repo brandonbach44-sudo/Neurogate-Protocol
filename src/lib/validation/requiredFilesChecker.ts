@@ -24,6 +24,7 @@ import type { DetectionResult } from '../../types/detection';
 import { getEffectiveSession, getEffectiveModality, getEffectiveSubjectGroup } from '../../types/detection';
 import type { SubjectMetadata } from '../../types/metadata';
 import type { ValidationIssue } from '../../types/validation';
+import { isOsJunkFile } from '../detection/extensionDetector';
 
 interface RequiredFile {
   modality: string;
@@ -60,6 +61,13 @@ export function checkRequiredFiles(
 ): ValidationIssue[] {
   issueCounter = 0;
   const issues: ValidationIssue[] = [];
+
+  // OS junk files (Thumbs.db, .DS_Store, etc.) are never real data and
+  // are already excluded from export at the detection layer. Keeping
+  // them out of this checker's inputs entirely stops them from padding
+  // out "Missing required" affectedFiles lists or spuriously triggering
+  // "Subject has no sessions" for a junk-only file group.
+  results = results.filter(r => !isOsJunkFile(r.fileName));
 
   const DATA_MODALITIES = new Set([
     'anat-T1w', 'anat-T2w', 'anat-FLAIR', 'anat-angio',
