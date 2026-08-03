@@ -12,14 +12,14 @@ User browser
    ├─ Validation (all client-side, using bids-validator npm)
    ├─ Audit log generation (all client-side)
    │
-   └─ Export ──► BIDS ZIP download (site uploads manually via Pennsieve web or Agent)
+   └─ Export ──► BIDS ZIP download (site uploads manually to its chosen data infrastructure)
 ```
 
-## Upload Architecture — Decision Finalized
+## Upload Architecture - Decision Finalized
 
-**Decision:** Browser-to-Pennsieve direct upload is not feasible. Pennsieve does not support the CORS headers required for browser-initiated REST API calls, and adding a backend proxy would conflict with the tool's static, client-side-only design.
+**Decision:** Browser-to-infrastructure direct upload is not feasible in general. Most data infrastructure platforms don't support the CORS headers required for browser-initiated REST API calls, and adding a backend proxy would conflict with the tool's static, client-side-only design.
 
-**Final approach:** The tool exports a validated BIDS ZIP file to the user's local machine. The user then uploads that ZIP to their chosen data infrastructure (Pennsieve web interface, Pennsieve Agent CLI, institutional cloud, etc.) per SOP-PENNSIEVE-001 or their site-specific equivalent. This keeps the tool fully static and deployable as a plain web URL with no backend.
+**Final approach:** The tool exports a validated BIDS ZIP file to the user's local machine. The user then uploads that ZIP to their chosen data infrastructure (institutional cloud, on-premise archive, etc.) per their site-specific upload procedure. This keeps the tool fully static and deployable as a plain web URL with no backend.
 
 The audit log (JSON + CSV) auto-downloads alongside the BIDS ZIP so sites have an ALCOA+-compliant record regardless of which upload method they use.
 

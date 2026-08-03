@@ -73,7 +73,7 @@ npx tailwindcss init -p
 
 ## 8. First Real Feature
 
-Start with the file drop zone — it's the entry point of the app and doesn't depend on the Pennsieve question.
+Start with the file drop zone - it's the entry point of the app and doesn't depend on upload-destination decisions.
 
 ```
 Build a file drop zone component that accepts a folder. When a folder is dropped, scan its contents and show a flat list of every file with its relative path and size. Include a "pick folder" button as a fallback for browsers without drag-drop folder support.

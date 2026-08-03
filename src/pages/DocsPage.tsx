@@ -102,7 +102,7 @@ export default function DocsPage() {
           <div className="p-8">
             <div className="flex items-center gap-2 mb-4">
               <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500">GOV-001</span>
-              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(1,31,91,0.06)', color: '#011F5B' }}>v1.14</span>
+              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(1,31,91,0.06)', color: '#011F5B' }}>v1.15</span>
               <span className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(234,179,8,0.1)', color: '#a16207' }}>Draft</span>
             </div>
             <h2 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-[#011F5B] transition-colors">
@@ -131,7 +131,7 @@ export default function DocsPage() {
           title="BIDS Data Structure"
           description="Folder hierarchy, file naming conventions, modality organization, JSON sidecars, and de-identification requirements for BIDS-compliant neural data (imaging and electrophysiology)."
           status="Draft"
-          version="v2.8"
+          version="v2.9"
           to="/docs/sop-bids"
           accent="rgba(109,211,206)"
           icon={
@@ -141,27 +141,11 @@ export default function DocsPage() {
           }
         />
         <DocCard
-          id="SOP-PENNSIEVE-001"
-          title="Pennsieve Upload Procedures (optional reference)"
-          description="Worked example for sites that choose Pennsieve as their data infrastructure. Covers Agent CLI and web interface upload, pre-upload validation, post-upload verification, and audit logging. Sites using different infrastructure should produce an equivalent SOP."
-          status="Draft"
-          version="v2.6"
-          to="/docs/sop-pennsieve"
-          accent="rgba(1,31,91)"
-          icon={
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#011F5B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="16 16 12 12 8 16" />
-              <line x1="12" y1="12" x2="12" y2="21" />
-              <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3" />
-            </svg>
-          }
-        />
-        <DocCard
           id="SOP-GUI-001"
           title="Compliance Tool User Guide"
           description="Complete instructions for using the NeuroGate web tool: file upload, auto-detection review, metadata entry, validation, BIDS export, and audit trail management."
           status="Draft"
-          version="v1.8"
+          version="v1.9"
           to="/docs/sop-gui"
           accent="rgba(109,211,206)"
           icon={
