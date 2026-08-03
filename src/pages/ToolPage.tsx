@@ -532,10 +532,11 @@ function ToolPage() {
             institutionConfig={metadataOutput.institutionConfig}
             structure={datasetStructure}
             onBack={() => setStep('validation')}
-            onExportComplete={() => {
-              // Record the export event in the audit log BEFORE downloading,
-              // so the downloaded audit file includes the export-completed
-              // entry that documents itself.
+            onExportComplete={(deidentifySummary) => {
+              // Record the de-identification summary and the export event
+              // in the audit log BEFORE downloading, so the downloaded
+              // audit file documents both actions itself.
+              audit.logDeidentificationSummary(deidentifySummary);
               audit.addEntry('export-completed', 'BIDS dataset exported as ZIP', {
                 subjectCount: metadataOutput!.subjects.length,
                 fileCount: detectionResults.length,

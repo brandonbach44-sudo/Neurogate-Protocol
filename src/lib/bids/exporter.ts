@@ -149,6 +149,56 @@ interface FileEntry {
   };
   /** True when the file exceeds LARGE_FILE_THRESHOLD_BYTES and must be copied manually. */
   tooLarge?: boolean;
+  /**
+   * Subject group this file belongs to, kept only so generateZip() can
+   * attribute de-identification summary entries to a subject for the
+   * audit log (see DeidentificationSummary below). Not used for naming
+   * or export placement -- that's already decided by `path`.
+   */
+  subjectGroup?: string;
+}
+
+// ── De-identification summary (for the audit log) ──────────────────
+
+/**
+ * What de-identification actions were taken during one export, collected
+ * by generateZip() as it processes each file. Handed back to the caller
+ * so it can be logged (see auditLogger.ts's logDeidentificationSummary).
+ *
+ * Deliberately excludes the actual date-shift day values. This summary
+ * is built from the same downloadable audit log that ships bundled with
+ * the de-identified dataset -- if the exact shift amount were included,
+ * anyone holding both the audit log and the data could trivially reverse
+ * the shift and recover the true acquisition date, defeating the entire
+ * point of shifting instead of blanking. `dateShifted` records only
+ * whether a (non-zero) shift was applied, not its value. Decided with
+ * Brandon 2026-08-02.
+ */
+export interface DeidentificationSummary {
+  edfFiles: {
+    bidsPath: string;
+    subjectGroup: string;
+    /**
+     * Whether the original (pre-redaction) patient ID field appeared to
+     * contain real PHI. Undefined for files de-identified via the
+     * server-upload path (large files), which doesn't currently report
+     * this back -- rather than guess, it's left unknown.
+     */
+    containedPhi?: boolean;
+    /** Whether a non-zero date shift was applied. Value itself is not recorded here. */
+    dateShifted: boolean;
+  }[];
+  jsonSidecars: {
+    bidsPath: string;
+    subjectGroup: string;
+    strippedFields: string[];
+    shiftedFields: string[];
+    unparseableDateFields: string[];
+  }[];
+}
+
+function emptyDeidentificationSummary(): DeidentificationSummary {
+  return { edfFiles: [], jsonSidecars: [] };
 }
 
 /** Files excluded from the ZIP because they are too large for browser memory. */
@@ -236,6 +286,7 @@ export function buildFileEntries(
         ? { dateShiftDays }
         : undefined,
       tooLarge: result.file.size > LARGE_FILE_THRESHOLD_BYTES,
+      subjectGroup,
     });
   }
 
@@ -303,8 +354,9 @@ async function gzipFile(file: File): Promise<ArrayBuffer> {
 export async function generateZip(
   entries: FileEntry[],
   onProgress?: ExportProgressCallback,
-): Promise<Blob> {
+): Promise<{ blob: Blob; summary: DeidentificationSummary }> {
   const zip = new JSZip();
+  const summary = emptyDeidentificationSummary();
 
   // Add all entries to the ZIP
   for (let i = 0; i < entries.length; i++) {
@@ -327,6 +379,12 @@ export async function generateZip(
         try {
           const result = await deidentifyEdf(entry.content, entry.edfDeidentify);
           zip.file(`bids_output/${entry.path}`, await result.blob.arrayBuffer());
+          summary.edfFiles.push({
+            bidsPath: entry.path,
+            subjectGroup: entry.subjectGroup ?? '',
+            containedPhi: result.containedPhi,
+            dateShifted: entry.edfDeidentify.dateShiftDays !== 0,
+          });
         } catch (err) {
           throw new Error(`Cannot read "${entry.content.name}" — make sure the file is stored locally (not cloud-only) and try re-uploading it. (${(err as Error).message})`);
         }
@@ -339,6 +397,15 @@ export async function generateZip(
           const text = await entry.content.text();
           const result = deidentifyJsonSidecar(text, entry.jsonDeidentify);
           zip.file(`bids_output/${entry.path}`, result.text);
+          if (result.strippedFields.length > 0 || result.shiftedFields.length > 0 || result.unparseableDateFields.length > 0) {
+            summary.jsonSidecars.push({
+              bidsPath: entry.path,
+              subjectGroup: entry.subjectGroup ?? '',
+              strippedFields: result.strippedFields,
+              shiftedFields: result.shiftedFields,
+              unparseableDateFields: result.unparseableDateFields,
+            });
+          }
         } catch (err) {
           throw new Error(`Cannot read "${entry.content.name}" — make sure the file is stored locally (not cloud-only) and try re-uploading it. (${(err as Error).message})`);
         }
@@ -361,7 +428,7 @@ export async function generateZip(
   const blob = await zip.generateAsync({ type: 'blob', compression: 'STORE' });
   onProgress?.({ phase: 'zipping', current: 1, total: 1 });
 
-  return blob;
+  return { blob, summary };
 }
 
 // ── Download helper ───────────────────────────────────────────────

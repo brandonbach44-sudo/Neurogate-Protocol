@@ -11,6 +11,7 @@
 
 import type { AuditEntry, AuditLog, AuditAction, AuditExportHeader } from '../../types/audit';
 import { createAuditLog } from '../../types/audit';
+import type { DeidentificationSummary } from '../bids/exporter';
 
 let nextId = 1;
 
@@ -152,6 +153,32 @@ export function createAuditLogger() {
     );
   }
 
+  /**
+   * Log what de-identification actions were taken during an export --
+   * which EDF files contained detected PHI and had their headers
+   * redacted, which JSON sidecar fields were stripped/shifted/blanked.
+   * Deliberately excludes the actual per-subject date-shift day values:
+   * this audit log downloads bundled with the de-identified dataset, so
+   * including the real shift amount here would let anyone holding both
+   * files reverse it back to the true date, defeating the point of
+   * shifting. See DeidentificationSummary in lib/bids/exporter.ts for
+   * the full rationale. Decided with Brandon 2026-08-02.
+   */
+  function logDeidentificationSummary(summary: DeidentificationSummary) {
+    const edfWithPhi = summary.edfFiles.filter(f => f.containedPhi === true).length;
+    const sidecarsWithFields = summary.jsonSidecars.filter(
+      s => s.strippedFields.length > 0 || s.shiftedFields.length > 0 || s.unparseableDateFields.length > 0,
+    ).length;
+    addEntry('deidentification-summary',
+      `De-identified ${summary.edfFiles.length} EDF file(s) (${edfWithPhi} contained detected PHI) and ${sidecarsWithFields} JSON sidecar(s) with identifying content`,
+      {
+        edfFiles: summary.edfFiles,
+        jsonSidecars: summary.jsonSidecars,
+      },
+      'system',
+    );
+  }
+
   function logAuditExported(format: string) {
     addEntry('audit-log-exported',
       `Audit log exported as ${format}`,
@@ -214,6 +241,7 @@ export function createAuditLogger() {
     logDefacingRevoked,
     logValidationRun,
     logIssueDismissed,
+    logDeidentificationSummary,
     logAuditExported,
     // Accessors
     getLog,
