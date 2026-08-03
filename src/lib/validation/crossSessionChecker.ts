@@ -20,6 +20,61 @@ function nextId(): string {
   return `cross-${++issueCounter}`;
 }
 
+/**
+ * Fixed chronological rank for the Implant sessions preset's 3 known
+ * session ids. Used by checkChronologicalOrder below. Custom timepoints
+ * session ids (e.g. "ses-2mo") have no universal order derivable from
+ * the string alone -- that would need the dataset's DatasetStructure,
+ * which isn't currently threaded through ValidationInput. Scoped
+ * deliberately to Implant sessions only for now; flagged to Brandon as a
+ * possible follow-up if Custom timepoints chronological checking is
+ * wanted later. Found via adversarial validation testing 2026-08-02:
+ * this file's own header comment promised chronological-order checking
+ * that was never actually implemented.
+ */
+const IMPLANT_SESSION_ORDER: Record<string, number> = {
+  'ses-preimplant': 0,
+  'ses-postimplant': 1,
+  'ses-postsurgery': 2,
+};
+
+/**
+ * Flag a subject whose recorded session acquisition dates (entered in the
+ * Metadata step) run out of order relative to the Implant preset's fixed
+ * clinical sequence -- e.g. a "post-implant" date earlier than the same
+ * subject's "pre-implant" date. This is physically impossible (you can't
+ * be monitored post-implant before the pre-implant baseline happened) and
+ * strongly indicates a typo in one of the entered dates.
+ */
+function checkChronologicalOrder(subjects: SubjectMetadata[]): ValidationIssue[] {
+  const issues: ValidationIssue[] = [];
+
+  for (const subject of subjects) {
+    const dated = subject.sessions
+      .filter(s => s.sessionId in IMPLANT_SESSION_ORDER && s.acqTime && s.acqTime.trim())
+      .map(s => ({ sessionId: s.sessionId, acqTime: s.acqTime, rank: IMPLANT_SESSION_ORDER[s.sessionId], date: new Date(s.acqTime) }))
+      .filter(s => !isNaN(s.date.getTime()))
+      .sort((a, b) => a.rank - b.rank);
+
+    for (let i = 1; i < dated.length; i++) {
+      if (dated[i].date.getTime() < dated[i - 1].date.getTime()) {
+        issues.push({
+          id: nextId(),
+          category: 'cross-session',
+          severity: 'error',
+          title: 'Session dates out of chronological order',
+          description: `${subject.bidsSubjectId}: "${dated[i - 1].sessionId}" is dated ${dated[i - 1].acqTime}, but "${dated[i].sessionId}" (which should come later in the clinical sequence) is dated ${dated[i].acqTime} -- earlier than the session before it. This usually indicates a typo in one of the acquisition dates. Verify both dates in the Metadata step.`,
+          affectedFiles: [],
+          subjectGroup: subject.subjectGroup,
+          dismissable: false,
+        });
+      }
+    }
+  }
+
+  return issues;
+}
+
 export function checkCrossSessionConsistency(
   results: DetectionResult[],
   subjects: SubjectMetadata[],
@@ -152,6 +207,9 @@ export function checkCrossSessionConsistency(
       }
     }
   }
+
+  // ── Check: chronological order of session acquisition dates ──
+  issues.push(...checkChronologicalOrder(subjects));
 
   return issues;
 }
