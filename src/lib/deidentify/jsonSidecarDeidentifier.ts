@@ -82,29 +82,62 @@ export interface JsonSidecarDeidentifyResult {
 
 /**
  * Shift a date string by shiftDays, preserving whatever format it was in.
- * Handles the two formats BIDS/DICOM-derived sidecars commonly use:
- *   - "YYYY-MM-DD"            (DICOM DA / BIDS AcquisitionDate)
- *   - "YYYY-MM-DDTHH:mm:ss"   (DICOM DT / AcquisitionDateTime, time preserved)
- * Returns null if the string doesn't match either format (left untouched
- * by the caller rather than risk corrupting an unexpected value).
+ * Handles the formats BIDS/DICOM-derived sidecars commonly use:
+ *   - "YYYY-MM-DD"                    (DICOM DA / BIDS AcquisitionDate)
+ *   - "YYYY-MM-DDTHH:mm:ss[.ffffff]"  (DICOM DT / AcquisitionDateTime)
+ *   - ...with an optional trailing timezone suffix ("Z", "+HH:MM", "+HHMM")
+ *     -- dcm2niix frequently writes AcquisitionDateTime with one of these.
+ *     The timezone suffix is preserved as-is; only the calendar date shifts.
+ *   - "YYYYMMDD" (8 digits, no separators) -- the raw DICOM VR=DA format
+ *     StudyDate/SeriesDate commonly carry directly. Mirrors the identical
+ *     format handling already in sidecarReader.ts's parseSidecarDate() on
+ *     the detection side.
+ * Returns null if the string doesn't match any known format (left
+ * untouched by the caller rather than risk corrupting an unexpected
+ * value).
+ *
+ * BUG FIX 2026-08-02 (adversarial de-identification testing): the
+ * original version of this function only matched the dashed ISO format
+ * with no timezone suffix. A timezone-suffixed AcquisitionDateTime
+ * ("2026-01-15T09:00:00Z") or a bare DICOM StudyDate ("20260115") -- both
+ * extremely common in real sidecars -- silently failed to match and were
+ * left completely unshifted, leaking the true absolute date into the
+ * export. Both formats are now handled.
  */
 function shiftDateString(value: string, shiftDays: number): string | null {
-  const dateTimeMatch = value.match(/^(\d{4}-\d{2}-\d{2})(T\d{2}:\d{2}:\d{2}(?:\.\d+)?)?$/);
-  if (!dateTimeMatch) return null;
+  const isoMatch = value.match(/^(\d{4}-\d{2}-\d{2})(T\d{2}:\d{2}:\d{2}(?:\.\d+)?)?(Z|[+-]\d{2}:?\d{2})?$/);
+  if (isoMatch) {
+    const [, datePart, timePart, tzPart] = isoMatch;
+    const [y, m, d] = datePart.split('-').map(Number);
+    const date = new Date(y, m - 1, d);
+    if (isNaN(date.getTime())) return null;
 
-  const [, datePart, timePart] = dateTimeMatch;
-  const [y, m, d] = datePart.split('-').map(Number);
-  const date = new Date(y, m - 1, d);
-  if (isNaN(date.getTime())) return null;
+    date.setDate(date.getDate() + shiftDays);
 
-  date.setDate(date.getDate() + shiftDays);
+    const yyyy = String(date.getFullYear()).padStart(4, '0');
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    const shiftedDate = `${yyyy}-${mm}-${dd}`;
 
-  const yyyy = String(date.getFullYear()).padStart(4, '0');
-  const mm = String(date.getMonth() + 1).padStart(2, '0');
-  const dd = String(date.getDate()).padStart(2, '0');
-  const shiftedDate = `${yyyy}-${mm}-${dd}`;
+    return `${shiftedDate}${timePart ?? ''}${tzPart ?? ''}`;
+  }
 
-  return timePart ? `${shiftedDate}${timePart}` : shiftedDate;
+  const dicomMatch = value.match(/^(\d{4})(\d{2})(\d{2})$/);
+  if (dicomMatch) {
+    const [, yStr, mStr, dStr] = dicomMatch;
+    const y = Number(yStr), m = Number(mStr), d = Number(dStr);
+    const date = new Date(y, m - 1, d);
+    if (isNaN(date.getTime())) return null;
+
+    date.setDate(date.getDate() + shiftDays);
+
+    const yyyy = String(date.getFullYear()).padStart(4, '0');
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    return `${yyyy}${mm}${dd}`;
+  }
+
+  return null;
 }
 
 /**
