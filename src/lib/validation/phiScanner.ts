@@ -102,6 +102,25 @@ const PHI_KEYWORDS = [
   'accession', 'acc_num',
 ];
 
+/**
+ * Normalize underscores to hyphens before testing PHI_PATTERNS regexes.
+ * Nearly every pattern in PHI_PATTERNS relies on \b word-boundary anchors,
+ * but JavaScript's \b treats underscore as a word character -- so a match
+ * sitting immediately next to an underscore (extremely common in real
+ * filenames, e.g. "123-45-6789_notes.nii.gz") silently fails to trigger
+ * the boundary and the whole match is missed. Hyphen is already a
+ * non-word character, so swapping preserves matchability without
+ * otherwise changing what the patterns can match. Mirrors the identical
+ * fix already used in filenameDetector.ts's normalizeForKeywords for the
+ * same underlying JS regex quirk. Only used for the regex test itself --
+ * all reporting still uses the original, unmodified path/filename/value.
+ * Found via adversarial validation testing 2026-08-02: an SSN-pattern
+ * filename immediately followed by "_" completely evaded detection.
+ */
+function normalizeForPhiMatching(text: string): string {
+  return text.replace(/_/g, '-');
+}
+
 let issueCounter = 0;
 function nextId(): string {
   return `phi-${++issueCounter}`;
@@ -128,8 +147,9 @@ export function scanForPhi(
 
   // ── Run regex patterns against all paths ──────────────────
   for (const path of pathsToScan) {
+    const normalizedPath = normalizeForPhiMatching(path);
     for (const phiPattern of PHI_PATTERNS) {
-      if (phiPattern.pattern.test(path)) {
+      if (phiPattern.pattern.test(normalizedPath)) {
         // Find which files are affected
         const affected = results
           .filter(r => r.relativePath.includes(path) || r.fileName === path || r.subjectGroup === path)
@@ -330,8 +350,9 @@ export async function scanSidecarContentForPhi(
 
   for (const { result, strings } of scans) {
     for (const { path, value } of strings) {
+      const normalizedValue = normalizeForPhiMatching(value);
       for (const phiPattern of PHI_PATTERNS) {
-        if (phiPattern.pattern.test(value)) {
+        if (phiPattern.pattern.test(normalizedValue)) {
           issues.push({
             id: nextId(),
             category: 'phi-risk',
