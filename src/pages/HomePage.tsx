@@ -223,9 +223,14 @@ export default function HomePage() {
 
           {/* Right: visual card stack */}
           <div className="relative">
-            {/* Background decoration */}
+            {/* Background decoration -- capped with max-w-full/max-h-full so
+                it can never grow wider than its own positioning context,
+                whatever the viewport width. It's still allowed to peek past
+                the card by a few pixels for the glow effect; the page-level
+                overflow-x-hidden wrappers (Layout, HomePage) clip that
+                intentional bleed. */}
             <div
-              className="absolute -top-8 -right-8 w-64 h-64 rounded-full opacity-30"
+              className="absolute -top-8 -right-8 w-64 h-64 max-w-full max-h-full rounded-full opacity-30 pointer-events-none"
               style={{
                 background: 'radial-gradient(circle, rgba(109,211,206,0.3) 0%, transparent 70%)',
               }}
