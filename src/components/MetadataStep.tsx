@@ -234,6 +234,19 @@ export default function MetadataStep({
     { id: 'defacing', label: 'Defacing Attestation' },
   ];
 
+  // ── Per-tab completion, so users can see at a glance which of the
+  // 4 sections still need attention instead of only finding out via the
+  // validation error banner after pressing Continue. Testers were filling
+  // in Institution Setup, pressing Continue, and not realizing there were
+  // 3 more sections reachable only via these tabs. ──────────────────
+  const tabComplete: Record<TabId, boolean> = {
+    institution: !!institutionConfig.prefix && /^[A-Z]{2,6}$/.test(institutionConfig.prefix),
+    subjects: subjects.length > 0,
+    dataset: !!datasetDescription.name.trim() && datasetDescription.authors.some(a => a.trim()),
+    defacing: !hasStructuralMri || attestation.confirmed,
+  };
+  const completedCount = tabs.filter(t => tabComplete[t.id]).length;
+
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-24">
@@ -245,26 +258,50 @@ export default function MetadataStep({
 
   return (
     <div className="w-full max-w-4xl mx-auto">
+      {/* Progress hint: makes it explicit up front that there are 4
+          sections to visit via the tabs below, not just the one currently
+          showing -- addresses testers who filled Institution Setup, hit
+          Continue, and didn't realize the other tabs still needed input. */}
+      <div className="flex items-center justify-between mb-2 px-0.5">
+        <p className="text-xs font-medium text-gray-500">
+          {completedCount} of {tabs.length} sections complete
+        </p>
+        {completedCount < tabs.length && (
+          <p className="text-xs text-amber-600 font-medium">
+            Visit each tab below to finish
+          </p>
+        )}
+      </div>
+
       {/* Tab navigation */}
       <div className="flex border-b border-gray-200 mb-6">
-        {tabs.map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`px-5 py-3 text-sm font-medium border-b-2 transition-colors ${
-              activeTab === tab.id
-                ? 'border-[#011F5B] text-[#011F5B]'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            {tab.label}
-            {tab.count !== undefined && (
-              <span className="ml-1.5 text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full">
-                {tab.count}
-              </span>
-            )}
-          </button>
-        ))}
+        {tabs.map(tab => {
+          const complete = tabComplete[tab.id];
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`btn-cta flex items-center gap-1.5 px-5 py-3 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === tab.id
+                  ? 'border-[#011F5B] text-[#011F5B]'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <span
+                className={`inline-block w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                  complete ? 'bg-emerald-500' : 'bg-amber-400'
+                }`}
+                aria-hidden="true"
+              />
+              {tab.label}
+              {tab.count !== undefined && (
+                <span className="ml-0.5 text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full">
+                  {tab.count}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {/* Tab content */}
