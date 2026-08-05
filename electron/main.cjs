@@ -87,6 +87,17 @@ app.setName('NeuroGate');
 const SERVER_PORT = 3001;
 const APP_URL = `http://127.0.0.1:${SERVER_PORT}`;
 
+// Fast dev loop (see scripts/dev-electron.mjs / "npm run electron:dev:fast"):
+// when set, the window loads the Vite dev server directly instead of a
+// built dist/ served by Express, so every save is a Vite HMR update --
+// no `npm run build` + relaunch cycle. The API server still runs
+// in-process below, just with SERVE_STATIC off, since the Vite dev
+// server is what's serving the frontend now. This is what closes the
+// "close, reinstall the app" complaint for iterating on small changes --
+// full electron-builder installers are still how release testing and
+// actual releases work.
+const DEV_SERVER_URL = process.env.ELECTRON_START_URL || null;
+
 /** Root of the packaged app -- one level up from electron/, same layout in dev and packaged (electron-builder copies electron/, server/, dist/ as siblings; see the "build" config in package.json). */
 const APP_ROOT = path.join(__dirname, '..');
 
@@ -104,10 +115,12 @@ let mainWindow = null;
  */
 async function startServer() {
   process.env.PORT = String(SERVER_PORT);
-  process.env.SERVE_STATIC = 'true';
-  // No CORS_ORIGIN override needed -- SERVE_STATIC means the frontend
-  // is served from this same origin, so the browser never makes a
-  // cross-origin request in the first place.
+  // In fast-dev mode the frontend is served by Vite on its own origin
+  // (default http://localhost:5173), not by this server, so SERVE_STATIC
+  // must stay off and the server's existing CORS_ORIGIN default (also
+  // http://localhost:5173 -- see server/index.js) already covers it
+  // without any extra config here.
+  process.env.SERVE_STATIC = DEV_SERVER_URL ? 'false' : 'true';
 
   const serverEntry = path.join(APP_ROOT, 'server', 'index.js');
   console.log(`[electron] loading server in-process: ${serverEntry}`);
@@ -150,7 +163,11 @@ function createWindow() {
     return { action: 'deny' };
   });
 
-  mainWindow.loadURL(APP_URL);
+  mainWindow.loadURL(DEV_SERVER_URL || APP_URL);
+
+  if (DEV_SERVER_URL) {
+    mainWindow.webContents.openDevTools({ mode: 'detach' });
+  }
 
   mainWindow.on('closed', () => {
     mainWindow = null;
