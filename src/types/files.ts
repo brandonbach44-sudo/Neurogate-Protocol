@@ -1,4 +1,7 @@
-/** Represents a single file from the user's dropped folder */
+import type { FileLike } from './fileLike';
+
+/** Represents a single file from the user's dropped folder (web) or a
+ * scanned local directory (CLI/desktop) -- see types/fileLike.ts. */
 export interface ScannedFile {
   /** Relative path within the dropped folder (e.g., "patient1/ses-preimplant/anat/T1w.nii.gz") */
   relativePath: string;
@@ -6,8 +9,8 @@ export interface ScannedFile {
   name: string;
   /** File size in bytes */
   size: number;
-  /** The underlying File object for later processing */
-  file: File;
+  /** The underlying file for later processing -- a browser File on web, a NodeFileAdapter on CLI/desktop. */
+  file: FileLike;
 }
 
 /** Format file sizes for display */

@@ -41,21 +41,6 @@ export default function DatasetDescriptionForm({
     updateField('authors', description.authors.filter((_, i) => i !== index));
   };
 
-  const updateFunding = (index: number, value: string) => {
-    const newFunding = [...description.funding];
-    newFunding[index] = value;
-    updateField('funding', newFunding);
-  };
-
-  const addFunding = () => {
-    updateField('funding', [...description.funding, '']);
-  };
-
-  const removeFunding = (index: number) => {
-    if (description.funding.length <= 1) return;
-    updateField('funding', description.funding.filter((_, i) => i !== index));
-  };
-
   return (
     <div className="border border-gray-200 rounded-lg bg-white shadow-sm overflow-hidden">
       {/* Header */}
@@ -154,60 +139,6 @@ export default function DatasetDescriptionForm({
               className="text-sm text-blue-600 hover:text-blue-800 transition-colors"
             >
               + Add another author
-            </button>
-          </div>
-        </div>
-
-        {/* Acknowledgements (optional) */}
-        <div>
-          <label htmlFor="dd-acknowledgements" className="block text-sm font-medium text-gray-700 mb-1">
-            Acknowledgements <span className="text-xs text-gray-500">(optional)</span>
-          </label>
-          <textarea
-            id="dd-acknowledgements"
-            value={description.acknowledgements}
-            onChange={(e) => updateField('acknowledgements', e.target.value)}
-            placeholder="e.g., We thank the participating sites for their contributions..."
-            rows={2}
-            className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2
-              hover:border-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none resize-none"
-          />
-        </div>
-
-        {/* Funding (optional, dynamic list) */}
-        <div>
-          <span className="block text-sm font-medium text-gray-700 mb-1">
-            Funding Sources <span className="text-xs text-gray-500">(optional)</span>
-          </span>
-          <div className="space-y-2">
-            {description.funding.map((fund, i) => (
-              <div key={i} className="flex gap-2">
-                <input
-                  type="text"
-                  value={fund}
-                  onChange={(e) => updateFunding(i, e.target.value)}
-                  placeholder={`Grant or funding source ${i + 1}`}
-                  aria-label={`Funding source ${i + 1}`}
-                  className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2
-                    hover:border-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
-                />
-                {description.funding.length > 1 && (
-                  <button
-                    onClick={() => removeFunding(i)}
-                    className="px-2 text-gray-500 hover:text-red-500 transition-colors"
-                    title="Remove funding source"
-                    aria-label={`Remove funding source ${i + 1}`}
-                  >
-                    &times;
-                  </button>
-                )}
-              </div>
-            ))}
-            <button
-              onClick={addFunding}
-              className="text-sm text-blue-600 hover:text-blue-800 transition-colors"
-            >
-              + Add another funding source
             </button>
           </div>
         </div>

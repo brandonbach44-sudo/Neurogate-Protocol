@@ -107,7 +107,11 @@ export default function ExportStep({
           setExportProgress(`Uploading ${lf.originalName} to server (${i + 1}/${stats.largeFiles.length})...`);
 
           const result = await serverDeidentifyEdf(
-            match.file,
+            // Server upload is a web-only path (large files that exceed
+            // browser memory get streamed to the API instead) -- ExportStep
+            // only ever runs in the browser, so match.file is always a real
+            // File here, never the CLI's NodeFileAdapter.
+            match.file as File,
             { subjectId, dateShiftDays },
             (p) => setExportProgress(
               `Uploading ${lf.originalName} — ${p.percent}% (${i + 1}/${stats.largeFiles.length})`
@@ -231,7 +235,11 @@ export default function ExportStep({
             <span className="w-2 h-2 rounded-full bg-blue-400 shrink-0" />
             <span className="text-sm text-blue-700">participants.tsv</span>
           </div>
-          {subjects.map(s => (
+          {/* Single session preset: exporter.ts's buildFileEntries deliberately
+              skips writing a sessions.tsv for these subjects (nothing to
+              describe, see the comment there), so this list must not claim
+              one is included. */}
+          {structure?.presetId !== 'single-session' && subjects.map(s => (
             <div key={s.bidsSubjectId} className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-blue-400 shrink-0" />
               <span className="text-sm text-blue-700">{s.bidsSubjectId}_sessions.tsv</span>

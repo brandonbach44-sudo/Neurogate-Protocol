@@ -12,6 +12,7 @@
 import type { ScannedFile } from '../../types/files';
 import type { SessionMetadata, DatasetDescription } from '../../types/metadata';
 import type { Session } from '../../types/detection';
+import type { FileLike } from '../../types/fileLike';
 
 // ── TSV Parsing ───────────────────────────────────────────────────
 
@@ -96,7 +97,7 @@ function normalizeSessionName(raw: string): Session | null {
  * Returns an array of SessionMetadata if successful, null if the file
  * doesn't appear to contain session data.
  */
-export async function extractSessionMetadata(file: File): Promise<SessionMetadata[] | null> {
+export async function extractSessionMetadata(file: FileLike): Promise<SessionMetadata[] | null> {
   try {
     const content = await file.text();
     const rows = parseTsv(content);
@@ -134,7 +135,7 @@ export async function extractSessionMetadata(file: File): Promise<SessionMetadat
  * Try to parse a dataset_description.json file.
  * Returns a DatasetDescription if successful, null otherwise.
  */
-export async function extractDatasetDescription(file: File): Promise<Partial<DatasetDescription> | null> {
+export async function extractDatasetDescription(file: FileLike): Promise<Partial<DatasetDescription> | null> {
   try {
     const content = await file.text();
     const json = JSON.parse(content);
@@ -145,8 +146,6 @@ export async function extractDatasetDescription(file: File): Promise<Partial<Dat
     if (json.BIDSVersion) result.bidsVersion = json.BIDSVersion;
     if (json.DatasetType) result.datasetType = json.DatasetType;
     if (json.Authors && Array.isArray(json.Authors)) result.authors = json.Authors;
-    if (json.Acknowledgements) result.acknowledgements = json.Acknowledgements;
-    if (json.Funding && Array.isArray(json.Funding)) result.funding = json.Funding;
 
     return Object.keys(result).length > 0 ? result : null;
   } catch {

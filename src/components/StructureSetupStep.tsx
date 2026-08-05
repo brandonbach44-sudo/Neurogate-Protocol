@@ -19,7 +19,19 @@ import {
  * file organization begins. Wired in as Step 1 of 6 in ToolPage.tsx's
  * /tool flow. See Documents/Phase1_Flexible_Folder_Structure_Spec.md.
  *
- * Step 1: pick a session-structure preset from an extensible list.
+ * Phase 2 addition (August 2026): a Step 0 gate now runs ahead of the
+ * preset card grid -- "does each subject have more than one session?" --
+ * so the Single session preset never has to appear as a card the user
+ * has to read and rule out, and the card grid never grows past what's
+ * genuinely relevant once a fifth preset (e.g. Event-triggered
+ * timepoints) is added later. See
+ * Documents/Phase2_Additional_Dataset_Presets_Spec.md Section 5.
+ *
+ * Step 0: "does each subject have more than one session?" No/Yes.
+ *   No  -> Single session, no card grid, one-line confirmation.
+ *   Yes -> Step 1 below.
+ * Step 1 (Yes branch only): pick a preset from an extensible list,
+ * excluding Single session (that's reached only through Step 0's No).
  * Step 2 (Custom timepoints only): build timepoints from a number + unit
  * picker. There is no free-text entry anywhere in Step 2, so a site name
  * or PI name cannot end up in a generated session label.
@@ -36,9 +48,23 @@ function emptyTimepoint(): CustomTimepoint {
   return { number: 0, unit: 'month' };
 }
 
+/** Step 0's answer. 'unanswered' shows the gate question itself. */
+type GateAnswer = 'unanswered' | 'no' | 'yes';
+
+function initialGateAnswer(initialStructure?: DatasetStructure): GateAnswer {
+  if (!initialStructure) return 'unanswered';
+  return initialStructure.presetId === 'single-session' ? 'no' : 'yes';
+}
+
+/** Presets offered in the Step 1 card grid. Single session is deliberately
+ * excluded here -- it's reached only via Step 0's "No" answer, never as a
+ * card, so the grid stays as small as possible as more presets are added. */
+const PICKER_PRESETS = SESSION_PRESETS.filter(p => p.id !== 'single-session');
+
 export default function StructureSetupStep({ onContinue, onBack, initialStructure }: StructureSetupStepProps) {
+  const [gate, setGate] = useState<GateAnswer>(initialGateAnswer(initialStructure));
   const [selectedPreset, setSelectedPreset] = useState<PresetId | null>(
-    initialStructure?.presetId ?? null,
+    initialStructure && initialStructure.presetId !== 'single-session' ? initialStructure.presetId : null,
   );
   const [timepoints, setTimepoints] = useState<CustomTimepoint[]>(
     initialStructure?.presetId === 'custom-timepoints' && initialStructure.timepoints.length > 0
@@ -78,6 +104,78 @@ export default function StructureSetupStep({ onContinue, onBack, initialStructur
     }
   }
 
+  // ── Step 0: the gate question itself ──────────────────────────────
+  if (gate === 'unanswered') {
+    return (
+      <div className="max-w-3xl mx-auto py-8">
+        <h2 className="text-lg font-semibold text-gray-900 mb-1">Study structure</h2>
+        <p className="text-sm text-gray-500 mb-6">
+          Choose how this dataset's sessions are organized. You can change this later, but it's easiest to set it correctly now.
+        </p>
+
+        <p className="text-sm font-medium text-gray-800 mb-4">
+          Does each subject have more than one session of data?
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+          <button
+            type="button"
+            onClick={() => setGate('no')}
+            className="text-left rounded-xl border border-gray-200 bg-white hover:border-gray-300 p-4 transition-colors"
+          >
+            <div className="text-sm font-semibold text-gray-900 mb-1">No</div>
+            <div className="text-xs text-gray-500 leading-relaxed">
+              One folder of data per subject -- a cross-sectional study, or a single-block acute/implant recording with no follow-up timepoints.
+            </div>
+          </button>
+          <button
+            type="button"
+            onClick={() => setGate('yes')}
+            className="text-left rounded-xl border border-gray-200 bg-white hover:border-gray-300 p-4 transition-colors"
+          >
+            <div className="text-sm font-semibold text-gray-900 mb-1">Yes</div>
+            <div className="text-xs text-gray-500 leading-relaxed">
+              Multiple sessions per subject -- an implant workup, a longitudinal study with defined timepoints, or another multi-session structure.
+            </div>
+          </button>
+        </div>
+
+        <div className="flex justify-between">
+          {onBack ? (
+            <Button variant="secondary" onClick={onBack}>Back</Button>
+          ) : <div />}
+          <div />
+        </div>
+      </div>
+    );
+  }
+
+  // ── Step 0 answered "No": Single session, no card grid needed ──────
+  if (gate === 'no') {
+    return (
+      <div className="max-w-3xl mx-auto py-8">
+        <h2 className="text-lg font-semibold text-gray-900 mb-1">Study structure</h2>
+        <p className="text-sm text-gray-500 mb-6">
+          Choose how this dataset's sessions are organized. You can change this later, but it's easiest to set it correctly now.
+        </p>
+
+        <div className="rounded-xl border border-gray-200 bg-white p-4 mb-8">
+          <div className="text-sm font-semibold text-gray-900 mb-1">Single session</div>
+          <div className="text-xs text-gray-500 leading-relaxed">
+            Files will be organized as one folder per subject, no session folders.
+          </div>
+        </div>
+
+        <div className="flex justify-between">
+          <Button variant="secondary" onClick={() => setGate('unanswered')}>Back</Button>
+          <Button variant="primary" onClick={() => onContinue({ presetId: 'single-session' })}>
+            Continue
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Step 0 answered "Yes": existing Step 1 (+ Step 2) flow ─────────
   return (
     <div className="max-w-3xl mx-auto py-8">
       <h2 className="text-lg font-semibold text-gray-900 mb-1">Study structure</h2>
@@ -87,7 +185,7 @@ export default function StructureSetupStep({ onContinue, onBack, initialStructur
 
       {/* ── Step 1: preset picker ─────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-        {SESSION_PRESETS.map(preset => {
+        {PICKER_PRESETS.map(preset => {
           const isSelected = selectedPreset === preset.id;
           return (
             <button
@@ -202,9 +300,7 @@ export default function StructureSetupStep({ onContinue, onBack, initialStructur
       )}
 
       <div className="flex justify-between">
-        {onBack ? (
-          <Button variant="secondary" onClick={onBack}>Back</Button>
-        ) : <div />}
+        <Button variant="secondary" onClick={() => setGate('unanswered')}>Back</Button>
         <Button
           variant="primary"
           onClick={handleContinue}

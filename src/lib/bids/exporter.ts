@@ -30,6 +30,8 @@
 
 import JSZip from 'jszip';
 import { readFileBuffer } from '../fileCache';
+import type { FileLike } from '../../types/fileLike';
+import { isFileLike } from '../../types/fileLike';
 import type { DetectionResult } from '../../types/detection';
 import { getEffectiveSubjectGroup } from '../../types/detection';
 import { computeBidsNames } from './bidsNaming';
@@ -75,11 +77,13 @@ export type ExportProgressCallback = (progress: {
  */
 function describeStructure(structure?: DatasetStructure): string | undefined {
   if (!structure) return undefined;
-  const sessionIds = resolveSessionIds(structure);
   if (structure.presetId === 'implant') {
-    return `Session structure: Implant sessions preset (${sessionIds.join(', ')})`;
+    return `Session structure: Implant sessions preset (${resolveSessionIds(structure).join(', ')})`;
   }
-  return `Session structure: Custom timepoints preset (${sessionIds.join(', ')})`;
+  if (structure.presetId === 'single-session') {
+    return 'Session structure: Single session preset (no ses- entity, one folder per subject)';
+  }
+  return `Session structure: Custom timepoints preset (${resolveSessionIds(structure).join(', ')})`;
 }
 
 function generateDatasetDescription(desc: DatasetDescription, structure?: DatasetStructure): string {
@@ -89,15 +93,6 @@ function generateDatasetDescription(desc: DatasetDescription, structure?: Datase
     DatasetType: desc.datasetType,
     Authors: desc.authors.filter(a => a.trim()),
   };
-
-  if (desc.acknowledgements.trim()) {
-    obj.Acknowledgements = desc.acknowledgements;
-  }
-
-  const funding = desc.funding.filter(f => f.trim());
-  if (funding.length > 0) {
-    obj.Funding = funding;
-  }
 
   const structureDescription = describeStructure(structure);
   obj.GeneratedBy = [{
@@ -129,11 +124,15 @@ function generateSessionsTsv(subject: SubjectMetadata): string {
 
 // Files larger than this cannot be loaded into a browser ArrayBuffer.
 // They are excluded from the ZIP and listed separately for manual copy.
+// This is a web-only limitation -- the Node/CLI export path (see
+// lib/adapters/nodeExportWriter.ts) streams every file to disk instead
+// of buffering it, so it passes a much higher threshold (effectively
+// unlimited) to buildFileEntries() below rather than using this default.
 const LARGE_FILE_THRESHOLD_BYTES = 500 * 1024 * 1024; // 500 MB
 
-interface FileEntry {
+export interface FileEntry {
   path: string;
-  content: File | string;
+  content: FileLike | string;
   needsGzip?: boolean;
   edfDeidentify?: {
     dateShiftDays: number;
@@ -232,6 +231,15 @@ export function buildFileEntries(
   dateShifts?: Map<string, number>,
   /** The dataset's chosen session structure, recorded in GeneratedBy. Optional so existing callers don't break; omitting it just omits the Description field. */
   structure?: DatasetStructure,
+  /**
+   * Override for LARGE_FILE_THRESHOLD_BYTES. The web export path omits
+   * this (uses the 500MB browser-memory default); the Node/CLI export
+   * path (nodeExportWriter.ts) passes Infinity, since it streams every
+   * file to disk and never buffers a whole file in memory regardless of
+   * size -- the browser-specific reason for excluding large files from
+   * the export doesn't apply there.
+   */
+  largeFileThresholdBytes: number = LARGE_FILE_THRESHOLD_BYTES,
 ): FileEntry[] {
   const entries: FileEntry[] = [];
 
@@ -247,11 +255,20 @@ export function buildFileEntries(
   });
 
   // ── Per-subject sessions.tsv ─────────────────────────────────
-  for (const subject of subjects) {
-    entries.push({
-      path: `primary/${subject.bidsSubjectId}/${subject.bidsSubjectId}_sessions.tsv`,
-      content: generateSessionsTsv(subject),
-    });
+  // Skipped entirely for the Single session preset: per the BIDS spec,
+  // sessions.tsv exists to describe multiple sessions, and every subject
+  // has zero here by design (see Section 6 of
+  // Documents/Phase2_Additional_Dataset_Presets_Spec.md -- omit the ses-
+  // layer, not an implicit single id). Writing a header-only/empty file
+  // for something that structurally doesn't exist would be noise, not
+  // useful metadata.
+  if (structure?.presetId !== 'single-session') {
+    for (const subject of subjects) {
+      entries.push({
+        path: `primary/${subject.bidsSubjectId}/${subject.bidsSubjectId}_sessions.tsv`,
+        content: generateSessionsTsv(subject),
+      });
+    }
   }
 
   // ── Data files and their sidecars ───────────────────────────
@@ -263,7 +280,7 @@ export function buildFileEntries(
     subjectIdMap.set(s.subjectGroup, s.bidsSubjectId);
   }
 
-  const named = computeBidsNames(results, subjectIdMap);
+  const named = computeBidsNames(results, subjectIdMap, structure);
   for (const result of named) {
     // Export only files that belong to a configured subject and that
     // resolved to a real BIDS path. This drops localizer/scout scans,
@@ -285,7 +302,7 @@ export function buildFileEntries(
       jsonDeidentify: isJsonSidecarFile(result.fileName)
         ? { dateShiftDays }
         : undefined,
-      tooLarge: result.file.size > LARGE_FILE_THRESHOLD_BYTES,
+      tooLarge: result.file.size > largeFileThresholdBytes,
       subjectGroup,
     });
   }
@@ -310,7 +327,7 @@ export function buildTreeFromEntries(entries: FileEntry[]): TreeNode {
         current.children!.push({
           name: part,
           type: 'file',
-          size: entry.content instanceof File ? entry.content.size : entry.content.length,
+          size: isFileLike(entry.content) ? entry.content.size : entry.content.length,
         });
       } else {
         let child = current.children!.find(c => c.name === part && c.type === 'folder');
@@ -369,16 +386,22 @@ export async function generateZip(
       continue;
     }
 
-    if (entry.content instanceof File) {
+    if (isFileLike(entry.content)) {
       if (entry.needsGzip) {
         // Uncompressed .nii -- gzip to .nii.gz for BIDS compliance.
-        const buffer = await gzipFile(entry.content);
+        // gzipFile uses browser-only CompressionStream/.stream(), so this
+        // whole generateZip()/downloadBlob() pair stays web-only for now;
+        // entry.content is always a real File here since only the web
+        // upload path produces uncompressed .nii files today. A CLI
+        // export path (not built yet) will need its own gzip via Node's
+        // zlib instead of reusing this function.
+        const buffer = await gzipFile(entry.content as File);
         zip.file(`bids_output/${entry.path}`, buffer);
       } else if (entry.edfDeidentify) {
         // EDF/BDF -- de-identify the header before packing.
         try {
           const result = await deidentifyEdf(entry.content, entry.edfDeidentify);
-          zip.file(`bids_output/${entry.path}`, await result.blob.arrayBuffer());
+          zip.file(`bids_output/${entry.path}`, result.bytes);
           summary.edfFiles.push({
             bidsPath: entry.path,
             subjectGroup: entry.subjectGroup ?? '',
@@ -453,7 +476,7 @@ export function getExportStats(entries: FileEntry[]) {
   const largeFiles: LargeFileEntry[] = [];
 
   for (const entry of entries) {
-    if (entry.tooLarge && entry.content instanceof File) {
+    if (entry.tooLarge && isFileLike(entry.content)) {
       largeFiles.push({
         originalName: entry.content.name,
         bidsPath: entry.path,
@@ -463,7 +486,7 @@ export function getExportStats(entries: FileEntry[]) {
     }
 
     totalFiles++;
-    if (entry.content instanceof File) {
+    if (isFileLike(entry.content)) {
       totalSize += entry.content.size;
     } else {
       totalSize += entry.content.length;

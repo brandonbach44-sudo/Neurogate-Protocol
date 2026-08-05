@@ -28,6 +28,7 @@ import {
   getEffectiveModality,
   getEffectiveSubjectGroup,
 } from '../../types/detection';
+import type { DatasetStructure } from '../../types/sessionStructure';
 
 /** Path marker for localizer / scout scans, which are never exported. */
 export const LOCALIZER_EXCLUDED = '(excluded from export: localizer/scout)';
@@ -234,16 +235,23 @@ function assignFmapEntities(
 /**
  * Build a BIDS filename from its parts. Entity order follows the BIDS
  * spec: sub, ses, task, run, suffix.
+ *
+ * session is nullable for the Single session preset (Phase 2, August
+ * 2026): per the actual BIDS spec, the session level is optional, and a
+ * dataset with only one timepoint per subject conventionally omits ses-
+ * entirely rather than inventing a meaningless placeholder session id.
+ * When null, the ses- entity is simply left out of both the filename and
+ * the folder path below.
  */
 function buildFilename(
   sub: string,
-  session: Session,
+  session: Session | null,
   modality: Modality,
   originalFileName: string,
   run: number | undefined,
   fmapSuffix: string | undefined,
 ): string {
-  const parts: string[] = [sub, session];
+  const parts: string[] = session ? [sub, session] : [sub];
   const task = taskEntity(modality);
   if (task) parts.push(task);
   if (run !== undefined) parts.push(`run-${run}`);
@@ -330,17 +338,25 @@ function dedupePaths(results: DetectionResult[]): void {
 export function computeBidsNames(
   results: DetectionResult[],
   subjectIdMap?: Map<string, string>,
+  structure?: DatasetStructure,
 ): DetectionResult[] {
   const out = results.map(r => ({ ...r }));
+  const sessionless = structure?.presetId === 'single-session';
 
   // ── Group exportable data files by subject + session + modality ──
+  // For a sessionless (Single session preset) dataset there's no session
+  // component to the key -- acquisitions are still grouped and numbered
+  // (run-1, run-2, ...) by subject + modality alone, same as any other
+  // preset, just without a session dimension.
   const groups = new Map<string, number[]>();
   out.forEach((r, i) => {
     const modality = getEffectiveModality(r);
     const session = getEffectiveSession(r);
-    if (!session) return;
+    if (!session && !sessionless) return;
     if (!EXPORTABLE_MODALITIES.has(modality)) return;
-    const key = `${getEffectiveSubjectGroup(r)} ${session} ${modality}`;
+    const key = sessionless
+      ? `${getEffectiveSubjectGroup(r)} ${modality}`
+      : `${getEffectiveSubjectGroup(r)} ${session} ${modality}`;
     const list = groups.get(key);
     if (list) list.push(i);
     else groups.set(key, [i]);
@@ -366,7 +382,11 @@ export function computeBidsNames(
     if (modality === 'sidecar-json' || modality === 'sidecar-tsv') {
       return; // paired in the next pass
     }
-    if (!session || !EXPORTABLE_MODALITIES.has(modality)) {
+    // A null session is only a legitimate, exportable state when this
+    // dataset's active preset is Single session (sessionless). For every
+    // other preset it means detection genuinely failed to assign one, so
+    // the file falls to unclassified/ same as before Phase 2.
+    if ((!session && !sessionless) || !EXPORTABLE_MODALITIES.has(modality)) {
       r.bidsFilename = r.fileName;
       r.bidsPath = `unclassified/${r.fileName}`;
       return;
@@ -378,10 +398,14 @@ export function computeBidsNames(
       runOf.get(i), fmapSuffixOf.get(i),
     );
     const folder = MODALITIES.find(m => m.value === modality)?.bidsFolder ?? '';
+    // session is null here exactly when sessionless is true (guarded
+    // above), so the ses- path segment is simply omitted rather than
+    // ever being an empty/undefined string.
+    const sessionSegment = session ? `${session}/` : '';
     r.bidsFilename = filename;
     r.bidsPath = folder
-      ? `primary/${sub}/${session}/${folder}/${filename}`
-      : `primary/${sub}/${session}/${filename}`;
+      ? `primary/${sub}/${sessionSegment}${folder}/${filename}`
+      : `primary/${sub}/${sessionSegment}${filename}`;
   });
 
   // ── Pair sidecars with their data file ───────────────────────────

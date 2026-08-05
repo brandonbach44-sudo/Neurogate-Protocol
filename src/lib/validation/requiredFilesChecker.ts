@@ -25,6 +25,7 @@ import { getEffectiveSession, getEffectiveModality, getEffectiveSubjectGroup } f
 import type { SubjectMetadata } from '../../types/metadata';
 import type { ValidationIssue } from '../../types/validation';
 import { isOsJunkFile } from '../detection/extensionDetector';
+import type { DatasetStructure } from '../../types/sessionStructure';
 
 interface RequiredFile {
   modality: string;
@@ -58,6 +59,15 @@ function nextId(): string {
 export function checkRequiredFiles(
   results: DetectionResult[],
   subjects: SubjectMetadata[],
+  /**
+   * The dataset's chosen session structure. Optional so existing callers
+   * that don't pass it see identical behavior to before Phase 2. Only
+   * consulted for the "Subject has no sessions at all" check below --
+   * for the Single session preset every file legitimately has session =
+   * null, so that check would otherwise fire a false "error" on every
+   * single subject in a normal single-session upload.
+   */
+  structure?: DatasetStructure,
 ): ValidationIssue[] {
   issueCounter = 0;
   const issues: ValidationIssue[] = [];
@@ -151,7 +161,12 @@ export function checkRequiredFiles(
   }
 
   // ── Check: Subjects with no sessions at all ───────────────
-  const allGroups = new Set(results.map(r => getEffectiveSubjectGroup(r)));
+  // Skipped entirely for the Single session preset: session = null is
+  // that preset's normal, expected state for every file, not a sign that
+  // something failed to get assigned.
+  const allGroups = structure?.presetId === 'single-session'
+    ? new Set<string>()
+    : new Set(results.map(r => getEffectiveSubjectGroup(r)));
   for (const group of allGroups) {
     if (!subjectSessionModalities.has(group) ||
         subjectSessionModalities.get(group)!.size === 0) {

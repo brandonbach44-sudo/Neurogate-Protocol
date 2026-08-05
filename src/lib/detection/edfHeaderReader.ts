@@ -18,6 +18,10 @@
  */
 
 import type { ScannedFile } from '../../types/files';
+// Reads via FileLike.slice()/.arrayBuffer() (see types/fileLike.ts), so
+// this module works unmodified against a browser File (web) or a
+// NodeFileAdapter (CLI/desktop) -- either way only the first ~8KB is
+// ever read, never the full (potentially multi-GB) recording.
 
 // ── Types ─────────────────────────────────────────────────────────
 

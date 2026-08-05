@@ -363,6 +363,7 @@ export default function MetadataStep({
                     subject={subject}
                     onUpdate={(updated) => updateSubject(i, updated)}
                     autoFilled={autoFilledSubjects.has(subject.subjectGroup)}
+                    isSingleSession={structure.presetId === 'single-session'}
                   />
                 ))}
               </>

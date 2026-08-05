@@ -131,7 +131,7 @@ async function runEdfCases() {
       anonymousSubjectId: 'sub-TEST001',
     });
 
-    const outBuf = new Uint8Array(await result.blob.arrayBuffer());
+    const outBuf = new Uint8Array(result.bytes);
     const decoder = new TextDecoder('ascii');
     const readField = (start: number, length: number) =>
       decoder.decode(outBuf.slice(start, start + length)).trim();

@@ -68,6 +68,16 @@ function calculateConfidence(
   modality: Modality,
   session: Session | null,
   reasons: DetectionReason[],
+  /**
+   * True for the Single session preset (Phase 2, August 2026): this
+   * dataset has no session concept at all, so a null session here is the
+   * expected, correct outcome, not missing evidence. Without this flag
+   * every single-session file would fall through to the "only modality
+   * detected" branch below and get capped at medium/low confidence
+   * purely for lacking something the dataset was never supposed to have,
+   * the same reasoning that already exempts sidecars just above.
+   */
+  sessionless = false,
 ): Confidence {
   if (modality === 'other') return 'unclassified';
 
@@ -82,7 +92,7 @@ function calculateConfidence(
   // session-aware branches below, otherwise a sidecar whose engine-time
   // session is still null would fall through to the modality-only path
   // and be capped at medium.
-  if (modality === 'sidecar-json' || modality === 'sidecar-tsv') {
+  if (modality === 'sidecar-json' || modality === 'sidecar-tsv' || sessionless) {
     if (totalWeight >= 0.8) return 'high';
     if (totalWeight >= 0.4) return 'medium';
     return 'low';
@@ -133,6 +143,18 @@ export function runDetection(
   structure: DatasetStructure = createDefaultDatasetStructure(),
 ): DetectionResult[] {
   const isCustomStructure = structure.presetId === 'custom-timepoints';
+  // Phase 2 addition (August 2026): Single session datasets have no
+  // session concept at all -- every file should end up with session =
+  // null, the same "nothing to guess" treatment Custom timepoints already
+  // gets from the implant-specific fuzzy layers, just with no literal-
+  // label/date-cluster/folder-cluster fallback afterward either (there are
+  // no known session ids to match against). usesImplantHeuristics gates
+  // every implant-only fuzzy-session block below; isCustomStructure alone
+  // still correctly gates the custom-timepoint-only blocks, since it's
+  // false for Single session already. See
+  // Documents/Phase2_Additional_Dataset_Presets_Spec.md.
+  const isSingleSession = structure.presetId === 'single-session';
+  const usesImplantHeuristics = !isCustomStructure && !isSingleSession;
   const knownSessionIds = isCustomStructure ? resolveSessionIds(structure) : [];
 
   // ── Pass 0 (Custom timepoints only): date-cluster + folder-cluster ──
@@ -273,7 +295,7 @@ export function runDetection(
     // the Implant sessions preset's clinical vocabulary; skip for Custom
     // timepoints, where a session can only be one of the exact labels the
     // user defined (matched below via detectCustomSession).
-    if (!isCustomStructure && fnResult.session) {
+    if (usesImplantHeuristics && fnResult.session) {
       session = fnResult.session;
     }
 
@@ -306,7 +328,7 @@ export function runDetection(
               modality = scResult.modality;
             }
           }
-          if (!isCustomStructure && scResult.session && !session) {
+          if (usesImplantHeuristics && scResult.session && !session) {
             session = scResult.session;
           }
           // Keyword-match reasons from the sidecar text (modality/session).
@@ -401,14 +423,14 @@ export function runDetection(
         modality = folderResult.modality;
       }
     }
-    if (!isCustomStructure && folderResult.session && !session) {
+    if (usesImplantHeuristics && folderResult.session && !session) {
       session = folderResult.session;
     }
     // Ambiguous bare "post-op" folder match: stash the candidate instead
     // of committing to it now, so Layer 4 neighbor inference (below, Pass
     // 2) gets a chance to resolve it via real CT/iEEG evidence first. See
     // folderDetector.ts's FolderResult.ambiguousSessionCandidate.
-    if (!isCustomStructure && !session && folderResult.ambiguousSessionCandidate) {
+    if (usesImplantHeuristics && !session && folderResult.ambiguousSessionCandidate) {
       ambiguousSessionCandidate = folderResult.ambiguousSessionCandidate;
     }
 
@@ -517,7 +539,7 @@ export function runDetection(
     }
     // Neighbor session inference (e.g. "CT + iEEG in group -> post-implant")
     // encodes implant-specific clinical logic; skip for Custom timepoints.
-    if (!isCustomStructure && neighborResult.session && !session) {
+    if (usesImplantHeuristics && neighborResult.session && !session) {
       // Guard: a file with a pending ambiguous "post-op" candidate (see
       // the ambiguous-postop resolution block below) can never
       // legitimately resolve to pre-implant -- a "post-" folder cannot
@@ -542,7 +564,7 @@ export function runDetection(
     // Subject grouping's embedded session inference uses the same implant
     // keyword vocabulary as the filename/folder detectors; skip for Custom
     // timepoints for the same reason.
-    if (!isCustomStructure && groupResult.session && !session) {
+    if (usesImplantHeuristics && groupResult.session && !session) {
       session = groupResult.session;
     }
 
@@ -560,7 +582,7 @@ export function runDetection(
     // and be equally likely wrong. Bug found via full-pipeline adversarial
     // testing 2026-08-02 (a "PostOp/CT" folder was silently misclassified
     // as post-surgery every time).
-    if (!isCustomStructure && !session) {
+    if (usesImplantHeuristics && !session) {
       const ambiguousSessionCandidate = intermediate.ambiguousSessionCandidate ?? groupResult.ambiguousSessionCandidate;
       if (ambiguousSessionCandidate) {
         session = ambiguousSessionCandidate;
@@ -604,7 +626,7 @@ export function runDetection(
     // surfaces as unclassified in the mapping table for the user to assign
     // manually -- correct behavior, not a bug, for an arbitrary study.
     if (
-      !isCustomStructure &&
+      usesImplantHeuristics &&
       !session &&
       modality !== 'other' &&
       modality !== 'sidecar-json' &&
@@ -629,7 +651,7 @@ export function runDetection(
     }
 
     // ── Calculate final confidence ─────────────────────────────
-    const confidence = calculateConfidence(modality, session, reasons);
+    const confidence = calculateConfidence(modality, session, reasons, isSingleSession);
 
     // ── Generate BIDS filename preview ─────────────────────────
     // The BIDS filename and path are assigned after this loop, in one
@@ -664,7 +686,7 @@ export function runDetection(
 
   // Assign BIDS filenames and paths (run / field-map entities and sidecar
   // pairing) in one pass, so repeated modalities never collide.
-  return computeBidsNames(finalResults);
+  return computeBidsNames(finalResults, undefined, structure);
 }
 
 // ── Summary generation ────────────────────────────────────────────
@@ -718,8 +740,12 @@ export function generateSummary(
   summary.subjectGroups = Array.from(groupSet).sort();
 
   // ── Check for missing required files per subject/session ────
-  // Implant-specific: skip entirely for Custom timepoints (see param doc above).
-  for (const group of structure.presetId === 'custom-timepoints' ? [] : summary.subjectGroups) {
+  // Implant-specific: skip entirely for Custom timepoints and Single
+  // session (see param doc above; the latter never assigns ses-preimplant/
+  // ses-postimplant labels in the first place, so this loop was already a
+  // no-op for it, but the condition is spelled out explicitly rather than
+  // relying on that incidentally).
+  for (const group of structure.presetId === 'implant' ? summary.subjectGroups : []) {
     const groupFiles = results.filter(r => r.subjectGroup === group);
 
     // Check ses-preimplant: T1w required

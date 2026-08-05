@@ -6,6 +6,14 @@ interface SubjectMetadataFormProps {
   onUpdate: (updated: SubjectMetadata) => void;
   /** Whether this subject's data was auto-filled from a TSV */
   autoFilled: boolean;
+  /**
+   * True when the dataset's active preset is Single session (Phase 2,
+   * August 2026). An empty subject.sessions array is that preset's
+   * normal, permanent state (there's no session concept to detect), not
+   * something still pending -- the empty-state message below needs to
+   * say that instead of implying sessions are still coming.
+   */
+  isSingleSession?: boolean;
 }
 
 /**
@@ -19,6 +27,7 @@ export default function SubjectMetadataForm({
   subject,
   onUpdate: _onUpdate,
   autoFilled,
+  isSingleSession = false,
 }: SubjectMetadataFormProps) {
   void _onUpdate; // reserved for future per-field editing
 
@@ -61,7 +70,9 @@ export default function SubjectMetadataForm({
 
         {subject.sessions.length === 0 && (
           <div className="px-5 py-4 text-sm text-gray-500 italic">
-            No sessions detected for this subject. Sessions will be added based on the mapping table.
+            {isSingleSession
+              ? 'Single session dataset -- all of this subject\'s files are grouped together, no separate sessions.'
+              : 'No sessions detected for this subject. Sessions will be added based on the mapping table.'}
           </div>
         )}
       </div>

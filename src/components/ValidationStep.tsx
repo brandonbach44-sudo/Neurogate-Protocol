@@ -3,6 +3,7 @@ import Button from './Button';
 import type { DetectionResult } from '../types/detection';
 import type { SubjectMetadata, DatasetDescription, DefacingAttestation, InstitutionConfig } from '../types/metadata';
 import type { ValidationReport, ValidationIssue, ValidationCategory, ValidationSeverity } from '../types/validation';
+import type { DatasetStructure } from '../types/sessionStructure';
 import { runValidation } from '../lib/validation';
 import { FolderIcon, ShieldIcon, ClipboardIcon, LinkIcon, FileIcon, TagIcon, BrainIcon, CheckCircleIcon, XCircleIcon } from './Icons';
 
@@ -12,6 +13,8 @@ interface ValidationStepProps {
   datasetDescription: DatasetDescription;
   defacingAttestation: DefacingAttestation;
   institutionConfig: InstitutionConfig;
+  /** The dataset's chosen session structure, passed through to the required-files and cross-session checkers so Single session datasets aren't flagged for lacking sessions they were never supposed to have. */
+  structure: DatasetStructure;
   onContinue: () => void;
   onBack: () => void;
 }
@@ -40,6 +43,7 @@ export default function ValidationStep({
   datasetDescription,
   defacingAttestation,
   institutionConfig,
+  structure,
   onContinue,
   onBack,
 }: ValidationStepProps) {
@@ -62,6 +66,7 @@ export default function ValidationStep({
         datasetDescription,
         defacingAttestation,
         institutionConfig,
+        structure,
       }).then((result) => {
         if (cancelled) return;
         setReport(result);
@@ -86,6 +91,7 @@ export default function ValidationStep({
         datasetDescription,
         defacingAttestation,
         institutionConfig,
+        structure,
       }).then((result) => {
         setReport(result);
         setIsRunning(false);

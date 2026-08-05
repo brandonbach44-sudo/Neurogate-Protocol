@@ -60,8 +60,14 @@ export interface EdfDeidentifyOptions {
 }
 
 export interface DeidentifyResult {
-  /** De-identified file as a Blob (same bytes as input, only header modified). */
-  blob: Blob;
+  /**
+   * De-identified file bytes (same bytes as input, only header modified).
+   * Returned as an ArrayBuffer rather than a Blob so this module works
+   * identically on web (where callers wrap it in a Blob for the ZIP) and
+   * on CLI/desktop (where callers write it straight to disk with
+   * fs.writeFile, no Blob involved).
+   */
+  bytes: ArrayBuffer;
   /** Original patient ID string, for the audit log. Never written to output. */
   originalPatientId: string;
   /** Original recording start date, for the audit log. */
@@ -73,6 +79,7 @@ export interface DeidentifyResult {
 }
 
 import { readFileBuffer } from '../fileCache';
+import type { FileLike } from '../../types/fileLike';
 
 // ── Month name tables ─────────────────────────────────────────────
 
@@ -251,41 +258,48 @@ function buildAnonymousRecordingId(
   return shifted.slice(0, 80);
 }
 
-// ── Main de-identification function ───────────────────────────────
+// ── Pure header transform (shared by whole-buffer and streaming paths) ──
+
+export interface EdfHeaderTransformResult {
+  /** The modified 256-byte global header, as a new Uint8Array (input is not mutated). */
+  headerBytes: Uint8Array;
+  originalPatientId: string;
+  originalRecordingId: string;
+  originalDate: string;
+  shiftedDate: string;
+  containedPhi: boolean;
+}
 
 /**
- * De-identify an EDF or BDF file by rewriting its header.
+ * Transform just the 256-byte EDF global header. This is the entire
+ * de-identification logic, extracted so it has exactly one
+ * implementation shared by:
+ *   - deidentifyEdf() below (whole-buffer path: web export, and any
+ *     small/in-memory CLI use)
+ *   - deidentifyEdfStream() in lib/adapters/nodeEdfDeidentifyStream.ts
+ *     (Node streaming path: reads only these 256 bytes from disk, writes
+ *     them, then stream-copies the remainder of a multi-GB recording
+ *     without ever holding the whole file in memory)
  *
- * Reads the full file into memory, applies all header modifications,
- * and returns the result as a Blob. The original File is not modified.
- *
- * For large recordings (multi-GB), this is still fast because only the
- * first ~256 bytes are modified -- the rest of the buffer is passed
- * through unchanged.
+ * Keeping this pure and buffer-in/buffer-out (no file I/O of its own)
+ * means the streaming path can never drift from the whole-buffer path's
+ * behavior -- there is nothing to keep in sync, since both call this.
  */
-export async function deidentifyEdf(
-  file: File,
+export function transformEdfHeader(
+  headerBytes: Uint8Array,
   options: EdfDeidentifyOptions,
-): Promise<DeidentifyResult> {
-  // Read the full file from the eager cache (populated at drop time).
-  // Direct file.arrayBuffer() calls on drag-and-drop Files fail with
-  // NotReadableError once the browser revokes the stale file permission.
-
-  if (file.size < 256) {
-    return {
-      blob: file,
-      originalPatientId: '',
-      originalDate: '',
-      shiftedDate: '',
-      containedPhi: false,
-    };
+): EdfHeaderTransformResult {
+  if (headerBytes.length < 256) {
+    throw new Error(`transformEdfHeader requires at least 256 bytes, got ${headerBytes.length}`);
   }
 
-  const fullBuffer = await readFileBuffer(file);
-  const bytes = new Uint8Array(fullBuffer);
+  // Work on a copy -- callers must not have this function mutate a
+  // buffer they still hold a reference to (the streaming path in
+  // particular reads this directly off disk and expects the original
+  // read buffer to stay whatever it wants it to be).
+  const bytes = headerBytes.slice(0, 256);
 
   const decoder = new TextDecoder('ascii');
-
   function readField(start: number, length: number): string {
     return decoder.decode(bytes.slice(start, start + length)).trim();
   }
@@ -319,15 +333,65 @@ export async function deidentifyEdf(
   writeField(bytes, 168, 8,  shiftedDate);
   // bytes 176-183 (start time) are intentionally left unchanged
 
-  // Return the full buffer with the modified header in place.
-  const blob = new Blob([bytes], { type: 'application/octet-stream' });
-
   return {
-    blob,
+    headerBytes: bytes,
     originalPatientId,
+    originalRecordingId,
     originalDate,
     shiftedDate,
     containedPhi,
+  };
+}
+
+// ── Main de-identification function (whole-buffer path) ────────────
+
+/**
+ * De-identify an EDF or BDF file by rewriting its header.
+ *
+ * Reads the full file into memory, applies transformEdfHeader() to the
+ * first 256 bytes, splices the result back in, and returns the whole
+ * modified buffer. The original file/File is not modified.
+ *
+ * This is the right choice for the web export path (files already fit
+ * in browser memory by definition, since they got dropped into the page
+ * at all) and for small CLI files. For large local recordings where
+ * avoiding a full read matters, use deidentifyEdfStream() instead (see
+ * lib/adapters/nodeEdfDeidentifyStream.ts) -- it calls this same
+ * transformEdfHeader() but never reads more than 256 bytes into memory.
+ */
+export async function deidentifyEdf(
+  file: FileLike,
+  options: EdfDeidentifyOptions,
+): Promise<DeidentifyResult> {
+  // Read the full file from the eager cache (populated at drop time on
+  // web; irrelevant but harmless on CLI/desktop, where arrayBuffer()
+  // always succeeds directly). Direct file.arrayBuffer() calls on
+  // drag-and-drop Files fail with NotReadableError once the browser
+  // revokes the stale file permission -- that's what the cache exists
+  // to work around.
+
+  if (file.size < 256) {
+    return {
+      bytes: await file.arrayBuffer(),
+      originalPatientId: '',
+      originalDate: '',
+      shiftedDate: '',
+      containedPhi: false,
+    };
+  }
+
+  const fullBuffer = await readFileBuffer(file);
+  const fullBytes = new Uint8Array(fullBuffer);
+
+  const headerResult = transformEdfHeader(fullBytes.subarray(0, 256), options);
+  fullBytes.set(headerResult.headerBytes, 0);
+
+  return {
+    bytes: fullBytes.buffer.slice(fullBytes.byteOffset, fullBytes.byteOffset + fullBytes.byteLength),
+    originalPatientId: headerResult.originalPatientId,
+    originalDate: headerResult.originalDate,
+    shiftedDate: headerResult.shiftedDate,
+    containedPhi: headerResult.containedPhi,
   };
 }
 
