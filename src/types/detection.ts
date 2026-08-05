@@ -8,6 +8,8 @@
  * - How confident the engine is in each guess
  */
 
+import type { FileLike } from './fileLike';
+
 // ── Clinical Sessions ──────────────────────────────────────────────
 // A session is a BIDS session id string (e.g. "ses-preimplant",
 // "ses-2mo"). Which ids are valid for a given dataset depends on the
@@ -101,8 +103,8 @@ export interface DetectionResult {
   fileName: string;
   /** File size in bytes */
   fileSize: number;
-  /** The underlying File object */
-  file: File;
+  /** The underlying file -- a browser File on web, a NodeFileAdapter on CLI/desktop (see types/fileLike.ts) */
+  file: FileLike;
 
   /** Detected subject group (e.g., "patient_01" or folder-based grouping) */
   subjectGroup: string;

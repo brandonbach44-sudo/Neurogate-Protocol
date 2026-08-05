@@ -44,10 +44,6 @@ export interface DatasetDescription {
   datasetType: 'raw';
   /** List of contributing authors (required) */
   authors: string[];
-  /** Acknowledgements (optional) */
-  acknowledgements: string;
-  /** Funding sources (optional) */
-  funding: string[];
 }
 
 export function createDefaultDatasetDescription(): DatasetDescription {
@@ -56,8 +52,6 @@ export function createDefaultDatasetDescription(): DatasetDescription {
     bidsVersion: '1.8.0',
     datasetType: 'raw',
     authors: [''],
-    acknowledgements: '',
-    funding: [''],
   };
 }
 

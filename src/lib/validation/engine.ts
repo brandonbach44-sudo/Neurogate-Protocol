@@ -15,6 +15,7 @@ import type { SubjectMetadata, DatasetDescription, DefacingAttestation, Institut
 import type { ValidationIssue, ValidationReport } from '../../types/validation';
 import { finalizeReport } from '../../types/validation';
 import { getEffectiveModality } from '../../types/detection';
+import type { DatasetStructure } from '../../types/sessionStructure';
 
 import { validateBidsStructure } from './bidsValidator';
 import { scanForPhi, scanSidecarContentForPhi } from './phiScanner';
@@ -28,6 +29,14 @@ export interface ValidationInput {
   datasetDescription: DatasetDescription;
   defacingAttestation: DefacingAttestation;
   institutionConfig: InstitutionConfig;
+  /**
+   * The dataset's chosen session structure. Optional so existing callers
+   * that don't pass it see identical behavior to before Phase 2 -- passed
+   * through to checkRequiredFiles/checkCrossSessionConsistency, which use
+   * it only to recognize the Single session preset's expected null
+   * sessions instead of treating every one as a detection failure.
+   */
+  structure?: DatasetStructure;
 }
 
 /**
@@ -53,11 +62,11 @@ export async function runValidation(input: ValidationInput): Promise<ValidationR
   allIssues.push(...sidecarPhiIssues);
 
   // ── 3. Required Files ─────────────────────────────────────
-  const requiredIssues = checkRequiredFiles(input.detectionResults, input.subjects);
+  const requiredIssues = checkRequiredFiles(input.detectionResults, input.subjects, input.structure);
   allIssues.push(...requiredIssues);
 
   // ── 4. Cross-Session Consistency ──────────────────────────
-  const crossIssues = checkCrossSessionConsistency(input.detectionResults, input.subjects);
+  const crossIssues = checkCrossSessionConsistency(input.detectionResults, input.subjects, input.structure);
   allIssues.push(...crossIssues);
 
   // ── 5. Metadata completeness checks ───────────────────────

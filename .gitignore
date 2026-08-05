@@ -9,6 +9,8 @@ build/
 .vite/
 .next/
 out/
+release/
+dist-cli/
 
 # Testing
 coverage/

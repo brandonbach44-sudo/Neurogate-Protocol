@@ -15,6 +15,7 @@ import { getEffectiveSession, getEffectiveModality, getEffectiveSubjectGroup } f
 import type { SubjectMetadata } from '../../types/metadata';
 import type { ValidationIssue } from '../../types/validation';
 import { isOsJunkFile } from '../detection/extensionDetector';
+import type { DatasetStructure } from '../../types/sessionStructure';
 
 let issueCounter = 0;
 function nextId(): string {
@@ -79,6 +80,16 @@ function checkChronologicalOrder(subjects: SubjectMetadata[]): ValidationIssue[]
 export function checkCrossSessionConsistency(
   results: DetectionResult[],
   subjects: SubjectMetadata[],
+  /**
+   * The dataset's chosen session structure. Optional so existing callers
+   * that don't pass it see identical behavior to before Phase 2. Only
+   * consulted to route the iEEG-without-electrodes check below through a
+   * per-subject path (Section below) instead of the per-session path when
+   * the Single session preset is active, since every session-keyed check
+   * in this file is naturally a no-op for a dataset where every file has
+   * session = null.
+   */
+  structure?: DatasetStructure,
 ): ValidationIssue[] {
   issueCounter = 0;
   const issues: ValidationIssue[] = [];
@@ -187,15 +198,18 @@ export function checkCrossSessionConsistency(
   }
 
   // ── Check: iEEG without matching electrode data ──────────
-  for (const [group, sessions] of subjectSessions) {
-    for (const session of sessions) {
-      const sessionFiles = results.filter(r =>
-        getEffectiveSubjectGroup(r) === group &&
-        getEffectiveSession(r) === session
-      );
-
-      const hasIeeg = sessionFiles.some(r => getEffectiveModality(r) === 'ieeg');
-      const hasElectrodes = sessionFiles.some(r => getEffectiveModality(r) === 'electrodes');
+  // Single session preset: every file has session = null, so the
+  // subjectSessions map above (built only from non-null sessions) is
+  // always empty and the per-session loop below would silently never
+  // run this check at all. It's a real check independent of session
+  // structure, so it gets an equivalent per-subject (not per-session)
+  // pass here instead.
+  if (structure?.presetId === 'single-session') {
+    const subjectGroups = new Set(results.map(r => getEffectiveSubjectGroup(r)));
+    for (const group of subjectGroups) {
+      const subjectFiles = results.filter(r => getEffectiveSubjectGroup(r) === group);
+      const hasIeeg = subjectFiles.some(r => getEffectiveModality(r) === 'ieeg');
+      const hasElectrodes = subjectFiles.some(r => getEffectiveModality(r) === 'electrodes');
 
       if (hasIeeg && !hasElectrodes) {
         issues.push({
@@ -203,14 +217,41 @@ export function checkCrossSessionConsistency(
           category: 'cross-session',
           severity: 'warning',
           title: 'iEEG recording without electrode coordinates',
-          description: `Subject "${group}" / ${session} has iEEG recordings but no electrodes.tsv file. Electrode coordinates are important for localizing recording sites. If you have this data, go back and make sure it's properly classified.`,
-          affectedFiles: sessionFiles
+          description: `Subject "${group}" has iEEG recordings but no electrodes.tsv file. Electrode coordinates are important for localizing recording sites. If you have this data, go back and make sure it's properly classified.`,
+          affectedFiles: subjectFiles
             .filter(r => getEffectiveModality(r) === 'ieeg')
             .map(r => r.relativePath),
           subjectGroup: group,
-          session,
           dismissable: true,
         });
+      }
+    }
+  } else {
+    for (const [group, sessions] of subjectSessions) {
+      for (const session of sessions) {
+        const sessionFiles = results.filter(r =>
+          getEffectiveSubjectGroup(r) === group &&
+          getEffectiveSession(r) === session
+        );
+
+        const hasIeeg = sessionFiles.some(r => getEffectiveModality(r) === 'ieeg');
+        const hasElectrodes = sessionFiles.some(r => getEffectiveModality(r) === 'electrodes');
+
+        if (hasIeeg && !hasElectrodes) {
+          issues.push({
+            id: nextId(),
+            category: 'cross-session',
+            severity: 'warning',
+            title: 'iEEG recording without electrode coordinates',
+            description: `Subject "${group}" / ${session} has iEEG recordings but no electrodes.tsv file. Electrode coordinates are important for localizing recording sites. If you have this data, go back and make sure it's properly classified.`,
+            affectedFiles: sessionFiles
+              .filter(r => getEffectiveModality(r) === 'ieeg')
+              .map(r => r.relativePath),
+            subjectGroup: group,
+            session,
+            dismissable: true,
+          });
+        }
       }
     }
   }

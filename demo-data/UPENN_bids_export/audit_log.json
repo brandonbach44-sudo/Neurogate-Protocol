@@ -1,0 +1,181 @@
+{
+  "_format": "ALCOA+ Audit Log",
+  "_version": "1.0",
+  "header": {
+    "exportedAt": "2026-08-04T00:54:28.195Z",
+    "exportedBy": "Brand",
+    "sessionStarted": "2026-08-04T00:54:27.872Z",
+    "toolVersion": "1.0.0-alpha",
+    "totalEntries": 13,
+    "actionSummary": {
+      "files-scanned": 1,
+      "structure-selected": 1,
+      "detection-completed": 1,
+      "institution-configured": 1,
+      "subject-metadata-entered": 5,
+      "dataset-description-entered": 1,
+      "defacing-attested": 1,
+      "validation-run": 1,
+      "deidentification-summary": 1
+    }
+  },
+  "entries": [
+    {
+      "id": 1,
+      "timestamp": "2026-08-04T00:54:27.909Z",
+      "actor": "system",
+      "action": "files-scanned",
+      "summary": "Scanned 175 files (3.6 KB)",
+      "details": {
+        "fileCount": 175,
+        "totalSizeBytes": 3655
+      }
+    },
+    {
+      "id": 2,
+      "timestamp": "2026-08-04T00:54:27.909Z",
+      "actor": "user",
+      "action": "structure-selected",
+      "summary": "Structure selected: Implant sessions (3 fixed sessions: ses-preimplant, ses-postimplant, ses-postsurgery)",
+      "details": {
+        "presetId": "implant",
+        "sessionCount": 3,
+        "sessionIds": [
+          "ses-preimplant",
+          "ses-postimplant",
+          "ses-postsurgery"
+        ]
+      }
+    },
+    {
+      "id": 3,
+      "timestamp": "2026-08-04T00:54:27.952Z",
+      "actor": "system",
+      "action": "detection-completed",
+      "summary": "Auto-detection completed: 175 high, 0 medium, 0 low, 0 unclassified",
+      "details": {
+        "totalFiles": 175,
+        "highConfidence": 175,
+        "mediumConfidence": 0,
+        "lowConfidence": 0,
+        "unclassified": 0,
+        "subjectGroups": [
+          "Patient_001",
+          "Patient_002",
+          "Patient_003",
+          "Patient_004",
+          "Patient_005"
+        ]
+      }
+    },
+    {
+      "id": 4,
+      "timestamp": "2026-08-04T00:54:27.963Z",
+      "actor": "user",
+      "action": "institution-configured",
+      "summary": "Institution configured: prefix=\"UPENN\", starting number=1",
+      "details": {
+        "prefix": "UPENN",
+        "startingNumber": 1
+      }
+    },
+    {
+      "id": 5,
+      "timestamp": "2026-08-04T00:54:27.963Z",
+      "actor": "user",
+      "action": "subject-metadata-entered",
+      "summary": "Metadata entered for sub-UPENN001 (3 sessions)",
+      "details": {
+        "bidsSubjectId": "sub-UPENN001",
+        "sessionCount": 3
+      }
+    },
+    {
+      "id": 6,
+      "timestamp": "2026-08-04T00:54:27.963Z",
+      "actor": "user",
+      "action": "subject-metadata-entered",
+      "summary": "Metadata entered for sub-UPENN002 (3 sessions)",
+      "details": {
+        "bidsSubjectId": "sub-UPENN002",
+        "sessionCount": 3
+      }
+    },
+    {
+      "id": 7,
+      "timestamp": "2026-08-04T00:54:27.963Z",
+      "actor": "user",
+      "action": "subject-metadata-entered",
+      "summary": "Metadata entered for sub-UPENN003 (3 sessions)",
+      "details": {
+        "bidsSubjectId": "sub-UPENN003",
+        "sessionCount": 3
+      }
+    },
+    {
+      "id": 8,
+      "timestamp": "2026-08-04T00:54:27.963Z",
+      "actor": "user",
+      "action": "subject-metadata-entered",
+      "summary": "Metadata entered for sub-UPENN004 (3 sessions)",
+      "details": {
+        "bidsSubjectId": "sub-UPENN004",
+        "sessionCount": 3
+      }
+    },
+    {
+      "id": 9,
+      "timestamp": "2026-08-04T00:54:27.963Z",
+      "actor": "user",
+      "action": "subject-metadata-entered",
+      "summary": "Metadata entered for sub-UPENN005 (3 sessions)",
+      "details": {
+        "bidsSubjectId": "sub-UPENN005",
+        "sessionCount": 3
+      }
+    },
+    {
+      "id": 10,
+      "timestamp": "2026-08-04T00:54:27.963Z",
+      "actor": "user",
+      "action": "dataset-description-entered",
+      "summary": "Dataset description entered: \"TEST\" with 1 author(s)",
+      "details": {
+        "name": "TEST",
+        "authorCount": 1
+      }
+    },
+    {
+      "id": 11,
+      "timestamp": "2026-08-04T00:54:27.963Z",
+      "actor": "user",
+      "action": "defacing-attested",
+      "summary": "Defacing attestation confirmed",
+      "details": {}
+    },
+    {
+      "id": 12,
+      "timestamp": "2026-08-04T00:54:27.972Z",
+      "actor": "system",
+      "action": "validation-run",
+      "summary": "Validation PASSED: 0 errors, 5 warnings, 0 info",
+      "details": {
+        "errorCount": 0,
+        "warningCount": 5,
+        "infoCount": 0,
+        "passed": true
+      }
+    },
+    {
+      "id": 13,
+      "timestamp": "2026-08-04T00:54:28.195Z",
+      "actor": "system",
+      "action": "deidentification-summary",
+      "summary": "De-identified 0 EDF file(s) (0 contained detected PHI) and 0 JSON sidecar(s) with identifying content",
+      "details": {
+        "edfFiles": [],
+        "jsonSidecars": []
+      }
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "Name": "TEST",
+  "BIDSVersion": "1.8.0",
+  "DatasetType": "raw",
+  "Authors": [
+    "BRANDON"
+  ],
+  "GeneratedBy": [
+    {
+      "Name": "NeuroGate",
+      "Version": "1.0.0",
+      "Description": "Session structure: Implant sessions preset (ses-preimplant, ses-postimplant, ses-postsurgery)"
+    }
+  ]
+}

@@ -21,6 +21,7 @@
 
 import type { DetectionResult, DetectionSummary } from '../../types/detection';
 import type { ScannedFile } from '../../types/files';
+import type { FileLike } from '../../types/fileLike';
 import type { DatasetStructure } from '../../types/sessionStructure';
 import { createDefaultDatasetStructure } from '../../types/sessionStructure';
 
@@ -123,7 +124,7 @@ export function trySessionRestore(
 ): DetectionResult[] | null {
   if (saved.fileSignatures.length !== scanned.length) return null;
 
-  const fileMap = new Map<string, File>();
+  const fileMap = new Map<string, FileLike>();
   for (const sf of scanned) {
     fileMap.set(`${sf.name}|${sf.size}|${sf.relativePath}`, sf.file);
   }

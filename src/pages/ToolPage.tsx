@@ -32,6 +32,16 @@ type AppStep = 'structure' | 'drop' | 'scanning' | 'mapping' | 'metadata' | 'val
 function ToolPage() {
   const [step, setStep] = useState<AppStep>('structure');
   const [datasetStructure, setDatasetStructure] = useState<DatasetStructure>(createDefaultDatasetStructure());
+  // Phase 2 addition (August 2026): datasetStructure always holds a real
+  // value (defaults to the Implant preset via createDefaultDatasetStructure
+  // above), even before the user has actually chosen anything on the
+  // Structure step. StructureSetupStep's Step 0 gate needs to tell "the
+  // user already confirmed a structure" apart from "this is just the
+  // fallback default" -- passing the default value as initialStructure
+  // would make the gate think a real choice (Implant) was already made
+  // and skip straight past the Yes/No question on every first visit.
+  // structureChosen tracks the former explicitly.
+  const [structureChosen, setStructureChosen] = useState(false);
   const [scannedFiles, setScannedFiles] = useState<ScannedFile[]>([]);
   const [detectionResults, setDetectionResults] = useState<DetectionResult[]>([]);
   const [summary, setSummary] = useState<DetectionSummary | null>(null);
@@ -49,7 +59,10 @@ function ToolPage() {
       // A saved session implies a structure choice was already made; skip
       // straight to the drop zone (where the restore banner lives) instead
       // of asking again.
-      if (saved.structure) setDatasetStructure(saved.structure);
+      if (saved.structure) {
+        setDatasetStructure(saved.structure);
+        setStructureChosen(true);
+      }
       setStep('drop');
     }
   }, []);
@@ -79,9 +92,12 @@ function ToolPage() {
     if (savedSession) {
       const restored = trySessionRestore(files, savedSession);
       if (restored) {
-        setDetectionResults(computeBidsNames(restored));
+        setDetectionResults(computeBidsNames(restored, undefined, savedSession.structure ?? datasetStructure));
         setSummary(savedSession.summary);
-        if (savedSession.structure) setDatasetStructure(savedSession.structure);
+        if (savedSession.structure) {
+          setDatasetStructure(savedSession.structure);
+          setStructureChosen(true);
+        }
         setStep('mapping');
         setSavedSession(null);
         audit.addEntry(
@@ -148,7 +164,7 @@ function ToolPage() {
 
       // Recompute BIDS names so the preview, run- entities, and sidecar
       // pairing stay correct after the change.
-      const renamed = computeBidsNames(next);
+      const renamed = computeBidsNames(next, undefined, datasetStructure);
       setSummary(generateSummary(renamed, datasetStructure));
       return renamed;
     });
@@ -161,7 +177,7 @@ function ToolPage() {
       for (const i of indices) {
         next[i] = { ...next[i], userSession: session };
       }
-      const renamed = computeBidsNames(next);
+      const renamed = computeBidsNames(next, undefined, datasetStructure);
       setSummary(generateSummary(renamed, datasetStructure));
       return renamed;
     });
@@ -175,7 +191,7 @@ function ToolPage() {
       for (const i of indices) {
         next[i] = { ...next[i], userModality: modality };
       }
-      const renamed = computeBidsNames(next);
+      const renamed = computeBidsNames(next, undefined, datasetStructure);
       setSummary(generateSummary(renamed, datasetStructure));
       return renamed;
     });
@@ -358,9 +374,10 @@ function ToolPage() {
         {/* Step 1: Dataset structure setup */}
         {step === 'structure' && (
           <StructureSetupStep
-            initialStructure={datasetStructure}
+            initialStructure={structureChosen ? datasetStructure : undefined}
             onContinue={(structure) => {
               setDatasetStructure(structure);
+              setStructureChosen(true);
               const sessionIds = resolveSessionIds(structure);
               audit.logStructureSelected(structure.presetId, sessionIds.length, sessionIds);
               setStep('drop');
@@ -513,6 +530,7 @@ function ToolPage() {
             datasetDescription={metadataOutput.datasetDescription}
             defacingAttestation={metadataOutput.defacingAttestation}
             institutionConfig={metadataOutput.institutionConfig}
+            structure={datasetStructure}
             onContinue={() => {
               audit.addEntry('validation-passed', 'Validation passed, proceeding to export', {
                 subjectCount: metadataOutput!.subjects.length,

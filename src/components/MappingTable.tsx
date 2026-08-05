@@ -115,6 +115,14 @@ export default function MappingTable({
   // click files in the sequence they belong to. Extra files beyond the
   // number of defined timepoints are left unassigned.
   const isCustomTimepoints = structure.presetId === 'custom-timepoints';
+  // Single session preset (Phase 2, August 2026): this dataset has no
+  // session concept at all, so the Session column/dropdown/bulk-assign
+  // control are hidden rather than shown empty and flagged red for a
+  // "missing" value that isn't actually missing anything.
+  const isSingleSession = structure.presetId === 'single-session';
+  const gridCols = isSingleSession
+    ? 'grid-cols-[40px_1fr_140px_180px_100px]'
+    : 'grid-cols-[40px_1fr_140px_160px_180px_100px]';
   const orderedAssignCount = Math.min(selectedIndices.size, sessionOptions.length);
   const applyOrderedAssign = () => {
     const orderedIndices = Array.from(selectedIndices).slice(0, orderedAssignCount);
@@ -215,26 +223,28 @@ export default function MappingTable({
             {selectedIndices.size} file{selectedIndices.size !== 1 ? 's' : ''} selected
           </span>
 
-          <div className="flex items-center gap-2">
-            <select
-              value={bulkSession}
-              onChange={(e) => setBulkSession(e.target.value as Session | '')}
-              className="text-sm border border-blue-300 rounded px-2 py-1.5 bg-white"
-              aria-label="Bulk-assign session to selected files"
-            >
-              <option value="">Set session...</option>
-              {sessionOptions.map(s => (
-                <option key={s.value} value={s.value}>{s.label}</option>
-              ))}
-            </select>
-            <button
-              onClick={applyBulkSession}
-              disabled={!bulkSession}
-              className="text-sm px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              Apply
-            </button>
-          </div>
+          {!isSingleSession && (
+            <div className="flex items-center gap-2">
+              <select
+                value={bulkSession}
+                onChange={(e) => setBulkSession(e.target.value as Session | '')}
+                className="text-sm border border-blue-300 rounded px-2 py-1.5 bg-white"
+                aria-label="Bulk-assign session to selected files"
+              >
+                <option value="">Set session...</option>
+                {sessionOptions.map(s => (
+                  <option key={s.value} value={s.value}>{s.label}</option>
+                ))}
+              </select>
+              <button
+                onClick={applyBulkSession}
+                disabled={!bulkSession}
+                className="text-sm px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                Apply
+              </button>
+            </div>
+          )}
 
           <div className="flex items-center gap-2">
             <select
@@ -286,7 +296,7 @@ export default function MappingTable({
       {/* ── File Table ───────────────────────────────────────── */}
       <div className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
         {/* Header */}
-        <div className="grid grid-cols-[40px_1fr_140px_160px_180px_100px] gap-2 px-4 py-3 bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+        <div className={`grid ${gridCols} gap-2 px-4 py-3 bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider`}>
           <div className="flex items-center">
             <input
               type="checkbox"
@@ -298,7 +308,7 @@ export default function MappingTable({
           </div>
           <span>Original File</span>
           <span>Subject</span>
-          <span>Session</span>
+          {!isSingleSession && <span>Session</span>}
           <span>Modality</span>
           <span className="text-center">Confidence</span>
         </div>
@@ -319,7 +329,7 @@ export default function MappingTable({
                 {/* Main row */}
                 <div
                   className={`
-                    grid grid-cols-[40px_1fr_140px_160px_180px_100px] gap-2 px-4 py-2.5 text-sm
+                    grid ${gridCols} gap-2 px-4 py-2.5 text-sm
                     border-b border-gray-100
                     ${isSelected ? 'bg-blue-50/50' : resultIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}
                     hover:bg-blue-50/30 transition-colors cursor-pointer
@@ -358,25 +368,30 @@ export default function MappingTable({
                     />
                   </div>
 
-                  {/* Session dropdown */}
-                  <div onClick={(e) => e.stopPropagation()}>
-                    <select
-                      value={effectiveSession || ''}
-                      aria-label={`Session for ${result.fileName}`}
-                      onChange={(e) => onUpdateResult(resultIndex, {
-                        userSession: (e.target.value as Session) || null
-                      })}
-                      className={`w-full text-xs border rounded px-2 py-1.5 outline-none
-                        ${!effectiveSession ? 'border-red-300 bg-red-50' : 'border-gray-200 hover:border-gray-400'}
-                        focus:border-blue-500 focus:ring-1 focus:ring-blue-500
-                      `}
-                    >
-                      <option value="">-- Select --</option>
-                      {sessionOptions.map(s => (
-                        <option key={s.value} value={s.value}>{s.label}</option>
-                      ))}
-                    </select>
-                  </div>
+                  {/* Session dropdown -- hidden entirely for Single session
+                      datasets, which have no session concept at all, rather
+                      than shown empty and flagged red for a "missing" value
+                      that was never expected in the first place. */}
+                  {!isSingleSession && (
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <select
+                        value={effectiveSession || ''}
+                        aria-label={`Session for ${result.fileName}`}
+                        onChange={(e) => onUpdateResult(resultIndex, {
+                          userSession: (e.target.value as Session) || null
+                        })}
+                        className={`w-full text-xs border rounded px-2 py-1.5 outline-none
+                          ${!effectiveSession ? 'border-red-300 bg-red-50' : 'border-gray-200 hover:border-gray-400'}
+                          focus:border-blue-500 focus:ring-1 focus:ring-blue-500
+                        `}
+                      >
+                        <option value="">-- Select --</option>
+                        {sessionOptions.map(s => (
+                          <option key={s.value} value={s.value}>{s.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
 
                   {/* Modality dropdown */}
                   <div onClick={(e) => e.stopPropagation()}>
