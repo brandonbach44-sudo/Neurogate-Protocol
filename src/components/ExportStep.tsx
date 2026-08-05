@@ -285,7 +285,7 @@ export default function ExportStep({
                   <a
                     href={r.downloadUrl}
                     download
-                    className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded text-xs font-semibold bg-green-700 text-white hover:bg-green-800 transition-colors"
+                    className="btn-cta shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded text-xs font-semibold bg-green-700 text-white hover:bg-green-800 transition-colors"
                   >
                     Download EDF
                   </a>
@@ -354,7 +354,7 @@ export default function ExportStep({
               href={zipUrl}
               download={zipFilename}
               onClick={handleDownloadClick}
-              className="inline-flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold bg-[#011F5B] text-white hover:bg-[#022a7a] transition-colors"
+              className="btn-cta inline-flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold bg-[#011F5B] text-white hover:bg-[#022a7a] transition-colors"
             >
               Download
             </a>

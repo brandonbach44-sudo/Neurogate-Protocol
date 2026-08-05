@@ -147,7 +147,7 @@ export default function MappingTable({
         <div className="flex gap-3 mb-3">
           <button
             onClick={() => setFilterMode('all')}
-            className="px-3 py-1.5 rounded-full text-sm font-medium transition-colors"
+            className="btn-cta px-3 py-1.5 rounded-full text-sm font-medium transition-colors"
             style={filterMode === 'all'
               ? { backgroundColor: '#011F5B', color: '#ffffff' }
               : { backgroundColor: '#f1f5f9', color: '#64748b' }
@@ -157,7 +157,7 @@ export default function MappingTable({
           </button>
           <button
             onClick={() => setFilterMode('high')}
-            className="px-3 py-1.5 rounded-full text-sm font-medium transition-colors"
+            className="btn-cta px-3 py-1.5 rounded-full text-sm font-medium transition-colors"
             style={filterMode === 'high'
               ? { backgroundColor: '#22c55e', color: '#ffffff' }
               : { backgroundColor: 'rgba(34,197,94,0.1)', color: '#16a34a' }
@@ -167,7 +167,7 @@ export default function MappingTable({
           </button>
           <button
             onClick={() => setFilterMode('medium')}
-            className="px-3 py-1.5 rounded-full text-sm font-medium transition-colors"
+            className="btn-cta px-3 py-1.5 rounded-full text-sm font-medium transition-colors"
             style={filterMode === 'medium'
               ? { backgroundColor: '#eab308', color: '#ffffff' }
               : { backgroundColor: 'rgba(234,179,8,0.1)', color: '#ca8a04' }
@@ -177,7 +177,7 @@ export default function MappingTable({
           </button>
           <button
             onClick={() => setFilterMode('low')}
-            className="px-3 py-1.5 rounded-full text-sm font-medium transition-colors"
+            className="btn-cta px-3 py-1.5 rounded-full text-sm font-medium transition-colors"
             style={filterMode === 'low'
               ? { backgroundColor: '#f97316', color: '#ffffff' }
               : { backgroundColor: 'rgba(249,115,22,0.1)', color: '#ea580c' }
@@ -187,7 +187,7 @@ export default function MappingTable({
           </button>
           <button
             onClick={() => setFilterMode('unclassified')}
-            className="px-3 py-1.5 rounded-full text-sm font-medium transition-colors"
+            className="btn-cta px-3 py-1.5 rounded-full text-sm font-medium transition-colors"
             style={filterMode === 'unclassified'
               ? { backgroundColor: '#ef4444', color: '#ffffff' }
               : { backgroundColor: 'rgba(239,68,68,0.15)', color: '#f87171' }
@@ -239,7 +239,7 @@ export default function MappingTable({
               <button
                 onClick={applyBulkSession}
                 disabled={!bulkSession}
-                className="text-sm px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="btn-cta text-sm px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 Apply
               </button>
@@ -261,7 +261,7 @@ export default function MappingTable({
             <button
               onClick={applyBulkModality}
               disabled={!bulkModality}
-              className="text-sm px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="btn-cta text-sm px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               Apply
             </button>
@@ -272,7 +272,7 @@ export default function MappingTable({
               <button
                 onClick={applyOrderedAssign}
                 disabled={orderedAssignCount === 0}
-                className="text-sm px-3 py-1.5 bg-[#011F5B] text-white rounded hover:bg-[#01326e] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="btn-cta text-sm px-3 py-1.5 bg-[#011F5B] text-white rounded hover:bg-[#01326e] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 title="Assigns the 1st selected file to the earliest timepoint, the 2nd to the next, and so on."
               >
                 Assign in order to timepoints

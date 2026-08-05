@@ -125,7 +125,7 @@ export default function DatasetDescriptionForm({
                 {description.authors.length > 1 && (
                   <button
                     onClick={() => removeAuthor(i)}
-                    className="px-2 text-gray-500 hover:text-red-500 transition-colors"
+                    className="btn-cta px-2 text-gray-500 hover:text-red-500 transition-colors"
                     title="Remove author"
                     aria-label={`Remove author ${i + 1}`}
                   >
@@ -136,7 +136,7 @@ export default function DatasetDescriptionForm({
             ))}
             <button
               onClick={addAuthor}
-              className="text-sm text-blue-600 hover:text-blue-800 transition-colors"
+              className="btn-cta text-sm text-blue-600 hover:text-blue-800 transition-colors"
             >
               + Add another author
             </button>

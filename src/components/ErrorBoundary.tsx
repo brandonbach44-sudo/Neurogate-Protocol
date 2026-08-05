@@ -88,7 +88,7 @@ export default class ErrorBoundary extends Component<Props, State> {
             <button
               type="button"
               onClick={this.handleReload}
-              className="inline-flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all"
+              className="btn-cta inline-flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all"
               style={{ backgroundColor: PENN_BLUE, color: '#ffffff' }}
               onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = PENN_BLUE_HOVER)}
               onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = PENN_BLUE)}

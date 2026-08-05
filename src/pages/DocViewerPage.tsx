@@ -84,7 +84,7 @@ function TableOfContents({ entries }: { entries: TocEntry[] }) {
           <button
             key={i}
             onClick={() => scrollTo(entry.id)}
-            className="text-xs px-3 py-1.5 rounded-full border border-gray-200 bg-white hover:border-[#011F5B] hover:text-[#011F5B] transition-colors text-gray-600 cursor-pointer"
+            className="btn-cta text-xs px-3 py-1.5 rounded-full border border-gray-200 bg-white hover:border-[#011F5B] hover:text-[#011F5B] transition-colors text-gray-600 cursor-pointer"
           >
             {entry.text}
           </button>

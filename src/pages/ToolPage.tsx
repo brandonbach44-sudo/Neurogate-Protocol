@@ -347,7 +347,7 @@ function ToolPage() {
           {/* Audit log button (always visible) */}
           <button
             onClick={() => setAuditPanelOpen(true)}
-            className="relative flex-shrink-0 px-3 py-1.5 text-xs font-medium rounded-lg transition-all bg-white/15 text-white hover:bg-white/25"
+            className="btn-cta relative flex-shrink-0 px-3 py-1.5 text-xs font-medium rounded-lg transition-all bg-white/15 text-white hover:bg-white/25"
             aria-label="Open audit log panel"
           >
             <span className="hidden sm:inline">Audit Log</span>
@@ -437,7 +437,7 @@ function ToolPage() {
                 <button
                   type="button"
                   onClick={handleDiscardSavedSession}
-                  className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors flex-shrink-0"
+                  className="btn-cta text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors flex-shrink-0"
                   style={{ color: '#0F6E56', backgroundColor: 'rgba(255,255,255,0.6)' }}
                 >
                   Discard

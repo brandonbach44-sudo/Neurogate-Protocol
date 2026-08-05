@@ -57,7 +57,7 @@ function StructurePreviewCard() {
           <button
             type="button"
             onClick={() => setPreset('implant')}
-            className="px-2.5 py-1 rounded-md transition-colors"
+            className="btn-cta px-2.5 py-1 rounded-md transition-colors"
             style={{
               backgroundColor: preset === 'implant' ? '#6DD3CE' : 'transparent',
               color: preset === 'implant' ? '#011F5B' : 'rgba(255,255,255,0.7)',
@@ -68,7 +68,7 @@ function StructurePreviewCard() {
           <button
             type="button"
             onClick={() => setPreset('custom')}
-            className="px-2.5 py-1 rounded-md transition-colors"
+            className="btn-cta px-2.5 py-1 rounded-md transition-colors"
             style={{
               backgroundColor: preset === 'custom' ? '#6DD3CE' : 'transparent',
               color: preset === 'custom' ? '#011F5B' : 'rgba(255,255,255,0.7)',
@@ -198,7 +198,7 @@ export default function HomePage() {
             <div className="flex items-center gap-3 mt-8">
               <Link
                 to="/tool"
-                className="no-underline inline-flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold transition-all"
+                className="btn-cta no-underline inline-flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold transition-all"
                 style={{ backgroundColor: '#011F5B', color: '#ffffff' }}
                 onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#01326e')}
                 onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#011F5B')}
@@ -211,7 +211,7 @@ export default function HomePage() {
               </Link>
               <Link
                 to="/docs"
-                className="no-underline inline-flex items-center px-6 py-2.5 rounded-lg text-sm font-medium border transition-all"
+                className="btn-cta no-underline inline-flex items-center px-6 py-2.5 rounded-lg text-sm font-medium border transition-all"
                 style={{ borderColor: '#d1d5db', color: '#374151' }}
                 onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#011F5B')}
                 onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#d1d5db')}
@@ -522,7 +522,7 @@ export default function HomePage() {
           <div className="flex flex-wrap items-center gap-3">
             <Link
               to="/tool"
-              className="no-underline inline-flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold transition-all"
+              className="btn-cta no-underline inline-flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold transition-all"
               style={{ backgroundColor: '#6DD3CE', color: '#011F5B' }}
               onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#5bc4bf')}
               onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#6DD3CE')}
@@ -535,7 +535,7 @@ export default function HomePage() {
             </Link>
             <Link
               to="/docs"
-              className="no-underline inline-flex items-center px-6 py-2.5 rounded-lg text-sm font-medium border transition-all"
+              className="btn-cta no-underline inline-flex items-center px-6 py-2.5 rounded-lg text-sm font-medium border transition-all"
               style={{ borderColor: 'rgba(255,255,255,0.3)', color: '#ffffff' }}
               onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#6DD3CE')}
               onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)')}

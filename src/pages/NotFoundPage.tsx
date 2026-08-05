@@ -21,7 +21,7 @@ function QuickLink({
   return (
     <Link
       to={to}
-      className="no-underline group block rounded-xl border border-gray-100 bg-white p-5 shadow-sm hover:shadow-md transition-all duration-300"
+      className="btn-cta no-underline group block rounded-xl border border-gray-100 bg-white p-5 shadow-sm hover:shadow-md transition-all duration-300"
     >
       <div
         className="text-[10px] font-bold uppercase tracking-widest mb-1.5"
@@ -65,7 +65,7 @@ export default function NotFoundPage() {
       <div className="mt-8 flex items-center justify-center gap-3">
         <Link
           to="/"
-          className="no-underline inline-flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all"
+          className="btn-cta no-underline inline-flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all"
           style={{ backgroundColor: PENN_BLUE, color: '#ffffff' }}
           onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = PENN_BLUE_HOVER)}
           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = PENN_BLUE)}

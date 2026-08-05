@@ -182,14 +182,14 @@ export default function FileDropZone({ onFilesScanned }: FileDropZoneProps) {
               <p className="mt-1.5 text-gray-500">
                 or{' '}
                 <span
-                  className="font-medium underline underline-offset-2 text-[#011F5B] cursor-pointer"
+                  className="font-medium underline decoration-2 underline-offset-2 text-[#011F5B] cursor-pointer transition-colors hover:text-[#0d3a7a]"
                   onClick={(e) => { e.stopPropagation(); inputRef.current?.click(); }}
                 >
                   browse folder
                 </span>
                 {' '}·{' '}
                 <span
-                  className="font-medium underline underline-offset-2 text-[#011F5B] cursor-pointer"
+                  className="font-medium underline decoration-2 underline-offset-2 text-[#011F5B] cursor-pointer transition-colors hover:text-[#0d3a7a]"
                   onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
                 >
                   select files

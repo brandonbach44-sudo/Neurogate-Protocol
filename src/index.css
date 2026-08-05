@@ -6,6 +6,39 @@
   --accent: #00d4ff;
 }
 
+/* ═══ Buttons: consistent pointer cursor + lift/glow on hover ═══ */
+/* Tailwind's preflight resets native <button>'s cursor to "default"
+   (unlike <a>, which keeps the browser's native "pointer"). That split is
+   exactly why some buttons across the site showed a pointer cursor with
+   no hover animation (they were actually <Link>/<a> elements, which get
+   pointer for free) while others animated on hover but kept the arrow
+   cursor (native <button>s missing an explicit cursor-pointer class).
+   This rule fixes the cursor for every non-disabled button in one place
+   instead of requiring every button to remember to set it. */
+button:not(:disabled) {
+  cursor: pointer;
+}
+
+/* Shared "looks like a button" lift-and-glow, matching the treatment
+   already used by the shared Button component (src/components/Button.tsx)
+   and the Install CLI button's hand-rolled JS hover handlers. Apply the
+   .btn-cta class to any button-shaped <Link>/<a> or plain <button> that
+   doesn't already implement its own hover animation -- elements that do
+   (inline JS handlers, or Tailwind hover:-translate-y/shadow classes)
+   simply override this, so it's safe to apply broadly. */
+.btn-cta {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+}
+
+.btn-cta:active {
+  transform: translateY(0);
+}
+
 /* ═══ Accessibility: keyboard focus ══════════════════════════ */
 /* Tailwind's reset removes default focus outlines. This restores a
    visible focus ring for keyboard users only (:focus-visible does not

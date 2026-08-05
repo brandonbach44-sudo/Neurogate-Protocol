@@ -105,7 +105,7 @@ export default function AboutPage() {
           <div className="mt-6 flex items-center gap-3">
             <Link
               to="/docs/gov-001"
-              className="no-underline inline-flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all"
+              className="btn-cta no-underline inline-flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all"
               style={{ backgroundColor: PENN_BLUE, color: '#ffffff' }}
               onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = PENN_BLUE_HOVER)}
               onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = PENN_BLUE)}
@@ -118,7 +118,7 @@ export default function AboutPage() {
             </Link>
             <Link
               to="/tool"
-              className="no-underline inline-flex items-center px-5 py-2 rounded-lg text-sm font-medium border transition-all"
+              className="btn-cta no-underline inline-flex items-center px-5 py-2 rounded-lg text-sm font-medium border transition-all"
               style={{ borderColor: '#d1d5db', color: '#374151' }}
               onMouseEnter={(e) => (e.currentTarget.style.borderColor = PENN_BLUE)}
               onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#d1d5db')}
@@ -239,7 +239,7 @@ export default function AboutPage() {
             <button
               type="button"
               onClick={handleCopyEmail}
-              className="inline-flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+              className="btn-cta inline-flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
               style={{
                 backgroundColor: emailCopied ? 'rgba(109,211,206,0.18)' : 'rgba(1,31,91,0.06)',
                 color: emailCopied ? TEAL_TEXT : PENN_BLUE,
@@ -267,7 +267,7 @@ export default function AboutPage() {
               href="https://github.com/brandonbach44-sudo/Epilepsy_GUI"
               target="_blank"
               rel="noopener noreferrer"
-              className="no-underline inline-flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+              className="btn-cta no-underline inline-flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
               style={{ backgroundColor: 'rgba(1,31,91,0.06)', color: PENN_BLUE }}
             >
               <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -279,7 +279,7 @@ export default function AboutPage() {
               href={GOOGLE_SCHOLAR_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="no-underline inline-flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+              className="btn-cta no-underline inline-flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
               style={{ backgroundColor: 'rgba(1,31,91,0.06)', color: PENN_BLUE }}
             >
               <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -310,7 +310,7 @@ export default function AboutPage() {
           <div className="flex flex-col gap-3 md:items-end">
             <Link
               to="/tool"
-              className="no-underline inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all w-full justify-center"
+              className="btn-cta no-underline inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all w-full justify-center"
               style={{ backgroundColor: TEAL, color: PENN_BLUE }}
               onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#5bc4bf')}
               onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = TEAL)}
@@ -323,7 +323,7 @@ export default function AboutPage() {
             </Link>
             <Link
               to="/docs"
-              className="no-underline inline-flex items-center px-5 py-2.5 rounded-lg text-sm font-medium border transition-all w-full justify-center"
+              className="btn-cta no-underline inline-flex items-center px-5 py-2.5 rounded-lg text-sm font-medium border transition-all w-full justify-center"
               style={{ borderColor: 'rgba(255,255,255,0.3)', color: '#ffffff' }}
               onMouseEnter={(e) => (e.currentTarget.style.borderColor = TEAL)}
               onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)')}

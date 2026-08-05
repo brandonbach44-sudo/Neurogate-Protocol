@@ -62,7 +62,7 @@ function OSTabs({ active, onChange }: { active: OS; onChange: (os: OS) => void }
           <button
             key={opt.id}
             onClick={() => onChange(opt.id)}
-            className="text-xs font-medium px-3 py-1.5 rounded-lg transition-colors"
+            className="btn-cta text-xs font-medium px-3 py-1.5 rounded-lg transition-colors"
             style={{
               backgroundColor: isActive ? PENN_BLUE : 'rgba(1,31,91,0.06)',
               color: isActive ? '#ffffff' : PENN_BLUE,
@@ -216,7 +216,7 @@ export default function PreProcessingPage() {
           <div className="mt-6 flex items-center gap-3">
             <Link
               to="/tool"
-              className="no-underline inline-flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all"
+              className="btn-cta no-underline inline-flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all"
               style={{ backgroundColor: PENN_BLUE, color: '#ffffff' }}
               onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = PENN_BLUE_HOVER)}
               onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = PENN_BLUE)}
@@ -229,7 +229,7 @@ export default function PreProcessingPage() {
             </Link>
             <Link
               to="/docs/sop-bids"
-              className="no-underline inline-flex items-center px-5 py-2 rounded-lg text-sm font-medium border transition-all"
+              className="btn-cta no-underline inline-flex items-center px-5 py-2 rounded-lg text-sm font-medium border transition-all"
               style={{ borderColor: '#d1d5db', color: '#374151' }}
               onMouseEnter={(e) => (e.currentTarget.style.borderColor = PENN_BLUE)}
               onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#d1d5db')}
@@ -720,7 +720,7 @@ done`}</CodeBlock>
           <div className="flex md:justify-end">
             <Link
               to="/docs/gov-001"
-              className="no-underline inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all"
+              className="btn-cta no-underline inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all"
               style={{ backgroundColor: TEAL, color: PENN_BLUE }}
               onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#5bc4bf')}
               onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = TEAL)}
