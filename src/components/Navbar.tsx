@@ -16,6 +16,7 @@ export default function Navbar() {
   const [cliStatus, setCliStatus] = useState<CliInstallStatus>('idle');
   const [cliMessage, setCliMessage] = useState('');
   const [cliPanelOpen, setCliPanelOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   async function handleInstallCli() {
     if (!window.neurogateDesktop) return;
@@ -54,7 +55,13 @@ export default function Navbar() {
   }
 
   function copyCommand() {
-    navigator.clipboard?.writeText('neurogate').catch(() => {});
+    navigator.clipboard?.writeText('neurogate').then(
+      () => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1500);
+      },
+      () => {}
+    );
   }
 
   const links = [
@@ -161,9 +168,13 @@ export default function Navbar() {
                         <button
                           type="button"
                           onClick={copyCommand}
-                          className="btn-cta text-xs px-2 py-1 rounded border border-gray-300 hover:bg-gray-50"
+                          className={`btn-cta text-xs px-2 py-1 rounded border transition-colors ${
+                            copied
+                              ? 'border-green-300 bg-green-50 text-green-700'
+                              : 'border-gray-300 hover:bg-gray-50'
+                          }`}
                         >
-                          Copy
+                          {copied ? 'Copied!' : 'Copy'}
                         </button>
                       </div>
                     </>
