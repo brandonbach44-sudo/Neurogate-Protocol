@@ -67,7 +67,7 @@ export default function AuditLogPanel({ isOpen, onClose }: AuditLogPanelProps) {
           </div>
           <button
             onClick={onClose}
-            className="text-blue-200 hover:text-white transition-colors text-lg"
+            className="btn-cta text-blue-200 hover:text-white transition-colors text-lg"
             aria-label="Close audit log panel"
           >
             &times;
@@ -79,7 +79,7 @@ export default function AuditLogPanel({ isOpen, onClose }: AuditLogPanelProps) {
           <button
             onClick={handleExportJson}
             disabled={entries.length === 0}
-            className="px-3 py-1.5 text-xs font-medium bg-[#011F5B] text-white rounded
+            className="btn-cta px-3 py-1.5 text-xs font-medium bg-[#011F5B] text-white rounded
               hover:bg-[#01326e] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Export JSON
@@ -87,7 +87,7 @@ export default function AuditLogPanel({ isOpen, onClose }: AuditLogPanelProps) {
           <button
             onClick={handleExportCsv}
             disabled={entries.length === 0}
-            className="px-3 py-1.5 text-xs font-medium bg-white text-gray-700 border border-gray-300 rounded
+            className="btn-cta px-3 py-1.5 text-xs font-medium bg-white text-gray-700 border border-gray-300 rounded
               hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Export CSV

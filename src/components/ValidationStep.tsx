@@ -167,7 +167,7 @@ export default function ValidationStep({
           </div>
           <button
             onClick={handleRerun}
-            className="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            className="btn-cta px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
           >
             Re-run Checks
           </button>
@@ -182,7 +182,7 @@ export default function ValidationStep({
             <button
               key={cat}
               onClick={() => setFilterCategory(filterCategory === cat ? 'all' : cat)}
-              className={`p-3 rounded-lg border text-left transition-colors ${
+              className={`btn-cta p-3 rounded-lg border text-left transition-colors ${
                 filterCategory === cat
                   ? 'border-[#011F5B] bg-blue-50'
                   : 'border-gray-200 bg-white hover:border-gray-300'
@@ -207,7 +207,7 @@ export default function ValidationStep({
             <button
               key={sev}
               onClick={() => setFilterSeverity(sev)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors ${
+              className={`btn-cta px-3 py-1.5 text-xs font-medium rounded-full transition-colors ${
                 filterSeverity === sev
                   ? 'bg-[#011F5B] text-white'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'

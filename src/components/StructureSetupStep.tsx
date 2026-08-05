@@ -120,7 +120,7 @@ export default function StructureSetupStep({ onContinue, onBack, initialStructur
           <button
             type="button"
             onClick={() => setGate('no')}
-            className="text-left rounded-xl border border-gray-200 bg-white hover:border-gray-300 p-4 transition-colors"
+            className="btn-cta text-left rounded-xl border border-gray-200 bg-white hover:border-gray-300 p-4 transition-colors"
           >
             <div className="text-sm font-semibold text-gray-900 mb-1">No</div>
             <div className="text-xs text-gray-500 leading-relaxed">
@@ -130,7 +130,7 @@ export default function StructureSetupStep({ onContinue, onBack, initialStructur
           <button
             type="button"
             onClick={() => setGate('yes')}
-            className="text-left rounded-xl border border-gray-200 bg-white hover:border-gray-300 p-4 transition-colors"
+            className="btn-cta text-left rounded-xl border border-gray-200 bg-white hover:border-gray-300 p-4 transition-colors"
           >
             <div className="text-sm font-semibold text-gray-900 mb-1">Yes</div>
             <div className="text-xs text-gray-500 leading-relaxed">
@@ -192,7 +192,7 @@ export default function StructureSetupStep({ onContinue, onBack, initialStructur
               key={preset.id}
               type="button"
               onClick={() => setSelectedPreset(preset.id)}
-              className={`text-left rounded-xl border p-4 transition-colors ${
+              className={`btn-cta text-left rounded-xl border p-4 transition-colors ${
                 isSelected
                   ? 'border-blue-600 bg-blue-50'
                   : 'border-gray-200 bg-white hover:border-gray-300'

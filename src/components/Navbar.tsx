@@ -144,7 +144,7 @@ export default function Navbar() {
                     <button
                       type="button"
                       onClick={() => setCliPanelOpen(false)}
-                      className="text-gray-400 hover:text-gray-600 leading-none"
+                      className="btn-cta text-gray-400 hover:text-gray-600 leading-none"
                       aria-label="Close"
                     >
                       &times;
@@ -161,7 +161,7 @@ export default function Navbar() {
                         <button
                           type="button"
                           onClick={copyCommand}
-                          className="text-xs px-2 py-1 rounded border border-gray-300 hover:bg-gray-50"
+                          className="btn-cta text-xs px-2 py-1 rounded border border-gray-300 hover:bg-gray-50"
                         >
                           Copy
                         </button>
@@ -177,7 +177,7 @@ export default function Navbar() {
 
           <Link
             to="/tool"
-            className="hidden md:inline-flex no-underline text-sm font-medium px-4 py-1.5 rounded-md transition-all"
+            className="btn-cta hidden md:inline-flex no-underline text-sm font-medium px-4 py-1.5 rounded-md transition-all"
             style={{
               backgroundColor: '#6DD3CE',
               color: '#011F5B',
@@ -196,7 +196,7 @@ export default function Navbar() {
           <button
             type="button"
             onClick={() => setMenuOpen((o) => !o)}
-            className="md:hidden flex items-center justify-center w-10 h-10 rounded-lg transition-colors"
+            className="btn-cta md:hidden flex items-center justify-center w-10 h-10 rounded-lg transition-colors"
             style={{
               backgroundColor: menuOpen ? 'rgba(109,211,206,0.2)' : 'rgba(255,255,255,0.08)',
               color: '#ffffff',
@@ -250,7 +250,7 @@ export default function Navbar() {
           <Link
             to="/tool"
             onClick={closeMenu}
-            className="no-underline text-sm font-semibold mt-2 px-4 py-2.5 rounded-md text-center transition-all"
+            className="btn-cta no-underline text-sm font-semibold mt-2 px-4 py-2.5 rounded-md text-center transition-all"
             style={{
               backgroundColor: '#6DD3CE',
               color: '#011F5B',

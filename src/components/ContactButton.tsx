@@ -93,7 +93,7 @@ export default function ContactButton() {
             <button
               type="button"
               onClick={handleCopy}
-              className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg transition-all"
+              className="btn-cta flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg transition-all"
               style={{
                 backgroundColor: copied ? 'rgba(109,211,206,0.18)' : 'rgba(1,31,91,0.06)',
                 color: copied ? TEAL_TEXT : PENN_BLUE,
@@ -118,7 +118,7 @@ export default function ContactButton() {
             </button>
             <a
               href={MAILTO}
-              className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg no-underline transition-all"
+              className="btn-cta flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg no-underline transition-all"
               style={{ backgroundColor: PENN_BLUE, color: '#ffffff' }}
               onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = PENN_BLUE_HOVER)}
               onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = PENN_BLUE)}

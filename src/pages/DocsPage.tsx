@@ -23,7 +23,7 @@ function DocCard({
   return (
     <Link
       to={to}
-      className="no-underline group block rounded-xl border border-gray-100 bg-white p-6 shadow-sm hover:shadow-md transition-all duration-300"
+      className="btn-cta no-underline group block rounded-xl border border-gray-100 bg-white p-6 shadow-sm hover:shadow-md transition-all duration-300"
     >
       <div className="flex items-start justify-between mb-4">
         <div
@@ -97,7 +97,7 @@ export default function DocsPage() {
       <div className="mb-8">
         <Link
           to="/docs/gov-001"
-          className="no-underline group block rounded-2xl border border-gray-100 bg-white shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
+          className="btn-cta no-underline group block rounded-2xl border border-gray-100 bg-white shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
         >
           <div className="p-8">
             <div className="flex items-center gap-2 mb-4">
