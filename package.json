@@ -24,6 +24,7 @@
     "cli:sea": "npm run cli:bundle && node scripts/build-cli-sea.mjs",
     "verify:cli-bundle": "node scripts/verify-cli-bundle.mjs",
     "electron:dev": "npm run build && electron .",
+    "electron:dev:fast": "node scripts/dev-electron.mjs",
     "electron:build": "npm run build && npm run cli:sea && electron-builder"
   },
   "dependencies": {
