@@ -79,6 +79,26 @@ function looksLikeCalendarYear(value: string): boolean {
 }
 
 /**
+ * True if a filename stem looks like a DICOM UID -- a dotted sequence of
+ * numeric segments like "2.16.124.113543.6006.99.14956571". DICOM UIDs
+ * routinely contain 3-4 digit numbers (e.g. "124") that perfectly match
+ * the last-resort \b(\d{3,4})\b subject ID pattern and the
+ * [A-Z]{2,6}\d{2,4} institution prefix pattern, producing spurious
+ * subject groups from scanner-generated filenames. If the stem starts
+ * with four or more dot-separated numeric segments, we skip all subject
+ * ID extraction and return null rather than pulling a meaningless UID
+ * fragment. Found via adversarial testing 2026-08-16: a Flywheel download
+ * with DICOM UID filenames was being grouped under subject "124" (from the
+ * third segment of the UID).
+ */
+function looksLikeDicomUid(fileNameStem: string): boolean {
+  // Match at least four dot-separated numeric segments at the start, which
+  // is the minimum signature of a real DICOM UID. Short dotted decimals
+  // (e.g. "v1.2") won't match, avoiding false positives on version strings.
+  return /^\d+(\.\d+){3,}/.test(fileNameStem);
+}
+
+/**
  * Extract subject ID from a filename using common patterns.
  */
 function extractSubjectIdFromFilename(fileName: string): string | null {
@@ -89,6 +109,24 @@ function extractSubjectIdFromFilename(fileName: string): string | null {
   // Normalize underscores to spaces so \b word boundaries work correctly.
   // Without this, "_001_" won't match \b(\d{3,4})\b because _ is a word char.
   const normalized = nameWithoutExt.replace(/_/g, ' ');
+
+  // DICOM UID filenames (e.g. "2.16.124.113543.6006.99.MR") contain short
+  // numeric segments that spuriously match subject ID patterns. Bail out
+  // immediately rather than returning a meaningless UID fragment as a
+  // "subject ID" that silently merges or splits patient groups.
+  if (looksLikeDicomUid(nameWithoutExt)) return null;
+
+  // Flywheel/Scitran packages DICOM series into .dicom.zip archives named
+  // after the scan protocol, which includes scanner acquisition parameters
+  // like bandwidth ("BW2264"), echo time ("te122"), b-values ("b3000"), etc.
+  // These look like "ep2d_diff_sms3_b3000_te122_d64_duty68_BW2264_pF68" --
+  // 9 underscore-separated segments. A subject-ID-bearing filename would
+  // rarely have more than 5 (e.g. "sub-01_ses-preimplant_task-rest_bold").
+  // If the stem has 7 or more segments, skip all subject ID extraction.
+  // Confirmed via real-data testing 2026-08-16: BW2264 (a bandwidth value)
+  // was being picked up as a subject ID from Flywheel scan-parameter filenames.
+  const underscoreSegments = nameWithoutExt.split(/[_\s]+/);
+  if (underscoreSegments.length >= 7) return null;
 
   for (let i = 0; i < SUBJECT_ID_PATTERNS.length; i++) {
     const match = normalized.match(SUBJECT_ID_PATTERNS[i]);
@@ -101,8 +139,22 @@ function extractSubjectIdFromFilename(fileName: string): string | null {
     // false merge. Skipping this pattern's match still lets us try
     // nothing further (it's already last), so we fall through to null.
     const isLastResortGenericNumber = i === SUBJECT_ID_PATTERNS.length - 1;
-    if (isLastResortGenericNumber && looksLikeCalendarYear(match[1])) {
-      continue;
+    if (isLastResortGenericNumber) {
+      if (looksLikeCalendarYear(match[1])) continue;
+
+      // Skip DWI b-values, echo times, gradient directions, and other scan
+      // parameter numbers. A bare 3-4 digit number following a known MRI
+      // acquisition parameter token (simple or compound) is a scan setting,
+      // not a subject ID. Examples caught:
+      //   "DTI 64 dir b 1300"         → "b" prefix     → skip 1300
+      //   "ep2d diff SliceAcc b5k 128" → "b5k" prefix  → skip 128
+      //   "CMRR 5k 128 SBRef"          → "5k" prefix   → skip 128 (bare SI suffix)
+      //   "ep2d diff te94 d 64"        → "te94" prefix → skip 64
+      if (match.index !== undefined && match.index > 0) {
+        const before = normalized.slice(0, match.index).trimEnd();
+        // Match simple (b, te, tr, bw) OR compound (b5k, b3k, te94, tr2000) prefixes.
+        if (/\b(b\d*[kmgM]?|\d+[kmgM]|te\d*|tr\d*|bw\d*|ti\d*|fa\d*|flip\d*|d\d+|duty\d+)$/i.test(before)) continue;
+      }
     }
 
     return match[1];
@@ -223,12 +275,26 @@ function getSessionFromSubfolder(relativePath: string): { session: Session | nul
  *   set to pattern-match against.
  */
 function looksLikeSessionFolder(folderName: string, customSessionIds?: string[]): boolean {
-  if (customSessionIds && customSessionIds.length > 0) {
-    return customSessionIds.some(id => id.toLowerCase() === folderName.toLowerCase());
+  const trimmed = folderName.trim();
+
+  // Flywheel-style session folder names: "2weeks", "6months", "12mo", "1year" etc.
+  // These are used by Flywheel/Scitran as session labels in downloaded data.
+  if (/^\d+\s*(weeks?|months?|days?|years?|wks?|mos?|yrs?|d)$/i.test(trimmed)) return true;
+
+  // Date-format session folders: YYYYMMDD (e.g. "20180510" = May 10, 2018).
+  // OrthoControls and similar cohorts use scan dates as session folder names.
+  if (/^\d{8}$/.test(trimmed)) {
+    const month = parseInt(trimmed.slice(4, 6), 10);
+    const day   = parseInt(trimmed.slice(6, 8), 10);
+    if (month >= 1 && month <= 12 && day >= 1 && day <= 31) return true;
   }
-  const normalized = folderName.replace(/_/g, ' ').toLowerCase();
+
+  if (customSessionIds && customSessionIds.length > 0) {
+    return customSessionIds.some(id => id.toLowerCase() === trimmed.toLowerCase());
+  }
+  const normalized = trimmed.replace(/_/g, ' ').toLowerCase();
   return /\b(pre[-\s]?implant|preimplant|pre[-\s]?op|preop|pre[-\s]?surg|baseline|post[-\s]?implant|postimplant|implant|monitoring|ictal|post[-\s]?surg|postsurg|post[-\s]?op|postop|resection|post[-\s]?surgery|phase[-\s]?[123]|session[-\s]?[123]|ses[-\s]?[123])\b/i.test(normalized)
-    || /^ses[-_]\w+$/i.test(folderName.trim());
+    || /^ses[-_]\w+$/i.test(trimmed);
 }
 
 /**
@@ -261,7 +327,15 @@ export function groupIntoSubject(
         .filter((f): f is string => f !== null)
     );
 
-    if (allTopFolders.size > 1) {
+    // If every top-level folder looks like a session label (Flywheel names like
+    // "2weeks"/"6months", YYYYMMDD dates, or named ses-* labels), do NOT treat
+    // them as different patients — they are sessions of one subject. Fall through
+    // to the second-level folder / filename extraction logic below.
+    const allTopLookLikeSessions =
+      allTopFolders.size > 0 &&
+      [...allTopFolders].every(f => looksLikeSessionFolder(f, customSessionIds));
+
+    if (allTopFolders.size > 1 && !allTopLookLikeSessions) {
       // Multiple top-level folders → each is likely a different patient
       groupName = topFolder;
       reasons.push({
@@ -282,6 +356,30 @@ export function groupIntoSubject(
       }
 
       return { groupName, session, reasons, ambiguousSessionCandidate: subfolderSession.ambiguousSessionCandidate };
+    }
+
+    // When ALL top-level folders are session labels (Flywheel "2weeks"/"6months",
+    // YYYYMMDD dates, etc.), second-level folders are SCAN SERIES names, not
+    // patient identifiers. Skip second-level patient detection entirely and go
+    // straight to filename-based subject ID extraction.
+    if (allTopLookLikeSessions) {
+      const subjectId = extractSubjectIdFromFilename(file.name);
+      if (subjectId) {
+        groupName = subjectId;
+        reasons.push({
+          layer: 'subject-grouping',
+          message: `Subject ID from filename: "${subjectId}" (top-level folders are sessions)`,
+          weight: 0.5,
+        });
+      } else {
+        groupName = 'ungrouped';
+        reasons.push({
+          layer: 'subject-grouping',
+          message: `Single subject — all top-level folders are session labels, no ID in filenames`,
+          weight: 0.3,
+        });
+      }
+      return { groupName, session, reasons, ambiguousSessionCandidate: null };
     }
 
     // Only one top-level folder (the dropped parent, e.g., "EpilepsyStudy_Raw").
