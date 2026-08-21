@@ -32,6 +32,18 @@ const CLUSTER_WINDOW_HOURS = 24;
 
 export interface DatedFile {
   fileName: string;
+  /**
+   * Full relative path, used as the assignment key.
+   *
+   * Keying by bare fileName silently merged files across visits: a
+   * longitudinal subject routinely has the SAME scan names in every
+   * session ("3D_T2_TSE.nii.gz" under both 20180510 and 20181116), so the
+   * later visit's assignment overwrote the earlier one in the Map and
+   * every shared scan took whichever session happened to be processed
+   * last. Found 2026-08-17 via the Flywheel regression fixture, and
+   * present in the real OrthoControls data.
+   */
+  relativePath: string;
   date: Date;
 }
 
@@ -113,7 +125,7 @@ export function assignDateClusterSessions(
       weight: 0.6,
     };
     for (const f of cluster) {
-      assignments.set(f.fileName, { session, reasons: [reason] });
+      assignments.set(f.relativePath, { session, reasons: [reason] });
     }
   });
 

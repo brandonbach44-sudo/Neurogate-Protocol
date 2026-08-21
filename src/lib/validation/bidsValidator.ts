@@ -178,5 +178,47 @@ export function validateBidsStructure(
     }
   }
 
+  // ── Unpaired diffusion gradient tables ──────────────────────────
+  // Same idea as the orphaned-JSON check above, for .bval / .bvec.
+  //
+  // bidsNaming pairs a scan with its companions by shared base name, so a
+  // gradient table only follows its image when dcm2niix named them
+  // together. Some sites name them independently -- the Phase2_MRI data
+  // has images called "ep2d_diff_sms_aldit_b1k.nii.gz" with gradients
+  // called "DTI_b1000.bval" one folder up. Those never share a base name,
+  // so each gets its own run entity and the pair is silently split:
+  // "run-1_dwi.bval" ends up describing no exported image, while
+  // "run-13_dwi.nii.gz" ships with no gradients.
+  //
+  // The pairing is NOT guessed here. Inferring "DTI_b1000" belongs to
+  // "..._b1k" means matching on b-value spelling and phase-encoding
+  // suffixes, and a wrong pairing would attach the wrong gradient
+  // directions to a diffusion series -- an error that produces
+  // plausible-looking tractography from the wrong table and is very hard
+  // to spot downstream. Flagging it and letting the user pair or exclude
+  // is the safe behavior. Found 2026-08-17.
+  const gradientFiles = results.filter(r => /\.(bval|bvec)$/i.test(r.fileName));
+  for (const grad of gradientFiles) {
+    const base = grad.fileName.replace(/\.(bval|bvec)$/i, '');
+    const hasMatchingImage = results.some(r => {
+      if (r === grad) return false;
+      if (!/\.nii(\.gz)?$/i.test(r.fileName)) return false;
+      const rName = r.fileName.replace(/\.nii\.gz$/i, '').replace(/\.nii$/i, '');
+      return rName === base;
+    });
+
+    if (!hasMatchingImage) {
+      issues.push({
+        id: nextId(),
+        category: 'bids-structure',
+        severity: 'warning',
+        title: 'Diffusion gradient table not matched to an image',
+        description: `"${grad.fileName}" is a diffusion gradient table, but no image file shares its base name, so it cannot be paired automatically and will be exported under its own run number — not alongside the scan it describes. This usually means the site named the gradient files differently from the images (for example "DTI_b1000.bval" next to "ep2d_diff_..._b1k.nii.gz"). Confirm which diffusion series this table belongs to and pair or exclude it manually; the tool does not guess, because attaching the wrong gradient directions to a series corrupts the diffusion data silently.`,
+        affectedFiles: [grad.relativePath],
+        dismissable: true,
+      });
+    }
+  }
+
   return issues;
 }

@@ -35,7 +35,7 @@ export const LOCALIZER_EXCLUDED = '(excluded from export: localizer/scout)';
 
 /** Modalities that produce a real data file in the BIDS export. */
 const EXPORTABLE_MODALITIES = new Set<Modality>([
-  'anat-T1w', 'anat-T2w', 'anat-FLAIR', 'anat-angio',
+  'anat-T1w', 'anat-T2w', 'anat-FLAIR', 'anat-PDw', 'anat-T2starw', 'anat-angio',
   'ct', 'dwi', 'perf', 'eeg', 'ieeg', 'func', 'fmap',
   'electrodes', 'channels', 'events',
 ]);
@@ -45,6 +45,8 @@ const SUFFIX: Record<string, string> = {
   'anat-T1w': 'T1w',
   'anat-T2w': 'T2w',
   'anat-FLAIR': 'FLAIR',
+  'anat-PDw': 'PDw',
+  'anat-T2starw': 'T2starw',
   'anat-angio': 'angio',
   'ct': 'ct',
   'dwi': 'dwi',
@@ -99,6 +101,16 @@ function stripExtension(name: string): string {
   return dot >= 0 ? name.substring(0, dot) : name;
 }
 
+/**
+ * True for a Siemens motion-corrected series. Detected from the file name
+ * because the distinction is a property of the individual file, not of its
+ * modality: the MoCo volume and the BOLD run it was derived from share a
+ * subject, session and modality, and only the name separates them.
+ */
+function isMotionCorrected(fileName: string): boolean {
+  return /\bmoco/i.test(baseName(fileName).replace(/[_-]/g, ''));
+}
+
 /** Add the sub- prefix if the id does not already carry it. */
 function subjectPrefix(id: string): string {
   return id.startsWith('sub-') ? id : `sub-${id}`;
@@ -122,8 +134,13 @@ function classifyFmap(fileName: string): { type: 'magnitude' | 'phase'; echo: nu
   const stem = baseName(fileName).toLowerCase();
   const echoMatch = stem.match(/_e(\d+)/);
   const echo = echoMatch ? parseInt(echoMatch[1], 10) : null;
+  // "_ph" may carry dcm2niix's collision-suffix letter ("_pha"), so allow
+  // one trailing letter before the boundary. Without it, "…_e2_pha" failed
+  // every phase test and was filed as a second magnitude image, which then
+  // collided with the real magnitude2 and split one field-map set across
+  // two run entities (seen in 01_1265, found 2026-08-17).
   const isPhase =
-    /_ph(?:[._]|$)/.test(stem) || /phase/.test(stem) || /phasediff/.test(stem);
+    /_ph[a-z]?(?:[._]|$)/.test(stem) || /phase/.test(stem) || /phasediff/.test(stem);
   return { type: isPhase ? 'phase' : 'magnitude', echo };
 }
 
@@ -163,10 +180,30 @@ function assignGroupEntities(
 
   // Every other modality: number the acquisitions when there is more
   // than one. A single acquisition needs no run entity.
-  if (bases.length > 1) {
-    bases.forEach((b, idx) => {
-      for (const i of baseToIndices.get(b)!) runOf.set(i, idx + 1);
-    });
+  //
+  // Numbering happens WITHIN a reconstruction group, because rec- already
+  // separates a reconstruction from its source acquisition. A session
+  // holding one BOLD run plus its Siemens MoCoSeries has two bases, so
+  // flat numbering produced "task-rest_bold" as run-1 and
+  // "task-rest_rec-moco_bold" as run-2 -- a redundant run entity implying
+  // two separate runs when there is one acquisition and one
+  // reconstruction of it. Split first, then number, so each side gets a
+  // run entity only if it genuinely repeats.
+  const recGroups = new Map<string, string[]>();
+  for (const b of bases) {
+    const sample = results[baseToIndices.get(b)![0]];
+    const key = isMotionCorrected(sample.fileName) ? 'rec-moco' : '';
+    const list = recGroups.get(key);
+    if (list) list.push(b);
+    else recGroups.set(key, [b]);
+  }
+
+  for (const groupBases of recGroups.values()) {
+    if (groupBases.length > 1) {
+      groupBases.forEach((b, idx) => {
+        for (const i of baseToIndices.get(b)!) runOf.set(i, idx + 1);
+      });
+    }
   }
 }
 
@@ -215,8 +252,25 @@ function assignFmapEntities(
   // "gre_field_mapping", so no real field map ever reached this function
   // and the demo dataset contains none. Surfaced 2026-08-17 once the
   // regex was fixed.
-  const seriesOf = (base: string): string =>
-    base.replace(/_e\d+(_ph)?$/i, '').replace(/_ph$/i, '');
+  // Series identity = the acquisition name with the echo / phase token
+  // removed, but KEEPING dcm2niix's collision-suffix letter.
+  //
+  // When dcm2niix would emit the same name twice it appends a letter, so a
+  // second complete field-map set arrives as _e1a / _e2a / _e2_pha
+  // alongside _e1 / _e2 / _e2_ph. Those are two full sets, not extra
+  // echoes of one set, so the letter belongs to the series key.
+  //
+  // Getting this wrong split 01_1265's field maps into per-file "series"
+  // and produced magnitude-only and phasediff-only groups: the first
+  // version of this regex was /_e\d+(_ph)?$/ and did not match "_e1a" or
+  // "_e2_pha" at all, leaving the echo token in the stem.
+  const seriesOf = (base: string): string => {
+    const m = base.match(/^(.*)_e(\d+)([a-z]?)(?:_ph([a-z]?))?$/i);
+    if (!m) return base.replace(/_ph[a-z]?$/i, '');
+    const [, stem, , echoVariant, phaseVariant] = m;
+    const variant = echoVariant || phaseVariant || '';
+    return variant ? `${stem}#${variant}` : stem;
+  };
 
   const seriesNames = [...new Set(bases.map(seriesOf))].sort();
 
@@ -298,6 +352,13 @@ function buildFilename(
   const parts: string[] = session ? [sub, session] : [sub];
   const task = taskEntity(modality);
   if (task) parts.push(task);
+  // BIDS rec-<label> marks a reconstruction of an acquisition. Siemens
+  // emits MoCoSeries as the motion-corrected version of a BOLD run, so it
+  // is the same acquisition reconstructed differently -- not a second run.
+  // Without this the MoCo volume and the run it came from both resolve to
+  // "task-rest_bold" and are separated only by run-1 / run-2, which loses
+  // the relationship and implies two independent acquisitions.
+  if (isMotionCorrected(originalFileName)) parts.push('rec-moco');
   if (run !== undefined) parts.push(`run-${run}`);
 
   const suffix = fmapSuffix ?? SUFFIX[modality] ?? modality;

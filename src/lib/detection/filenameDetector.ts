@@ -65,29 +65,54 @@ const MODALITY_PATTERNS: [RegExp, Modality, string][] = [
   // as anatomical (they sometimes carry "t1"/"3-plane" in the name).
   [/\b(localizer|localiser|scout|aahead[-_]?scout|aascout|3[-_]?plane[-_]?loc|survey[-_]?scan)\b/i, 'localizer', 'Localizer / scout scan keyword'],
 
-  // Motion correction series (Siemens fMRI byproduct) -- checked before
-  // T1w since "MoCoSeries" is a distinct scan type that should not match
-  // generic T1 keyword rules downstream. Stored as anat-T1w because the
-  // MoCo volume is a structural-reference EPI; it is NOT a true T1w but
-  // is the best fit among current modalities until a dedicated type is added.
-  [/\b(moco[-_]?series|mo[-_]?co[-_]?series|mocoseries)\b/i, 'anat-T1w', 'Motion correction series (structural reference, Siemens fMRI)'],
+  // Motion-correction series (Siemens fMRI byproduct) -- checked before
+  // the T1w rules so it never falls through to a generic T1 keyword.
+  //
+  // Classified as func, not anat-T1w. This was anat-T1w with a comment
+  // calling it a "structural-reference EPI", which is wrong: the NIfTI
+  // header settles it. In 01_1207/2weeks, MoCoSeries is
+  // ndim=4 shape=(64,64,49,140) -- byte-for-byte the same geometry as
+  // Resting_State_fMRI_extended_ADNI in the same session. It is the
+  // motion-corrected version of that BOLD run, so it is functional data.
+  // 32 files were being exported as fabricated _T1w anatomicals
+  // (verified 2026-08-17). buildFilename gives it a rec-moco entity so it
+  // never collides with the original run it was derived from.
+  [/\b(moco[-_]?series|mo[-_]?co[-_]?series|mocoseries)\b/i, 'func', 'Motion-corrected BOLD series (Siemens MoCoSeries)'],
 
   // Anatomical -- T1-weighted (most common MRI type)
-  [/\b(t1w|t1_w|t1[-_]?weighted|t1[-_]?mprage|mprage|t1[-_]?space|t1_sag|t1_ax|t1_cor|structural)\b/i, 'anat-T1w', 'T1-weighted MRI keyword'],
+  [/\b(t1w|t1_w|t1[-_]?weighted|t1[-_]?mprage|mp[-_]?rage|mprage|t1[-_]?space|t1_sag|t1_ax|t1_cor|structural)\b/i, 'anat-T1w', 'T1-weighted MRI keyword'],
   [/\bt1\b/i, 'anat-T1w', 'T1 keyword (assumed T1-weighted)'],
 
   // Anatomical -- FLAIR (check before T2 since FLAIR is a specific T2 variant)
-  [/\b(flair|t2[-_]?flair|flair[-_]?3d|flair[-_]?sag|flair[-_]?ax|flair[-_]?cor)\b/i, 'anat-FLAIR', 'FLAIR MRI keyword'],
+  // "tflr" / "t2flr" / "tflair" are the abbreviations this scanner writes
+  // ("3D_TFLR", "T2flr_Sagittal", "Tflair_axial"). Without them these fell
+  // to the blind T1w default -- T2flr_Sagittal was exported as a T1w.
+  [/\b(flair|t2[-_]?flair|flair[-_]?3d|flair[-_]?sag|flair[-_]?ax|flair[-_]?cor|t2?flr|tflair)\b/i, 'anat-FLAIR', 'FLAIR MRI keyword'],
 
   // Susceptibility Weighted Imaging (SWI) -- check before T2w because SWI
   // is technically a T2*-weighted sequence and should be classified
   // separately even though it lives in the anat/ BIDS folder.
   // Common scanner series names: "Sag_SWI_3D", "SWI_12ch", etc.
-  [/\b(swi|susceptibility[-_]?weighted|sw[-_]?imaging|t2star|t2[-_]?\*)\b/i, 'anat-T2w', 'Susceptibility-weighted (SWI) MRI keyword'],
+  [/\b(swi|susceptibility[-_]?weighted|sw[-_]?imaging|t2star|t2[-_]?\*)\b/i, 'anat-T2starw', 'Susceptibility-weighted / T2* MRI keyword'],
+
+  // The images an SWI reconstruction emits alongside the SWI volume:
+  // magnitude, phase, and the minimum-intensity projection. Siemens names
+  // them "Mag_Images", "Pha_Images" and "mIP_Images_SW_", which carry no
+  // SWI token at all, so they used to fall to the blind T1w default (29
+  // files). They are T2*-weighted like their parent series. Matched on the
+  // exact Siemens spellings rather than a loose "mag"/"pha" token, which
+  // would collide with unrelated names.
+  [/\b(mag[-_]?images|pha[-_]?images|m[-_]?ip[-_]?images(?:[-_]?sw)?)\b/i, 'anat-T2starw', 'SWI reconstruction output (magnitude / phase / mIP)'],
 
   // Anatomical -- T2-weighted
   [/\b(t2w|t2_w|t2[-_]?weighted|t2[-_]?space|t2_sag|t2_ax|t2_cor)\b/i, 'anat-T2w', 'T2-weighted MRI keyword'],
   [/\bt2\b/i, 'anat-T2w', 'T2 keyword (assumed T2-weighted)'],
+
+  // Proton-density weighted. "pd_tse_tra" / "PD_TSE" are this scanner's
+  // names; 30 files were exported as fabricated T1w before anat-PDw
+  // existed. Requires the pd token to stand alone so it cannot match
+  // inside an unrelated word.
+  [/\b(pdw|pd[-_]?tse|pd[-_]?weighted|proton[-_]?density|pd)\b/i, 'anat-PDw', 'Proton-density weighted MRI keyword'],
 
   // MR Angiography -- Time-of-Flight
   [/\b(tof|angio|angiography|mra|time[-_]?of[-_]?flight)\b/i, 'anat-angio', 'MR angiography (TOF) keyword'],

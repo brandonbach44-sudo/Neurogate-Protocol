@@ -73,7 +73,7 @@ export function detectFromExtension(fileName: string, _relativePath: string): Ex
   // Extension alone can't tell which — other layers will refine.
   if (lower.endsWith('.nii.gz')) {
     return {
-      possibleModalities: ['anat-T1w', 'anat-T2w', 'anat-FLAIR', 'anat-angio', 'ct', 'dwi', 'perf', 'func', 'fmap', 'localizer'],
+      possibleModalities: ['anat-T1w', 'anat-T2w', 'anat-FLAIR', 'anat-PDw', 'anat-T2starw', 'anat-angio', 'ct', 'dwi', 'perf', 'func', 'fmap', 'localizer'],
       bestGuess: null, // need filename/folder keywords to narrow down
       reason: {
         layer: 'extension',
@@ -88,7 +88,7 @@ export function detectFromExtension(fileName: string, _relativePath: string): Ex
   // the exporter gzips it automatically, so this is just informational.
   if (lower.endsWith('.nii') && !lower.endsWith('.nii.gz')) {
     return {
-      possibleModalities: ['anat-T1w', 'anat-T2w', 'anat-FLAIR', 'anat-angio', 'ct', 'dwi', 'perf', 'func', 'fmap', 'localizer'],
+      possibleModalities: ['anat-T1w', 'anat-T2w', 'anat-FLAIR', 'anat-PDw', 'anat-T2starw', 'anat-angio', 'ct', 'dwi', 'perf', 'func', 'fmap', 'localizer'],
       bestGuess: null,
       reason: {
         layer: 'extension',

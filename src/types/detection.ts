@@ -40,6 +40,8 @@ export type Modality =
   | 'anat-T1w'
   | 'anat-T2w'
   | 'anat-FLAIR'
+  | 'anat-PDw'
+  | 'anat-T2starw'
   | 'anat-angio'
   | 'ct'
   | 'dwi'
@@ -60,6 +62,18 @@ export const MODALITIES: { value: Modality; label: string; bidsFolder: string }[
   { value: 'anat-T1w', label: 'Anatomical MRI (T1w)', bidsFolder: 'anat' },
   { value: 'anat-T2w', label: 'Anatomical MRI (T2w)', bidsFolder: 'anat' },
   { value: 'anat-FLAIR', label: 'Anatomical MRI (FLAIR)', bidsFolder: 'anat' },
+  // Proton-density weighted. Siemens names these "pd_tse_tra" / "PD_TSE".
+  // Before this existed they fell to the blind T1w default and were
+  // exported as fabricated T1w anatomicals (30 files in the Phase2_MRI
+  // corpus). BIDS suffix: _PDw.
+  { value: 'anat-PDw', label: 'Anatomical MRI (Proton Density)', bidsFolder: 'anat' },
+  // T2*-weighted, which is what SWI and gradient-echo T2* series actually
+  // are. They used to be folded into anat-T2w -- a different contrast
+  // entirely -- because no closer type existed. Covers "Sag_SWI_3D",
+  // "3D_T2star_GRE", "SWI_Images" and the derived magnitude / phase /
+  // minimum-intensity-projection images the SWI reconstruction emits.
+  // BIDS suffix: _T2starw.
+  { value: 'anat-T2starw', label: 'Anatomical MRI (T2*/SWI)', bidsFolder: 'anat' },
   { value: 'anat-angio', label: 'MR Angiography (TOF)', bidsFolder: 'anat' },
   { value: 'ct', label: 'CT Scan', bidsFolder: 'ct' },
   { value: 'dwi', label: 'Diffusion MRI', bidsFolder: 'dwi' },
