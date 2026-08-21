@@ -51,6 +51,24 @@ export interface FilenameResult {
 const DERIVED_DIFFUSION_MAP = /[-_](adc|fa|tracew|colfa|exadc)$/i;
 
 /**
+ * Scanner-computed projection images, which are reformatted views rather
+ * than acquisitions.
+ *
+ * A minimum-intensity projection collapses a slab of an SWI volume into a
+ * single image to make veins and microbleeds legible. Siemens writes it as
+ * "mIP_Images_SW_". Like a diffusion ADC map it is computed on the
+ * console, so it belongs in derivatives/ rather than beside the
+ * acquisitions -- reading it as a normal T2*-weighted volume would treat a
+ * projection through several slices as if it were the slices themselves.
+ *
+ * Matched on the explicit Siemens spelling rather than a bare "mip" token,
+ * which would collide with unrelated names.
+ */
+export function derivedProjectionKind(normalized: string): string | null {
+  return /\bm[-_]?ip[-_]?images?\b/i.test(normalized) ? 'mIP' : null;
+}
+
+/**
  * True when a scan name is a scanner-derived diffusion parameter map.
  * Requires a diffusion context so an unrelated scan merely ending in "fa"
  * is not caught.

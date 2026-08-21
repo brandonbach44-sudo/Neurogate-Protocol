@@ -26,7 +26,7 @@ import type {
   DetectionReason,
 } from '../../types/detection';
 import { detectFromExtension } from './extensionDetector';
-import { detectFromFilename, detectFromSidecarText, derivedDiffusionKind, normalizeForKeywords } from './filenameDetector';
+import { detectFromFilename, detectFromSidecarText, derivedDiffusionKind, derivedProjectionKind, normalizeForKeywords } from './filenameDetector';
 import { detectFromFolderPath } from './folderDetector';
 import { inferFromNeighbors, getFolderPath } from './neighborInference';
 import { groupIntoSubject } from './subjectGrouping';
@@ -535,16 +535,35 @@ export function runDetection(
     // scanner put in the name (…_ADC, …_FA, …_TRACEW). Skipped when
     // ImageType already decided, so the sidecar always wins.
     if (!modalityLocked && /\.nii(\.gz)?$/i.test(file.name)) {
-      const nameKind = derivedDiffusionKind(
-        normalizeForKeywords(file.name.replace(/\.nii\.gz$/i, '').replace(/\.nii$/i, '')),
+      const normalizedName = normalizeForKeywords(
+        file.name.replace(/\.nii\.gz$/i, '').replace(/\.nii$/i, ''),
       );
-      if (nameKind) {
+      const diffusionKind = derivedDiffusionKind(normalizedName);
+      const projectionKind = derivedProjectionKind(normalizedName);
+      if (diffusionKind) {
+        // A derived diffusion map: force dwi, since the name that produced
+        // this verdict is a diffusion series name.
         modality = 'dwi';
-        derivedLabel = nameKind;
+        derivedLabel = diffusionKind;
         modalityLocked = true;
         reasons.push({
           layer: 'filename',
-          message: `Scanner-derived ${nameKind} map (from the scan name; no JSON sidecar to confirm) — exported under derivatives/ as desc-${nameKind}.`,
+          message: `Scanner-derived ${diffusionKind} map (from the scan name; no JSON sidecar to confirm) — exported under derivatives/ as desc-${diffusionKind}.`,
+          weight: 0.4,
+          supports: 'modality',
+        });
+      } else if (projectionKind) {
+        // A projection keeps whatever modality its own name established --
+        // a minimum-intensity projection of an SWI volume is still
+        // T2*-weighted anatomy, just reformatted. Only its PLACEMENT
+        // changes, which is what derivedLabel controls. Forcing dwi here
+        // (as the diffusion branch does) filed mIP_Images_SW_ under
+        // derivatives/.../dwi/ as desc-mIP_dwi.
+        derivedLabel = projectionKind;
+        modalityLocked = true;
+        reasons.push({
+          layer: 'filename',
+          message: `Scanner-computed ${projectionKind} projection, not an acquisition — exported under derivatives/ as desc-${projectionKind}.`,
           weight: 0.4,
           supports: 'modality',
         });

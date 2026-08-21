@@ -285,6 +285,46 @@ function pairGradientTables(results: DetectionResult[]): Map<number, number> {
   return pairing;
 }
 
+// ── Magnitude / phase pairing (complex-valued acquisitions) ──────
+// An SWI or T2*-GRE sequence reconstructs both a magnitude and a phase
+// image from the same acquisition. They are one acquisition in two parts,
+// not two acquisitions, so BIDS separates them with the part- entity
+// rather than numbering them run-1 and run-2 as this module used to.
+//
+// Two namings appear in the Phase2_MRI corpus, both handled:
+//
+//   Sag_SWI_3D.nii.gz + Sag_SWI_3D_ph.nii.gz    same base, _ph marks phase
+//   Mag_Images.nii.gz + Pha_Images_ph.nii.gz    Siemens' separate SWI
+//                                               reconstruction outputs
+//
+// part- is assigned only when BOTH members are present in the same
+// subject + session + modality group. A lone magnitude is just an
+// acquisition and takes no part- entity, because part- asserts the
+// existence of a counterpart.
+//
+// Field maps are excluded: they have their own magnitude1 / magnitude2 /
+// phasediff scheme (see assignFmapEntities) and must not gain part- on top.
+
+/** True for the phase member of a complex pair. */
+function isPhaseImage(fileName: string): boolean {
+  const stem = baseName(fileName).toLowerCase();
+  return /_ph(?:[._]|$)/.test(stem) || /_ph[a-z]?$/.test(stem) || /\bpha[-_]?images\b/.test(stem);
+}
+
+/**
+ * The acquisition two complex parts share, so magnitude and phase collapse
+ * to one identity. Returns the base name unchanged for anything that is
+ * not part of a pair.
+ */
+function complexAcquisitionIdentity(fileName: string): string {
+  const stem = baseName(fileName);
+  // Siemens' separately-named SWI reconstruction outputs.
+  if (/^(mag|pha)[-_]?images/i.test(stem)) return 'swi-recon';
+  // Same-base pair: strip the _ph marker (and any dcm2niix collision
+  // letter after it) so the phase image lands on its magnitude's identity.
+  return stem.replace(/_ph([a-z]?)$/i, (_m, letter) => (letter ? letter : ''));
+}
+
 // ── Entity assignment ─────────────────────────────────────────────
 
 /**
@@ -296,6 +336,8 @@ function assignGroupEntities(
   results: DetectionResult[],
   indices: number[],
   runOf: Map<number, number>,
+  // part-mag / part-phase for complex-valued acquisitions.
+  partOf: Map<number, string>,
   // Per-file BIDS suffix override. Field maps use it for
   // magnitude1/magnitude2/phasediff, and single-band reference images for
   // "sbref"; anything not listed falls back to SUFFIX[modality].
@@ -335,23 +377,51 @@ function assignGroupEntities(
   // series and its own reference as run-1/run-2, which reads as two
   // diffusion acquisitions. They also take the "sbref" suffix instead of
   // the modality's, so what they are is visible in the name.
-  const recGroups = new Map<string, string[]>();
+  // Collapse magnitude/phase pairs to one identity first, so a complex
+  // acquisition is numbered once and its two parts differ only by part-.
+  // Without this the pair came out run-1 / run-2, asserting two separate
+  // acquisitions of the same thing.
+  const identityToBases = new Map<string, string[]>();
   for (const b of bases) {
     const sample = results[baseToIndices.get(b)![0]];
+    const id = complexAcquisitionIdentity(sample.fileName);
+    const list = identityToBases.get(id);
+    if (list) list.push(b);
+    else identityToBases.set(id, [b]);
+  }
+
+  for (const [, idBases] of identityToBases) {
+    if (idBases.length < 2) continue;
+    const phases = idBases.filter(b => isPhaseImage(results[baseToIndices.get(b)![0]].fileName));
+    const mags = idBases.filter(b => !isPhaseImage(results[baseToIndices.get(b)![0]].fileName));
+    // part- asserts a counterpart exists, so only label a real pair.
+    if (phases.length === 0 || mags.length === 0) continue;
+    for (const b of mags) for (const i of baseToIndices.get(b)!) partOf.set(i, 'mag');
+    for (const b of phases) for (const i of baseToIndices.get(b)!) partOf.set(i, 'phase');
+  }
+
+  const recGroups = new Map<string, string[]>();
+  for (const id of [...identityToBases.keys()].sort()) {
+    const sample = results[baseToIndices.get(identityToBases.get(id)![0])![0]];
     const sbref = isSingleBandReference(sample.fileName);
     if (sbref) {
-      for (const i of baseToIndices.get(b)!) suffixOf.set(i, 'sbref');
+      for (const b of identityToBases.get(id)!) {
+        for (const i of baseToIndices.get(b)!) suffixOf.set(i, 'sbref');
+      }
     }
     const key = `${isMotionCorrected(sample.fileName) ? 'rec-moco' : ''}|${sbref ? 'sbref' : ''}`;
     const list = recGroups.get(key);
-    if (list) list.push(b);
-    else recGroups.set(key, [b]);
+    if (list) list.push(id);
+    else recGroups.set(key, [id]);
   }
 
-  for (const groupBases of recGroups.values()) {
-    if (groupBases.length > 1) {
-      groupBases.forEach((b, idx) => {
-        for (const i of baseToIndices.get(b)!) runOf.set(i, idx + 1);
+  // Number identities, not files: a complex pair shares one run entity.
+  for (const groupIds of recGroups.values()) {
+    if (groupIds.length > 1) {
+      groupIds.forEach((id, idx) => {
+        for (const b of identityToBases.get(id)!) {
+          for (const i of baseToIndices.get(b)!) runOf.set(i, idx + 1);
+        }
       });
     }
   }
@@ -499,6 +569,7 @@ function buildFilename(
   run: number | undefined,
   fmapSuffix: string | undefined,
   derivedLabel?: string,
+  part?: string,
 ): string {
   const parts: string[] = session ? [sub, session] : [sub];
   const task = taskEntity(modality);
@@ -515,6 +586,10 @@ function buildFilename(
   // so the derivatives tree distinguishes them without inventing a
   // modality for each.
   if (derivedLabel) parts.push(`desc-${derivedLabel}`);
+  // part- distinguishes the magnitude and phase halves of one
+  // complex-valued acquisition. Placed after desc- and immediately before
+  // the suffix, matching BIDS entity order.
+  if (part) parts.push(`part-${part}`);
 
   const suffix = fmapSuffix ?? SUFFIX[modality] ?? modality;
 
@@ -655,9 +730,10 @@ export function computeBidsNames(
   });
 
   const runOf = new Map<number, number>();
+  const partOf = new Map<number, string>();
   const fmapSuffixOf = new Map<number, string>();
   for (const indices of groups.values()) {
-    assignGroupEntities(out, indices, runOf, fmapSuffixOf);
+    assignGroupEntities(out, indices, runOf, partOf, fmapSuffixOf);
   }
 
   // ── Name the data files ──────────────────────────────────────────
@@ -718,7 +794,7 @@ export function computeBidsNames(
     const sub = subjectPrefix(subjectIdMap?.get(group) ?? group);
     const filename = buildFilename(
       sub, session, modality, r.fileName,
-      runOf.get(i), fmapSuffixOf.get(i), r.derivedLabel,
+      runOf.get(i), fmapSuffixOf.get(i), r.derivedLabel, partOf.get(i),
     );
     const folder = MODALITIES.find(m => m.value === modality)?.bidsFolder ?? '';
     // session is null here exactly when sessionless is true (guarded

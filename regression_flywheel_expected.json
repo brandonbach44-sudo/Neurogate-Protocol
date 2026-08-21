@@ -157,7 +157,7 @@
   },
   {
     "subject": "sub_flat",
-    "fileCount": 74,
+    "fileCount": 82,
     "detection": [
       {
         "relativePath": "sub_flat/2weeks/3D_T2_Turbo_FLAIR/3D_T2_Turbo_FLAIR.nii.gz",
@@ -457,7 +457,17 @@
         "modalityIsGuess": false,
         "duplicateOf": null,
         "derivedLabel": null,
-        "bidsPath": "primary/sub-sub_flat/ses-2wk/anat/sub-sub_flat_ses-2wk_run-1_T2starw.nii.gz"
+        "bidsPath": "primary/sub-sub_flat/ses-2wk/anat/sub-sub_flat_ses-2wk_run-4_part-mag_T2starw.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/2weeks/mIP_Images_SW_/mIP_Images_SW_.nii.gz",
+        "detectedModality": "anat-T2starw",
+        "detectedSession": "ses-2wk",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "duplicateOf": null,
+        "derivedLabel": "mIP",
+        "bidsPath": "derivatives/scanner/sub-sub_flat/ses-2wk/anat/sub-sub_flat_ses-2wk_desc-mIP_T2starw.nii.gz"
       },
       {
         "relativePath": "sub_flat/2weeks/MoCoSeries/MoCoSeries.nii.gz",
@@ -487,7 +497,7 @@
         "modalityIsGuess": false,
         "duplicateOf": null,
         "derivedLabel": null,
-        "bidsPath": "primary/sub-sub_flat/ses-2wk/anat/sub-sub_flat_ses-2wk_run-2_T2starw.nii.gz"
+        "bidsPath": "primary/sub-sub_flat/ses-2wk/anat/sub-sub_flat_ses-2wk_run-4_part-phase_T2starw.nii.gz"
       },
       {
         "relativePath": "sub_flat/2weeks/Resting_State_fMRI_extended_ADNI/Resting_State_fMRI_extended_ADNI.nii.gz",
@@ -510,6 +520,16 @@
         "bidsPath": "primary/sub-sub_flat/ses-2wk/anat/sub-sub_flat_ses-2wk_T1w.nii.gz"
       },
       {
+        "relativePath": "sub_flat/2weeks/Sag_SWI_3D/Sag_SWI_3D_ph.nii.gz",
+        "detectedModality": "anat-T2starw",
+        "detectedSession": "ses-2wk",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "duplicateOf": null,
+        "derivedLabel": null,
+        "bidsPath": "primary/sub-sub_flat/ses-2wk/anat/sub-sub_flat_ses-2wk_run-2_part-phase_T2starw.nii.gz"
+      },
+      {
         "relativePath": "sub_flat/2weeks/Sag_SWI_3D/Sag_SWI_3D.nii.gz",
         "detectedModality": "anat-T2starw",
         "detectedSession": "ses-2wk",
@@ -517,7 +537,17 @@
         "modalityIsGuess": false,
         "duplicateOf": null,
         "derivedLabel": null,
-        "bidsPath": "primary/sub-sub_flat/ses-2wk/anat/sub-sub_flat_ses-2wk_run-3_T2starw.nii.gz"
+        "bidsPath": "primary/sub-sub_flat/ses-2wk/anat/sub-sub_flat_ses-2wk_run-2_part-mag_T2starw.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/2weeks/SWI_Images/SWI_Images.nii.gz",
+        "detectedModality": "anat-T2starw",
+        "detectedSession": "ses-2wk",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "duplicateOf": null,
+        "derivedLabel": null,
+        "bidsPath": "primary/sub-sub_flat/ses-2wk/anat/sub-sub_flat_ses-2wk_run-1_T2starw.nii.gz"
       },
       {
         "relativePath": "sub_flat/2weeks/T2flr_Sagittal/T2flr_Sagittal.nii.gz",
@@ -528,6 +558,16 @@
         "duplicateOf": null,
         "derivedLabel": null,
         "bidsPath": "primary/sub-sub_flat/ses-2wk/anat/sub-sub_flat_ses-2wk_run-2_FLAIR.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/2weeks/T2star_Sagittal/T2star_Sagittal.nii.gz",
+        "detectedModality": "anat-T2starw",
+        "detectedSession": "ses-2wk",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "duplicateOf": null,
+        "derivedLabel": null,
+        "bidsPath": "primary/sub-sub_flat/ses-2wk/anat/sub-sub_flat_ses-2wk_run-3_T2starw.nii.gz"
       },
       {
         "relativePath": "sub_flat/6months/3D_T2_Turbo_FLAIR/3D_T2_Turbo_FLAIR.nii.gz",
@@ -827,7 +867,17 @@
         "modalityIsGuess": false,
         "duplicateOf": null,
         "derivedLabel": null,
-        "bidsPath": "primary/sub-sub_flat/ses-6mo/anat/sub-sub_flat_ses-6mo_run-1_T2starw.nii.gz"
+        "bidsPath": "primary/sub-sub_flat/ses-6mo/anat/sub-sub_flat_ses-6mo_run-4_part-mag_T2starw.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/6months/mIP_Images_SW_/mIP_Images_SW_.nii.gz",
+        "detectedModality": "anat-T2starw",
+        "detectedSession": "ses-6mo",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "duplicateOf": null,
+        "derivedLabel": "mIP",
+        "bidsPath": "derivatives/scanner/sub-sub_flat/ses-6mo/anat/sub-sub_flat_ses-6mo_desc-mIP_T2starw.nii.gz"
       },
       {
         "relativePath": "sub_flat/6months/MoCoSeries/MoCoSeries.nii.gz",
@@ -857,7 +907,7 @@
         "modalityIsGuess": false,
         "duplicateOf": null,
         "derivedLabel": null,
-        "bidsPath": "primary/sub-sub_flat/ses-6mo/anat/sub-sub_flat_ses-6mo_run-2_T2starw.nii.gz"
+        "bidsPath": "primary/sub-sub_flat/ses-6mo/anat/sub-sub_flat_ses-6mo_run-4_part-phase_T2starw.nii.gz"
       },
       {
         "relativePath": "sub_flat/6months/Resting_State_fMRI_extended_ADNI/Resting_State_fMRI_extended_ADNI.nii.gz",
@@ -880,6 +930,16 @@
         "bidsPath": "primary/sub-sub_flat/ses-6mo/anat/sub-sub_flat_ses-6mo_T1w.nii.gz"
       },
       {
+        "relativePath": "sub_flat/6months/Sag_SWI_3D/Sag_SWI_3D_ph.nii.gz",
+        "detectedModality": "anat-T2starw",
+        "detectedSession": "ses-6mo",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "duplicateOf": null,
+        "derivedLabel": null,
+        "bidsPath": "primary/sub-sub_flat/ses-6mo/anat/sub-sub_flat_ses-6mo_run-2_part-phase_T2starw.nii.gz"
+      },
+      {
         "relativePath": "sub_flat/6months/Sag_SWI_3D/Sag_SWI_3D.nii.gz",
         "detectedModality": "anat-T2starw",
         "detectedSession": "ses-6mo",
@@ -887,7 +947,17 @@
         "modalityIsGuess": false,
         "duplicateOf": null,
         "derivedLabel": null,
-        "bidsPath": "primary/sub-sub_flat/ses-6mo/anat/sub-sub_flat_ses-6mo_run-3_T2starw.nii.gz"
+        "bidsPath": "primary/sub-sub_flat/ses-6mo/anat/sub-sub_flat_ses-6mo_run-2_part-mag_T2starw.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/6months/SWI_Images/SWI_Images.nii.gz",
+        "detectedModality": "anat-T2starw",
+        "detectedSession": "ses-6mo",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "duplicateOf": null,
+        "derivedLabel": null,
+        "bidsPath": "primary/sub-sub_flat/ses-6mo/anat/sub-sub_flat_ses-6mo_run-1_T2starw.nii.gz"
       },
       {
         "relativePath": "sub_flat/6months/T2flr_Sagittal/T2flr_Sagittal.nii.gz",
@@ -898,11 +968,21 @@
         "duplicateOf": null,
         "derivedLabel": null,
         "bidsPath": "primary/sub-sub_flat/ses-6mo/anat/sub-sub_flat_ses-6mo_run-2_FLAIR.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/6months/T2star_Sagittal/T2star_Sagittal.nii.gz",
+        "detectedModality": "anat-T2starw",
+        "detectedSession": "ses-6mo",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "duplicateOf": null,
+        "derivedLabel": null,
+        "bidsPath": "primary/sub-sub_flat/ses-6mo/anat/sub-sub_flat_ses-6mo_run-3_T2starw.nii.gz"
       }
     ],
     "summary": {
-      "totalFiles": 74,
-      "highConfidence": 74,
+      "totalFiles": 82,
+      "highConfidence": 82,
       "mediumConfidence": 0,
       "lowConfidence": 0,
       "unclassified": 0,
