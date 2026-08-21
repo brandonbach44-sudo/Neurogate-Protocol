@@ -91,6 +91,7 @@ async function runSubject(subject: string) {
         detectedSession: r.detectedSession,
         confidence: r.confidence,
         modalityIsGuess: r.modalityIsGuess ?? false,
+        duplicateOf: r.duplicateOf ?? null,
         bidsPath: r.bidsPath,
       }))
       .sort((a, b) => a.relativePath.localeCompare(b.relativePath)),
@@ -125,6 +126,20 @@ async function main() {
       `     ${r.subject.padEnd(12)} ${String(r.fileCount).padStart(3)} files, ` +
       `${exported} exported, ${guessed} guessed modality, ${guessedExported} guessed-and-exported`,
     );
+    // A series present twice must export exactly once, or the dataset
+    // double-counts the acquisition.
+    const dupExported = r.detection.filter(
+      (d) => d.duplicateOf && d.bidsPath.startsWith('primary/'),
+    );
+    if (dupExported.length > 0) {
+      console.error(
+        `\nFAIL  ${r.subject}: ${dupExported.length} redundant duplicate cop${dupExported.length === 1 ? 'y was' : 'ies were'} ` +
+        `exported into primary/. Each series converted twice must export exactly once:\n` +
+        dupExported.map((d) => `        ${d.relativePath}`).join('\n'),
+      );
+      process.exit(1);
+    }
+
     // A guessed modality must never reach the BIDS tree. This is the
     // invariant the whole 2026-08-17 fix exists to hold.
     if (guessedExported > 0) {
