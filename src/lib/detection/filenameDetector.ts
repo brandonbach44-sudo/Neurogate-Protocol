@@ -110,20 +110,20 @@ const MODALITY_PATTERNS: [RegExp, Modality, string][] = [
   [/\b(moco[-_]?series|mo[-_]?co[-_]?series|mocoseries)\b/i, 'func', 'Motion-corrected BOLD series (Siemens MoCoSeries)'],
 
   // Anatomical -- T1-weighted (most common MRI type)
-  [/\b(t1w|t1_w|t1[-_]?weighted|t1[-_]?mprage|mp[-_]?rage|mprage|t1[-_]?space|t1_sag|t1_ax|t1_cor|structural)\b/i, 'anat-T1w', 'T1-weighted MRI keyword'],
+  [/\b(t1w|t1_w|t1[-_]?weighted|t1[-_]?mprage|mp[-_]?rage|mprage|bravo|fspgr|t1[-_]?tfe|t1[-_]?space|t1_sag|t1_ax|t1_cor|structural)\b/i, 'anat-T1w', 'T1-weighted MRI keyword'],
   [/\bt1\b/i, 'anat-T1w', 'T1 keyword (assumed T1-weighted)'],
 
   // Anatomical -- FLAIR (check before T2 since FLAIR is a specific T2 variant)
   // "tflr" / "t2flr" / "tflair" are the abbreviations this scanner writes
   // ("3D_TFLR", "T2flr_Sagittal", "Tflair_axial"). Without them these fell
   // to the blind T1w default -- T2flr_Sagittal was exported as a T1w.
-  [/\b(flair|t2[-_]?flair|flair[-_]?3d|flair[-_]?sag|flair[-_]?ax|flair[-_]?cor|t2?flr|tflair)\b/i, 'anat-FLAIR', 'FLAIR MRI keyword'],
+  [/\b(flair|t2[-_]?flair|flair[-_]?3d|flair[-_]?sag|flair[-_]?ax|flair[-_]?cor|t2?flr|tflair|tirm|dark[-_]?fluid)\b/i, 'anat-FLAIR', 'FLAIR MRI keyword'],
 
   // Susceptibility Weighted Imaging (SWI) -- check before T2w because SWI
   // is technically a T2*-weighted sequence and should be classified
   // separately even though it lives in the anat/ BIDS folder.
   // Common scanner series names: "Sag_SWI_3D", "SWI_12ch", etc.
-  [/\b(swi|susceptibility[-_]?weighted|sw[-_]?imaging|t2star|t2[-_]?\*)\b/i, 'anat-T2starw', 'Susceptibility-weighted / T2* MRI keyword'],
+  [/\b(swi|swip|swan|susceptibility[-_]?weighted|sw[-_]?imaging|t2star|t2[-_]?\*)\b/i, 'anat-T2starw', 'Susceptibility-weighted / T2* MRI keyword'],
 
   // The images an SWI reconstruction emits alongside the SWI volume:
   // magnitude, phase, and the minimum-intensity projection. Siemens names
@@ -167,7 +167,7 @@ const MODALITY_PATTERNS: [RegExp, Modality, string][] = [
   // lib/bids/bidsNaming.ts already turns _e1/_e2/_e2_ph into
   // magnitude1/magnitude2/phasediff, so classifying them is all that was
   // ever missing.
-  [/\b(fieldmap|fmap|field[-_]?map(?:ping)?|phasediff|phase[-_]?diff|magnitude[12]?|b0[-_]?map)\b/i, 'fmap', 'Field map keyword'],
+  [/\b(fieldmap|fmap|field[-_]?map(?:ping)?|phasediff|phase[-_]?diff|magnitude[12]?|b0[-_]?map|pe[-_]?polar|se[-_]?pe[-_]?polar|topup)\b/i, 'fmap', 'Field map keyword'],
 
   // Diffusion MRI. "ep2d[-_]?diff" and a bare "diff" token are both
   // needed for Siemens data: the stock sequence name is ep2d_diff_* (e.g.
@@ -206,7 +206,7 @@ const MODALITY_PATTERNS: [RegExp, Modality, string][] = [
   [/\b(asl|pcasl|pasl|m0|m0scan|perfusion|meanperf|mean[-_]?perf|cbf)\b/i, 'perf', 'Perfusion / ASL keyword'],
 
   // Functional MRI
-  [/\b(bold|fmri|func[-_]?mri|functional|resting[-_]?state|task[-_]?fmri|rest)\b/i, 'func', 'Functional MRI keyword'],
+  [/\b(bold|fmri|func[-_]?mri|functional|resting?([-_]?state)?|task[-_]?fmri|ep2d[-_]?bold|ep2d[-_]?pace)\b/i, 'func', 'Functional MRI keyword'],
 
   // Intracranial EEG (check before scalp EEG -- more specific)
   [/\b(ieeg|i[-_]?eeg|intracranial|ecog|seeg|s[-_]?eeg|depth[-_]?electrode|grid[-_]?electrode|subdural|stereo[-_]?eeg)\b/i, 'ieeg', 'Intracranial EEG keyword'],
@@ -256,9 +256,30 @@ const SESSION_PATTERNS: [RegExp, Session, string][] = [
  */
 export function normalizeForKeywords(raw: string): string {
   return raw
-    // Split camelCase / acronym boundaries.
-    .replace(/([a-z])([A-Z])/g, '$1-$2')
-    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1-$2')
+    // Split camelCase / acronym boundaries -- but only when at least TWO
+    // lowercase letters precede the capital.
+    //
+    // Splitting after a SINGLE lowercase letter destroys the lowercase-
+    // prefixed acronyms this field is full of: "fMRI" became "f-MRI",
+    // "pCASL" became "p-CASL", "mIP" became "m-IP", "iEEG" became "i-EEG".
+    // Every one of those then failed its own keyword pattern, and the
+    // patterns had been individually widened to compensate
+    // ("i[-_]?eeg", "m[-_]?ip[-_]?images") -- treating the symptom one
+    // acronym at a time while any not yet worked around silently fell to
+    // the blind T1w default. A vendor probe caught "fMRI_resting" and
+    // "pCASL" landing there (2026-08-17).
+    //
+    // Requiring two letters keeps the case this splitter exists for --
+    // dcm2niix concatenations like "restBOLD" -> "rest-BOLD" and
+    // "MeanPerf" -> "Mean-Perf" -- while leaving x+ACRONYM intact.
+    .replace(/([a-z]{2,})([A-Z])/g, '$1-$2')
+    // Acronym followed by a Capitalised word ("MRIData" -> "MRI-Data").
+    // Requires TWO lowercase letters for the same reason as the rule
+    // above, at the other end of the acronym: a single trailing lowercase
+    // letter belongs to the acronym, not to a new word. Philips writes its
+    // susceptibility series "SWIp", which this rule was turning into
+    // "SW-Ip" and defeating every swi/swip pattern.
+    .replace(/([A-Z]+)([A-Z][a-z]{2,})/g, '$1-$2')
     // Unify every separator run to a single hyphen.
     .replace(/[\s_]+/g, '-')
     .replace(/-+/g, '-');

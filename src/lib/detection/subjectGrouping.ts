@@ -21,6 +21,7 @@
 
 import type { Session, DetectionReason } from '../../types/detection';
 import type { ScannedFile } from '../../types/files';
+import { looksLikeTimepointFolder } from './customSessionDetector';
 
 export interface SubjectGroupResult {
   /** Assigned subject group name */
@@ -277,21 +278,23 @@ function getSessionFromSubfolder(relativePath: string): { session: Session | nul
 function looksLikeSessionFolder(folderName: string, customSessionIds?: string[]): boolean {
   const trimmed = folderName.trim();
 
-  // Flywheel-style session folder names: "2weeks", "6months", "12mo", "1year" etc.
-  // These are used by Flywheel/Scitran as session labels in downloaded data.
-  if (/^\d+\s*(weeks?|months?|days?|years?|wks?|mos?|yrs?|d)$/i.test(trimmed)) return true;
+  // Timepoint conventions live in ONE place -- customSessionDetector's
+  // looksLikeTimepointFolder -- because this function and that module were
+  // answering the same question from two separate vocabularies, and they
+  // had drifted. This copy knew only "2weeks" and YYYYMMDD, so a dataset
+  // written as "week2", "W2", "2_weeks", "visit1", "V1" or
+  // "baseline"/"followup" had every visit folder treated as a separate
+  // PATIENT. That is the bug this whole function exists to prevent, and it
+  // was only ever fixed for one spelling of it (probe 2026-08-17).
+  if (looksLikeTimepointFolder(trimmed)) return true;
 
-  // Date-format session folders: YYYYMMDD (e.g. "20180510" = May 10, 2018).
-  // OrthoControls and similar cohorts use scan dates as session folder names.
-  if (/^\d{8}$/.test(trimmed)) {
-    const month = parseInt(trimmed.slice(4, 6), 10);
-    const day   = parseInt(trimmed.slice(6, 8), 10);
-    if (month >= 1 && month <= 12 && day >= 1 && day <= 31) return true;
-  }
-
+  // Custom timepoints datasets additionally match their own exact defined
+  // labels, which have no fixed keyword vocabulary to infer from.
   if (customSessionIds && customSessionIds.length > 0) {
-    return customSessionIds.some(id => id.toLowerCase() === trimmed.toLowerCase());
+    if (customSessionIds.some(id => id.toLowerCase() === trimmed.toLowerCase())) return true;
   }
+
+  // The Implant sessions preset's clinical vocabulary.
   const normalized = trimmed.replace(/_/g, ' ').toLowerCase();
   return /\b(pre[-\s]?implant|preimplant|pre[-\s]?op|preop|pre[-\s]?surg|baseline|post[-\s]?implant|postimplant|implant|monitoring|ictal|post[-\s]?surg|postsurg|post[-\s]?op|postop|resection|post[-\s]?surgery|phase[-\s]?[123]|session[-\s]?[123]|ses[-\s]?[123])\b/i.test(normalized)
     || /^ses[-_]\w+$/i.test(trimmed);
