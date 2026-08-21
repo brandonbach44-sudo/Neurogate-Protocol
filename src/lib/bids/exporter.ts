@@ -20,6 +20,18 @@
  *         ieeg/
  *       ses-postsurgery/
  *         anat/
+ *   derivatives/
+ *     scanner/
+ *       sub-<ID>/
+ *         ses-<label>/
+ *           dwi/
+ *             sub-<ID>_ses-<label>_desc-ADC_dwi.nii.gz
+ *             sub-<ID>_ses-<label>_desc-FA_dwi.nii.gz
+ *
+ * The derivatives tree holds maps the scanner computed rather than
+ * acquired. They mirror the raw layout but stay out of primary/, because
+ * they carry no bval/bvec and must never be mistaken for raw diffusion
+ * signal by a downstream pipeline.
  *
  * Every file's BIDS path is assigned by computeBidsNames() in
  * lib/bids/bidsNaming.ts, the single source of truth shared with the
@@ -34,7 +46,7 @@ import type { FileLike } from '../../types/fileLike';
 import { isFileLike } from '../../types/fileLike';
 import type { DetectionResult } from '../../types/detection';
 import { getEffectiveSubjectGroup } from '../../types/detection';
-import { computeBidsNames } from './bidsNaming';
+import { computeBidsNames, isExportedPath } from './bidsNaming';
 import { deidentifyEdf } from '../deidentify/edfDeidentifier';
 import { deidentifyJsonSidecar, isJsonSidecarFile } from '../deidentify/jsonSidecarDeidentifier';
 import type {
@@ -283,10 +295,12 @@ export function buildFileEntries(
   const named = computeBidsNames(results, subjectIdMap, structure);
   for (const result of named) {
     // Export only files that belong to a configured subject and that
-    // resolved to a real BIDS path. This drops localizer/scout scans,
-    // unclassified files, and anything without a session.
+    // resolved to a real BIDS path -- primary/ for acquisitions, or the
+    // derivatives tree for scanner-computed maps. This drops
+    // localizer/scout scans, unclassified files, redundant duplicate
+    // copies, and anything without a session.
     if (!subjectIdMap.has(getEffectiveSubjectGroup(result))) continue;
-    if (!result.bidsPath.startsWith('primary/')) continue;
+    if (!isExportedPath(result.bidsPath)) continue;
 
     const subjectGroup = getEffectiveSubjectGroup(result);
     const subjectId = subjectIdMap.get(subjectGroup);
