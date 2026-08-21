@@ -208,6 +208,28 @@ export interface DetectionResult {
    * userModality overrides the exclusion if the user disagrees.
    */
   duplicateOf?: string;
+
+  /**
+   * Set when this file is a scanner-computed parameter map rather than a
+   * raw acquisition, and names which map it is ("ADC", "FA", "TRACEW").
+   *
+   * A Siemens diffusion acquisition emits the raw volumes plus derived
+   * maps, and the DICOM ImageType tag states which is which:
+   *   ['ORIGINAL','PRIMARY','DIFFUSION','NONE','ND','MOSAIC']  raw
+   *   ['DERIVED', 'PRIMARY','DIFFUSION','ADC','ND']            ADC map
+   *
+   * These must not sit in the raw dwi/ folder -- they carry no bval/bvec,
+   * and a tractography pipeline could ingest an ADC map as diffusion
+   * signal. They are also real data worth keeping, so computeBidsNames
+   * routes them to a derivatives/ tree that mirrors the raw layout, with
+   * the map named by a desc- entity:
+   *
+   *   derivatives/scanner/sub-01/ses-2wk/dwi/sub-01_ses-2wk_desc-ADC_dwi.nii.gz
+   *
+   * 138 files in the Phase2_MRI corpus. Before this they were dropped from
+   * the export entirely (2026-08-17).
+   */
+  derivedLabel?: string;
 }
 
 // ── Helpers ────────────────────────────────────────────────────────

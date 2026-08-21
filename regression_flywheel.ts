@@ -92,6 +92,7 @@ async function runSubject(subject: string) {
         confidence: r.confidence,
         modalityIsGuess: r.modalityIsGuess ?? false,
         duplicateOf: r.duplicateOf ?? null,
+        derivedLabel: r.derivedLabel ?? null,
         bidsPath: r.bidsPath,
       }))
       .sort((a, b) => a.relativePath.localeCompare(b.relativePath)),
@@ -118,13 +119,14 @@ async function main() {
 
   for (const r of actual) {
     const exported = r.detection.filter((d) => d.bidsPath.startsWith('primary/')).length;
+    const derived = r.detection.filter((d) => d.bidsPath.startsWith('derivatives/')).length;
     const guessed = r.detection.filter((d) => d.modalityIsGuess).length;
     const guessedExported = r.detection.filter(
       (d) => d.modalityIsGuess && d.bidsPath.startsWith('primary/'),
     ).length;
     console.log(
       `     ${r.subject.padEnd(12)} ${String(r.fileCount).padStart(3)} files, ` +
-      `${exported} exported, ${guessed} guessed modality, ${guessedExported} guessed-and-exported`,
+      `${exported} exported, ${derived} derivatives, ${guessed} guessed modality, ${guessedExported} guessed-and-exported`,
     );
     // A series present twice must export exactly once, or the dataset
     // double-counts the acquisition.
@@ -136,6 +138,21 @@ async function main() {
         `\nFAIL  ${r.subject}: ${dupExported.length} redundant duplicate cop${dupExported.length === 1 ? 'y was' : 'ies were'} ` +
         `exported into primary/. Each series converted twice must export exactly once:\n` +
         dupExported.map((d) => `        ${d.relativePath}`).join('\n'),
+      );
+      process.exit(1);
+    }
+
+    // A scanner-computed map must never sit in primary/ beside the raw
+    // acquisitions -- it carries no bval/bvec and a pipeline could read it
+    // as diffusion signal.
+    const derivInPrimary = r.detection.filter(
+      (d) => d.derivedLabel && d.bidsPath.startsWith('primary/'),
+    );
+    if (derivInPrimary.length > 0) {
+      console.error(
+        `\nFAIL  ${r.subject}: ${derivInPrimary.length} scanner-derived map(s) were placed in primary/ ` +
+        `instead of the derivatives tree:\n` +
+        derivInPrimary.map((d) => `        ${d.relativePath} -> ${d.bidsPath}`).join('\n'),
       );
       process.exit(1);
     }

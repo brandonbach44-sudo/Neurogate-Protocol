@@ -26,7 +26,7 @@ import type {
   DetectionReason,
 } from '../../types/detection';
 import { detectFromExtension } from './extensionDetector';
-import { detectFromFilename, detectFromSidecarText } from './filenameDetector';
+import { detectFromFilename, detectFromSidecarText, derivedDiffusionKind, normalizeForKeywords } from './filenameDetector';
 import { detectFromFolderPath } from './folderDetector';
 import { inferFromNeighbors, getFolderPath } from './neighborInference';
 import { groupIntoSubject } from './subjectGrouping';
@@ -314,6 +314,8 @@ export function runDetection(
      * inference in Pass 2 -- must not overwrite that decision.
      */
     modalityLocked: boolean;
+    /** Scanner-derived parameter map label, if any. See DetectionResult.derivedLabel. */
+    derivedLabel: string | undefined;
     /**
      * Set when a folder name matched the ambiguous bare "post-op" pattern
      * (see folderDetector.ts) and nothing else resolved a session for
@@ -331,6 +333,7 @@ export function runDetection(
     let possibleModalities: Modality[] = [];
     let ambiguousSessionCandidate: Session | null = null;
     let modalityLocked = false;
+    let derivedLabel: string | undefined;
 
     // Layer 1: Extension
     const extResult = detectFromExtension(file.name, file.relativePath);
@@ -410,7 +413,12 @@ export function runDetection(
           v === 'ADC' || v === 'FA' || v === 'TRACEW' || v === 'COLFA' || v === 'EXADC',
         );
         if (isDerived && derivedKind) {
-          modality = 'other';
+          // Kept as dwi rather than 'other': it IS diffusion data, just
+          // computed by the scanner instead of acquired. The derivedLabel
+          // is what keeps it out of the raw dwi/ folder -- see
+          // DetectionResult.derivedLabel and computeBidsNames.
+          modality = 'dwi';
+          derivedLabel = derivedKind;
           // Lock it: the filename still reads "ep2d_diff_...", so both the
           // blind T1w default and neighbor inference would otherwise
           // re-classify this map as real scan data. Locking also keeps the
@@ -419,7 +427,7 @@ export function runDetection(
           modalityLocked = true;
           reasons.push({
             layer: 'sidecar',
-            message: `DICOM ImageType is [${sidecar.imageType.join(', ')}] — scanner-derived ${derivedKind} map, not raw diffusion data. Needs manual placement (BIDS: derivatives/).`,
+            message: `DICOM ImageType is [${sidecar.imageType.join(', ')}] — scanner-derived ${derivedKind} map, not raw diffusion data. Exported under derivatives/ as desc-${derivedKind}.`,
             weight: 0,
           });
         }
@@ -521,6 +529,28 @@ export function runDetection(
       }
     }
 
+    // Derived-map fallback for files with no JSON sidecar. ImageType is
+    // authoritative and already handled above; this covers the same
+    // situation when there is no sidecar to read, using the suffix the
+    // scanner put in the name (…_ADC, …_FA, …_TRACEW). Skipped when
+    // ImageType already decided, so the sidecar always wins.
+    if (!modalityLocked && /\.nii(\.gz)?$/i.test(file.name)) {
+      const nameKind = derivedDiffusionKind(
+        normalizeForKeywords(file.name.replace(/\.nii\.gz$/i, '').replace(/\.nii$/i, '')),
+      );
+      if (nameKind) {
+        modality = 'dwi';
+        derivedLabel = nameKind;
+        modalityLocked = true;
+        reasons.push({
+          layer: 'filename',
+          message: `Scanner-derived ${nameKind} map (from the scan name; no JSON sidecar to confirm) — exported under derivatives/ as desc-${nameKind}.`,
+          weight: 0.4,
+          supports: 'modality',
+        });
+      }
+    }
+
     // Layer 3: Folder path
     const folderResult = detectFromFolderPath(file.relativePath);
     reasons.push(...folderResult.reasons);
@@ -615,7 +645,7 @@ export function runDetection(
       });
     }
 
-    intermediateResults.push({ file, modality, session, reasons, possibleModalities, modalityLocked, ambiguousSessionCandidate });
+    intermediateResults.push({ file, modality, session, reasons, possibleModalities, modalityLocked, derivedLabel, ambiguousSessionCandidate });
   }
 
   // ── Build known modalities map for neighbor inference ────────
@@ -842,6 +872,7 @@ export function runDetection(
       confidence,
       modalityIsGuess,
       duplicateOf,
+      derivedLabel: intermediate.derivedLabel,
       reasons,
       userSession: null,
       userModality: null,

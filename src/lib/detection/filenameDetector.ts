@@ -56,8 +56,20 @@ const DERIVED_DIFFUSION_MAP = /[-_](adc|fa|tracew|colfa|exadc)$/i;
  * is not caught.
  */
 export function isDerivedDiffusionMap(normalized: string): boolean {
+  return derivedDiffusionKind(normalized) !== null;
+}
+
+/**
+ * Which derived map a scan name denotes ("ADC", "FA", "TRACEW", ...), or
+ * null if it is not one. Used as the fallback when a file has no JSON
+ * sidecar to read ImageType from; the label becomes the desc- entity in
+ * the derivatives path.
+ */
+export function derivedDiffusionKind(normalized: string): string | null {
   const looksDiffusion = /\b(dwi|dti|diffusion|ep2d[-_]?diff|diff)\b/i.test(normalized);
-  return looksDiffusion && DERIVED_DIFFUSION_MAP.test(normalized);
+  if (!looksDiffusion) return null;
+  const m = normalized.match(DERIVED_DIFFUSION_MAP);
+  return m ? m[1].toUpperCase() : null;
 }
 
 const MODALITY_PATTERNS: [RegExp, Modality, string][] = [

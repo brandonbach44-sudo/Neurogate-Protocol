@@ -30,6 +30,19 @@ import {
 } from '../../types/detection';
 import type { DatasetStructure } from '../../types/sessionStructure';
 
+/**
+ * Root of the derivatives tree, for data the scanner computed rather than
+ * acquired (diffusion ADC / FA / trace-weighted maps). The pipeline name
+ * is "scanner" because these arrive already derived from the console --
+ * no processing this tool or the user ran produced them.
+ */
+const DERIVATIVES_ROOT = 'derivatives/scanner';
+
+/** True for any path this tool actually writes into the export. */
+export function isExportedPath(bidsPath: string): boolean {
+  return bidsPath.startsWith('primary/') || bidsPath.startsWith(`${DERIVATIVES_ROOT}/`);
+}
+
 /** Path marker for localizer / scout scans, which are never exported. */
 export const LOCALIZER_EXCLUDED = '(excluded from export: localizer/scout)';
 
@@ -375,6 +388,7 @@ function buildFilename(
   originalFileName: string,
   run: number | undefined,
   fmapSuffix: string | undefined,
+  derivedLabel?: string,
 ): string {
   const parts: string[] = session ? [sub, session] : [sub];
   const task = taskEntity(modality);
@@ -387,6 +401,10 @@ function buildFilename(
   // the relationship and implies two independent acquisitions.
   if (isMotionCorrected(originalFileName)) parts.push('rec-moco');
   if (run !== undefined) parts.push(`run-${run}`);
+  // desc- names which scanner-computed map this is (ADC / FA / TRACEW),
+  // so the derivatives tree distinguishes them without inventing a
+  // modality for each.
+  if (derivedLabel) parts.push(`desc-${derivedLabel}`);
 
   const suffix = fmapSuffix ?? SUFFIX[modality] ?? modality;
 
@@ -438,7 +456,7 @@ function findSidecarPartner(
 function dedupePaths(results: DetectionResult[]): void {
   const counts = new Map<string, number>();
   for (const r of results) {
-    if (!r.bidsPath.startsWith('primary/')) continue;
+    if (!isExportedPath(r.bidsPath)) continue;
     const n = counts.get(r.bidsPath) ?? 0;
     counts.set(r.bidsPath, n + 1);
     if (n > 0) {
@@ -494,7 +512,14 @@ export function computeBidsNames(
     // it overrides here too.
     if (r.modalityIsGuess && !r.userModality) return;
     if (r.duplicateOf && !r.userModality) return;
-    const key = sessionless
+    // Scanner-derived maps are numbered inside their own derivatives
+    // group, keyed by which map they are, so an ADC map never takes a run
+    // number away from the raw diffusion series it was computed from.
+    const key = r.derivedLabel
+      ? (sessionless
+          ? `${getEffectiveSubjectGroup(r)} ${modality} derived:${r.derivedLabel}`
+          : `${getEffectiveSubjectGroup(r)} ${session} ${modality} derived:${r.derivedLabel}`)
+      : sessionless
       ? `${getEffectiveSubjectGroup(r)} ${modality}`
       : `${getEffectiveSubjectGroup(r)} ${session} ${modality}`;
     const list = groups.get(key);
@@ -566,7 +591,7 @@ export function computeBidsNames(
     const sub = subjectPrefix(subjectIdMap?.get(group) ?? group);
     const filename = buildFilename(
       sub, session, modality, r.fileName,
-      runOf.get(i), fmapSuffixOf.get(i),
+      runOf.get(i), fmapSuffixOf.get(i), r.derivedLabel,
     );
     const folder = MODALITIES.find(m => m.value === modality)?.bidsFolder ?? '';
     // session is null here exactly when sessionless is true (guarded
@@ -574,9 +599,16 @@ export function computeBidsNames(
     // ever being an empty/undefined string.
     const sessionSegment = session ? `${session}/` : '';
     r.bidsFilename = filename;
+
+    // Scanner-computed maps go to a derivatives tree that mirrors the raw
+    // layout, rather than into primary/ beside the acquisitions they were
+    // computed from. "scanner" names the producing pipeline, which is the
+    // console itself -- these arrive already derived, not from any
+    // processing this tool or the user ran.
+    const root = r.derivedLabel ? `${DERIVATIVES_ROOT}/` : 'primary/';
     r.bidsPath = folder
-      ? `primary/${sub}/${sessionSegment}${folder}/${filename}`
-      : `primary/${sub}/${sessionSegment}${filename}`;
+      ? `${root}${sub}/${sessionSegment}${folder}/${filename}`
+      : `${root}${sub}/${sessionSegment}${filename}`;
   });
 
   // ── Pair sidecars with their data file ───────────────────────────
@@ -587,7 +619,7 @@ export function computeBidsNames(
     const partner = findSidecarPartner(out, i);
     if (partner) {
       const sidecarExt = modality === 'sidecar-json' ? '.json' : '.tsv';
-      if (partner.bidsPath.startsWith('primary/')) {
+      if (isExportedPath(partner.bidsPath)) {
         // Partner has a real export path; mirror it for the sidecar.
         r.bidsFilename = stripExtension(partner.bidsFilename) + sidecarExt;
         r.bidsPath = partner.bidsPath.replace(/[^/]+$/, r.bidsFilename);
