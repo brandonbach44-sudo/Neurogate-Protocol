@@ -12,6 +12,7 @@
  */
 
 import type { DetectionResult } from '../../types/detection';
+import { isExportedPath } from '../bids/bidsNaming';
 import { getEffectiveSession, getEffectiveModality, getEffectiveSubjectGroup } from '../../types/detection';
 import type { SubjectMetadata } from '../../types/metadata';
 import type { ValidationIssue } from '../../types/validation';
@@ -199,25 +200,31 @@ export function validateBidsStructure(
   // is the safe behavior. Found 2026-08-17.
   const gradientFiles = results.filter(r => /\.(bval|bvec)$/i.test(r.fileName));
   for (const grad of gradientFiles) {
-    const base = grad.fileName.replace(/\.(bval|bvec)$/i, '');
-    const hasMatchingImage = results.some(r => {
-      if (r === grad) return false;
-      if (!/\.nii(\.gz)?$/i.test(r.fileName)) return false;
-      const rName = r.fileName.replace(/\.nii\.gz$/i, '').replace(/\.nii$/i, '');
-      return rName === base;
-    });
+    // Ask the naming layer's actual outcome rather than re-deriving it.
+    // computeBidsNames pairs a gradient table to its acquisition by base
+    // name first, then by b-value + phase-encoding direction when the
+    // site named them independently (see pairGradientTables in
+    // lib/bids/bidsNaming.ts). A table that still has no export path is
+    // the only one genuinely unplaced.
+    //
+    // This check used to re-test base-name matching on its own, which
+    // meant it kept firing for the 143 tables the b-value pass had
+    // already paired -- 286 stale warnings across the corpus, enough to
+    // bury the real ones.
+    if (isExportedPath(grad.bidsPath)) continue;
+    // No session yet is a separate, already-reported condition; the table
+    // cannot be placed until its subject's session is assigned.
+    if (!getEffectiveSession(grad)) continue;
 
-    if (!hasMatchingImage) {
-      issues.push({
-        id: nextId(),
-        category: 'bids-structure',
-        severity: 'warning',
-        title: 'Diffusion gradient table not matched to an image',
-        description: `"${grad.fileName}" is a diffusion gradient table, but no image file shares its base name, so it cannot be paired automatically and will be exported under its own run number — not alongside the scan it describes. This usually means the site named the gradient files differently from the images (for example "DTI_b1000.bval" next to "ep2d_diff_..._b1k.nii.gz"). Confirm which diffusion series this table belongs to and pair or exclude it manually; the tool does not guess, because attaching the wrong gradient directions to a series corrupts the diffusion data silently.`,
-        affectedFiles: [grad.relativePath],
-        dismissable: true,
-      });
-    }
+    issues.push({
+      id: nextId(),
+      category: 'bids-structure',
+      severity: 'warning',
+      title: 'Diffusion gradient table not matched to an image',
+      description: `"${grad.fileName}" is a diffusion gradient table that could not be matched to any diffusion image — not by base name, and not by b-value and phase-encoding direction. It will not be exported. Confirm which series it belongs to and rename or exclude it; the tool does not guess between multiple candidates, because attaching the wrong gradient directions to a series corrupts the diffusion data silently.`,
+      affectedFiles: [grad.relativePath],
+      dismissable: true,
+    });
   }
 
   // ── Same series converted twice ─────────────────────────────────
@@ -247,7 +254,7 @@ export function validateBidsStructure(
   // is the one carrying the .json sidecar (the bare copy never did), and
   // that sidecar is what the engine reads ImageType from, so it is the
   // more complete file.
-  const decoratedPattern = /^_(.+)_\d{8,14}_\d+$/;
+  const decoratedPattern = /^_(.+)_\d{5,14}_\d+$/;
   const folderOf = (relativePath: string): string =>
     relativePath.split('/').slice(0, -1).join('/');
 
@@ -277,7 +284,10 @@ export function validateBidsStructure(
     issues.push({
       id: nextId(),
       category: 'bids-structure',
-      severity: 'warning',
+      // Informational: the export already keeps exactly one copy. This
+      // exists so the choice is visible and reversible, not because
+      // anything needs fixing.
+      severity: 'info',
       title: 'Same series present twice',
       description: `"${twin.fileName}" and "${result.fileName}" are the same acquisition converted twice (the second is dcm2niix's timestamped form of the first, in the same folder). Only one is exported, so the dataset does not double-count the series: "${result.fileName}" is kept${hasSidecar ? ' because it has the matching .json sidecar carrying the scanner metadata' : ''}, and "${twin.fileName}" is set aside as unclassified rather than deleted. If the other copy is the one you want, set its modality in the mapping table and it will be exported instead.`,
       affectedFiles: [twin.relativePath, result.relativePath],
