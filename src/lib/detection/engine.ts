@@ -84,6 +84,50 @@ function calculateConfidence(
   // Sum up all weights
   const totalWeight = reasons.reduce((sum, r) => sum + r.weight, 0);
 
+  // ── Modality-evidence floor ────────────────────────────────────
+  // totalWeight above is deliberately dimension-blind: it mixes evidence
+  // about the session, the subject and the modality into one number. That
+  // is fine for grading "how much do we know about this file overall", but
+  // it must NOT be the only gate, because 'high' is what authorises the
+  // exporter to write a file into the BIDS tree under a modality-specific
+  // name (see EXPORTABLE_MODALITIES / SUFFIX in lib/bids/bidsNaming.ts).
+  //
+  // A file can be certain about its session and subject and still have no
+  // idea what kind of scan it is. Real case from the Phase2_MRI corpus,
+  // gre_field_mapping_e1.nii.gz:
+  //
+  //   0.30 extension        "NIfTI gzipped file - imaging data"   (ambiguous)
+  //   0.45 folder           session = ses-2wk                     (not modality)
+  //   0.10 extension        "Defaulting ambiguous NIfTI to T1w - please verify"
+  //   0.30 neighbor         session = pre-implant baseline        (not modality)
+  //   0.30 subject-grouping subject = 01_1204                     (not modality)
+  //   ----
+  //   1.45 -> >= 1.2 -> "high" -> exported as sub-XX_ses-2wk_run-N_T1w.nii.gz
+  //
+  // The only thing that spoke to modality was a 0.10 fallback that says
+  // "please verify" in its own message. Auditing 868 real scans on
+  // 2026-08-17 found 416 files (48%) whose modality came from that
+  // fallback, of which 371 were graded high and exported as fabricated
+  // T1w anatomicals -- field maps, proton-density and diffusion scans
+  // written into anat/ as structural images.
+  //
+  // So: cap confidence by how much evidence actually supports the
+  // MODALITY. A file whose modality rests only on the blind default can
+  // never be graded above 'low', which keeps it in the mapping table for
+  // the user to assign and out of the export. Untagged reasons are
+  // ignored here (they still count toward totalWeight), so this only ever
+  // tightens the grade, never loosens it.
+  const modalityEvidence = reasons
+    .filter(r => r.supports === 'modality')
+    .reduce((sum, r) => sum + r.weight, 0);
+
+  // The blind default contributes exactly 0.1; anything at or below that
+  // means nothing better than a guess ever identified this scan.
+  const MODALITY_EVIDENCE_FLOOR = 0.15;
+  if (modalityEvidence <= MODALITY_EVIDENCE_FLOOR) {
+    return 'low';
+  }
+
   // Sidecars are scored on their own. A JSON / TSV sidecar inherits its
   // session from the data file it pairs with (see computeBidsNames in
   // lib/bids/bidsNaming.ts), so the engine should not penalise it for
@@ -252,6 +296,13 @@ export function runDetection(
     reasons: DetectionReason[];
     possibleModalities: Modality[];
     /**
+     * Set when DICOM ImageType identified this file authoritatively (a
+     * scanner-derived ADC/FA/TRACEW map). Downstream layers that only
+     * guess -- the blind T1w default at the end of Pass 1, and neighbor
+     * inference in Pass 2 -- must not overwrite that decision.
+     */
+    modalityLocked: boolean;
+    /**
      * Set when a folder name matched the ambiguous bare "post-op" pattern
      * (see folderDetector.ts) and nothing else resolved a session for
      * this file yet. Consulted in Pass 2, after Layer 4 neighbor
@@ -267,10 +318,20 @@ export function runDetection(
     let session: Session | null = null;
     let possibleModalities: Modality[] = [];
     let ambiguousSessionCandidate: Session | null = null;
+    let modalityLocked = false;
 
     // Layer 1: Extension
     const extResult = detectFromExtension(file.name, file.relativePath);
-    reasons.push(extResult.reason);
+    // Only tag this as modality evidence when the extension actually pinned
+    // the modality down (bestGuess set, e.g. .bval -> dwi). For an ambiguous
+    // .nii.gz the reason only says "this is imaging data", which is not a
+    // statement about WHICH kind of scan it is and must not be spent from the
+    // modality-evidence budget in calculateConfidence().
+    reasons.push(
+      extResult.bestGuess
+        ? { ...extResult.reason, supports: 'modality' as const }
+        : extResult.reason,
+    );
     possibleModalities = extResult.possibleModalities;
     if (extResult.bestGuess) {
       modality = extResult.bestGuess;
@@ -309,7 +370,56 @@ export function runDetection(
     if (sidecarMap && !isJsonFile) {
       const sidecar = sidecarMap.get(getSidecarBaseName(file.name));
       if (sidecar) {
-        const scResult = detectFromSidecarText(sidecar.scanText);
+        // ── DICOM ImageType: authoritative, checked before keywords ──
+        // ImageType is the scanner's structured statement about the image,
+        // so it outranks any guess made from a file or folder name. Its
+        // job here is to catch scanner-computed diffusion parameter maps
+        // (ADC / FA / trace-weighted), which must never be written into a
+        // raw BIDS dwi/ folder: they carry no bval/bvec, so a validator
+        // rejects the dataset and a tractography pipeline could ingest an
+        // ADC map as if it were raw diffusion signal.
+        //
+        // Name matching cannot cover this. dcm2niix often drops the
+        // descriptive suffix and numbers the output instead, so the ADC
+        // map of series 18 lands as
+        // "_ep2d_diff_SliceAcc_b1k_64_20170130080338_18.nii.gz" -- a name
+        // indistinguishable from raw diffusion, whose sidecar reads
+        // ['DERIVED','PRIMARY','DIFFUSION','ADC','ND']. Before this check,
+        // those files were classified dwi at high confidence and exported
+        // into dwi/ alongside the real data (audit 2026-08-17).
+        //
+        // Left as 'other' (-> unclassified) rather than given a modality:
+        // there is no derivative type in the Modality union yet, and BIDS
+        // places these under derivatives/, not in the raw tree. The user
+        // can still assign them in the mapping table.
+        const upperImageType = sidecar.imageType.map(v => v.toUpperCase());
+        const isDerived = upperImageType.includes('DERIVED');
+        const derivedKind = upperImageType.find(v =>
+          v === 'ADC' || v === 'FA' || v === 'TRACEW' || v === 'COLFA' || v === 'EXADC',
+        );
+        if (isDerived && derivedKind) {
+          modality = 'other';
+          // Lock it: the filename still reads "ep2d_diff_...", so both the
+          // blind T1w default and neighbor inference would otherwise
+          // re-classify this map as real scan data. Locking also keeps the
+          // now-overruled filename "Diffusion MRI keyword" reason from
+          // counting as live modality evidence.
+          modalityLocked = true;
+          reasons.push({
+            layer: 'sidecar',
+            message: `DICOM ImageType is [${sidecar.imageType.join(', ')}] — scanner-derived ${derivedKind} map, not raw diffusion data. Needs manual placement (BIDS: derivatives/).`,
+            weight: 0,
+          });
+        }
+
+        // Skip keyword matching for a derived map: the sidecar's
+        // SeriesDescription still reads "ep2d_diff_..._ADC", which would
+        // re-classify the file as raw diffusion and undo the decision
+        // above. Session detection below still runs, so the mapping table
+        // shows the file against its real timepoint instead of a blank.
+        const scResult = (isDerived && derivedKind)
+          ? { modality: null, session: null, reasons: [] }
+          : detectFromSidecarText(sidecar.scanText);
         // Compatible when the sidecar's modality guess isn't ruled out by
         // what this file's own extension says is possible (e.g. a .edf
         // file's possibleModalities is [eeg, ieeg] -- a sidecar claiming
@@ -482,17 +592,18 @@ export function runDetection(
 
     // If we still have an ambiguous .nii.gz with no modality clues,
     // default to anat-T1w (most common type)
-    if (modality === 'other' && possibleModalities.length > 1 &&
+    if (modality === 'other' && !modalityLocked && possibleModalities.length > 1 &&
         file.name.toLowerCase().endsWith('.nii.gz')) {
       modality = 'anat-T1w';
       reasons.push({
         layer: 'extension',
         message: 'Defaulting ambiguous NIfTI to T1w (most common) - please verify',
         weight: 0.1,
+        supports: 'modality',
       });
     }
 
-    intermediateResults.push({ file, modality, session, reasons, possibleModalities, ambiguousSessionCandidate });
+    intermediateResults.push({ file, modality, session, reasons, possibleModalities, modalityLocked, ambiguousSessionCandidate });
   }
 
   // ── Build known modalities map for neighbor inference ────────
@@ -529,7 +640,8 @@ export function runDetection(
     // Layer 4: Neighbor inference
     const neighborResult = inferFromNeighbors(file, files, knownModalities);
     reasons.push(...neighborResult.reasons);
-    if (neighborResult.modality && (modality === 'other' || modality === 'sidecar-json')) {
+    if (neighborResult.modality && !intermediate.modalityLocked &&
+        (modality === 'other' || modality === 'sidecar-json')) {
       if (modality === 'sidecar-json' && neighborResult.modality) {
         // JSON sidecars: keep sidecar-json as modality but note what it pairs with
         // (we don't change the modality, just add the reason)
@@ -666,6 +778,15 @@ export function runDetection(
       });
     }
 
+    // A modality resting only on the blind default is a guess, not a
+    // detection. Recorded explicitly so the BIDS namer can keep it out of
+    // primary/ -- see DetectionResult.modalityIsGuess for why confidence
+    // alone was not enough.
+    const modalityIsGuess =
+      reasons
+        .filter(r => r.supports === 'modality')
+        .reduce((sum, r) => sum + r.weight, 0) <= 0.15;
+
     finalResults.push({
       relativePath: file.relativePath,
       fileName: file.name,
@@ -675,6 +796,7 @@ export function runDetection(
       detectedSession: session,
       detectedModality: modality,
       confidence,
+      modalityIsGuess,
       reasons,
       userSession: null,
       userModality: null,

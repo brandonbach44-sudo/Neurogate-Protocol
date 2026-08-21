@@ -92,6 +92,29 @@ export interface DetectionReason {
   message: string;
   /** How much this reason contributes to confidence (0-1) */
   weight: number;
+  /**
+   * Which detection dimension this reason is evidence FOR.
+   *
+   * Confidence used to be a single sum of every reason's weight, which
+   * meant strong evidence about one dimension silently vouched for a
+   * different one. A file whose session was certain (a "2weeks" Flywheel
+   * folder, 0.45) and whose subject was certain (0.30) but whose modality
+   * came only from the blind "Defaulting ambiguous NIfTI to T1w -- please
+   * verify" fallback (0.10) summed to 1.45 and was graded "high", which
+   * is the gate for writing a file into the BIDS export. Real field maps,
+   * proton-density and diffusion scans were exported as _T1w anatomicals
+   * with no warning. Found 2026-08-17 auditing 868 real scans: 416 files
+   * (48%) took their modality from that fallback and 371 of them were
+   * exported as fabricated T1w images.
+   *
+   * Tagging is opt-in: an untagged reason keeps counting toward the
+   * overall total exactly as before, so nothing regresses, but a reason
+   * marked 'modality' also counts toward the separate modality-evidence
+   * budget that calculateConfidence() now requires before it will grade a
+   * file high enough to export. Tag every reason that genuinely asserts
+   * what KIND of scan a file is.
+   */
+  supports?: 'modality' | 'session' | 'subject';
 }
 
 // ── Detection Result (per file) ────────────────────────────────────
@@ -129,6 +152,27 @@ export interface DetectionResult {
   bidsFilename: string;
   /** Preview of the full BIDS path */
   bidsPath: string;
+
+  /**
+   * True when detectedModality came only from the blind
+   * "Defaulting ambiguous NIfTI to T1w -- please verify" fallback, i.e. no
+   * layer ever actually identified what kind of scan this is.
+   *
+   * This exists because confidence turned out to be advisory: nothing in
+   * lib/bids/bidsNaming.ts or lib/bids/exporter.ts ever reads it, so
+   * grading a file 'low' did not stop it being written into the BIDS tree.
+   * The only real gates were "has a session" and "modality is exportable".
+   * A guessed T1w passes both, so 371 field-map / proton-density /
+   * diffusion files in the Phase2_MRI corpus were exported as
+   * sub-XX_ses-YY_run-N_T1w.nii.gz (audit 2026-08-17).
+   *
+   * computeBidsNames routes a file with this flag to unclassified/ instead
+   * of primary/, so a guess is never written under a modality-specific
+   * BIDS name. Setting userModality (the user picking a modality in the
+   * mapping table) overrides the flag and the file exports normally --
+   * the point is to require a human decision, not to discard data.
+   */
+  modalityIsGuess?: boolean;
 }
 
 // ── Helpers ────────────────────────────────────────────────────────
