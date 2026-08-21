@@ -44,6 +44,14 @@ const FLYWHEEL_UNIT_MAP: Array<{ pattern: RegExp; unit: TimepointUnit }> = [
   { pattern: /^wks?$/i,      unit: 'week' },
   { pattern: /^days?$/i,     unit: 'day' },
   { pattern: /^d$/i,         unit: 'day' },
+  // Single-letter forms ("W2", "M6", "Y1"), standard in clinical-trial
+  // visit naming. Safe to accept because a parsed label is only ever used
+  // when it matches one of the study's OWN defined session ids -- an
+  // unrelated folder called "M3" in a study with no 3-month timepoint
+  // resolves to nothing rather than inventing a session.
+  { pattern: /^w$/i,         unit: 'week' },
+  { pattern: /^m$/i,         unit: 'month' },
+  { pattern: /^y$/i,         unit: 'year' },
 ];
 
 /**
@@ -56,23 +64,91 @@ const FLYWHEEL_UNIT_MAP: Array<{ pattern: RegExp; unit: TimepointUnit }> = [
  * valid and return null rather than producing a malformed label.
  */
 function parseFlywheelSegment(segment: string): string | null {
-  // Allow optional whitespace between the number and the unit, though
-  // Flywheel typically concatenates them ("2weeks" not "2 weeks").
-  const match = segment.match(/^(\d+)\s*([a-z]+)$/i);
-  if (!match) return null;
+  const trimmed = segment.trim();
 
-  const number = Number(match[1]);
+  // Number-first ("2weeks", "2_weeks", "2 weeks", "02weeks") and
+  // unit-first ("week2", "week_02", "wk2", "W2") are both common, and
+  // which one a site uses is arbitrary. Separators may be absent, a
+  // space, an underscore or a hyphen.
+  //
+  // Only number-first with no separator or a space parsed before, so
+  // "2_weeks", "week2", "week_02", "wk2" and "W2" all fell through to
+  // unclassified even when the study had defined exactly that timepoint
+  // (probe, 2026-08-17).
+  let numberStr: string | undefined;
+  let unitStr: string | undefined;
+
+  let match = trimmed.match(/^(\d+)[\s_-]*([a-z]+)$/i);
+  if (match) {
+    [, numberStr, unitStr] = match;
+  } else {
+    match = trimmed.match(/^([a-z]+)[\s_-]*(\d+)$/i);
+    if (match) [, unitStr, numberStr] = match;
+  }
+  if (!numberStr || !unitStr) return null;
+
+  const number = Number(numberStr);
   // Guard: must be a non-negative integer (fractional strings won't reach
   // here because the regex only matches \d+, but be explicit).
   if (!Number.isInteger(number) || number < 0) return null;
 
-  const unitStr = match[2];
   for (const { pattern, unit } of FLYWHEEL_UNIT_MAP) {
     if (pattern.test(unitStr)) {
       return buildCustomSessionLabel({ number, unit });
     }
   }
   return null;
+}
+
+/**
+ * Vocabulary for longitudinal visit folders that carry no number/unit pair
+ * -- word labels and sequence numbers a site uses instead ("baseline",
+ * "visit2", "V2", "timepoint1").
+ *
+ * Deliberately excludes "T<n>". Some trials do label visits T0/T1/T2, but
+ * "T1" and "T2" are overwhelmingly MODALITY names in imaging data, so a
+ * site with session-level "T1"/"T2" folders would have had its modality
+ * folders mistaken for visits. Caught by probe before shipping.
+ *
+ * Also excludes two forms that collide with SUBJECT identifiers:
+ * a bare number ("01", "02" are far more often patient folders than
+ * visits), and bare "S<n>" ("S1" reads as subject 1 at least as readily as
+ * session 1). Everything here is a form that would be odd as a patient id.
+ */
+const VISIT_LABEL_PATTERN =
+  /^(baseline|base|screening|screen|enrol{1,2}ment|follow[-_\s]?up|endpoint|exit|final|(visit|timepoint|tp|tmpt|v)[-_\s]?\d+)$/i;
+
+/**
+ * True when a single path segment names a longitudinal timepoint, in any
+ * of the conventions sites actually use.
+ *
+ * Exported so the subject-grouping layer can ask the same question this
+ * module answers, instead of keeping its own copy of the vocabulary.
+ * Those two copies had already drifted: subjectGrouping.ts recognised
+ * "2weeks" and YYYYMMDD dates only, so a dataset using "week2", "W2",
+ * "2_weeks", "visit1", "V1" or "baseline/followup" had every visit folder
+ * treated as a separate PATIENT -- the same bug that was fixed for
+ * "2weeks" alone, still live for every other spelling (probe 2026-08-17).
+ */
+export function looksLikeTimepointFolder(segment: string): boolean {
+  const trimmed = segment.trim();
+  if (parseFlywheelSegment(trimmed) !== null) return true;
+  if (VISIT_LABEL_PATTERN.test(trimmed)) return true;
+  // Date-stamped visit folders: YYYYMMDD, with a sanity check so an
+  // arbitrary 8-digit id is not mistaken for a date.
+  if (/^\d{8}$/.test(trimmed)) {
+    const month = Number(trimmed.slice(4, 6));
+    const day = Number(trimmed.slice(6, 8));
+    if (month >= 1 && month <= 12 && day >= 1 && day <= 31) return true;
+  }
+  // ISO dates ("2018-05-10", "2018_05_10").
+  const iso = trimmed.match(/^(\d{4})[-_](\d{2})[-_](\d{2})$/);
+  if (iso) {
+    const month = Number(iso[2]);
+    const day = Number(iso[3]);
+    if (month >= 1 && month <= 12 && day >= 1 && day <= 31) return true;
+  }
+  return false;
 }
 
 /**

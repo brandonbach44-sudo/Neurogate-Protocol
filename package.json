@@ -14,7 +14,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "regression": "tsx regression.ts && tsx regression_deidentify.ts && tsx regression_flywheel.ts",
+    "regression": "tsx regression.ts && tsx regression_deidentify.ts && tsx regression_flywheel.ts && tsx regression_generalization.ts",
     "regression:update": "tsx regression.ts --update && tsx regression_deidentify.ts --update && tsx regression_flywheel.ts --update",
     "verify:adapter": "tsx verify_adapter.ts",
     "verify:export": "tsx verify_export_writer.ts",
