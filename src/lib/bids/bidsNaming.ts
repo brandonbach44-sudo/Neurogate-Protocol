@@ -194,15 +194,59 @@ function assignFmapEntities(
   mags.sort(byEcho);
   phases.sort(byEcho);
 
+  // Suffixes are assigned per ACQUISITION SERIES, not across the whole
+  // subject+session field-map group.
+  //
+  // A Siemens gradient-echo field map is one series emitting three files
+  // (_e1, _e2, _e2_ph) that together form a valid BIDS set: magnitude1 +
+  // magnitude2 + phasediff. A session routinely holds more than one such
+  // series -- "gre_field_mapping" and "gre_field_mappingRS" (a
+  // resting-state-specific map) both appear in the Phase2_MRI corpus.
+  //
+  // Pooling every phase image in the session made phases.length 2, which
+  // took the phase1/phase2 branch, and since both phase files carry echo
+  // 2 both were named "phase2" and separated only by a run- entity. The
+  // result was magnitude1 + magnitude2 + phase2 per series, which is not
+  // one of the two combinations BIDS accepts for a field map (either
+  // phasediff with magnitude1[+magnitude2], or phase1 + phase2 with both
+  // magnitudes). Splitting by series restores phasediff.
+  //
+  // This path had no coverage before: the field-map regex never matched
+  // "gre_field_mapping", so no real field map ever reached this function
+  // and the demo dataset contains none. Surfaced 2026-08-17 once the
+  // regex was fixed.
+  const seriesOf = (base: string): string =>
+    base.replace(/_e\d+(_ph)?$/i, '').replace(/_ph$/i, '');
+
+  const seriesNames = [...new Set(bases.map(seriesOf))].sort();
+
   const suffixForBase = new Map<string, string>();
-  mags.forEach((m, idx) => {
-    suffixForBase.set(m.base, `magnitude${m.echo ?? idx + 1}`);
-  });
-  if (phases.length === 1) {
-    suffixForBase.set(phases[0].base, 'phasediff');
-  } else {
-    phases.forEach((p, idx) => {
-      suffixForBase.set(p.base, `phase${p.echo ?? idx + 1}`);
+  for (const series of seriesNames) {
+    const seriesMags = mags.filter(m => seriesOf(m.base) === series);
+    const seriesPhases = phases.filter(p => seriesOf(p.base) === series);
+
+    seriesMags.forEach((m, idx) => {
+      suffixForBase.set(m.base, `magnitude${m.echo ?? idx + 1}`);
+    });
+    if (seriesPhases.length === 1) {
+      suffixForBase.set(seriesPhases[0].base, 'phasediff');
+    } else {
+      seriesPhases.forEach((p, idx) => {
+        suffixForBase.set(p.base, `phase${p.echo ?? idx + 1}`);
+      });
+    }
+  }
+
+  // Two distinct series in one session would otherwise collide on
+  // identical suffixes; give each series its own run- so the sets stay
+  // separable. The collision pass below handles any residue.
+  if (seriesNames.length > 1) {
+    seriesNames.forEach((series, idx) => {
+      for (const b of bases) {
+        if (seriesOf(b) === series) {
+          for (const i of baseToIndices.get(b)!) runOf.set(i, idx + 1);
+        }
+      }
     });
   }
 
@@ -381,6 +425,25 @@ export function computeBidsNames(
     }
     if (modality === 'sidecar-json' || modality === 'sidecar-tsv') {
       return; // paired in the next pass
+    }
+    // A modality that came only from the blind "Defaulting ambiguous NIfTI
+    // to T1w -- please verify" fallback must not be written under a
+    // modality-specific BIDS name. Until this check existed, such a file
+    // passed both real export gates (it has a session, and anat-T1w is
+    // exportable) and was written as sub-XX_ses-YY_run-N_T1w.nii.gz --
+    // 371 field-map, proton-density and diffusion scans in the Phase2_MRI
+    // corpus were exported as fabricated anatomicals (audit 2026-08-17).
+    // Confidence could not be used for this: nothing in the export path
+    // reads it.
+    //
+    // r.userModality is checked directly rather than via
+    // getEffectiveModality so that a user who picks a modality in the
+    // mapping table clears the guess and exports normally. The goal is to
+    // require a human decision, not to drop the file.
+    if (r.modalityIsGuess && !r.userModality) {
+      r.bidsFilename = r.fileName;
+      r.bidsPath = `unclassified/${r.fileName}`;
+      return;
     }
     // A null session is only a legitimate, exportable state when this
     // dataset's active preset is Single session (sessionless). For every

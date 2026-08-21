@@ -102,6 +102,7 @@ export function inferFromNeighbors(
           layer: 'neighbor',
           message: `JSON sidecar matches "${matchingFile.name}" — inheriting modality`,
           weight: 0.7,
+          supports: 'modality',
         });
       }
     }
@@ -117,6 +118,7 @@ export function inferFromNeighbors(
         layer: 'neighbor',
         message: `Found ${hasBval ? '.bval' : ''}${hasBval && hasBvec ? ' and ' : ''}${hasBvec ? '.bvec' : ''} in same folder — this is a diffusion MRI`,
         weight: 0.8,
+        supports: 'modality',
       });
     }
   }
@@ -131,6 +133,7 @@ export function inferFromNeighbors(
         layer: 'neighbor',
         message: 'EDF/BDF file in folder with electrode/channel metadata — likely intracranial EEG',
         weight: 0.6,
+        supports: 'modality',
       });
     }
   }
@@ -164,6 +167,7 @@ export function inferFromNeighbors(
         layer: 'neighbor',
         message: 'CT and iEEG found in same subject group — this is the post-implant session',
         weight: 0.7,
+        supports: 'session',
       });
     }
   }
@@ -207,6 +211,7 @@ export function inferFromNeighbors(
           layer: 'neighbor',
           message: 'Anatomical MRI with no CT or iEEG in subject group — likely pre-implant baseline',
           weight: 0.3,
+          supports: 'session',
         });
       }
     }

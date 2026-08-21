@@ -89,6 +89,30 @@ export interface SidecarInfo {
   /** The sidecar file name, used in audit / reason messages. */
   sidecarName: string;
   /**
+   * The DICOM ImageType tag, kept as its own array rather than only being
+   * flattened into scanText.
+   *
+   * ImageType is the scanner's own structured statement of what an image
+   * is, and it is the only reliable way to tell a raw acquisition from a
+   * scanner-computed parameter map:
+   *
+   *   ['ORIGINAL','PRIMARY','DIFFUSION','NONE','ND','MOSAIC']  raw DWI
+   *   ['DERIVED', 'PRIMARY','DIFFUSION','ADC','ND']            ADC map
+   *   ['DERIVED', 'PRIMARY','DIFFUSION','FA','ND']             FA map
+   *   ['DERIVED', 'PRIMARY','DIFFUSION','TRACEW','ND']         trace-weighted
+   *
+   * Filename matching cannot substitute for this. dcm2niix frequently
+   * drops the descriptive suffix and numbers the output instead, so the
+   * ADC map of series 18 arrives as
+   * "_ep2d_diff_SliceAcc_b1k_64_20170130080338_18.nii.gz" -- a name that
+   * looks exactly like raw diffusion while its sidecar says
+   * DERIVED/ADC. Matching scanText does not work either: ImageType is
+   * concatenated with SeriesDescription and the sequence fields, so a
+   * suffix-anchored pattern never lines up. Verified against the
+   * Phase2_MRI corpus 2026-08-17.
+   */
+  imageType: string[];
+  /**
    * Acquisition date parsed from AcquisitionDateTime / StudyDate /
    * SeriesDate (first present, in that order). Null if none of those
    * fields were present or parseable. Used only by the Custom timepoints
@@ -150,12 +174,18 @@ export async function readJsonSidecars(
           if (acquisitionDate) break;
         }
 
+        const rawImageType = parsed['ImageType'];
+        const imageType = Array.isArray(rawImageType)
+          ? rawImageType.filter((v): v is string => typeof v === 'string')
+          : [];
+
         const scanText = parts.join(' ').trim();
-        if (scanText || acquisitionDate) {
+        if (scanText || acquisitionDate || imageType.length > 0) {
           map.set(getSidecarBaseName(jf.name), {
             scanText,
             sidecarName: jf.name,
             acquisitionDate,
+            imageType,
           });
         }
       } catch {

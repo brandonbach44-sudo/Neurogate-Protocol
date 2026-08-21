@@ -13,7 +13,7 @@
  */
 
 import type { Modality, Session, DetectionReason } from '../../types/detection';
-import { normalizeForKeywords } from './filenameDetector';
+import { normalizeForKeywords, isDerivedDiffusionMap } from './filenameDetector';
 
 export interface FolderResult {
   session: Session | null;
@@ -78,8 +78,16 @@ const FOLDER_MODALITY_PATTERNS: [RegExp, Modality, string][] = [
   // CT
   [/\b(ct|ct[-_]?scan|computed[-_]?tomography)\b/i, 'ct', 'Folder suggests CT scan'],
 
-  // Diffusion
-  [/\b(dwi|dti|diffusion)\b/i, 'dwi', 'Folder suggests diffusion MRI'],
+  // Field map -- kept above diffusion for the same ordering reason as in
+  // filenameDetector.ts: the diffusion pattern below matches a bare
+  // "diff" token, which would otherwise swallow "phase_diff".
+  // "(?:ping)?" makes "gre_field_mapping" / "Field_mapping" match; see the
+  // longer note in filenameDetector.ts.
+  [/\b(fmap|fieldmap|field[-_]?map(?:ping)?)\b/i, 'fmap', 'Folder suggests field map'],
+
+  // Diffusion. "ep2d_diff" / bare "diff" cover the stock Siemens EPI
+  // diffusion series names; see filenameDetector.ts for the full note.
+  [/\b(dwi|dti|diffusion|ep2d[-_]?diff|diff)\b/i, 'dwi', 'Folder suggests diffusion MRI'],
 
   // Perfusion / ASL
   [/\b(perf|perfusion|asl)\b/i, 'perf', 'Folder suggests perfusion / ASL'],
@@ -91,8 +99,6 @@ const FOLDER_MODALITY_PATTERNS: [RegExp, Modality, string][] = [
   // Functional MRI
   [/\b(func|functional|bold|fmri|resting[-_]?state)\b/i, 'func', 'Folder suggests functional MRI'],
 
-  // Field map
-  [/\b(fmap|fieldmap|field[-_]?map)\b/i, 'fmap', 'Folder suggests field map'],
 ];
 
 /**
@@ -137,6 +143,7 @@ export function detectFromFolderPath(relativePath: string): FolderResult {
           layer: 'folder',
           message: `${description} (folder: "${segment}")`,
           weight: 0.4,
+          supports: 'session',
         });
         break;
       }
@@ -167,6 +174,15 @@ export function detectFromFolderPath(relativePath: string): FolderResult {
 
     const normalized = normalizeForKeywords(segment);
 
+    // A scanner-derived diffusion map (ADC/FA/TRACEW) sits in a folder
+    // named after the series it was derived from, e.g.
+    // "ep2d_diff_SliceAcc_b1k_64_ADC/". Without this guard the folder's
+    // "ep2d_diff" token would classify the map as raw dwi and undo the
+    // matching guard in filenameDetector.ts's matchKeywords. Skip the
+    // segment entirely so the file stays unclassified for manual
+    // placement; see isDerivedDiffusionMap for the ImageType evidence.
+    if (isDerivedDiffusionMap(normalized)) continue;
+
     for (const [pattern, mod, description] of FOLDER_MODALITY_PATTERNS) {
       if (pattern.test(normalized)) {
         modality = mod;
@@ -174,6 +190,7 @@ export function detectFromFolderPath(relativePath: string): FolderResult {
           layer: 'folder',
           message: `${description} (folder: "${segment}")`,
           weight: 0.3,
+          supports: 'modality',
         });
         break;
       }
