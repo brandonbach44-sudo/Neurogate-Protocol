@@ -9,6 +9,7 @@
         "detectedSession": "ses-2wk",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "primary/sub-sub_dates/ses-2wk/anat/sub-sub_dates_ses-2wk_T2starw.nii.gz"
       },
       {
@@ -17,6 +18,7 @@
         "detectedSession": "ses-2wk",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "primary/sub-sub_dates/ses-2wk/anat/sub-sub_dates_ses-2wk_FLAIR.nii.gz"
       },
       {
@@ -25,6 +27,7 @@
         "detectedSession": "ses-2wk",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "primary/sub-sub_dates/ses-2wk/fmap/sub-sub_dates_ses-2wk_magnitude1.nii.gz"
       },
       {
@@ -33,6 +36,7 @@
         "detectedSession": "ses-2wk",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "primary/sub-sub_dates/ses-2wk/fmap/sub-sub_dates_ses-2wk_phasediff.nii.gz"
       },
       {
@@ -41,6 +45,7 @@
         "detectedSession": "ses-2wk",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "primary/sub-sub_dates/ses-2wk/fmap/sub-sub_dates_ses-2wk_magnitude2.nii.gz"
       },
       {
@@ -49,6 +54,7 @@
         "detectedSession": "ses-2wk",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "primary/sub-sub_dates/ses-2wk/anat/sub-sub_dates_ses-2wk_T1w.nii.gz"
       },
       {
@@ -57,6 +63,7 @@
         "detectedSession": "ses-2wk",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "primary/sub-sub_dates/ses-2wk/anat/sub-sub_dates_ses-2wk_PDw.nii.gz"
       },
       {
@@ -65,6 +72,7 @@
         "detectedSession": "ses-6mo",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "primary/sub-sub_dates/ses-6mo/anat/sub-sub_dates_ses-6mo_T2starw.nii.gz"
       },
       {
@@ -73,6 +81,7 @@
         "detectedSession": "ses-6mo",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "primary/sub-sub_dates/ses-6mo/anat/sub-sub_dates_ses-6mo_FLAIR.nii.gz"
       },
       {
@@ -81,6 +90,7 @@
         "detectedSession": "ses-6mo",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "primary/sub-sub_dates/ses-6mo/fmap/sub-sub_dates_ses-6mo_magnitude1.nii.gz"
       },
       {
@@ -89,6 +99,7 @@
         "detectedSession": "ses-6mo",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "primary/sub-sub_dates/ses-6mo/fmap/sub-sub_dates_ses-6mo_phasediff.nii.gz"
       },
       {
@@ -97,6 +108,7 @@
         "detectedSession": "ses-6mo",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "primary/sub-sub_dates/ses-6mo/fmap/sub-sub_dates_ses-6mo_magnitude2.nii.gz"
       },
       {
@@ -105,6 +117,7 @@
         "detectedSession": "ses-6mo",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "primary/sub-sub_dates/ses-6mo/anat/sub-sub_dates_ses-6mo_T1w.nii.gz"
       },
       {
@@ -113,6 +126,7 @@
         "detectedSession": "ses-6mo",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "primary/sub-sub_dates/ses-6mo/anat/sub-sub_dates_ses-6mo_PDw.nii.gz"
       }
     ],
@@ -129,7 +143,7 @@
   },
   {
     "subject": "sub_flat",
-    "fileCount": 42,
+    "fileCount": 60,
     "detection": [
       {
         "relativePath": "sub_flat/2weeks/3D_T2_Turbo_FLAIR/3D_T2_Turbo_FLAIR.nii.gz",
@@ -137,7 +151,35 @@
         "detectedSession": "ses-2wk",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "primary/sub-sub_flat/ses-2wk/anat/sub-sub_flat_ses-2wk_run-1_FLAIR.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/2weeks/CMRR_b1k_64_SBRef/CMRR_b1k_64_SBRef.nii.gz",
+        "detectedModality": "dwi",
+        "detectedSession": "ses-2wk",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "duplicateOf": null,
+        "bidsPath": "primary/sub-sub_flat/ses-2wk/dwi/sub-sub_flat_ses-2wk_run-1_sbref.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/2weeks/CMRR_b1k_64_SBRef/CMRR_b1k_64_SBRefa.nii.gz",
+        "detectedModality": "dwi",
+        "detectedSession": "ses-2wk",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "duplicateOf": null,
+        "bidsPath": "primary/sub-sub_flat/ses-2wk/dwi/sub-sub_flat_ses-2wk_run-2_sbref.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/2weeks/CMRR_b1k_64/CMRR_b1k_64.nii.gz",
+        "detectedModality": "dwi",
+        "detectedSession": "ses-2wk",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "duplicateOf": null,
+        "bidsPath": "primary/sub-sub_flat/ses-2wk/dwi/sub-sub_flat_ses-2wk_run-1_dwi.nii.gz"
       },
       {
         "relativePath": "sub_flat/2weeks/ep2d_diff_sms3_b1000_te94_d64_ADC/_ep2d_diff_sms3_b1000_te94_d64_20180510_18.json",
@@ -145,6 +187,7 @@
         "detectedSession": "ses-2wk",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "unclassified/_ep2d_diff_sms3_b1000_te94_d64_20180510_18.json"
       },
       {
@@ -153,6 +196,7 @@
         "detectedSession": "ses-2wk",
         "confidence": "unclassified",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "unclassified/_ep2d_diff_sms3_b1000_te94_d64_20180510_18.nii.gz"
       },
       {
@@ -161,7 +205,8 @@
         "detectedSession": "ses-2wk",
         "confidence": "high",
         "modalityIsGuess": false,
-        "bidsPath": "primary/sub-sub_flat/ses-2wk/dwi/sub-sub_flat_ses-2wk_run-1_dwi.json"
+        "duplicateOf": null,
+        "bidsPath": "primary/sub-sub_flat/ses-2wk/dwi/sub-sub_flat_ses-2wk_run-2_dwi.json"
       },
       {
         "relativePath": "sub_flat/2weeks/ep2d_diff_sms3_b1000_te94_d64_TW/_ep2d_diff_sms3_b1000_te94_d64_TW_20180510_19.nii.gz",
@@ -169,7 +214,8 @@
         "detectedSession": "ses-2wk",
         "confidence": "high",
         "modalityIsGuess": false,
-        "bidsPath": "primary/sub-sub_flat/ses-2wk/dwi/sub-sub_flat_ses-2wk_run-1_dwi.nii.gz"
+        "duplicateOf": null,
+        "bidsPath": "primary/sub-sub_flat/ses-2wk/dwi/sub-sub_flat_ses-2wk_run-2_dwi.nii.gz"
       },
       {
         "relativePath": "sub_flat/2weeks/ep2d_diff_sms3_b1000_te94_d64/ep2d_diff_sms3_b1000_te94_d64.nii.gz",
@@ -177,7 +223,35 @@
         "detectedSession": "ses-2wk",
         "confidence": "high",
         "modalityIsGuess": false,
-        "bidsPath": "primary/sub-sub_flat/ses-2wk/dwi/sub-sub_flat_ses-2wk_run-2_dwi.nii.gz"
+        "duplicateOf": null,
+        "bidsPath": "primary/sub-sub_flat/ses-2wk/dwi/sub-sub_flat_ses-2wk_run-4_dwi.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/2weeks/ep2d_diff_sms3_b3000_te122_d64/_ep2d_diff_sms3_b3000_te122_d64_20180510_7.json",
+        "detectedModality": "sidecar-json",
+        "detectedSession": "ses-2wk",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "duplicateOf": null,
+        "bidsPath": "primary/sub-sub_flat/ses-2wk/dwi/sub-sub_flat_ses-2wk_run-3_dwi.json"
+      },
+      {
+        "relativePath": "sub_flat/2weeks/ep2d_diff_sms3_b3000_te122_d64/_ep2d_diff_sms3_b3000_te122_d64_20180510_7.nii.gz",
+        "detectedModality": "dwi",
+        "detectedSession": "ses-2wk",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "duplicateOf": null,
+        "bidsPath": "primary/sub-sub_flat/ses-2wk/dwi/sub-sub_flat_ses-2wk_run-3_dwi.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/2weeks/ep2d_diff_sms3_b3000_te122_d64/ep2d_diff_sms3_b3000_te122_d64.nii.gz",
+        "detectedModality": "dwi",
+        "detectedSession": "ses-2wk",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "duplicateOf": "_ep2d_diff_sms3_b3000_te122_d64_20180510_7.nii.gz",
+        "bidsPath": "unclassified/ep2d_diff_sms3_b3000_te122_d64.nii.gz"
       },
       {
         "relativePath": "sub_flat/2weeks/gre_field_mapping/gre_field_mapping_e1.nii.gz",
@@ -185,7 +259,17 @@
         "detectedSession": "ses-2wk",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "primary/sub-sub_flat/ses-2wk/fmap/sub-sub_flat_ses-2wk_run-2_magnitude1.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/2weeks/gre_field_mapping/gre_field_mapping_e1a.nii.gz",
+        "detectedModality": "fmap",
+        "detectedSession": "ses-2wk",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "duplicateOf": null,
+        "bidsPath": "primary/sub-sub_flat/ses-2wk/fmap/sub-sub_flat_ses-2wk_run-3_magnitude1.nii.gz"
       },
       {
         "relativePath": "sub_flat/2weeks/gre_field_mapping/gre_field_mapping_e2_ph.nii.gz",
@@ -193,7 +277,17 @@
         "detectedSession": "ses-2wk",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "primary/sub-sub_flat/ses-2wk/fmap/sub-sub_flat_ses-2wk_run-2_phasediff.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/2weeks/gre_field_mapping/gre_field_mapping_e2_pha.nii.gz",
+        "detectedModality": "fmap",
+        "detectedSession": "ses-2wk",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "duplicateOf": null,
+        "bidsPath": "primary/sub-sub_flat/ses-2wk/fmap/sub-sub_flat_ses-2wk_run-3_phasediff.nii.gz"
       },
       {
         "relativePath": "sub_flat/2weeks/gre_field_mapping/gre_field_mapping_e2.nii.gz",
@@ -201,7 +295,17 @@
         "detectedSession": "ses-2wk",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "primary/sub-sub_flat/ses-2wk/fmap/sub-sub_flat_ses-2wk_run-2_magnitude2.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/2weeks/gre_field_mapping/gre_field_mapping_e2a.nii.gz",
+        "detectedModality": "fmap",
+        "detectedSession": "ses-2wk",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "duplicateOf": null,
+        "bidsPath": "primary/sub-sub_flat/ses-2wk/fmap/sub-sub_flat_ses-2wk_run-3_magnitude2.nii.gz"
       },
       {
         "relativePath": "sub_flat/2weeks/gre_field_mappingRS/gre_field_mappingRS_e1.nii.gz",
@@ -209,6 +313,7 @@
         "detectedSession": "ses-2wk",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "primary/sub-sub_flat/ses-2wk/fmap/sub-sub_flat_ses-2wk_run-1_magnitude1.nii.gz"
       },
       {
@@ -217,6 +322,7 @@
         "detectedSession": "ses-2wk",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "primary/sub-sub_flat/ses-2wk/fmap/sub-sub_flat_ses-2wk_run-1_phasediff.nii.gz"
       },
       {
@@ -225,6 +331,7 @@
         "detectedSession": "ses-2wk",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "primary/sub-sub_flat/ses-2wk/fmap/sub-sub_flat_ses-2wk_run-1_magnitude2.nii.gz"
       },
       {
@@ -233,6 +340,7 @@
         "detectedSession": "ses-2wk",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "(excluded from export: localizer/scout)"
       },
       {
@@ -241,6 +349,7 @@
         "detectedSession": "ses-2wk",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "primary/sub-sub_flat/ses-2wk/anat/sub-sub_flat_ses-2wk_run-1_T2starw.nii.gz"
       },
       {
@@ -249,6 +358,7 @@
         "detectedSession": "ses-2wk",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "primary/sub-sub_flat/ses-2wk/func/sub-sub_flat_ses-2wk_task-rest_rec-moco_bold.nii.gz"
       },
       {
@@ -257,6 +367,7 @@
         "detectedSession": "ses-2wk",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "primary/sub-sub_flat/ses-2wk/anat/sub-sub_flat_ses-2wk_PDw.nii.gz"
       },
       {
@@ -265,6 +376,7 @@
         "detectedSession": "ses-2wk",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "primary/sub-sub_flat/ses-2wk/anat/sub-sub_flat_ses-2wk_run-2_T2starw.nii.gz"
       },
       {
@@ -273,6 +385,7 @@
         "detectedSession": "ses-2wk",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "primary/sub-sub_flat/ses-2wk/func/sub-sub_flat_ses-2wk_task-rest_bold.nii.gz"
       },
       {
@@ -281,6 +394,7 @@
         "detectedSession": "ses-2wk",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "primary/sub-sub_flat/ses-2wk/anat/sub-sub_flat_ses-2wk_T1w.nii.gz"
       },
       {
@@ -289,6 +403,7 @@
         "detectedSession": "ses-2wk",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "primary/sub-sub_flat/ses-2wk/anat/sub-sub_flat_ses-2wk_run-3_T2starw.nii.gz"
       },
       {
@@ -297,6 +412,7 @@
         "detectedSession": "ses-2wk",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "primary/sub-sub_flat/ses-2wk/anat/sub-sub_flat_ses-2wk_run-2_FLAIR.nii.gz"
       },
       {
@@ -305,7 +421,35 @@
         "detectedSession": "ses-6mo",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "primary/sub-sub_flat/ses-6mo/anat/sub-sub_flat_ses-6mo_run-1_FLAIR.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/6months/CMRR_b1k_64_SBRef/CMRR_b1k_64_SBRef.nii.gz",
+        "detectedModality": "dwi",
+        "detectedSession": "ses-6mo",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "duplicateOf": null,
+        "bidsPath": "primary/sub-sub_flat/ses-6mo/dwi/sub-sub_flat_ses-6mo_run-1_sbref.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/6months/CMRR_b1k_64_SBRef/CMRR_b1k_64_SBRefa.nii.gz",
+        "detectedModality": "dwi",
+        "detectedSession": "ses-6mo",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "duplicateOf": null,
+        "bidsPath": "primary/sub-sub_flat/ses-6mo/dwi/sub-sub_flat_ses-6mo_run-2_sbref.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/6months/CMRR_b1k_64/CMRR_b1k_64.nii.gz",
+        "detectedModality": "dwi",
+        "detectedSession": "ses-6mo",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "duplicateOf": null,
+        "bidsPath": "primary/sub-sub_flat/ses-6mo/dwi/sub-sub_flat_ses-6mo_run-1_dwi.nii.gz"
       },
       {
         "relativePath": "sub_flat/6months/ep2d_diff_sms3_b1000_te94_d64_ADC/_ep2d_diff_sms3_b1000_te94_d64_20180510_18.json",
@@ -313,6 +457,7 @@
         "detectedSession": "ses-2wk",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "unclassified/_ep2d_diff_sms3_b1000_te94_d64_20180510_18.json"
       },
       {
@@ -321,6 +466,7 @@
         "detectedSession": "ses-6mo",
         "confidence": "unclassified",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "unclassified/_ep2d_diff_sms3_b1000_te94_d64_20180510_18.nii.gz"
       },
       {
@@ -329,7 +475,8 @@
         "detectedSession": "ses-2wk",
         "confidence": "high",
         "modalityIsGuess": false,
-        "bidsPath": "primary/sub-sub_flat/ses-2wk/dwi/sub-sub_flat_ses-2wk_run-1_dwi_dup-2.json"
+        "duplicateOf": null,
+        "bidsPath": "primary/sub-sub_flat/ses-2wk/dwi/sub-sub_flat_ses-2wk_run-2_dwi_dup-2.json"
       },
       {
         "relativePath": "sub_flat/6months/ep2d_diff_sms3_b1000_te94_d64_TW/_ep2d_diff_sms3_b1000_te94_d64_TW_20180510_19.nii.gz",
@@ -337,7 +484,8 @@
         "detectedSession": "ses-6mo",
         "confidence": "high",
         "modalityIsGuess": false,
-        "bidsPath": "primary/sub-sub_flat/ses-6mo/dwi/sub-sub_flat_ses-6mo_run-1_dwi.nii.gz"
+        "duplicateOf": null,
+        "bidsPath": "primary/sub-sub_flat/ses-6mo/dwi/sub-sub_flat_ses-6mo_run-2_dwi.nii.gz"
       },
       {
         "relativePath": "sub_flat/6months/ep2d_diff_sms3_b1000_te94_d64/ep2d_diff_sms3_b1000_te94_d64.nii.gz",
@@ -345,7 +493,35 @@
         "detectedSession": "ses-6mo",
         "confidence": "high",
         "modalityIsGuess": false,
-        "bidsPath": "primary/sub-sub_flat/ses-6mo/dwi/sub-sub_flat_ses-6mo_run-2_dwi.nii.gz"
+        "duplicateOf": null,
+        "bidsPath": "primary/sub-sub_flat/ses-6mo/dwi/sub-sub_flat_ses-6mo_run-4_dwi.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/6months/ep2d_diff_sms3_b3000_te122_d64/_ep2d_diff_sms3_b3000_te122_d64_20180510_7.json",
+        "detectedModality": "sidecar-json",
+        "detectedSession": "ses-2wk",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "duplicateOf": null,
+        "bidsPath": "primary/sub-sub_flat/ses-2wk/dwi/sub-sub_flat_ses-2wk_run-3_dwi_dup-2.json"
+      },
+      {
+        "relativePath": "sub_flat/6months/ep2d_diff_sms3_b3000_te122_d64/_ep2d_diff_sms3_b3000_te122_d64_20180510_7.nii.gz",
+        "detectedModality": "dwi",
+        "detectedSession": "ses-6mo",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "duplicateOf": null,
+        "bidsPath": "primary/sub-sub_flat/ses-6mo/dwi/sub-sub_flat_ses-6mo_run-3_dwi.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/6months/ep2d_diff_sms3_b3000_te122_d64/ep2d_diff_sms3_b3000_te122_d64.nii.gz",
+        "detectedModality": "dwi",
+        "detectedSession": "ses-6mo",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "duplicateOf": "_ep2d_diff_sms3_b3000_te122_d64_20180510_7.nii.gz",
+        "bidsPath": "unclassified/ep2d_diff_sms3_b3000_te122_d64.nii.gz"
       },
       {
         "relativePath": "sub_flat/6months/gre_field_mapping/gre_field_mapping_e1.nii.gz",
@@ -353,7 +529,17 @@
         "detectedSession": "ses-6mo",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "primary/sub-sub_flat/ses-6mo/fmap/sub-sub_flat_ses-6mo_run-2_magnitude1.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/6months/gre_field_mapping/gre_field_mapping_e1a.nii.gz",
+        "detectedModality": "fmap",
+        "detectedSession": "ses-6mo",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "duplicateOf": null,
+        "bidsPath": "primary/sub-sub_flat/ses-6mo/fmap/sub-sub_flat_ses-6mo_run-3_magnitude1.nii.gz"
       },
       {
         "relativePath": "sub_flat/6months/gre_field_mapping/gre_field_mapping_e2_ph.nii.gz",
@@ -361,7 +547,17 @@
         "detectedSession": "ses-6mo",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "primary/sub-sub_flat/ses-6mo/fmap/sub-sub_flat_ses-6mo_run-2_phasediff.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/6months/gre_field_mapping/gre_field_mapping_e2_pha.nii.gz",
+        "detectedModality": "fmap",
+        "detectedSession": "ses-6mo",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "duplicateOf": null,
+        "bidsPath": "primary/sub-sub_flat/ses-6mo/fmap/sub-sub_flat_ses-6mo_run-3_phasediff.nii.gz"
       },
       {
         "relativePath": "sub_flat/6months/gre_field_mapping/gre_field_mapping_e2.nii.gz",
@@ -369,7 +565,17 @@
         "detectedSession": "ses-6mo",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "primary/sub-sub_flat/ses-6mo/fmap/sub-sub_flat_ses-6mo_run-2_magnitude2.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/6months/gre_field_mapping/gre_field_mapping_e2a.nii.gz",
+        "detectedModality": "fmap",
+        "detectedSession": "ses-6mo",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "duplicateOf": null,
+        "bidsPath": "primary/sub-sub_flat/ses-6mo/fmap/sub-sub_flat_ses-6mo_run-3_magnitude2.nii.gz"
       },
       {
         "relativePath": "sub_flat/6months/gre_field_mappingRS/gre_field_mappingRS_e1.nii.gz",
@@ -377,6 +583,7 @@
         "detectedSession": "ses-6mo",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "primary/sub-sub_flat/ses-6mo/fmap/sub-sub_flat_ses-6mo_run-1_magnitude1.nii.gz"
       },
       {
@@ -385,6 +592,7 @@
         "detectedSession": "ses-6mo",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "primary/sub-sub_flat/ses-6mo/fmap/sub-sub_flat_ses-6mo_run-1_phasediff.nii.gz"
       },
       {
@@ -393,6 +601,7 @@
         "detectedSession": "ses-6mo",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "primary/sub-sub_flat/ses-6mo/fmap/sub-sub_flat_ses-6mo_run-1_magnitude2.nii.gz"
       },
       {
@@ -401,6 +610,7 @@
         "detectedSession": "ses-6mo",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "(excluded from export: localizer/scout)"
       },
       {
@@ -409,6 +619,7 @@
         "detectedSession": "ses-6mo",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "primary/sub-sub_flat/ses-6mo/anat/sub-sub_flat_ses-6mo_run-1_T2starw.nii.gz"
       },
       {
@@ -417,6 +628,7 @@
         "detectedSession": "ses-6mo",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "primary/sub-sub_flat/ses-6mo/func/sub-sub_flat_ses-6mo_task-rest_rec-moco_bold.nii.gz"
       },
       {
@@ -425,6 +637,7 @@
         "detectedSession": "ses-6mo",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "primary/sub-sub_flat/ses-6mo/anat/sub-sub_flat_ses-6mo_PDw.nii.gz"
       },
       {
@@ -433,6 +646,7 @@
         "detectedSession": "ses-6mo",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "primary/sub-sub_flat/ses-6mo/anat/sub-sub_flat_ses-6mo_run-2_T2starw.nii.gz"
       },
       {
@@ -441,6 +655,7 @@
         "detectedSession": "ses-6mo",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "primary/sub-sub_flat/ses-6mo/func/sub-sub_flat_ses-6mo_task-rest_bold.nii.gz"
       },
       {
@@ -449,6 +664,7 @@
         "detectedSession": "ses-6mo",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "primary/sub-sub_flat/ses-6mo/anat/sub-sub_flat_ses-6mo_T1w.nii.gz"
       },
       {
@@ -457,6 +673,7 @@
         "detectedSession": "ses-6mo",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "primary/sub-sub_flat/ses-6mo/anat/sub-sub_flat_ses-6mo_run-3_T2starw.nii.gz"
       },
       {
@@ -465,12 +682,13 @@
         "detectedSession": "ses-6mo",
         "confidence": "high",
         "modalityIsGuess": false,
+        "duplicateOf": null,
         "bidsPath": "primary/sub-sub_flat/ses-6mo/anat/sub-sub_flat_ses-6mo_run-2_FLAIR.nii.gz"
       }
     ],
     "summary": {
-      "totalFiles": 42,
-      "highConfidence": 40,
+      "totalFiles": 60,
+      "highConfidence": 58,
       "mediumConfidence": 0,
       "lowConfidence": 0,
       "unclassified": 2,

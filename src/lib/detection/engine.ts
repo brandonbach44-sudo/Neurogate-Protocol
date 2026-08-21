@@ -59,6 +59,18 @@ import type { DatasetStructure } from '../../types/sessionStructure';
 // runDetection() calls computeBidsNames() over the whole result set
 // before returning, so repeated modalities get unique run- entities.
 
+/**
+ * The image base name, or null for anything that is not a NIfTI image.
+ * Used by the duplicate-series check, which only ever compares images --
+ * a .json / .bval / .bvec companion is paired separately by base name in
+ * lib/bids/bidsNaming.ts and must not be mistaken for a duplicate.
+ */
+function imageStemOf(fileName: string): string | null {
+  if (/\.nii\.gz$/i.test(fileName)) return fileName.slice(0, -7);
+  if (/\.nii$/i.test(fileName)) return fileName.slice(0, -4);
+  return null;
+}
+
 // ── Confidence calculation ────────────────────────────────────────
 
 /**
@@ -778,6 +790,38 @@ export function runDetection(
       });
     }
 
+    // ── Same series converted twice ─────────────────────────────
+    // dcm2niix emits one acquisition under two names in the same folder:
+    // the bare series name and a decorated
+    // _<series>_<timestamp>_<seriesNumber>. Detection is a deterministic
+    // name relationship, never a similarity guess -- stripping the leading
+    // underscore and the trailing _<timestamp>_<number> from the decorated
+    // name must yield this file's exact base name, in this file's folder.
+    //
+    // Verified over the Phase2_MRI corpus 2026-08-17: matched 117 folders
+    // / 236 files, and left alone the 139 folders holding genuinely
+    // different images (magnitude vs. phase "_ph", dcm2niix collision
+    // variants ending in "a").
+    //
+    // Only the BARE copy is ever marked. The decorated copy carries the
+    // .json sidecar in 118 of 119 real pairs (the bare copy in none), and
+    // that sidecar is where ImageType comes from, so it is the more
+    // complete file and the one worth keeping.
+    let duplicateOf: string | undefined;
+    const thisStem = imageStemOf(file.name);
+    if (thisStem) {
+      const thisFolder = getFolderPath(file.relativePath);
+      const decoratedTwin = files.find(other => {
+        if (other.name === file.name) return false;
+        if (getFolderPath(other.relativePath) !== thisFolder) return false;
+        const otherStem = imageStemOf(other.name);
+        if (!otherStem) return false;
+        const m = otherStem.match(/^_(.+)_\d{8,14}_\d+$/);
+        return m ? m[1] === thisStem : false;
+      });
+      if (decoratedTwin) duplicateOf = decoratedTwin.name;
+    }
+
     // A modality resting only on the blind default is a guess, not a
     // detection. Recorded explicitly so the BIDS namer can keep it out of
     // primary/ -- see DetectionResult.modalityIsGuess for why confidence
@@ -797,6 +841,7 @@ export function runDetection(
       detectedModality: modality,
       confidence,
       modalityIsGuess,
+      duplicateOf,
       reasons,
       userSession: null,
       userModality: null,

@@ -111,6 +111,20 @@ function isMotionCorrected(fileName: string): boolean {
   return /\bmoco/i.test(baseName(fileName).replace(/[_-]/g, ''));
 }
 
+/**
+ * True for a single-band reference image. Multiband sequences acquire an
+ * SBRef calibration volume alongside the real acquisition; Siemens and the
+ * CMRR sequences name it with an "SBRef" suffix.
+ *
+ * It is not itself a diffusion or functional run, so it takes its own
+ * "sbref" suffix rather than being numbered as another _dwi acquisition.
+ * Detected from the file name because, like the motion-corrected case
+ * above, it is a property of the individual file and not of its modality.
+ */
+function isSingleBandReference(fileName: string): boolean {
+  return /sb[-_]?ref/i.test(baseName(fileName));
+}
+
 /** Add the sub- prefix if the id does not already carry it. */
 function subjectPrefix(id: string): string {
   return id.startsWith('sub-') ? id : `sub-${id}`;
@@ -159,7 +173,10 @@ function assignGroupEntities(
   results: DetectionResult[],
   indices: number[],
   runOf: Map<number, number>,
-  fmapSuffixOf: Map<number, string>,
+  // Per-file BIDS suffix override. Field maps use it for
+  // magnitude1/magnitude2/phasediff, and single-band reference images for
+  // "sbref"; anything not listed falls back to SUFFIX[modality].
+  suffixOf: Map<number, string>,
 ): void {
   const modality = getEffectiveModality(results[indices[0]]);
 
@@ -174,7 +191,7 @@ function assignGroupEntities(
   const bases = [...baseToIndices.keys()].sort();
 
   if (modality === 'fmap') {
-    assignFmapEntities(results, baseToIndices, bases, runOf, fmapSuffixOf);
+    assignFmapEntities(results, baseToIndices, bases, runOf, suffixOf);
     return;
   }
 
@@ -189,10 +206,20 @@ function assignGroupEntities(
   // two separate runs when there is one acquisition and one
   // reconstruction of it. Split first, then number, so each side gets a
   // run entity only if it genuinely repeats.
+  // Single-band reference images are grouped separately for the same
+  // reason: an SBRef is a calibration volume for an acquisition, not a
+  // repeat of it. Pooling them with the real runs numbered a diffusion
+  // series and its own reference as run-1/run-2, which reads as two
+  // diffusion acquisitions. They also take the "sbref" suffix instead of
+  // the modality's, so what they are is visible in the name.
   const recGroups = new Map<string, string[]>();
   for (const b of bases) {
     const sample = results[baseToIndices.get(b)![0]];
-    const key = isMotionCorrected(sample.fileName) ? 'rec-moco' : '';
+    const sbref = isSingleBandReference(sample.fileName);
+    if (sbref) {
+      for (const i of baseToIndices.get(b)!) suffixOf.set(i, 'sbref');
+    }
+    const key = `${isMotionCorrected(sample.fileName) ? 'rec-moco' : ''}|${sbref ? 'sbref' : ''}`;
     const list = recGroups.get(key);
     if (list) list.push(b);
     else recGroups.set(key, [b]);
@@ -459,6 +486,14 @@ export function computeBidsNames(
     const session = getEffectiveSession(r);
     if (!session && !sessionless) return;
     if (!EXPORTABLE_MODALITIES.has(modality)) return;
+    // Files that will be routed to unclassified/ below must not take part
+    // in run numbering, or they consume run numbers they never use and
+    // the exported series come out as run-1, run-3, run-5 with gaps that
+    // look like missing acquisitions. Mirrors the two exclusion checks in
+    // the naming pass further down; userModality overrides both there, so
+    // it overrides here too.
+    if (r.modalityIsGuess && !r.userModality) return;
+    if (r.duplicateOf && !r.userModality) return;
     const key = sessionless
       ? `${getEffectiveSubjectGroup(r)} ${modality}`
       : `${getEffectiveSubjectGroup(r)} ${session} ${modality}`;
@@ -502,6 +537,18 @@ export function computeBidsNames(
     // mapping table clears the guess and exports normally. The goal is to
     // require a human decision, not to drop the file.
     if (r.modalityIsGuess && !r.userModality) {
+      r.bidsFilename = r.fileName;
+      r.bidsPath = `unclassified/${r.fileName}`;
+      return;
+    }
+    // The redundant copy of a series that was converted twice. Exporting
+    // both would give them separate run- entities and assert two
+    // acquisitions where the scanner produced one, double-counting the
+    // series downstream. The kept copy is the one carrying the .json
+    // sidecar; see DetectionResult.duplicateOf. userModality overrides,
+    // so the user can still force this copy through if they disagree
+    // about which one to keep.
+    if (r.duplicateOf && !r.userModality) {
       r.bidsFilename = r.fileName;
       r.bidsPath = `unclassified/${r.fileName}`;
       return;

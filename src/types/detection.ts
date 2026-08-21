@@ -187,6 +187,27 @@ export interface DetectionResult {
    * the point is to require a human decision, not to discard data.
    */
   modalityIsGuess?: boolean;
+
+  /**
+   * Set when this file is the redundant copy of a series that appears
+   * twice in the same folder, and names the copy being kept.
+   *
+   * Flywheel/Scitran exports routinely carry one acquisition under two
+   * names: the bare series name, and dcm2niix's decorated
+   * _<series>_<timestamp>_<seriesNumber>. Both are exportable, so without
+   * this they receive separate run- entities and the dataset claims two
+   * acquisitions where the scanner produced one -- double-counting the
+   * series in any downstream analysis. 117 folders / 236 files in the
+   * Phase2_MRI corpus (2026-08-17).
+   *
+   * computeBidsNames keeps the copy that carries the .json sidecar (the
+   * decorated one in 118 of 119 real pairs, and the only one holding the
+   * scanner metadata the engine reads ImageType from) and routes the
+   * redundant copy to unclassified/. The detected modality is preserved so
+   * the mapping table still shows what the file is, and setting
+   * userModality overrides the exclusion if the user disagrees.
+   */
+  duplicateOf?: string;
 }
 
 // ── Helpers ────────────────────────────────────────────────────────

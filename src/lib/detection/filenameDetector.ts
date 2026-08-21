@@ -150,6 +150,28 @@ const MODALITY_PATTERNS: [RegExp, Modality, string][] = [
   // (audit 2026-08-17).
   [/\b(dwi|dti|diffusion|diffusion[-_]?weighted|diff[-_]?mri|ep2d[-_]?diff|diff|hardi|multishell)\b/i, 'dwi', 'Diffusion MRI keyword'],
 
+  // A b-value token identifies diffusion on its own. b-values describe
+  // diffusion weighting and appear in no other kind of scan, so
+  // "b1k"/"b3k"/"b1000"/"b3000" is decisive even when the series name
+  // carries no dwi/dti/diff token at all.
+  //
+  // This is what classifies the CMRR series in 08_1290 and 08_1229
+  // ("CMRR_b1k_64", "CMRR_b3k_64"): b-value plus gradient-direction count,
+  // and those two subjects have no ep2d_diff folders whatsoever, so CMRR
+  // is where their diffusion data lives. Both were previously quarantined
+  // at low confidence with no modality.
+  //
+  // Scoped to a b-prefixed value rather than "cmrr" alone on purpose --
+  // CMRR also publishes a widely-used multiband *fMRI* sequence, so
+  // "CMRR" by itself says nothing about modality. Only the b-value does.
+  [/\b(b\d+k|b\d{3,4})\b/i, 'dwi', 'Diffusion b-value in scan name'],
+
+  // Same family, with the "b" dropped: "CMRR_5k_128" sits beside
+  // "CMRR_b1k_64" and "CMRR_b3k_64" in the same session, so the 5k is a
+  // b-value written loosely. Requires the CMRR context, because a bare
+  // "5k" elsewhere could mean anything.
+  [/\bcmrr\b(?=.*\b\d+k\b)/i, 'dwi', 'CMRR diffusion series (b-value shorthand)'],
+
   // Perfusion -- Arterial Spin Labeling
   [/\b(asl|pcasl|pasl|m0|m0scan|perfusion|meanperf|mean[-_]?perf|cbf)\b/i, 'perf', 'Perfusion / ASL keyword'],
 
