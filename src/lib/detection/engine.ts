@@ -833,6 +833,15 @@ export function runDetection(
     // different images (magnitude vs. phase "_ph", dcm2niix collision
     // variants ending in "a").
     //
+    // The timestamp width varies: dcm2niix writes the full
+    // YYYYMMDDHHMMSS (14 digits) in most of this corpus, but also bare
+    // HHMMSS (6) and HMMSS with the leading zero dropped (5). An earlier
+    // \d{8,14} caught only the 14-digit form and missed 54 files. The
+    // range is safe to keep wide because the real safeguard is the twin
+    // check below -- the stripped name must exist as an actual file in the
+    // same folder, which a coincidental "_<digits>_<digits>" ending will
+    // not satisfy.
+    //
     // Only the BARE copy is ever marked. The decorated copy carries the
     // .json sidecar in 118 of 119 real pairs (the bare copy in none), and
     // that sidecar is where ImageType comes from, so it is the more
@@ -846,7 +855,7 @@ export function runDetection(
         if (getFolderPath(other.relativePath) !== thisFolder) return false;
         const otherStem = imageStemOf(other.name);
         if (!otherStem) return false;
-        const m = otherStem.match(/^_(.+)_\d{8,14}_\d+$/);
+        const m = otherStem.match(/^_(.+)_\d{5,14}_\d+$/);
         return m ? m[1] === thisStem : false;
       });
       if (decoratedTwin) duplicateOf = decoratedTwin.name;

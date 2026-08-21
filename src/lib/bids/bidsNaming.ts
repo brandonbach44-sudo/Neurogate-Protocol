@@ -175,6 +175,116 @@ function byEcho(a: FmapAcquisition, b: FmapAcquisition): number {
   return (a.echo ?? 99) - (b.echo ?? 99) || a.base.localeCompare(b.base);
 }
 
+// ── Diffusion gradient-table pairing ─────────────────────────────
+// A .bval/.bvec describes one diffusion acquisition and must travel with
+// it. bidsNaming pairs companions by shared base name, which works when
+// dcm2niix named them together -- but some sites name gradients
+// independently of the images:
+//
+//   DTI_b1000.bval                        (gradient table)
+//   ep2d_diff_sms_aldit_b1k.nii.gz        (the acquisition it describes)
+//
+// Those share no base name, so each became its own acquisition with its
+// own run entity: "run-1_dwi.bval" describing no exported image, and
+// "run-13_dwi.nii.gz" shipping with no gradients (found 2026-08-17).
+//
+// Pairing is by the only thing that actually identifies the acquisition a
+// gradient table belongs to: its b-value and phase-encoding direction. A
+// .bval file exists to describe a specific b-value acquisition, so this is
+// a semantic match, not a coincidence of naming.
+//
+// The rule is deliberately strict -- pair ONLY when exactly one candidate
+// raw diffusion image in the same session matches. Zero candidates or two
+// or more means no pairing, and lib/validation/bidsValidator.ts already
+// warns about the leftovers. A wrong pairing would attach the wrong
+// gradient directions to a series and yield plausible-looking tractography
+// from the wrong table, which is far worse than an unpaired file.
+// Measured over the Phase2_MRI corpus: 99 pair cleanly, 16 ambiguous, 28
+// with no candidate image.
+
+/** True for a diffusion gradient table. */
+function isGradientTable(fileName: string): boolean {
+  return /\.(bval|bvec)$/i.test(fileName);
+}
+
+/**
+ * The acquisition a gradient table or diffusion image belongs to,
+ * expressed as "<b-value in s/mm2>|<phase-encoding reversed>".
+ *
+ * Handles both notations this data uses for the same value: "b1k" and
+ * "b1000" both mean 1000 s/mm^2. Reversal is marked variously as PErev,
+ * revPE or a bare _rev suffix.
+ */
+function diffusionAcquisitionKey(fileName: string): string | null {
+  const n = baseName(fileName).toLowerCase();
+  const reversed = /perev|revpe|_rev\b|_rev[a-z]?$/.test(n);
+
+  let m = n.match(/b(\d+)k\b/) ?? n.match(/_b(\d+)k/);
+  if (m) return `${Number(m[1]) * 1000}|${reversed}`;
+  m = n.match(/\bb[_-]?(\d{3,4})\b/) ?? n.match(/_b(\d{3,4})/);
+  if (m) return `${Number(m[1])}|${reversed}`;
+  m = n.match(/\b(\d+)k\b/);
+  if (m) return `${Number(m[1]) * 1000}|${reversed}`;
+  return null;
+}
+
+/**
+ * True when a gradient table shares its base name with a diffusion image
+ * that will be exported -- dcm2niix's normal output, where the existing
+ * base-name grouping already keeps them together and no b-value matching
+ * is needed.
+ */
+function gradientMatchesByBaseName(results: DetectionResult[], grad: DetectionResult): boolean {
+  const gBase = baseName(grad.fileName);
+  return results.some(r =>
+    r !== grad &&
+    /\.nii(\.gz)?$/i.test(r.fileName) &&
+    baseName(r.fileName) === gBase &&
+    !r.duplicateOf,
+  );
+}
+
+/**
+ * Resolve each unpaired gradient table to the index of the raw diffusion
+ * image it describes. Returns only unambiguous matches.
+ */
+function pairGradientTables(results: DetectionResult[]): Map<number, number> {
+  const pairing = new Map<number, number>();
+
+  // Candidate images: raw diffusion that will actually be exported --
+  // never a derived map (an ADC map has no gradient table) and never the
+  // redundant copy of a duplicated series.
+  const candidates = results
+    .map((r, i) => ({ r, i }))
+    .filter(({ r }) =>
+      /\.nii(\.gz)?$/i.test(r.fileName) &&
+      getEffectiveModality(r) === 'dwi' &&
+      !r.derivedLabel &&
+      !r.duplicateOf,
+    );
+
+  results.forEach((g, gi) => {
+    if (!isGradientTable(g.fileName)) return;
+    // Already paired the normal way: same base name as an image.
+    const gBase = baseName(g.fileName);
+    if (candidates.some(({ r }) => baseName(r.fileName) === gBase)) return;
+
+    const key = diffusionAcquisitionKey(g.fileName);
+    if (!key) return;
+
+    const session = getEffectiveSession(g);
+    const group = getEffectiveSubjectGroup(g);
+    const hits = candidates.filter(({ r }) =>
+      getEffectiveSubjectGroup(r) === group &&
+      getEffectiveSession(r) === session &&
+      diffusionAcquisitionKey(r.fileName) === key,
+    );
+    if (hits.length === 1) pairing.set(gi, hits[0].i);
+  });
+
+  return pairing;
+}
+
 // ── Entity assignment ─────────────────────────────────────────────
 
 /**
@@ -493,6 +603,12 @@ export function computeBidsNames(
   const out = results.map(r => ({ ...r }));
   const sessionless = structure?.presetId === 'single-session';
 
+  // Gradient tables whose name does not match any image are resolved to
+  // their acquisition by b-value + phase-encoding direction. Computed
+  // before grouping so a paired table neither takes a run number of its
+  // own nor is treated as a separate acquisition.
+  const gradientPairing = pairGradientTables(out);
+
   // ── Group exportable data files by subject + session + modality ──
   // For a sessionless (Single session preset) dataset there's no session
   // component to the key -- acquisitions are still grouped and numbered
@@ -512,6 +628,17 @@ export function computeBidsNames(
     // it overrides here too.
     if (r.modalityIsGuess && !r.userModality) return;
     if (r.duplicateOf && !r.userModality) return;
+    // A paired gradient table inherits its image's name below, so it must
+    // not be numbered as an acquisition in its own right.
+    if (gradientPairing.has(i)) return;
+    // An UNpaired one is excluded outright. Numbering it as its own
+    // acquisition produced "run-3_dwi.bval" sitting in the dataset beside
+    // no "run-3_dwi.nii.gz" -- a gradient table asserting it belongs to an
+    // image that was never exported. Anyone reading the output would pair
+    // them by the run entity and get a table for the wrong series, or one
+    // with no series at all. Left unclassified and reported by
+    // lib/validation/bidsValidator.ts instead.
+    if (isGradientTable(r.fileName) && !gradientMatchesByBaseName(out, r)) return;
     // Scanner-derived maps are numbered inside their own derivatives
     // group, keyed by which map they are, so an ADC map never takes a run
     // number away from the raw diffusion series it was computed from.
@@ -609,6 +736,32 @@ export function computeBidsNames(
     r.bidsPath = folder
       ? `${root}${sub}/${sessionSegment}${folder}/${filename}`
       : `${root}${sub}/${sessionSegment}${filename}`;
+  });
+
+  // ── Give paired gradient tables their image's name ───────────────
+  // Mirrors the JSON-sidecar pass below: same stem as the image, own
+  // extension, so a scan and its gradients land side by side.
+  out.forEach((r, i) => {
+    if (!isGradientTable(r.fileName)) return;
+    if (gradientPairing.has(i)) return;
+    if (gradientMatchesByBaseName(out, r)) return;
+    r.bidsFilename = r.fileName;
+    r.bidsPath = `unclassified/${r.fileName}`;
+  });
+
+  gradientPairing.forEach((imageIndex, gradientIndex) => {
+    const g = out[gradientIndex];
+    const image = out[imageIndex];
+    const ext = /\.bval$/i.test(g.fileName) ? '.bval' : '.bvec';
+    if (isExportedPath(image.bidsPath)) {
+      g.bidsFilename = stripExtension(image.bidsFilename) + ext;
+      g.bidsPath = image.bidsPath.replace(/[^/]+$/, g.bidsFilename);
+    } else {
+      // The image itself is not being exported, so its gradients are not
+      // either -- the same rule the sidecar pass applies to a localizer.
+      g.bidsFilename = g.fileName;
+      g.bidsPath = `unclassified/${g.fileName}`;
+    }
   });
 
   // ── Pair sidecars with their data file ───────────────────────────
