@@ -67,9 +67,17 @@ const FOLDER_MODALITY_PATTERNS: [RegExp, Modality, string][] = [
   // Localizer / scout (check first so scout folders are not mislabeled)
   [/\b(localizer|localiser|scout)\b/i, 'localizer', 'Folder suggests localizer / scout'],
 
+  // Motion-corrected BOLD (Siemens MoCoSeries) -- func, not anat; see the
+  // note in filenameDetector.ts (verified 4D, same geometry as the BOLD run).
+  [/\b(moco[-_]?series|mocoseries)\b/i, 'func', 'Folder suggests motion-corrected BOLD series'],
+
   // Anatomical MRI
   [/\b(anat|anatomical|structural|mri[-_]?structural|t1|t1w|mprage)\b/i, 'anat-T1w', 'Folder suggests anatomical MRI'],
-  [/\b(flair)\b/i, 'anat-FLAIR', 'Folder suggests FLAIR MRI'],
+  [/\b(flair|t2?flr|tflair)\b/i, 'anat-FLAIR', 'Folder suggests FLAIR MRI'],
+  // T2*/SWI and the images an SWI reconstruction emits. Kept above the
+  // bare-t2 rule below, since SWI is a T2* contrast and not T2-weighted.
+  [/\b(swi|susceptibility[-_]?weighted|t2star|mag[-_]?images|pha[-_]?images|m[-_]?ip[-_]?images(?:[-_]?sw)?)\b/i, 'anat-T2starw', 'Folder suggests T2*/SWI MRI'],
+  [/\b(pdw|pd[-_]?tse|proton[-_]?density)\b/i, 'anat-PDw', 'Folder suggests proton-density MRI'],
   [/\b(t2|t2w)\b/i, 'anat-T2w', 'Folder suggests T2-weighted MRI'],
 
   // MR Angiography

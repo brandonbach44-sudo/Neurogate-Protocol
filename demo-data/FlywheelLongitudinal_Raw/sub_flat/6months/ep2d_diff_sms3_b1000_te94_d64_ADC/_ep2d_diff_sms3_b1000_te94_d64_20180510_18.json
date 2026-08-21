@@ -1,0 +1,13 @@
+{
+ "SeriesDescription": "ep2d_diff_sms3_b1000_te94_d64_ADC",
+ "ProtocolName": "ep2d_diff_sms3_b1000_te94_d64_ADC",
+ "ImageType": [
+  "DERIVED",
+  "PRIMARY",
+  "DIFFUSION",
+  "ADC",
+  "ND"
+ ],
+ "ScanningSequence": "EP",
+ "StudyDate": "20180510"
+}

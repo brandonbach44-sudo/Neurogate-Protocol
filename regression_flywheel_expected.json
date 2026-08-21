@@ -1,0 +1,482 @@
+[
+  {
+    "subject": "sub_dates",
+    "fileCount": 14,
+    "detection": [
+      {
+        "relativePath": "sub_dates/scitran/study/sub_dates/20180510/3D_T2star_GRE/3D_T2star_GRE.nii.gz",
+        "detectedModality": "anat-T2starw",
+        "detectedSession": "ses-2wk",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_dates/ses-2wk/anat/sub-sub_dates_ses-2wk_T2starw.nii.gz"
+      },
+      {
+        "relativePath": "sub_dates/scitran/study/sub_dates/20180510/3D_TFLR/3D_TFLR.nii.gz",
+        "detectedModality": "anat-FLAIR",
+        "detectedSession": "ses-2wk",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_dates/ses-2wk/anat/sub-sub_dates_ses-2wk_FLAIR.nii.gz"
+      },
+      {
+        "relativePath": "sub_dates/scitran/study/sub_dates/20180510/gre_field_mapping/gre_field_mapping_e1.nii.gz",
+        "detectedModality": "fmap",
+        "detectedSession": "ses-2wk",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_dates/ses-2wk/fmap/sub-sub_dates_ses-2wk_magnitude1.nii.gz"
+      },
+      {
+        "relativePath": "sub_dates/scitran/study/sub_dates/20180510/gre_field_mapping/gre_field_mapping_e2_ph.nii.gz",
+        "detectedModality": "fmap",
+        "detectedSession": "ses-2wk",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_dates/ses-2wk/fmap/sub-sub_dates_ses-2wk_phasediff.nii.gz"
+      },
+      {
+        "relativePath": "sub_dates/scitran/study/sub_dates/20180510/gre_field_mapping/gre_field_mapping_e2.nii.gz",
+        "detectedModality": "fmap",
+        "detectedSession": "ses-2wk",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_dates/ses-2wk/fmap/sub-sub_dates_ses-2wk_magnitude2.nii.gz"
+      },
+      {
+        "relativePath": "sub_dates/scitran/study/sub_dates/20180510/MP-RAGE/MP-RAGE.nii.gz",
+        "detectedModality": "anat-T1w",
+        "detectedSession": "ses-2wk",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_dates/ses-2wk/anat/sub-sub_dates_ses-2wk_T1w.nii.gz"
+      },
+      {
+        "relativePath": "sub_dates/scitran/study/sub_dates/20180510/pd_tse_tra/pd_tse_tra.nii.gz",
+        "detectedModality": "anat-PDw",
+        "detectedSession": "ses-2wk",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_dates/ses-2wk/anat/sub-sub_dates_ses-2wk_PDw.nii.gz"
+      },
+      {
+        "relativePath": "sub_dates/scitran/study/sub_dates/20181116/3D_T2star_GRE/3D_T2star_GRE.nii.gz",
+        "detectedModality": "anat-T2starw",
+        "detectedSession": "ses-6mo",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_dates/ses-6mo/anat/sub-sub_dates_ses-6mo_T2starw.nii.gz"
+      },
+      {
+        "relativePath": "sub_dates/scitran/study/sub_dates/20181116/3D_TFLR/3D_TFLR.nii.gz",
+        "detectedModality": "anat-FLAIR",
+        "detectedSession": "ses-6mo",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_dates/ses-6mo/anat/sub-sub_dates_ses-6mo_FLAIR.nii.gz"
+      },
+      {
+        "relativePath": "sub_dates/scitran/study/sub_dates/20181116/gre_field_mapping/gre_field_mapping_e1.nii.gz",
+        "detectedModality": "fmap",
+        "detectedSession": "ses-6mo",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_dates/ses-6mo/fmap/sub-sub_dates_ses-6mo_magnitude1.nii.gz"
+      },
+      {
+        "relativePath": "sub_dates/scitran/study/sub_dates/20181116/gre_field_mapping/gre_field_mapping_e2_ph.nii.gz",
+        "detectedModality": "fmap",
+        "detectedSession": "ses-6mo",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_dates/ses-6mo/fmap/sub-sub_dates_ses-6mo_phasediff.nii.gz"
+      },
+      {
+        "relativePath": "sub_dates/scitran/study/sub_dates/20181116/gre_field_mapping/gre_field_mapping_e2.nii.gz",
+        "detectedModality": "fmap",
+        "detectedSession": "ses-6mo",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_dates/ses-6mo/fmap/sub-sub_dates_ses-6mo_magnitude2.nii.gz"
+      },
+      {
+        "relativePath": "sub_dates/scitran/study/sub_dates/20181116/MP-RAGE/MP-RAGE.nii.gz",
+        "detectedModality": "anat-T1w",
+        "detectedSession": "ses-6mo",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_dates/ses-6mo/anat/sub-sub_dates_ses-6mo_T1w.nii.gz"
+      },
+      {
+        "relativePath": "sub_dates/scitran/study/sub_dates/20181116/pd_tse_tra/pd_tse_tra.nii.gz",
+        "detectedModality": "anat-PDw",
+        "detectedSession": "ses-6mo",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_dates/ses-6mo/anat/sub-sub_dates_ses-6mo_PDw.nii.gz"
+      }
+    ],
+    "summary": {
+      "totalFiles": 14,
+      "highConfidence": 14,
+      "mediumConfidence": 0,
+      "lowConfidence": 0,
+      "unclassified": 0,
+      "subjectGroups": [
+        "sub_dates"
+      ]
+    }
+  },
+  {
+    "subject": "sub_flat",
+    "fileCount": 42,
+    "detection": [
+      {
+        "relativePath": "sub_flat/2weeks/3D_T2_Turbo_FLAIR/3D_T2_Turbo_FLAIR.nii.gz",
+        "detectedModality": "anat-FLAIR",
+        "detectedSession": "ses-2wk",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_flat/ses-2wk/anat/sub-sub_flat_ses-2wk_run-1_FLAIR.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/2weeks/ep2d_diff_sms3_b1000_te94_d64_ADC/_ep2d_diff_sms3_b1000_te94_d64_20180510_18.json",
+        "detectedModality": "sidecar-json",
+        "detectedSession": "ses-2wk",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "unclassified/_ep2d_diff_sms3_b1000_te94_d64_20180510_18.json"
+      },
+      {
+        "relativePath": "sub_flat/2weeks/ep2d_diff_sms3_b1000_te94_d64_ADC/_ep2d_diff_sms3_b1000_te94_d64_20180510_18.nii.gz",
+        "detectedModality": "other",
+        "detectedSession": "ses-2wk",
+        "confidence": "unclassified",
+        "modalityIsGuess": false,
+        "bidsPath": "unclassified/_ep2d_diff_sms3_b1000_te94_d64_20180510_18.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/2weeks/ep2d_diff_sms3_b1000_te94_d64_TW/_ep2d_diff_sms3_b1000_te94_d64_TW_20180510_19.json",
+        "detectedModality": "sidecar-json",
+        "detectedSession": "ses-2wk",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_flat/ses-2wk/dwi/sub-sub_flat_ses-2wk_run-1_dwi.json"
+      },
+      {
+        "relativePath": "sub_flat/2weeks/ep2d_diff_sms3_b1000_te94_d64_TW/_ep2d_diff_sms3_b1000_te94_d64_TW_20180510_19.nii.gz",
+        "detectedModality": "dwi",
+        "detectedSession": "ses-2wk",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_flat/ses-2wk/dwi/sub-sub_flat_ses-2wk_run-1_dwi.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/2weeks/ep2d_diff_sms3_b1000_te94_d64/ep2d_diff_sms3_b1000_te94_d64.nii.gz",
+        "detectedModality": "dwi",
+        "detectedSession": "ses-2wk",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_flat/ses-2wk/dwi/sub-sub_flat_ses-2wk_run-2_dwi.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/2weeks/gre_field_mapping/gre_field_mapping_e1.nii.gz",
+        "detectedModality": "fmap",
+        "detectedSession": "ses-2wk",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_flat/ses-2wk/fmap/sub-sub_flat_ses-2wk_run-2_magnitude1.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/2weeks/gre_field_mapping/gre_field_mapping_e2_ph.nii.gz",
+        "detectedModality": "fmap",
+        "detectedSession": "ses-2wk",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_flat/ses-2wk/fmap/sub-sub_flat_ses-2wk_run-2_phasediff.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/2weeks/gre_field_mapping/gre_field_mapping_e2.nii.gz",
+        "detectedModality": "fmap",
+        "detectedSession": "ses-2wk",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_flat/ses-2wk/fmap/sub-sub_flat_ses-2wk_run-2_magnitude2.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/2weeks/gre_field_mappingRS/gre_field_mappingRS_e1.nii.gz",
+        "detectedModality": "fmap",
+        "detectedSession": "ses-2wk",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_flat/ses-2wk/fmap/sub-sub_flat_ses-2wk_run-1_magnitude1.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/2weeks/gre_field_mappingRS/gre_field_mappingRS_e2_ph.nii.gz",
+        "detectedModality": "fmap",
+        "detectedSession": "ses-2wk",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_flat/ses-2wk/fmap/sub-sub_flat_ses-2wk_run-1_phasediff.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/2weeks/gre_field_mappingRS/gre_field_mappingRS_e2.nii.gz",
+        "detectedModality": "fmap",
+        "detectedSession": "ses-2wk",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_flat/ses-2wk/fmap/sub-sub_flat_ses-2wk_run-1_magnitude2.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/2weeks/localizer/localizer.nii.gz",
+        "detectedModality": "localizer",
+        "detectedSession": "ses-2wk",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "(excluded from export: localizer/scout)"
+      },
+      {
+        "relativePath": "sub_flat/2weeks/Mag_Images/Mag_Images.nii.gz",
+        "detectedModality": "anat-T2starw",
+        "detectedSession": "ses-2wk",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_flat/ses-2wk/anat/sub-sub_flat_ses-2wk_run-1_T2starw.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/2weeks/MoCoSeries/MoCoSeries.nii.gz",
+        "detectedModality": "func",
+        "detectedSession": "ses-2wk",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_flat/ses-2wk/func/sub-sub_flat_ses-2wk_task-rest_rec-moco_bold.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/2weeks/pd_tse_tra/pd_tse_tra.nii.gz",
+        "detectedModality": "anat-PDw",
+        "detectedSession": "ses-2wk",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_flat/ses-2wk/anat/sub-sub_flat_ses-2wk_PDw.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/2weeks/Pha_Images/Pha_Images_ph.nii.gz",
+        "detectedModality": "anat-T2starw",
+        "detectedSession": "ses-2wk",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_flat/ses-2wk/anat/sub-sub_flat_ses-2wk_run-2_T2starw.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/2weeks/Resting_State_fMRI_extended_ADNI/Resting_State_fMRI_extended_ADNI.nii.gz",
+        "detectedModality": "func",
+        "detectedSession": "ses-2wk",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_flat/ses-2wk/func/sub-sub_flat_ses-2wk_task-rest_bold.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/2weeks/Sag_MPRAGE/Sag_MPRAGE.nii.gz",
+        "detectedModality": "anat-T1w",
+        "detectedSession": "ses-2wk",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_flat/ses-2wk/anat/sub-sub_flat_ses-2wk_T1w.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/2weeks/Sag_SWI_3D/Sag_SWI_3D.nii.gz",
+        "detectedModality": "anat-T2starw",
+        "detectedSession": "ses-2wk",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_flat/ses-2wk/anat/sub-sub_flat_ses-2wk_run-3_T2starw.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/2weeks/T2flr_Sagittal/T2flr_Sagittal.nii.gz",
+        "detectedModality": "anat-FLAIR",
+        "detectedSession": "ses-2wk",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_flat/ses-2wk/anat/sub-sub_flat_ses-2wk_run-2_FLAIR.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/6months/3D_T2_Turbo_FLAIR/3D_T2_Turbo_FLAIR.nii.gz",
+        "detectedModality": "anat-FLAIR",
+        "detectedSession": "ses-6mo",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_flat/ses-6mo/anat/sub-sub_flat_ses-6mo_run-1_FLAIR.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/6months/ep2d_diff_sms3_b1000_te94_d64_ADC/_ep2d_diff_sms3_b1000_te94_d64_20180510_18.json",
+        "detectedModality": "sidecar-json",
+        "detectedSession": "ses-2wk",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "unclassified/_ep2d_diff_sms3_b1000_te94_d64_20180510_18.json"
+      },
+      {
+        "relativePath": "sub_flat/6months/ep2d_diff_sms3_b1000_te94_d64_ADC/_ep2d_diff_sms3_b1000_te94_d64_20180510_18.nii.gz",
+        "detectedModality": "other",
+        "detectedSession": "ses-6mo",
+        "confidence": "unclassified",
+        "modalityIsGuess": false,
+        "bidsPath": "unclassified/_ep2d_diff_sms3_b1000_te94_d64_20180510_18.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/6months/ep2d_diff_sms3_b1000_te94_d64_TW/_ep2d_diff_sms3_b1000_te94_d64_TW_20180510_19.json",
+        "detectedModality": "sidecar-json",
+        "detectedSession": "ses-2wk",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_flat/ses-2wk/dwi/sub-sub_flat_ses-2wk_run-1_dwi_dup-2.json"
+      },
+      {
+        "relativePath": "sub_flat/6months/ep2d_diff_sms3_b1000_te94_d64_TW/_ep2d_diff_sms3_b1000_te94_d64_TW_20180510_19.nii.gz",
+        "detectedModality": "dwi",
+        "detectedSession": "ses-6mo",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_flat/ses-6mo/dwi/sub-sub_flat_ses-6mo_run-1_dwi.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/6months/ep2d_diff_sms3_b1000_te94_d64/ep2d_diff_sms3_b1000_te94_d64.nii.gz",
+        "detectedModality": "dwi",
+        "detectedSession": "ses-6mo",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_flat/ses-6mo/dwi/sub-sub_flat_ses-6mo_run-2_dwi.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/6months/gre_field_mapping/gre_field_mapping_e1.nii.gz",
+        "detectedModality": "fmap",
+        "detectedSession": "ses-6mo",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_flat/ses-6mo/fmap/sub-sub_flat_ses-6mo_run-2_magnitude1.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/6months/gre_field_mapping/gre_field_mapping_e2_ph.nii.gz",
+        "detectedModality": "fmap",
+        "detectedSession": "ses-6mo",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_flat/ses-6mo/fmap/sub-sub_flat_ses-6mo_run-2_phasediff.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/6months/gre_field_mapping/gre_field_mapping_e2.nii.gz",
+        "detectedModality": "fmap",
+        "detectedSession": "ses-6mo",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_flat/ses-6mo/fmap/sub-sub_flat_ses-6mo_run-2_magnitude2.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/6months/gre_field_mappingRS/gre_field_mappingRS_e1.nii.gz",
+        "detectedModality": "fmap",
+        "detectedSession": "ses-6mo",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_flat/ses-6mo/fmap/sub-sub_flat_ses-6mo_run-1_magnitude1.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/6months/gre_field_mappingRS/gre_field_mappingRS_e2_ph.nii.gz",
+        "detectedModality": "fmap",
+        "detectedSession": "ses-6mo",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_flat/ses-6mo/fmap/sub-sub_flat_ses-6mo_run-1_phasediff.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/6months/gre_field_mappingRS/gre_field_mappingRS_e2.nii.gz",
+        "detectedModality": "fmap",
+        "detectedSession": "ses-6mo",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_flat/ses-6mo/fmap/sub-sub_flat_ses-6mo_run-1_magnitude2.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/6months/localizer/localizer.nii.gz",
+        "detectedModality": "localizer",
+        "detectedSession": "ses-6mo",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "(excluded from export: localizer/scout)"
+      },
+      {
+        "relativePath": "sub_flat/6months/Mag_Images/Mag_Images.nii.gz",
+        "detectedModality": "anat-T2starw",
+        "detectedSession": "ses-6mo",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_flat/ses-6mo/anat/sub-sub_flat_ses-6mo_run-1_T2starw.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/6months/MoCoSeries/MoCoSeries.nii.gz",
+        "detectedModality": "func",
+        "detectedSession": "ses-6mo",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_flat/ses-6mo/func/sub-sub_flat_ses-6mo_task-rest_rec-moco_bold.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/6months/pd_tse_tra/pd_tse_tra.nii.gz",
+        "detectedModality": "anat-PDw",
+        "detectedSession": "ses-6mo",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_flat/ses-6mo/anat/sub-sub_flat_ses-6mo_PDw.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/6months/Pha_Images/Pha_Images_ph.nii.gz",
+        "detectedModality": "anat-T2starw",
+        "detectedSession": "ses-6mo",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_flat/ses-6mo/anat/sub-sub_flat_ses-6mo_run-2_T2starw.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/6months/Resting_State_fMRI_extended_ADNI/Resting_State_fMRI_extended_ADNI.nii.gz",
+        "detectedModality": "func",
+        "detectedSession": "ses-6mo",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_flat/ses-6mo/func/sub-sub_flat_ses-6mo_task-rest_bold.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/6months/Sag_MPRAGE/Sag_MPRAGE.nii.gz",
+        "detectedModality": "anat-T1w",
+        "detectedSession": "ses-6mo",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_flat/ses-6mo/anat/sub-sub_flat_ses-6mo_T1w.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/6months/Sag_SWI_3D/Sag_SWI_3D.nii.gz",
+        "detectedModality": "anat-T2starw",
+        "detectedSession": "ses-6mo",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_flat/ses-6mo/anat/sub-sub_flat_ses-6mo_run-3_T2starw.nii.gz"
+      },
+      {
+        "relativePath": "sub_flat/6months/T2flr_Sagittal/T2flr_Sagittal.nii.gz",
+        "detectedModality": "anat-FLAIR",
+        "detectedSession": "ses-6mo",
+        "confidence": "high",
+        "modalityIsGuess": false,
+        "bidsPath": "primary/sub-sub_flat/ses-6mo/anat/sub-sub_flat_ses-6mo_run-2_FLAIR.nii.gz"
+      }
+    ],
+    "summary": {
+      "totalFiles": 42,
+      "highConfidence": 40,
+      "mediumConfidence": 0,
+      "lowConfidence": 0,
+      "unclassified": 2,
+      "subjectGroups": [
+        "sub_flat"
+      ]
+    }
+  }
+]

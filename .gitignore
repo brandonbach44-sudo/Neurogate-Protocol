@@ -54,3 +54,7 @@ temp/
 .cache/
 .parcel-cache/
 .turbo/
+
+# Scratch: files staged for manual deletion (device_bash cannot rm)
+_to_delete/
+.fuse_hidden*

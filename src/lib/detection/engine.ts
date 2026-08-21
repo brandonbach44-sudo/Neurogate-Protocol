@@ -237,25 +237,25 @@ export function runDetection(
 
       if (date) {
         const bucket = subjectDatedFiles.get(groupResult.groupName) ?? [];
-        bucket.push({ fileName: file.name, date });
+        bucket.push({ fileName: file.name, relativePath: file.relativePath, date });
         subjectDatedFiles.set(groupResult.groupName, bucket);
       }
 
       // Layer B needs every file's immediate folder, regardless of
       // whether it has a date -- the folder count/order is what matters.
       const folderBucket = subjectFolderedFiles.get(groupResult.groupName) ?? [];
-      folderBucket.push({ fileName: file.name, folder: getFolderPath(file.relativePath) });
+      folderBucket.push({ fileName: file.name, relativePath: file.relativePath, folder: getFolderPath(file.relativePath) });
       subjectFolderedFiles.set(groupResult.groupName, folderBucket);
     }
 
     for (const datedFiles of subjectDatedFiles.values()) {
       const result = assignDateClusterSessions(datedFiles, knownSessionIds);
-      for (const [fileName, assignment] of result.assignments) {
-        dateClusterAssignments.set(fileName, assignment);
+      for (const [relativePath, assignment] of result.assignments) {
+        dateClusterAssignments.set(relativePath, assignment);
       }
       if (result.mismatchReason) {
         for (const df of datedFiles) {
-          dateClusterMismatchByFile.set(df.fileName, result.mismatchReason);
+          dateClusterMismatchByFile.set(df.relativePath, result.mismatchReason);
         }
       }
     }
@@ -275,12 +275,12 @@ export function runDetection(
       if (subjectDatedFiles.has(groupName)) continue;
 
       const result = assignFolderClusterSessions(folderedFiles, knownSessionIds);
-      for (const [fileName, assignment] of result.assignments) {
-        folderClusterAssignments.set(fileName, assignment);
+      for (const [relativePath, assignment] of result.assignments) {
+        folderClusterAssignments.set(relativePath, assignment);
       }
       if (result.mismatchReason) {
         for (const ff of folderedFiles) {
-          folderClusterMismatchByFile.set(ff.fileName, result.mismatchReason);
+          folderClusterMismatchByFile.set(ff.relativePath, result.mismatchReason);
         }
       }
     }
@@ -561,12 +561,12 @@ export function runDetection(
     // surfaces the mismatch reason instead of silently leaving the file
     // unexplained.
     if (isCustomStructure && !session) {
-      const dateAssignment = dateClusterAssignments.get(file.name);
+      const dateAssignment = dateClusterAssignments.get(file.relativePath);
       if (dateAssignment) {
         session = dateAssignment.session;
         reasons.push(...dateAssignment.reasons);
       } else {
-        const mismatch = dateClusterMismatchByFile.get(file.name);
+        const mismatch = dateClusterMismatchByFile.get(file.relativePath);
         if (mismatch) {
           reasons.push(mismatch);
         }
@@ -578,12 +578,12 @@ export function runDetection(
     // reached if neither the literal label match nor the date-cluster
     // layer above found anything for this file.
     if (isCustomStructure && !session) {
-      const folderAssignment = folderClusterAssignments.get(file.name);
+      const folderAssignment = folderClusterAssignments.get(file.relativePath);
       if (folderAssignment) {
         session = folderAssignment.session;
         reasons.push(...folderAssignment.reasons);
       } else {
-        const mismatch = folderClusterMismatchByFile.get(file.name);
+        const mismatch = folderClusterMismatchByFile.get(file.relativePath);
         if (mismatch) {
           reasons.push(mismatch);
         }

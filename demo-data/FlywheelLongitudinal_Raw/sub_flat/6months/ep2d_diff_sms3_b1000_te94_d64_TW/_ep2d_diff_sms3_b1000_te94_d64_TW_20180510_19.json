@@ -1,0 +1,14 @@
+{
+ "SeriesDescription": "ep2d_diff_sms3_b1000_te94_d64_TW",
+ "ProtocolName": "ep2d_diff_sms3_b1000_te94_d64_TW",
+ "ImageType": [
+  "ORIGINAL",
+  "PRIMARY",
+  "DIFFUSION",
+  "NONE",
+  "ND",
+  "MOSAIC"
+ ],
+ "ScanningSequence": "EP",
+ "StudyDate": "20180510"
+}
