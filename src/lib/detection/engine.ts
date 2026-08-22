@@ -25,7 +25,7 @@ import type {
   Confidence,
   DetectionReason,
 } from '../../types/detection';
-import { detectFromExtension } from './extensionDetector';
+import { detectFromExtension, isOsJunkFile } from './extensionDetector';
 import { detectFromFilename, detectFromSidecarText, derivedDiffusionKind, derivedProjectionKind, normalizeForKeywords } from './filenameDetector';
 import { detectFromFolderPath } from './folderDetector';
 import { inferFromNeighbors, getFolderPath } from './neighborInference';
@@ -334,6 +334,39 @@ export function runDetection(
     let ambiguousSessionCandidate: Session | null = null;
     let modalityLocked = false;
     let derivedLabel: string | undefined;
+
+    // ── OS junk is decided here and nowhere else ────────────────
+    // isOsJunkFile already identifies these (Thumbs.db, .DS_Store, macOS
+    // AppleDouble "._name" resource forks, in-flight copy artifacts), and
+    // detectFromExtension returns 'other' for them -- but that verdict was
+    // then overridden downstream. Layer 2 assigns a modality whenever the
+    // current one is still 'other', so a junk file whose NAME resembles a
+    // scan was reclassified as real data.
+    //
+    // Live example: "._ep2d_diff_sms_aldit_b3k_20170722092027_7.nii.gz.drAITD"
+    // -- an AppleDouble sidecar -- matched the diffusion vocabulary and was
+    // exported as "primary/sub-03_1265/ses-6mo/dwi/..._run-1_dwi.drAITD",
+    // high confidence. It was harmless until "ep2d_diff" became a
+    // recognised diffusion token earlier today, which is exactly the kind
+    // of latent coupling worth closing off rather than patching per name.
+    //
+    // Locking the modality here makes the junk determination final: no
+    // later layer can promote an operating-system artifact into scan data.
+    if (isOsJunkFile(file.name)) {
+      const junkResult = detectFromExtension(file.name, file.relativePath);
+      reasons.push(junkResult.reason);
+      intermediateResults.push({
+        file,
+        modality: 'other',
+        session: null,
+        reasons,
+        possibleModalities: ['other'],
+        modalityLocked: true,
+        derivedLabel: undefined,
+        ambiguousSessionCandidate: null,
+      });
+      continue;
+    }
 
     // Layer 1: Extension
     const extResult = detectFromExtension(file.name, file.relativePath);

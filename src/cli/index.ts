@@ -226,8 +226,51 @@ async function main(): Promise<void> {
       for (const w of warnings) log(`  [WARN] ${w.title}: ${w.description}`);
     }
     log(`\nWrote ${result.filesWritten} files to ${outputDir}/bids_output`);
-    log(`Audit log: ${result.auditPath}`);
-    log('\nDone.');
+
+    // Subjects held back must be reported here, not just returned. The
+    // pipeline exports the subjects that are clean and holds back any with
+    // blocking errors of their own (see the per-subject resilience note in
+    // pipeline.ts), so a run can succeed while part of the cohort was
+    // deliberately skipped. Printing only "Done." after that would tell
+    // the operator everything worked and quietly leave subjects behind --
+    // worse than the all-or-nothing failure it replaced.
+    const heldBack = result.heldBackSubjects ?? [];
+    if (heldBack.length > 0) {
+      log(`\n${heldBack.length} subject(s) were NOT exported and need attention:`);
+      for (const group of heldBack) {
+        log(`\n  ${group}`);
+        // Collapse to one line per distinct DIAGNOSIS with a file count.
+        // Deduping on the whole description does not work: it embeds the
+        // file name, so 13 files with the same underlying problem printed
+        // 13 near-identical paragraphs and buried the one thing the
+        // operator needed to read.
+        const byReason = new Map<string, { reason: string; files: string[] }>();
+        for (const issue of result.validationReport.issues) {
+          if (issue.severity !== 'error' || issue.subjectGroup !== group) continue;
+          // The shared diagnosis is whatever follows the per-file prefix;
+          // fall back to the title when an issue has no file-specific part.
+          const shared = issue.description.includes('. ')
+            ? issue.description.slice(issue.description.indexOf('. ') + 2)
+            : issue.description;
+          const key = `${issue.title}|${shared}`;
+          const entry = byReason.get(key) ?? { reason: shared, files: [] };
+          entry.files.push(...issue.affectedFiles);
+          byReason.set(key, entry);
+        }
+        for (const [key, entry] of byReason) {
+          const title = key.split('|')[0];
+          const n = new Set(entry.files).size;
+          log(`    - ${title}${n > 1 ? ` (${n} files)` : ''}: ${entry.reason}`);
+        }
+      }
+      log(`\nRe-run those subjects on their own once resolved, or use the app to`);
+      log(`assign the missing values per file.`);
+    }
+
+    log(`\nAudit log: ${result.auditPath}`);
+    log(heldBack.length > 0
+      ? `\nDone — ${result.subjects.length - heldBack.length} of ${result.subjects.length} subjects exported.`
+      : '\nDone.');
   }
 
   closePrompts();

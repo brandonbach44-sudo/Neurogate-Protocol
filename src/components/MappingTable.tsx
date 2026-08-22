@@ -43,7 +43,33 @@ const CONFIDENCE_COLORS: Record<Confidence, { bg: string; color: string }> = {
   unclassified: { bg: 'rgba(239,68,68,0.2)', color: '#f87171' },
 };
 
-type FilterMode = 'all' | 'high' | 'medium' | 'low' | 'unclassified';
+type FilterMode = 'all' | 'needs-decision' | 'high' | 'medium' | 'low' | 'unclassified';
+
+/**
+ * True when this file will not be exported until the reviewer supplies
+ * something the tool could not work out for itself.
+ *
+ * This is a different question from confidence, and the more useful one to
+ * filter on. Confidence tiers answer "how sure is the tool"; this answers
+ * "what is waiting on me". They diverge sharply: a scanner-derived ADC map
+ * can sit in the derivatives tree perfectly correctly while being graded
+ * low, and a redundant duplicate copy is deliberately excluded rather than
+ * uncertain. Filtering by confidence buried the handful of genuine
+ * decisions among hundreds of files that were already handled properly.
+ */
+export function needsUserDecision(r: DetectionResult): boolean {
+  // A modality that came only from the blind fallback: never exported
+  // until a real modality is chosen.
+  if (r.modalityIsGuess && !r.userModality) return true;
+  // No session and none can be inferred -- the file has nowhere to go.
+  // Derived maps and excluded duplicates are not counted: they are
+  // resolved, just not in primary/.
+  if (!getEffectiveSession(r) && !r.derivedLabel && !r.duplicateOf) {
+    const m = getEffectiveModality(r);
+    if (m !== 'other' && m !== 'localizer' && m !== 'sidecar-json' && m !== 'sidecar-tsv') return true;
+  }
+  return false;
+}
 
 export default function MappingTable({
   results,
@@ -62,12 +88,18 @@ export default function MappingTable({
   const [bulkModality, setBulkModality] = useState<Modality | ''>('');
   const sessionOptions = useMemo(() => getSessionOptions(structure), [structure]);
 
+  const decisionCount = useMemo(
+    () => results.filter(needsUserDecision).length,
+    [results],
+  );
+
   // ── Filter results based on confidence filter ─────────────────
   const filteredIndices = useMemo(() => {
     return results
       .map((_, i) => i)
       .filter(i => {
         if (filterMode === 'all') return true;
+        if (filterMode === 'needs-decision') return needsUserDecision(results[i]);
         return results[i].confidence === filterMode;
       });
   }, [results, filterMode]);
@@ -194,6 +226,23 @@ export default function MappingTable({
             }
           >
             Needs Review ({summary.unclassified})
+          </button>
+          {/*
+            Listed last but it is the one to click first: the short list of
+            files actually waiting on a human, as opposed to the confidence
+            tiers, which mix "unsure" together with "resolved, just not in
+            primary/". See needsUserDecision above.
+          */}
+          <button
+            onClick={() => setFilterMode('needs-decision')}
+            className="btn-cta px-3 py-1.5 rounded-full text-sm font-medium transition-colors"
+            style={filterMode === 'needs-decision'
+              ? { backgroundColor: '#7c3aed', color: '#ffffff' }
+              : { backgroundColor: 'rgba(124,58,237,0.12)', color: '#6d28d9' }
+            }
+            title="Files that will not be exported until you supply a modality or session the tool could not determine."
+          >
+            Needs your decision ({decisionCount})
           </button>
         </div>
 
@@ -355,6 +404,51 @@ export default function MappingTable({
                     <div className="font-mono text-xs text-gray-500 mt-0.5 truncate" title={result.bidsPath}>
                       &rarr; {result.bidsPath}
                     </div>
+
+                    {/*
+                      Why this file is not where a reviewer might expect.
+
+                      The detection engine records three states that change
+                      a file's destination, and none of them were visible
+                      here: the row showed only a confidence badge and a
+                      path. A reviewer saw files sitting in unclassified/
+                      with no way to tell whether the tool was unsure, had
+                      deliberately excluded a redundant copy, or had routed
+                      a scanner-computed map to derivatives on purpose.
+                      Without that, "needs review" and "already handled
+                      correctly" look identical.
+                    */}
+                    {(result.modalityIsGuess || result.duplicateOf || result.derivedLabel) && (
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {result.modalityIsGuess && !result.userModality && (
+                          <span
+                            className="text-xs px-1.5 py-0.5 rounded"
+                            style={{ backgroundColor: 'rgba(249,115,22,0.12)', color: '#c2410c' }}
+                            title="No detection layer identified this scan; the modality shown is a fallback guess. It will not be exported until you choose a modality."
+                          >
+                            Guessed &mdash; pick a modality to export
+                          </span>
+                        )}
+                        {result.duplicateOf && !result.userModality && (
+                          <span
+                            className="text-xs px-1.5 py-0.5 rounded"
+                            style={{ backgroundColor: 'rgba(234,179,8,0.12)', color: '#a16207' }}
+                            title={`The same series was converted twice. "${result.duplicateOf}" is being exported instead of this copy, because it carries the scanner metadata sidecar. Set a modality here to export this copy as well.`}
+                          >
+                            Duplicate of {result.duplicateOf}
+                          </span>
+                        )}
+                        {result.derivedLabel && (
+                          <span
+                            className="text-xs px-1.5 py-0.5 rounded"
+                            style={{ backgroundColor: 'rgba(59,130,246,0.12)', color: '#1d4ed8' }}
+                            title={`Computed by the scanner rather than acquired, so it is exported under derivatives/ as desc-${result.derivedLabel} instead of alongside the raw acquisitions.`}
+                          >
+                            Derived: {result.derivedLabel}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   {/* Subject group */}

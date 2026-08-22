@@ -365,7 +365,25 @@ export function groupIntoSubject(
     // YYYYMMDD dates, etc.), second-level folders are SCAN SERIES names, not
     // patient identifiers. Skip second-level patient detection entirely and go
     // straight to filename-based subject ID extraction.
-    if (allTopLookLikeSessions) {
+    // Requires MORE THAN ONE session-looking top folder. With exactly one,
+    // that folder is the dropped container itself, not a session --
+    // scanDirectory prefixes every relative path with basename(root), so a
+    // CLI run always has exactly one top-level folder. Without this
+    // condition the branch fired whenever the dropped folder's NAME merely
+    // resembled session vocabulary, and its premise ("second-level folders
+    // are scan series") was then false.
+    //
+    // Real failure: a cohort directory named "Phase2_MRI" matched the
+    // implant preset's "phase[-\s]?[123]" pattern, so all 19 patient
+    // folders beneath it were taken for scan series and every patient
+    // merged into one "ungrouped" subject -- 836 files under a single
+    // fabricated subject. Renaming the same tree to "TBI_Study" grouped it
+    // correctly, which is how the name-dependence was found (2026-08-17).
+    //
+    // Two or more session-looking top folders still take this path: that is
+    // a browser drop of a subject's session folders directly, where the
+    // premise does hold.
+    if (allTopLookLikeSessions && allTopFolders.size > 1) {
       const subjectId = extractSubjectIdFromFilename(file.name);
       if (subjectId) {
         groupName = subjectId;

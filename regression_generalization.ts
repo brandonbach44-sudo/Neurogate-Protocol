@@ -26,6 +26,7 @@ import { detectCustomSession, looksLikeTimepointFolder } from './src/lib/detecti
 import { resolveSessionIds } from './src/types/sessionStructure';
 import type { DatasetStructure } from './src/types/sessionStructure';
 import { groupIntoSubject } from './src/lib/detection/subjectGrouping';
+import { isOsJunkFile } from './src/lib/detection/extensionDetector';
 import type { ScannedFile } from './src/types/files';
 
 let failures = 0;
@@ -122,7 +123,58 @@ for (const set of [['P01','P02','P03'],['PT01','PT02'],['S01','S02'],['01','02',
   report('safety', set.every(f => g.includes(f)), `${set.join(',')} merged into ${g.join(', ')}`);
 }
 
-// ── 5. SAFETY: modality folders are not timepoints ───────────────
+// ── 5. SAFETY: rules added for one corpus must not claim other data ──
+// The vocabulary in this engine grew while fixing a specific TBI dataset.
+// Each addition is a liability for every OTHER dataset: a token that helps
+// one site can misclassify another site's subject identifiers. These cases
+// pin the boundary. Two were real over-reach when written:
+//   - "b1234_scan" was claimed as diffusion by a bare b + 3-4 digit
+//     b-value rule; that form is also an ordinary subject id.
+//   - "PD_003_scan" was claimed as proton-density; PD is how essentially
+//     every Parkinson's cohort labels its subjects.
+// Both rules were narrowed rather than removed, and the corpus that
+// motivated them still classifies correctly.
+console.log('rules do not over-reach onto other datasets');
+const NO_OVERREACH: [string, string | null, string][] = [
+  ['sub-b1234_T1w',   'anat-T1w',     'subject id b+digits, modality token present'],
+  ['b1234_scan',      null,           'subject id b+digits, no modality token'],
+  ['PD_003_T1w',      'anat-T1w',     "Parkinson's subject with modality token"],
+  ['PD_003_scan',     null,           "Parkinson's subject, no modality token"],
+  ['sub-PD12_bold',   'func',         "Parkinson's subject, functional"],
+  ['difference_map',  null,           '"diff" present but not as a token'],
+  ['T2_TSE_b1000',    'anat-T2w',     'explicit T2 wins over an incidental b-value'],
+  ['t1_mprage_moco',  'anat-T1w',     'motion-corrected STRUCTURAL stays anatomical'],
+  ['CMRR_b1k_64',     'dwi',          'the b-value shorthand this rule exists for'],
+  ['pd_tse_tra',      'anat-PDw',     'the proton-density name this rule exists for'],
+];
+for (const [name, expected, why] of NO_OVERREACH) {
+  const got = detectFromFilename(name + '.nii.gz').modality;
+  const ok = expected === null ? got === null : got === expected;
+  report('over-reach', ok, `"${name}" expected ${expected ?? 'no claim'}, got ${got ?? 'no claim'} — ${why}`);
+}
+
+// Folder names that are NOT timepoints, including forms that look close.
+for (const f of ['anat','dwi','sub-01','Male','Week','group1','run1','scan1','P1','C1','T3']) {
+  report('over-reach', !looksLikeTimepointFolder(f), `folder "${f}" claimed as a timepoint`);
+}
+
+// ── 6. SAFETY: OS junk never becomes scan data ───────────────────
+// An operating-system artifact whose NAME resembles a scan must stay
+// unclassified. This regressed silently once "ep2d_diff" became a
+// diffusion token: a macOS AppleDouble sidecar named
+// "._ep2d_diff_..._7.nii.gz.drAITD" was exported as real diffusion data.
+console.log('OS junk stays unclassified');
+for (const junk of [
+  '._ep2d_diff_sms_aldit_b3k_20170722092027_7.nii.gz.drAITD',
+  '._Sag_MPRAGE.nii.gz',
+  '.T1_axial.nii.gz.qkjGHi',
+  '.DS_Store',
+  'Thumbs.db',
+]) {
+  report('safety', isOsJunkFile(junk), `"${junk}" not recognised as OS junk`);
+}
+
+// ── 7. SAFETY: modality folders are not timepoints ───────────────
 console.log('modality folders are not timepoints');
 for (const f of ['T1','T2','T1w','T2w','DWI','CT','anat','func','SWI','FLAIR']) {
   report('safety', !looksLikeTimepointFolder(f), `"${f}" read as a timepoint label`);
