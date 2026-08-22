@@ -48,7 +48,7 @@ export async function runValidation(input: ValidationInput): Promise<ValidationR
   const allIssues: ValidationIssue[] = [];
 
   // ── 1. BIDS Structure ─────────────────────────────────────
-  const bidsIssues = validateBidsStructure(input.detectionResults, input.subjects);
+  const bidsIssues = validateBidsStructure(input.detectionResults, input.subjects, input.structure);
   allIssues.push(...bidsIssues);
 
   // ── 2. PHI Scanning ───────────────────────────────────────

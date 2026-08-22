@@ -15,6 +15,7 @@ import type { DetectionResult } from '../../types/detection';
 import { isExportedPath } from '../bids/bidsNaming';
 import { getEffectiveSession, getEffectiveModality, getEffectiveSubjectGroup } from '../../types/detection';
 import type { SubjectMetadata } from '../../types/metadata';
+import type { DatasetStructure } from '../../types/sessionStructure';
 import type { ValidationIssue } from '../../types/validation';
 import { isOsJunkFile } from '../detection/extensionDetector';
 
@@ -33,7 +34,25 @@ function nextId(): string {
 export function validateBidsStructure(
   results: DetectionResult[],
   subjects: SubjectMetadata[],
+  /**
+   * The dataset's session structure. Needed to recognise the Single
+   * session preset, where a null session is the correct and expected
+   * state rather than a detection failure.
+   *
+   * Without it this function raised a hard, non-dismissable
+   * "No session assigned" error for every file in a sessionless dataset,
+   * which made the Single session preset unusable: the pipeline returns
+   * blocked-by-errors on any error, so such a dataset could never export.
+   * checkRequiredFiles and checkCrossSessionConsistency were already given
+   * the structure for exactly this reason; this check was missed.
+   *
+   * Found 2026-08-17 while testing whether the CLI can export a
+   * single-visit subject in a multi-timepoint study -- the natural
+   * fallback (run it as a single session) was silently impossible.
+   */
+  structure?: DatasetStructure,
 ): ValidationIssue[] {
+  const sessionless = structure?.presetId === 'single-session';
   issueCounter = 0;
   const issues: ValidationIssue[] = [];
 
@@ -67,6 +86,7 @@ export function validateBidsStructure(
     // do not need a session assignment.
     if (
       !session &&
+      !sessionless &&
       modality !== 'other' &&
       modality !== 'localizer' &&
       modality !== 'sidecar-json' &&
@@ -77,7 +97,17 @@ export function validateBidsStructure(
         category: 'bids-structure',
         severity: 'error',
         title: 'No session assigned',
-        description: `"${result.fileName}" has been classified as ${modality} but has no session assigned. Every data file needs a session assigned to be placed in the BIDS folder structure.`,
+        // The session layers already worked out WHY this file has no
+        // session -- folderClusterDetector says, in plain words, "this
+        // subject has 1 visit folder but the study defines 2 timepoints,
+        // most likely a missed visit". That diagnosis was being computed
+        // and then thrown away: the operator saw only "needs a session
+        // assigned", which does not say what to do about it. Surface the
+        // specific reason when there is one.
+        description: `"${result.fileName}" has been classified as ${modality} but has no session assigned. ${
+          result.reasons.find(r => r.layer === 'folder-cluster' || r.layer === 'date-cluster')?.message
+          ?? 'Every data file needs a session assigned to be placed in the BIDS folder structure.'
+        }`,
         affectedFiles: [result.relativePath],
         subjectGroup: group,
         dismissable: false,

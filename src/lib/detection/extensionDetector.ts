@@ -44,8 +44,19 @@ const OS_JUNK_FILENAMES = new Set([
 export function isOsJunkFile(fileName: string): boolean {
   const lower = fileName.toLowerCase();
   if (OS_JUNK_FILENAMES.has(lower)) return true;
-  // macOS AppleDouble resource-fork sidecar files, e.g. "._scan.nii.gz"
-  if (lower.startsWith('._')) return true;
+  // Any hidden (dot-prefixed) file. This covers macOS AppleDouble
+  // resource-fork sidecars ("._scan.nii.gz") and, more importantly,
+  // in-flight copy artifacts: rsync writes a partial transfer as
+  // ".<name>.<random>", so an interrupted copy leaves
+  // ".T1_axial.nii.gz.qkjGHi" behind. That name still contains "T1_axial",
+  // so the filename detector classified it as a real T1w and it would have
+  // been exported as an anatomical scan -- fabricated data from a transfer
+  // artifact. Found in the staged corpus 2026-08-17.
+  //
+  // Safe to treat all dotfiles as junk: hidden files are never scan data,
+  // BIDS itself ignores them, and the companion extensions this tool cares
+  // about (.bval/.bvec/.json) are suffixes rather than leading dots.
+  if (lower.startsWith('.')) return true;
   return false;
 }
 

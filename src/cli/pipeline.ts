@@ -76,6 +76,12 @@ export interface NeuroGateRunResult {
   subjects: SubjectMetadata[];
   validationReport: ValidationReport;
   filesWritten?: number;
+  /**
+   * Subjects held back from this export because they had blocking errors of
+   * their own. Everything else was written. Empty on a fully clean run.
+   * See the per-subject resilience note in runNeuroGatePipeline.
+   */
+  heldBackSubjects?: string[];
   deidentificationSummary?: DeidentificationSummary;
   auditPath?: string;
 }
@@ -192,8 +198,35 @@ export async function runNeuroGatePipeline(
     validationReport.passed,
   );
 
-  const hasErrors = validationReport.issues.some(i => i.severity === 'error');
-  if (hasErrors) {
+  // ── Per-subject resilience ──────────────────────────────────────
+  // A cohort rarely fails as a whole. One subject with a problem used to
+  // block the entire run: pointing this at Phase2_MRI_OrthoControls
+  // discarded 01_1522's 61 correctly-organized files because two OTHER
+  // subjects in the folder had a single visit against two declared
+  // timepoints. Nothing was wrong with 01_1522.
+  //
+  // So errors are attributed to the subject they belong to, that subject is
+  // held back, and the rest export. Only a run where NO subject is clean
+  // is blocked outright. Held-back subjects are reported by name with
+  // their reasons, so the operator sees exactly what needs attention
+  // instead of a whole cohort failing anonymously.
+  //
+  // An error carrying no subjectGroup is dataset-wide (bad metadata, a
+  // missing attestation) and cannot be isolated, so it still blocks
+  // everything -- attributing it to nobody and exporting anyway would ship
+  // a dataset with a known global defect.
+  const errorIssues = validationReport.issues.filter(i => i.severity === 'error');
+  const datasetWideErrors = errorIssues.filter(i => !i.subjectGroup);
+  if (datasetWideErrors.length > 0) {
+    return { status: 'blocked-by-errors', scanned, summary, subjects, validationReport };
+  }
+
+  const blockedGroups = new Set(
+    errorIssues.map(i => i.subjectGroup).filter((g): g is string => Boolean(g)),
+  );
+  const exportableSubjects = subjects.filter(s => !blockedGroups.has(s.subjectGroup));
+
+  if (blockedGroups.size > 0 && exportableSubjects.length === 0) {
     return { status: 'blocked-by-errors', scanned, summary, subjects, validationReport };
   }
 
@@ -205,12 +238,17 @@ export async function runNeuroGatePipeline(
   // ── Export ──────────────────────────────────────────────────────
   await mkdir(options.outputDir, { recursive: true });
 
+  if (blockedGroups.size > 0) {
+    log(`Holding back ${blockedGroups.size} subject(s) with blocking errors: ${[...blockedGroups].join(', ')}`);
+    log(`Exporting the remaining ${exportableSubjects.length}.`);
+  }
+
   const dateShifts = generateSubjectDateShifts(summary.subjectGroups);
   // Infinity: no browser-memory cap on the CLI export path -- see
   // buildFileEntries()'s largeFileThresholdBytes param.
   const entries = buildFileEntries(
     detectionResults,
-    subjects,
+    exportableSubjects,
     options.datasetDescription,
     dateShifts,
     options.structure,
@@ -234,6 +272,7 @@ export async function runNeuroGatePipeline(
     scanned,
     summary,
     subjects,
+    heldBackSubjects: [...blockedGroups],
     validationReport,
     filesWritten,
     deidentificationSummary: deidSummary,

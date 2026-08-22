@@ -142,7 +142,12 @@ const MODALITY_PATTERNS: [RegExp, Modality, string][] = [
   // names; 30 files were exported as fabricated T1w before anat-PDw
   // existed. Requires the pd token to stand alone so it cannot match
   // inside an unrelated word.
-  [/\b(pdw|pd[-_]?tse|pd[-_]?weighted|proton[-_]?density|pd)\b/i, 'anat-PDw', 'Proton-density weighted MRI keyword'],
+  // Bare "pd" is deliberately excluded. It is a proton-density
+  // abbreviation, but it is also how essentially every Parkinson's disease
+  // cohort labels its subjects, and "PD_003_scan" was being classified as
+  // a proton-density image. The qualified forms are unambiguous and cover
+  // this data's names ("pd_tse_tra", "PD_TSE") on their own.
+  [/\b(pdw|pd[-_]?tse|pd[-_]?weighted|proton[-_]?density)\b/i, 'anat-PDw', 'Proton-density weighted MRI keyword'],
 
   // MR Angiography -- Time-of-Flight
   [/\b(tof|angio|angiography|mra|time[-_]?of[-_]?flight)\b/i, 'anat-angio', 'MR angiography (TOF) keyword'],
@@ -194,7 +199,15 @@ const MODALITY_PATTERNS: [RegExp, Modality, string][] = [
   // Scoped to a b-prefixed value rather than "cmrr" alone on purpose --
   // CMRR also publishes a widely-used multiband *fMRI* sequence, so
   // "CMRR" by itself says nothing about modality. Only the b-value does.
-  [/\b(b\d+k|b\d{3,4})\b/i, 'dwi', 'Diffusion b-value in scan name'],
+  // Only the "k" shorthand (b1k, b3k, b5k) stands alone. That form is
+  // essentially never anything but a b-value, whereas a bare b + 3-4
+  // digits is also a perfectly ordinary subject identifier: "b1234_scan"
+  // was being claimed as diffusion. Real b-values written in full always
+  // arrive with a diffusion word beside them in this data
+  // ("ep2d_diff_sms3_b1000", "DTI_64_dir_b=1300"), which the rules above
+  // already match, so requiring the k form here costs nothing and removes
+  // the collision. Found by an over-fitting probe, 2026-08-17.
+  [/\bb\d+k\b/i, 'dwi', 'Diffusion b-value in scan name'],
 
   // Same family, with the "b" dropped: "CMRR_5k_128" sits beside
   // "CMRR_b1k_64" and "CMRR_b3k_64" in the same session, so the 5k is a
