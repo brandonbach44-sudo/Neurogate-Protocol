@@ -1,0 +1,112 @@
+name: Release desktop app
+
+# Builds the Electron app on Windows, macOS and Linux and uploads the
+# installers (plus the latest*.yml files electron-updater reads) to a
+# GitHub Release. Installed copies of NeuroGate check that release on
+# launch -- see initAutoUpdater() in electron/main.cjs.
+#
+# To release: bump "version" in package.json, commit, push to main,
+# then `git tag vX.Y.Z && git push origin vX.Y.Z`. The tag must match
+# package.json's version (checked below), since electron-builder names
+# the release after package.json, not the tag.
+#
+# electron-builder uploads to a DRAFT release so the three parallel
+# build jobs all land in the same one; the finalize job publishes it
+# once every platform has uploaded. electron-updater ignores drafts, so
+# nobody is offered a release that's missing a platform. A manual
+# workflow_dispatch run leaves the release as a draft for review.
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Check tag matches package.json version
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        run: |
+          PKG_VERSION="v$(node -p "require('./package.json').version")"
+          if [ "$PKG_VERSION" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match package.json version $PKG_VERSION"
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Regression check (detection/validation/de-identification vs golden snapshots)
+        run: npm run regression
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Build CLI binary
+        run: npm run cli:sea
+
+      - name: Build and publish installers
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # No signing certificates yet -- see "identity": null in package.json.
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+        run: npx electron-builder --publish always
+
+  finalize:
+    name: Publish release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Add download instructions and publish
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="v$(node -p "require('./package.json').version")"
+          cat > notes.md <<'EOF'
+          ## Download
+
+          | Platform | File |
+          |----------|------|
+          | Windows | `NeuroGate-Setup-*.exe` |
+          | macOS | `NeuroGate-*.dmg` |
+          | Linux | `NeuroGate-*.AppImage` |
+
+          Already have NeuroGate installed? It will offer this update the next time you open it.
+
+          ### First install (builds are not code-signed yet)
+
+          - **Windows:** if SmartScreen warns, click **More info** → **Run anyway**.
+          - **macOS:** right-click NeuroGate in Applications → **Open**, or run `xattr -cr /Applications/NeuroGate.app`.
+          - **Linux:** `chmod +x NeuroGate-*.AppImage`, then run it.
+          EOF
+          if [ "${{ github.event_name }}" = "push" ]; then
+            gh release edit "$TAG" --notes-file notes.md --draft=false --latest
+          else
+            gh release edit "$TAG" --notes-file notes.md
+            echo "Manual run: $TAG left as a draft. Publish it from the Releases page when ready."
+          fi
