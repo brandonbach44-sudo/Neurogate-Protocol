@@ -188,12 +188,23 @@ function createWindow() {
  * there's no app-update.yml outside a packaged build, and an unpackaged
  * app has no installed version to replace anyway.
  *
- * Every failure (offline, GitHub rate limit, no releases published yet,
- * a macOS build that can't apply an unsigned update) is logged and
- * otherwise ignored -- the updater must never stop the app launching
- * or interrupt the user with an error for something they didn't ask
- * for.
+ * macOS only checks, never downloads: Squirrel.Mac refuses to install
+ * an update unless it's signed with the same Developer ID as the
+ * installed app, and NeuroGate's macOS builds are only ad-hoc signed
+ * (see scripts/adhoc-sign-mac.cjs). So on macOS the prompt opens the
+ * release page instead, and the user drags the new version into
+ * Applications. Once there's a Developer ID certificate, drop the
+ * MANUAL_MAC_UPDATES branch and macOS gets the same flow as Windows/
+ * Linux.
+ *
+ * Every failure (offline, GitHub rate limit, no releases published yet)
+ * is logged and otherwise ignored -- the updater must never stop the
+ * app launching or interrupt the user with an error for something they
+ * didn't ask for.
  */
+const MANUAL_MAC_UPDATES = process.platform === 'darwin';
+const RELEASES_URL = 'https://github.com/brandonbach44-sudo/Neurogate-Protocol/releases';
+
 function initAutoUpdater() {
   if (!app.isPackaged) {
     console.log('[updater] skipped (not a packaged build)');
@@ -201,7 +212,7 @@ function initAutoUpdater() {
   }
 
   autoUpdater.autoDownload = false;
-  autoUpdater.autoInstallOnAppQuit = true;
+  autoUpdater.autoInstallOnAppQuit = !MANUAL_MAC_UPDATES;
   autoUpdater.logger = console;
 
   autoUpdater.on('update-not-available', () => {
@@ -210,6 +221,21 @@ function initAutoUpdater() {
 
   autoUpdater.on('update-available', async (info) => {
     console.log(`[updater] update available: ${info.version}`);
+
+    if (MANUAL_MAC_UPDATES) {
+      const { response } = await dialog.showMessageBox(mainWindow, {
+        type: 'info',
+        title: 'Update available',
+        message: `NeuroGate ${info.version} is available.`,
+        detail: `You're running ${app.getVersion()}. Open the download page? Download the .dmg, then drag NeuroGate into Applications to replace this version.`,
+        buttons: ['Open download page', 'Later'],
+        defaultId: 0,
+        cancelId: 1,
+      });
+      if (response === 0) shell.openExternal(`${RELEASES_URL}/tag/v${info.version}`);
+      return;
+    }
+
     const { response } = await dialog.showMessageBox(mainWindow, {
       type: 'info',
       title: 'Update available',

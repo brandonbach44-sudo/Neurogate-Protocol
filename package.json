@@ -81,6 +81,7 @@
     "extraMetadata": {
       "main": "electron/main.cjs"
     },
+    "afterPack": "scripts/adhoc-sign-mac.cjs",
     "win": {
       "target": "nsis",
       "extraResources": [
