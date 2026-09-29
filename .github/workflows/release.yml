@@ -96,12 +96,12 @@ jobs:
           | macOS | `NeuroGate-*.dmg` |
           | Linux | `NeuroGate-*.AppImage` |
 
-          Already have NeuroGate installed? It will offer this update the next time you open it.
+          Already have NeuroGate installed? It will offer this update the next time you open it. On Windows and Linux it installs itself; on macOS it opens this page, so download the `.dmg` and drag NeuroGate into Applications to replace the old version.
 
           ### First install (builds are not code-signed yet)
 
           - **Windows:** if SmartScreen warns, click **More info** → **Run anyway**.
-          - **macOS:** right-click NeuroGate in Applications → **Open**, or run `xattr -cr /Applications/NeuroGate.app`.
+          - **macOS (Apple Silicon only):** open NeuroGate once. When macOS says it can't verify the developer, click **Done**, go to **System Settings → Privacy & Security**, scroll down and click **Open Anyway** next to NeuroGate. You only need to do this once.
           - **Linux:** `chmod +x NeuroGate-*.AppImage`, then run it.
           EOF
           if [ "${{ github.event_name }}" = "push" ]; then
