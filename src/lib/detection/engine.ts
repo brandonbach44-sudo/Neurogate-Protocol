@@ -728,6 +728,13 @@ export function runDetection(
 
   for (const intermediate of intermediateResults) {
     const { file } = intermediate;
+
+    // OS junk files (.DS_Store, dot-prefixed temp files, Thumbs.db, etc.)
+    // were locked as 'other' in Pass 1. Drop them entirely so they never
+    // appear in the mapping table — users should not have to review files
+    // that are never scan data.
+    if (intermediate.modalityLocked && intermediate.modality === 'other') continue;
+
     let { modality, session } = intermediate;
     const reasons = [...intermediate.reasons];
 
