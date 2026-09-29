@@ -63,6 +63,7 @@
  */
 
 const { app, BrowserWindow, shell, dialog, ipcMain } = require('electron');
+const { autoUpdater } = require('electron-updater');
 const path = require('node:path');
 const fs = require('node:fs');
 const { execFile } = require('node:child_process');
@@ -174,6 +175,91 @@ function createWindow() {
   });
 }
 
+// ── Auto-update ─────────────────────────────────────────────────────
+
+/**
+ * Checks GitHub Releases (the "publish" config in package.json's
+ * "build" section, which electron-builder bakes into the packaged app
+ * as app-update.yml) for a newer version on every launch, and asks the
+ * user before downloading or restarting -- autoDownload is off so a
+ * ~100MB download never starts behind someone's back mid-export.
+ *
+ * Skipped entirely in dev (`npm run electron:dev` / `electron:dev:fast`):
+ * there's no app-update.yml outside a packaged build, and an unpackaged
+ * app has no installed version to replace anyway.
+ *
+ * Every failure (offline, GitHub rate limit, no releases published yet,
+ * a macOS build that can't apply an unsigned update) is logged and
+ * otherwise ignored -- the updater must never stop the app launching
+ * or interrupt the user with an error for something they didn't ask
+ * for.
+ */
+function initAutoUpdater() {
+  if (!app.isPackaged) {
+    console.log('[updater] skipped (not a packaged build)');
+    return;
+  }
+
+  autoUpdater.autoDownload = false;
+  autoUpdater.autoInstallOnAppQuit = true;
+  autoUpdater.logger = console;
+
+  autoUpdater.on('update-not-available', () => {
+    console.log('[updater] no update available');
+  });
+
+  autoUpdater.on('update-available', async (info) => {
+    console.log(`[updater] update available: ${info.version}`);
+    const { response } = await dialog.showMessageBox(mainWindow, {
+      type: 'info',
+      title: 'Update available',
+      message: `NeuroGate ${info.version} is available.`,
+      detail: `You're running ${app.getVersion()}. Download the update now? You can keep working while it downloads.`,
+      buttons: ['Download', 'Later'],
+      defaultId: 0,
+      cancelId: 1,
+    });
+    if (response === 0) {
+      autoUpdater.downloadUpdate().catch((err) => {
+        console.error('[updater] download failed:', err);
+        if (mainWindow) mainWindow.setProgressBar(-1);
+      });
+    }
+  });
+
+  autoUpdater.on('download-progress', (progress) => {
+    if (mainWindow) mainWindow.setProgressBar(progress.percent / 100);
+  });
+
+  autoUpdater.on('update-downloaded', async (info) => {
+    console.log(`[updater] update downloaded: ${info.version}`);
+    if (mainWindow) mainWindow.setProgressBar(-1);
+    const { response } = await dialog.showMessageBox(mainWindow, {
+      type: 'info',
+      title: 'Update ready',
+      message: `NeuroGate ${info.version} is ready to install.`,
+      detail: 'Restart now to finish updating? If you choose Later, the update installs the next time you quit NeuroGate.',
+      buttons: ['Restart now', 'Later'],
+      defaultId: 0,
+      cancelId: 1,
+    });
+    if (response === 0) {
+      // before-quit/will-quit still fire on quitAndInstall, so the
+      // in-process server is closed the same way as a normal quit.
+      autoUpdater.quitAndInstall();
+    }
+  });
+
+  autoUpdater.on('error', (err) => {
+    console.error('[updater] error:', err);
+    if (mainWindow) mainWindow.setProgressBar(-1);
+  });
+
+  autoUpdater.checkForUpdates().catch((err) => {
+    console.error('[updater] check failed:', err);
+  });
+}
+
 app.whenReady().then(async () => {
   try {
     await startServer();
@@ -188,6 +274,7 @@ app.whenReady().then(async () => {
   }
 
   createWindow();
+  initAutoUpdater();
 
   app.on('activate', () => {
     // macOS convention: clicking the dock icon with no windows open
