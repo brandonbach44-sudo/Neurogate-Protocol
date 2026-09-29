@@ -144,6 +144,9 @@ function createWindow() {
     minWidth: 960,
     minHeight: 640,
     title: 'NeuroGate',
+    // Window/taskbar icon on Linux (Windows and macOS take it from the
+    // packaged app instead -- see "icon" in package.json's "build").
+    icon: path.join(__dirname, 'icons', 'icon.png'),
     webPreferences: {
       // preload.cjs exposes exactly one thing to the renderer --
       // window.neurogateDesktop.installCli() -- via contextBridge.

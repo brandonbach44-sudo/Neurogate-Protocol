@@ -1,7 +1,7 @@
 {
   "name": "epilepsy-app",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "NeuroGate: neural data organizer and BIDS export tool",
   "author": "NeuroGate",
   "type": "module",
@@ -84,6 +84,7 @@
     "afterPack": "scripts/adhoc-sign-mac.cjs",
     "win": {
       "target": "nsis",
+      "icon": "electron/icons/icon.png",
       "extraResources": [
         {
           "from": "dist-cli/neurogate.exe",
@@ -100,6 +101,7 @@
         "dmg",
         "zip"
       ],
+      "icon": "electron/icons/icon.png",
       "identity": null,
       "extraResources": [
         {
@@ -109,7 +111,8 @@
       ]
     },
     "linux": {
-      "target": "AppImage"
+      "target": "AppImage",
+      "icon": "electron/icons/icon.png"
     },
     "publish": [
       {
