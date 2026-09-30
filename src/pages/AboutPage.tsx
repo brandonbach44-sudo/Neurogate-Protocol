@@ -1,5 +1,14 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { MODALITIES } from '../types/detection';
+import { SESSION_PRESETS } from '../types/sessionStructure';
+import { DOCUMENTS } from '../docVersions';
+import { APP_VERSION } from '../version';
+
+/** Exported imaging/recording modalities (the iEEG tables aren't counted separately). */
+const DATA_MODALITY_COUNT = MODALITIES.filter(
+  m => m.bidsFolder !== '' && !['electrodes', 'channels', 'events'].includes(m.value),
+).length;
 
 const PENN_BLUE = '#011F5B';
 const PENN_BLUE_HOVER = '#01326e';
@@ -96,8 +105,8 @@ export default function AboutPage() {
             <span style={{ color: PENN_BLUE }}>ready to share.</span>
           </h1>
           <p className="mt-4 text-sm text-gray-500 leading-relaxed max-w-lg">
-            NeuroGate Protocol combines a regulatory governance framework with a browser-based
-            tool that helps research sites organize, validate, and prepare BIDS-compliant
+            NeuroGate Protocol combines a regulatory governance framework with a desktop app
+            and command-line tool that help research sites organize, validate, and prepare BIDS-compliant
             neural data ready for multi-site sharing through cloud and on-premise
             standardized data infrastructure toward building a learning health system. The
             framework is the spine; the tool is one of its implementations.
@@ -183,8 +192,8 @@ export default function AboutPage() {
             }
           />
           <PillarCard
-            title="A browser-based tool"
-            body="A 6-step workflow that organizes, validates, and exports BIDS-compliant datasets entirely client-side. PHI scanning, header de-identification, defacing attestation, and a full ALCOA+ audit log are built in."
+            title="A desktop app and CLI"
+            body="A 6-step workflow that organizes, validates, and exports BIDS-compliant datasets entirely on your computer, for MRI, CT, PET, EEG and iEEG. PHI scanning, header de-identification, defacing attestation, and an ALCOA+-aligned audit log are built in."
             accent="#7c3aed"
             bg="rgba(124,58,237,0.08)"
             icon={
@@ -201,13 +210,13 @@ export default function AboutPage() {
       {/* ─── STATS BAR ───────────────────────────────────── */}
       <section className="rounded-2xl border border-gray-100 bg-white py-8 px-6 mb-14 shadow-sm">
         <div className="grid grid-cols-2 md:flex md:items-center md:justify-around gap-6 md:gap-0">
-          <StatBlock value="11" label="Modalities" />
+          <StatBlock value={String(DATA_MODALITY_COUNT)} label="Modalities" />
           <div className="hidden md:block w-px h-10 bg-gray-200" />
-          <StatBlock value="2" label="Structure presets" />
+          <StatBlock value={String(SESSION_PRESETS.length)} label="Structure presets" />
           <div className="hidden md:block w-px h-10 bg-gray-200" />
-          <StatBlock value="4" label="Documents" />
+          <StatBlock value={String(DOCUMENTS.length)} label="Documents" />
           <div className="hidden md:block w-px h-10 bg-gray-200" />
-          <StatBlock value="100%" label="Client-side" />
+          <StatBlock value="100%" label="Local processing" />
         </div>
       </section>
 
@@ -215,7 +224,7 @@ export default function AboutPage() {
       <section className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-14">
         <div className="rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
           <Eyebrow>Project status</Eyebrow>
-          <h2 className="text-xl font-bold text-gray-900 mt-3 mb-3">Currently in beta</h2>
+          <h2 className="text-xl font-bold text-gray-900 mt-3 mb-3">Version {APP_VERSION}</h2>
           <p className="text-sm text-gray-500 leading-relaxed">
             The tool is functional and the documentation is in draft, pending review. NeuroGate is
             a standalone tool that any site can use independently, with no requirement to
@@ -224,7 +233,7 @@ export default function AboutPage() {
           </p>
           <div className="mt-5 inline-flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-full" style={{ backgroundColor: 'rgba(109,211,206,0.15)', color: TEAL_TEXT }}>
             <span style={{ color: TEAL }}>&#9679;</span>
-            Beta, in active development
+            In active development
           </div>
         </div>
         <div className="rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
@@ -264,7 +273,7 @@ export default function AboutPage() {
               )}
             </button>
             <a
-              href="https://github.com/brandonbach44-sudo/Epilepsy_GUI"
+              href="https://github.com/brandonbach44-sudo/Neurogate-Protocol"
               target="_blank"
               rel="noopener noreferrer"
               className="btn-cta no-underline inline-flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
@@ -303,8 +312,8 @@ export default function AboutPage() {
               Try the tool or read the framework.
             </h3>
             <p className="mt-3 text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.7)' }}>
-              The tool runs in your browser with no installation. The documentation pages cover
-              the governance framework and three SOPs.
+              Everything runs on your computer and nothing is uploaded. The documentation pages
+              cover the governance framework and two SOPs.
             </p>
           </div>
           <div className="flex flex-col gap-3 md:items-end">

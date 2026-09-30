@@ -146,7 +146,7 @@ export function checkRequiredFiles(
               ? `Missing required: ${req.label}`
               : `Missing: ${req.label}`,
             description: isSparseUpload
-              ? `${displayId} / ${session} is missing ${req.label}, but only ${subjectDataFileCount} file${subjectDataFileCount === 1 ? ' was' : 's were'} uploaded for this subject. If this is intentional (e.g. uploading a single file for de-identification), dismiss this warning and continue. Otherwise go back and verify all files were included.`
+              ? `${displayId} / ${session} is missing ${req.label}, but only ${subjectDataFileCount} file${subjectDataFileCount === 1 ? ' was' : 's were'} added for this subject. If this is intentional (e.g. exporting a single file for de-identification), dismiss this warning and continue. Otherwise go back and verify all files were included.`
               : effectiveSeverity === 'error'
                 ? `${displayId} / ${session} is missing a required ${req.label} file. This file must be present for a valid BIDS submission. If you have this file, go back to the mapping step and verify it's assigned to the correct session and modality.`
                 : `${displayId} / ${session} does not include a ${req.label} file. This is recommended but not required. Your submission will still be valid without it.`,

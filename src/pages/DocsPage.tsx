@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { DOCUMENTS, documentVersion } from '../docVersions';
 
 /* ─── Document card ─────────────────────────────────────────── */
 function DocCard({
@@ -87,7 +88,7 @@ export default function DocsPage() {
         </div>
         <div className="flex items-end md:justify-end">
           <div className="text-right">
-            <div className="text-3xl font-bold" style={{ color: '#011F5B' }}>4</div>
+            <div className="text-3xl font-bold" style={{ color: '#011F5B' }}>{DOCUMENTS.length}</div>
             <div className="text-xs text-gray-500 uppercase tracking-wide mt-1">Documents</div>
           </div>
         </div>
@@ -102,7 +103,7 @@ export default function DocsPage() {
           <div className="p-8">
             <div className="flex items-center gap-2 mb-4">
               <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500">GOV-001</span>
-              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(1,31,91,0.06)', color: '#011F5B' }}>v1.15</span>
+              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(1,31,91,0.06)', color: '#011F5B' }}>v{documentVersion('GOV-001')}</span>
               <span className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(234,179,8,0.1)', color: '#a16207' }}>Draft</span>
             </div>
             <h2 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-[#011F5B] transition-colors">
@@ -129,9 +130,9 @@ export default function DocsPage() {
         <DocCard
           id="SOP-BIDS-001"
           title="BIDS Data Structure"
-          description="Folder hierarchy, file naming conventions, modality organization, JSON sidecars, and de-identification requirements for BIDS-compliant neural data (imaging and electrophysiology)."
+          description="Folder hierarchy, file naming conventions, modality organization (MRI, CT, PET, EEG, iEEG), JSON sidecars, and de-identification requirements for BIDS-compliant neural data."
           status="Draft"
-          version="v2.9"
+          version={`v${documentVersion('SOP-BIDS-001')}`}
           to="/docs/sop-bids"
           accent="rgba(109,211,206)"
           icon={
@@ -143,9 +144,9 @@ export default function DocsPage() {
         <DocCard
           id="SOP-GUI-001"
           title="Compliance Tool User Guide"
-          description="Complete instructions for using the NeuroGate web tool: file upload, auto-detection review, metadata entry, validation, BIDS export, and audit trail management."
+          description="Complete instructions for the NeuroGate desktop app and CLI: installation and updates, adding files, reviewing auto-detection, metadata, validation, BIDS export, and the audit log."
           status="Draft"
-          version="v1.9"
+          version={`v${documentVersion('SOP-GUI-001')}`}
           to="/docs/sop-gui"
           accent="rgba(109,211,206)"
           icon={

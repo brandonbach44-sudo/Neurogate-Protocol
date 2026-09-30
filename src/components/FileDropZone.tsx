@@ -200,7 +200,7 @@ export default function FileDropZone({ onFilesScanned }: FileDropZoneProps) {
             </div>
             <div>
               <p className="text-xl font-medium text-gray-800">
-                {isDragging ? 'Release to upload' : 'Drop your patient data folder here'}
+                {isDragging ? 'Release to add files' : 'Drop your patient data folder here'}
               </p>
               <p className="mt-1.5 text-gray-500">
                 or{' '}

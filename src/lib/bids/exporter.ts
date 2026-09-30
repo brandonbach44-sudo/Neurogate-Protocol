@@ -442,7 +442,7 @@ export async function generateZip(
             dateShifted: entry.edfDeidentify.dateShiftDays !== 0,
           });
         } catch (err) {
-          throw new Error(`Cannot read "${entry.content.name}" — make sure the file is stored locally (not cloud-only) and try re-uploading it. (${(err as Error).message})`);
+          throw new Error(`Cannot read "${entry.content.name}" — make sure the file is stored locally (not cloud-only) and add the folder again. (${(err as Error).message})`);
         }
       } else if (entry.jsonDeidentify) {
         // Scan JSON sidecar -- blank identifying fields and shift dates
@@ -463,7 +463,7 @@ export async function generateZip(
             });
           }
         } catch (err) {
-          throw new Error(`Cannot read "${entry.content.name}" — make sure the file is stored locally (not cloud-only) and try re-uploading it. (${(err as Error).message})`);
+          throw new Error(`Cannot read "${entry.content.name}" — make sure the file is stored locally (not cloud-only) and add the folder again. (${(err as Error).message})`);
         }
       } else {
         // Use cached buffer to avoid NotReadableError on stale File references.
@@ -471,7 +471,7 @@ export async function generateZip(
           const buffer = await readFileBuffer(entry.content);
           zip.file(`bids_output/${entry.path}`, buffer);
         } catch (err) {
-          throw new Error(`Cannot read "${entry.content.name}" — make sure the file is stored locally (not cloud-only) and try re-uploading it. (${(err as Error).message})`);
+          throw new Error(`Cannot read "${entry.content.name}" — make sure the file is stored locally (not cloud-only) and add the folder again. (${(err as Error).message})`);
         }
       }
     } else {

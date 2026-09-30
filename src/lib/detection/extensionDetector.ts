@@ -274,7 +274,7 @@ export function detectFromExtension(fileName: string, _relativePath: string): Ex
       bestGuess: 'other',
       reason: {
         layer: 'extension',
-        message: 'WARNING: DICOM file detected — must be converted to NIfTI (.nii.gz) before upload',
+        message: 'WARNING: DICOM file detected — must be converted to NIfTI (.nii.gz) first; not exported',
         weight: 0.9,
       },
     };
