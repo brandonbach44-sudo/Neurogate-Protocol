@@ -1,0 +1,22 @@
+{
+  "Modality": "PT",
+  "Manufacturer": "Siemens",
+  "ManufacturersModelName": "Biograph_mCT",
+  "SeriesDescription": "PET Brain FDG NAC",
+  "ProtocolName": "PET Brain",
+  "TracerName": "Fluorodeoxyglucose",
+  "TracerRadionuclide": "F18",
+  "InjectedRadioactivity": 185.0,
+  "InjectedRadioactivityUnits": "MBq",
+  "RadionuclideHalfLife": 6586.2,
+  "Units": "BQML",
+  "DecayCorrection": "START",
+  "AttenuationCorrectionMethod": "measured,AC_CT",
+  "ReconstructionMethod": "OSEM3D 4i21s",
+  "AcquisitionTime": "09:41:12.000000",
+  "PatientName": "Doe^Jane",
+  "InstitutionName": "Example Hospital",
+  "FrameDuration": [
+    600
+  ]
+}

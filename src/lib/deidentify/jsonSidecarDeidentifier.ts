@@ -59,6 +59,11 @@ export const DATE_FIELDS = [
   'SeriesDate',
   'ContentDate',
   'InstanceCreationDate',
+  // PET: ScanDate is deprecated in BIDS but older PET2BIDS output and
+  // hand-built sidecars still carry it. Times of day (TimeZero,
+  // InjectionStart, AcquisitionTime) are not dates and stay as they are.
+  'ScanDate',
+  'RadiopharmaceuticalStartDateTime',
 ];
 
 export interface JsonSidecarDeidentifyOptions {

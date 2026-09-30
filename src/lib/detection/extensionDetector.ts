@@ -84,11 +84,11 @@ export function detectFromExtension(fileName: string, _relativePath: string): Ex
   // Extension alone can't tell which — other layers will refine.
   if (lower.endsWith('.nii.gz')) {
     return {
-      possibleModalities: ['anat-T1w', 'anat-T2w', 'anat-FLAIR', 'anat-PDw', 'anat-T2starw', 'anat-angio', 'ct', 'dwi', 'perf', 'func', 'fmap', 'localizer'],
+      possibleModalities: ['anat-T1w', 'anat-T2w', 'anat-FLAIR', 'anat-PDw', 'anat-T2starw', 'anat-angio', 'ct', 'ct-ac', 'pet', 'dwi', 'perf', 'func', 'fmap', 'localizer'],
       bestGuess: null, // need filename/folder keywords to narrow down
       reason: {
         layer: 'extension',
-        message: 'NIfTI gzipped file — imaging data (MRI or CT)',
+        message: 'NIfTI gzipped file — imaging data (MRI, CT or PET)',
         weight: 0.3,
       },
     };
@@ -99,7 +99,7 @@ export function detectFromExtension(fileName: string, _relativePath: string): Ex
   // the exporter gzips it automatically, so this is just informational.
   if (lower.endsWith('.nii') && !lower.endsWith('.nii.gz')) {
     return {
-      possibleModalities: ['anat-T1w', 'anat-T2w', 'anat-FLAIR', 'anat-PDw', 'anat-T2starw', 'anat-angio', 'ct', 'dwi', 'perf', 'func', 'fmap', 'localizer'],
+      possibleModalities: ['anat-T1w', 'anat-T2w', 'anat-FLAIR', 'anat-PDw', 'anat-T2starw', 'anat-angio', 'ct', 'ct-ac', 'pet', 'dwi', 'perf', 'func', 'fmap', 'localizer'],
       bestGuess: null,
       reason: {
         layer: 'extension',
@@ -275,6 +275,21 @@ export function detectFromExtension(fileName: string, _relativePath: string): Ex
       reason: {
         layer: 'extension',
         message: 'WARNING: DICOM file detected — must be converted to NIfTI (.nii.gz) before upload',
+        weight: 0.9,
+      },
+    };
+  }
+
+  // ── ECAT — Siemens PET format, must be converted ────────────
+  // BIDS PET accepts NIfTI only. PET2BIDS converts ECAT (ecatpet2bids)
+  // and fills the PET sidecar fields at the same time.
+  if (lower.endsWith('.v') || lower.endsWith('.v.gz')) {
+    return {
+      possibleModalities: ['other'],
+      bestGuess: 'other',
+      reason: {
+        layer: 'extension',
+        message: 'WARNING: ECAT PET file detected — must be converted to NIfTI (.nii.gz) before export, e.g. with PET2BIDS (ecatpet2bids)',
         weight: 0.9,
       },
     };

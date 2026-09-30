@@ -24,6 +24,7 @@ import type {
   Session,
   Confidence,
   DetectionReason,
+  PetInfo,
 } from '../../types/detection';
 import { detectFromExtension, isOsJunkFile } from './extensionDetector';
 import { detectFromFilename, detectFromSidecarText, derivedDiffusionKind, derivedProjectionKind, normalizeForKeywords } from './filenameDetector';
@@ -32,6 +33,7 @@ import { inferFromNeighbors, getFolderPath } from './neighborInference';
 import { groupIntoSubject } from './subjectGrouping';
 import { buildFolderSessionMap, neighborPropagationReason } from './customSessionNeighborPropagation';
 import { getSidecarBaseName } from './sidecarReader';
+import { PET_PATTERN, PET_ONLY_SIDECAR_FIELDS, isPetContextPath, tracerLabel, reconstructionFromName } from './petVocabulary';
 import type { SidecarInfo } from './sidecarReader';
 import { computeBidsNames } from '../bids/bidsNaming';
 import type { EdfHeaderInfo } from './edfHeaderReader';
@@ -76,6 +78,53 @@ function imageStemOf(fileName: string): string | null {
 /**
  * Calculate overall confidence from the accumulated detection reasons.
  */
+/**
+ * Mark the name-based modality evidence gathered so far as overruled.
+ * Used when the sidecar's structured DICOM Modality contradicts it: the
+ * reason stays visible in the mapping table (so the user can see what the
+ * name suggested), but no longer counts toward the modality-evidence floor
+ * or modalityIsGuess.
+ */
+function overruleModalityReasons(reasons: DetectionReason[], why: string): void {
+  for (let i = 0; i < reasons.length; i++) {
+    const r = reasons[i];
+    if (r.supports === 'modality' && (r.layer === 'filename' || r.layer === 'extension')) {
+      reasons[i] = { ...r, supports: undefined, weight: 0, message: `${r.message} (overruled: ${why})` };
+    }
+  }
+}
+
+/**
+ * PET details for a NIfTI file: tracer, attenuation correction, framing,
+ * and which sidecar fields exist. Returned only when there's some PET
+ * evidence (sidecar or name), so ordinary MRI results don't carry it.
+ * See DetectionResult.pet.
+ */
+function petInfoFor(file: ScannedFile, sidecar: SidecarInfo | undefined, modality: Modality): PetInfo | undefined {
+  if (!/\.nii(\.gz)?$/i.test(file.name)) return undefined;
+  const normalizedName = normalizeForKeywords(file.name.replace(/\.nii(\.gz)?$/i, ''));
+  const hasPetEvidence =
+    modality === 'pet' ||
+    sidecar?.dicomModality === 'PT' ||
+    Boolean(sidecar?.fieldNames.some(f => (PET_ONLY_SIDECAR_FIELDS as readonly string[]).includes(f))) ||
+    PET_PATTERN.test(normalizedName);
+  if (!hasPetEvidence) return undefined;
+
+  const fromName = reconstructionFromName(normalizedName);
+  const sidecarText = sidecar ? normalizeForKeywords(sidecar.scanText) : '';
+  const fromSidecarText = reconstructionFromName(sidecarText);
+  const frameCount = sidecar?.frameCount ?? null;
+  return {
+    tracer:
+      tracerLabel(sidecar?.tracerName, true) ??
+      tracerLabel(normalizedName, false) ??
+      tracerLabel(sidecarText, false),
+    attenuationCorrected: fromName.attenuationCorrected ?? fromSidecarText.attenuationCorrected,
+    dynamic: frameCount !== null ? frameCount > 1 : (fromName.dynamic ?? fromSidecarText.dynamic),
+    sidecarFields: sidecar ? sidecar.fieldNames : null,
+  };
+}
+
 function calculateConfidence(
   modality: Modality,
   session: Session | null,
@@ -324,6 +373,7 @@ export function runDetection(
      * real CT/iEEG evidence. Implant sessions preset only.
      */
     ambiguousSessionCandidate: Session | null;
+    pet?: PetInfo;
   }[] = [];
 
   for (const file of files) {
@@ -465,14 +515,77 @@ export function runDetection(
           });
         }
 
+        // ── DICOM Modality / PET-only fields: authoritative ──
+        // The converter records what the scanner said the image is
+        // ("Modality": "PT" / "CT" / "MR"), and only PET sidecars carry
+        // fields like TracerName or InjectedRadioactivity. That outranks
+        // any name. Real PET names collide with MRI and CT vocabulary --
+        // "Brain_3D_OSEM_TOF" (time-of-flight reconstruction, not MR
+        // angiography), "H2O_CBF" (not ASL), "PET_CT_Brain" -- so without
+        // this, PET was filed as angio, perfusion or CT.
+        let sidecarDecidedModality = false;
+        if (!(isDerived && derivedKind)) {
+          const petFields = PET_ONLY_SIDECAR_FIELDS.filter(f => sidecar.fieldNames.includes(f));
+          if (sidecar.dicomModality === 'PT' || petFields.length > 0) {
+            if (modality !== 'pet') overruleModalityReasons(reasons, 'sidecar says PET');
+            modality = 'pet';
+            modalityLocked = true;
+            sidecarDecidedModality = true;
+            reasons.push({
+              layer: 'sidecar',
+              message: sidecar.dicomModality === 'PT'
+                ? `Sidecar "${sidecar.sidecarName}" records DICOM Modality "PT" (PET)`
+                : `Sidecar "${sidecar.sidecarName}" has PET-only fields (${petFields.join(', ')})`,
+              weight: 0.9,
+              supports: 'modality',
+            });
+          } else if (sidecar.dicomModality === 'CT') {
+            // A CT inside a PET study is the attenuation-correction CT.
+            const isCorrectionCt = modality === 'ct-ac' || isPetContextPath(file.relativePath);
+            const ctModality: Modality = isCorrectionCt ? 'ct-ac' : 'ct';
+            if (modality !== ctModality) overruleModalityReasons(reasons, 'sidecar says CT');
+            modality = ctModality;
+            modalityLocked = true;
+            sidecarDecidedModality = true;
+            reasons.push({
+              layer: 'sidecar',
+              message: isCorrectionCt
+                ? `Sidecar "${sidecar.sidecarName}" records DICOM Modality "CT" inside a PET study: attenuation-correction CT, not exported`
+                : `Sidecar "${sidecar.sidecarName}" records DICOM Modality "CT"`,
+              weight: 0.9,
+              supports: 'modality',
+            });
+          } else if (sidecar.dicomModality === 'MR' && (modality === 'pet' || modality === 'ct' || modality === 'ct-ac')) {
+            // An MR image whose name reads as PET or CT (e.g. a PET/MR
+            // study's MRI series under a "PET_MR" name). Drop the name's
+            // verdict and let the sidecar's scan name decide below.
+            overruleModalityReasons(reasons, 'sidecar says MR');
+            modality = 'other';
+            reasons.push({
+              layer: 'sidecar',
+              message: `Sidecar "${sidecar.sidecarName}" records DICOM Modality "MR": this is an MRI image despite its PET/CT name`,
+              weight: 0,
+            });
+          }
+        }
+
         // Skip keyword matching for a derived map: the sidecar's
         // SeriesDescription still reads "ep2d_diff_..._ADC", which would
         // re-classify the file as raw diffusion and undo the decision
         // above. Session detection below still runs, so the mapping table
         // shows the file against its real timepoint instead of a blank.
-        const scResult = (isDerived && derivedKind)
+        const scResultRaw = (isDerived && derivedKind)
           ? { modality: null, session: null, reasons: [] }
           : detectFromSidecarText(sidecar.scanText);
+        // Once the DICOM Modality decided, the scan-name text may only add
+        // session clues, not re-decide the modality. Likewise an MR
+        // sidecar's text can't make it PET or CT.
+        const textContradictsDicom =
+          sidecar.dicomModality === 'MR' &&
+          (scResultRaw.modality === 'pet' || scResultRaw.modality === 'ct' || scResultRaw.modality === 'ct-ac');
+        const scResult = sidecarDecidedModality || textContradictsDicom
+          ? { ...scResultRaw, modality: null, reasons: scResultRaw.reasons.filter(r => r.supports !== 'modality') }
+          : scResultRaw;
         // Compatible when the sidecar's modality guess isn't ruled out by
         // what this file's own extension says is possible (e.g. a .edf
         // file's possibleModalities is [eeg, ieeg] -- a sidecar claiming
@@ -630,6 +743,19 @@ export function runDetection(
     if (usesImplantHeuristics && folderResult.session && !session) {
       session = folderResult.session;
     }
+    // A CT sitting inside a PET study folder with no sidecar to say
+    // otherwise is the PET/CT attenuation-correction CT, not a clinical
+    // CT. In the Implant preset a plain CT would also be filed as
+    // post-implant (electrode localization), which this isn't.
+    if (!modalityLocked && modality === 'ct' && isPetContextPath(file.relativePath)) {
+      modality = 'ct-ac';
+      reasons.push({
+        layer: 'folder',
+        message: 'CT inside a PET study folder: treated as the attenuation-correction CT (not exported). Change it to CT if it is a clinical scan.',
+        weight: 0.3,
+        supports: 'modality',
+      });
+    }
     // Ambiguous bare "post-op" folder match: stash the candidate instead
     // of committing to it now, so Layer 4 neighbor inference (below, Pass
     // 2) gets a chance to resolve it via real CT/iEEG evidence first. See
@@ -697,7 +823,8 @@ export function runDetection(
       });
     }
 
-    intermediateResults.push({ file, modality, session, reasons, possibleModalities, modalityLocked, derivedLabel, ambiguousSessionCandidate });
+    const pet = petInfoFor(file, sidecarMap?.get(getSidecarBaseName(file.name)), modality);
+    intermediateResults.push({ file, modality, session, reasons, possibleModalities, modalityLocked, derivedLabel, ambiguousSessionCandidate, pet });
   }
 
   // ── Build known modalities map for neighbor inference ────────
@@ -941,6 +1068,7 @@ export function runDetection(
       modalityIsGuess,
       duplicateOf,
       derivedLabel: intermediate.derivedLabel,
+      pet: intermediate.pet,
       reasons,
       userSession: null,
       userModality: null,

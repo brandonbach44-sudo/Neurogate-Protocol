@@ -22,6 +22,7 @@
 import type { Session, DetectionReason } from '../../types/detection';
 import type { ScannedFile } from '../../types/files';
 import { looksLikeTimepointFolder } from './customSessionDetector';
+import { isTracerToken } from './petVocabulary';
 
 export interface SubjectGroupResult {
   /** Assigned subject group name */
@@ -109,7 +110,16 @@ function extractSubjectIdFromFilename(fileName: string): string | null {
 
   // Normalize underscores to spaces so \b word boundaries work correctly.
   // Without this, "_001_" won't match \b(\d{3,4})\b because _ is a word char.
-  const normalized = nameWithoutExt.replace(/_/g, ' ');
+  //
+  // Tracer names that look like IDs ("AV45", "MK6240", "PI2620") are
+  // blanked first: the institution-prefix pattern below would otherwise
+  // read "AV45_scan" as a subject called AV45 and merge every subject's
+  // amyloid PET into it. See isTracerToken in petVocabulary.ts.
+  const normalized = nameWithoutExt
+    .replace(/_/g, ' ')
+    .split(' ')
+    .map(token => (isTracerToken(token) ? '' : token))
+    .join(' ');
 
   // DICOM UID filenames (e.g. "2.16.124.113543.6006.99.MR") contain short
   // numeric segments that spuriously match subject ID patterns. Bail out

@@ -81,6 +81,30 @@ const CASES: [string, string, string][] = [
   ['sub-01_ses-01_acq-highres_T2w',   'anat-T2w',     'BIDS input'],
   ['sub-01_task-rest_bold',           'func',         'BIDS input'],
   ['sub-01_dir-AP_dwi',               'dwi',          'BIDS input'],
+
+  // ── PET (added 2026-09-30). Every name below that contains CT / TOF /
+  // CBF / "structural" was claimed by an MRI or CT rule before PET
+  // existed. Names modeled on Siemens Biograph, GE Discovery and Philips
+  // Vereos series descriptions plus PET2BIDS output.
+  ['FDG_PET_Brain',                   'pet',          'generic FDG'],
+  ['PET_Brain_FDG_3D_AC',             'pet',          'Siemens-style'],
+  ['PET_CT_FDG',                      'pet',          'PET/CT (CT token must not win)'],
+  ['PETCT_Brain',                     'pet',          'joined PETCT'],
+  ['FDGPET',                          'pet',          'joined FDGPET'],
+  ['Brain_PET_TOF_OSEM',              'pet',          'TOF recon (not MR angio)'],
+  ['H2O_CBF_PET',                     'pet',          'H2O perfusion PET (not ASL)'],
+  ['PET_Structural',                  'pet',          '"structural" must not make it T1w'],
+  ['18F-FDG_static',                  'pet',          'isotope-prefixed tracer'],
+  ['AV45_amyloid',                    'pet',          'florbetapir'],
+  ['PiB_dynamic',                     'pet',          'PiB'],
+  ['MK6240_tau',                      'pet',          'tau tracer'],
+  ['sub-01_trc-FDG_pet',              'pet',          'BIDS input'],
+  ['PET_MR_Brain',                    'pet',          'PET/MR'],
+  ['CTAC_3.75_Thick',                 'ct-ac',        'GE attenuation CT'],
+  ['AC_CT_Brain',                     'ct-ac',        'Siemens attenuation CT'],
+  ['CT_AC',                           'ct-ac',        'bare CT_AC, no PET token'],
+  ['PET_CTAC',                        'ct-ac',        'PET study, CTAC token is the CT'],
+  ['MuMap_PET',                       'ct-ac',        'PET/MR mu-map'],
 ];
 
 
@@ -148,6 +172,14 @@ const NO_OVERREACH: [string, string | null, string][] = [
   ['t1_mprage_moco',  'anat-T1w',     'motion-corrected STRUCTURAL stays anatomical'],
   ['CMRR_b1k_64',     'dwi',          'the b-value shorthand this rule exists for'],
   ['pd_tse_tra',      'anat-PDw',     'the proton-density name this rule exists for'],
+  // PET vocabulary must not claim MRI or clinical CT names.
+  ['CT_Head',         'ct',           'clinical CT stays CT'],
+  ['CT_electrodes',   'ct',           'post-implant CT stays CT'],
+  ['tof_angio_3d',    'anat-angio',   'MR angiography stays angio'],
+  ['asl_perfusion',   'perf',         'ASL stays perfusion'],
+  ['PETRA_brain',     null,           'Siemens PETRA is an MRI sequence, not PET'],
+  ['competitor_scan', null,           '"pet" inside a word is not PET'],
+  ['t1_mprage_ac_pc', 'anat-T1w',     'AC-PC alignment is not attenuation correction'],
 ];
 for (const [name, expected, why] of NO_OVERREACH) {
   const got = detectFromFilename(name + '.nii.gz').modality;
@@ -180,6 +212,20 @@ for (const junk of [
 console.log('modality folders are not timepoints');
 for (const f of ['T1','T2','T1w','T2w','DWI','CT','anat','func','SWI','FLAIR']) {
   report('safety', !looksLikeTimepointFolder(f), `"${f}" read as a timepoint label`);
+}
+
+// ── 7b. SAFETY: tracer names are not subject IDs ─────────────────
+console.log('tracer names are not subjects');
+{
+  const flat = ['AV45_scan.nii.gz', 'MK6240_scan.nii.gz', 'HUP015_AV45.nii.gz'].map(n => ({
+    relativePath: n, name: n, size: 1, file: {} as never,
+  } as ScannedFile));
+  for (const f of flat) {
+    const g = groupIntoSubject(f, flat).groupName;
+    report('safety', !/^(AV45|MK6240)$/i.test(g), `"${f.name}" grouped as subject "${g}"`);
+  }
+  const hup = groupIntoSubject(flat[2], flat).groupName;
+  report('safety', /HUP015/i.test(hup), `"HUP015_AV45" grouped as "${hup}", expected HUP015`);
 }
 
 // ── 8. SAFETY: every face-bearing structural contrast needs defacing ──

@@ -1,0 +1,52 @@
+{
+  "Modality": "PT",
+  "Manufacturer": "GE",
+  "ManufacturersModelName": "Discovery MI",
+  "Units": "Bq/mL",
+  "TracerName": "FDG",
+  "TracerRadionuclide": "F18",
+  "InjectedRadioactivity": 180,
+  "InjectedRadioactivityUnits": "MBq",
+  "InjectedMass": "n/a",
+  "InjectedMassUnits": "n/a",
+  "SpecificRadioactivity": "n/a",
+  "SpecificRadioactivityUnits": "n/a",
+  "ModeOfAdministration": "bolus",
+  "TimeZero": "09:30:00",
+  "ScanStart": 0,
+  "InjectionStart": 0,
+  "FrameTimesStart": [
+    0,
+    60,
+    120,
+    180,
+    240
+  ],
+  "FrameDuration": [
+    60,
+    60,
+    60,
+    60,
+    60
+  ],
+  "AcquisitionMode": "list mode",
+  "ImageDecayCorrected": true,
+  "ImageDecayCorrectionTime": 0,
+  "ReconMethodName": "OSEM",
+  "ReconMethodParameterLabels": [
+    "subsets",
+    "iterations"
+  ],
+  "ReconMethodParameterUnits": [
+    "none",
+    "none"
+  ],
+  "ReconMethodParameterValues": [
+    16,
+    3
+  ],
+  "ReconFilterType": "none",
+  "AttenuationCorrection": "CT-based",
+  "SeriesDescription": "series 5",
+  "ScanDate": "2024-03-03"
+}
