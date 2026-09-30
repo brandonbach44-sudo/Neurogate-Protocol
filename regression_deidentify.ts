@@ -18,6 +18,8 @@ import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import { deidentifyJsonSidecar } from './src/lib/deidentify/jsonSidecarDeidentifier';
 import { deidentifyEdf, generateSubjectDateShifts } from './src/lib/deidentify/edfDeidentifier';
+import { buildFileEntries } from './src/lib/bids/exporter';
+import type { SubjectMetadata, DatasetDescription } from './src/types/metadata';
 
 const EXPECTED_PATH = join(process.cwd(), 'regression_deidentify_expected.json');
 const UPDATE_MODE = process.argv.includes('--update');
@@ -150,6 +152,26 @@ async function runEdfCases() {
   return results;
 }
 
+// ── sessions.tsv acq_time ───────────────────────────────────────────
+// acq_time is filled from real source dates, so the exported sessions.tsv
+// must carry the subject's shift -- and write n/a for anything it can't
+// shift, never the raw value.
+
+function runSessionsTsvCase() {
+  const subjects: SubjectMetadata[] = [{
+    subjectGroup: 'Patient_001',
+    bidsSubjectId: 'sub-TEST001',
+    sessions: [
+      { sessionId: 'ses-preimplant', acqTime: '2024-03-03T09:30:00', age: '' },
+      { sessionId: 'ses-postimplant', acqTime: '20240410', age: '' },
+      { sessionId: 'ses-postsurgery', acqTime: 'March 2024', age: '' },
+    ],
+  } as SubjectMetadata];
+  const description: DatasetDescription = { name: 'Test', bidsVersion: '1.8.0', datasetType: 'raw', authors: ['A'] } as DatasetDescription;
+  const entries = buildFileEntries([], subjects, description, new Map([['Patient_001', 10]]));
+  return entries.find(e => e.path.endsWith('_sessions.tsv'))?.content;
+}
+
 // ── Subject shift map sanity check ──────────────────────────────────
 // Not a value-comparison (the shifts are random by design) -- just
 // structural: right number of subjects, each with a distinct key, each
@@ -186,6 +208,7 @@ async function main() {
     jsonSidecar: runJsonCases(),
     edf: await runEdfCases(),
     subjectShiftShape: checkSubjectShiftShape(),
+    sessionsTsv: runSessionsTsvCase(),
   };
 
   if (UPDATE_MODE || !existsSync(EXPECTED_PATH)) {
