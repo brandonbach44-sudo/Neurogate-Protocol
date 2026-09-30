@@ -24,6 +24,7 @@ import type { ScannedFile } from '../../types/files';
 import type { FileLike } from '../../types/fileLike';
 import type { DatasetStructure } from '../../types/sessionStructure';
 import { createDefaultDatasetStructure } from '../../types/sessionStructure';
+import { isOsJunkFile } from '../detection/extensionDetector';
 
 const STORAGE_KEY = 'neurogate-tool-session-v1';
 const MAX_AGE_MS = 12 * 60 * 60 * 1000; // 12 hours; clear stale sessions
@@ -122,10 +123,14 @@ export function trySessionRestore(
   scanned: ScannedFile[],
   saved: PersistedSession,
 ): DetectionResult[] | null {
-  if (saved.fileSignatures.length !== scanned.length) return null;
+  // Signatures come from the detection results, which never include OS
+  // junk (.DS_Store, Thumbs.db, dotfiles -- dropped by the engine). Compare
+  // against the same set, or any folder containing junk can never restore.
+  const dataFiles = scanned.filter(sf => !isOsJunkFile(sf.name));
+  if (saved.fileSignatures.length !== dataFiles.length) return null;
 
   const fileMap = new Map<string, FileLike>();
-  for (const sf of scanned) {
+  for (const sf of dataFiles) {
     fileMap.set(`${sf.name}|${sf.size}|${sf.relativePath}`, sf.file);
   }
 

@@ -65,8 +65,15 @@ app.use(cors({
 
 // Do NOT use express.json() globally — the deidentify route uses
 // raw multipart streaming via busboy and must not be pre-parsed.
-app.use('/api/deidentify', deidentifyRouter);
-app.use('/api/download', downloadRouter);
+//
+// Not mounted in the desktop app (NEUROGATE_DESKTOP, set by
+// electron/main.cjs): the desktop build never calls them -- it exports
+// by streaming to disk -- and an upload endpoint has no business running
+// on a user's machine.
+if (!process.env.NEUROGATE_DESKTOP) {
+  app.use('/api/deidentify', deidentifyRouter);
+  app.use('/api/download', downloadRouter);
+}
 
 // ── Health check ──────────────────────────────────────────────────────
 
@@ -126,10 +133,13 @@ app.use((err, _req, res, _next) => {
  * this module directly and calling start() removes the second process
  * (and that whole failure mode) entirely -- see electron/main.cjs.
  */
-function start(port = PORT) {
+function start(port = PORT, host = undefined) {
   return new Promise((resolve, reject) => {
-    const server = app.listen(port, () => {
-      console.log(`NeuroGate API listening on port ${port}`);
+    // host: the desktop app passes 127.0.0.1 so the server is reachable
+    // only from this computer. Omitted (all interfaces) for a standalone
+    // server deployment.
+    const server = app.listen(port, host, () => {
+      console.log(`NeuroGate API listening on ${host ?? 'all interfaces'}, port ${port}`);
       console.log(`  CORS origin: ${CORS_ORIGIN}`);
       console.log(`  Storage mode: ${process.env.S3_BUCKET ? `S3 (${process.env.S3_BUCKET})` : 'local /tmp'}`);
       resolve(server);
