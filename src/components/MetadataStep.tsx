@@ -4,7 +4,7 @@ import SubjectMetadataForm from './SubjectMetadataForm';
 import DatasetDescriptionForm from './DatasetDescriptionForm';
 import DefacingAttestation from './DefacingAttestation';
 import type { DetectionResult } from '../types/detection';
-import { getEffectiveSession, getEffectiveModality, getEffectiveSubjectGroup } from '../types/detection';
+import { getEffectiveSession, getEffectiveSubjectGroup, requiresDefacing } from '../types/detection';
 import type {
   SubjectMetadata,
   DatasetDescription,
@@ -92,12 +92,7 @@ export default function MetadataStep({
   }, [detectionResults]);
 
   // ── Check if structural MRIs exist (for defacing attestation) ──
-  const hasStructuralMri = useMemo(() => {
-    return detectionResults.some(r => {
-      const mod = getEffectiveModality(r);
-      return mod === 'anat-T1w' || mod === 'anat-T2w' || mod === 'anat-FLAIR';
-    });
-  }, [detectionResults]);
+  const hasStructuralMri = useMemo(() => detectionResults.some(requiresDefacing), [detectionResults]);
 
   // ── Initialize subjects and try auto-fill on mount ────────────
   useEffect(() => {

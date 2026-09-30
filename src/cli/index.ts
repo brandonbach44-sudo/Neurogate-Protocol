@@ -36,7 +36,7 @@ import {
   TIMEPOINT_UNITS,
 } from '../types/sessionStructure';
 import type { DatasetStructure, CustomTimepoint, TimepointUnit, PresetId } from '../types/sessionStructure';
-import { getEffectiveModality } from '../types/detection';
+import { requiresDefacing, DEFACING_MODALITY_LABELS } from '../types/detection';
 import { askText, askYesNoRequired, askNumber, askChoice, askList, closePrompts } from './prompts';
 
 function log(msg = ''): void {
@@ -149,10 +149,7 @@ async function main(): Promise<void> {
   const sidecarMap = await readJsonSidecars(scanned);
   const edfHeaderMap = await readEdfHeaders(scanned);
   const preDetection = runDetection(scanned, sidecarMap, edfHeaderMap, structure);
-  const hasStructuralMri = preDetection.some(r => {
-    const mod = getEffectiveModality(r);
-    return mod === 'anat-T1w' || mod === 'anat-T2w' || mod === 'anat-FLAIR';
-  });
+  const hasStructuralMri = preDetection.some(requiresDefacing);
 
   let defacingConfirmed = false;
   if (hasStructuralMri) {
@@ -160,7 +157,7 @@ async function main(): Promise<void> {
     // be blown past with a blank Enter and only caught afterward by
     // export-blocking validation.
     defacingConfirmed = await askYesNoRequired(
-      '\nThis dataset includes structural MRI (T1w/T2w/FLAIR). Have these already been defaced per HIPAA requirements?',
+      `\nThis dataset includes structural MRI (${DEFACING_MODALITY_LABELS}). Have these already been defaced, as GOV-001 requires?`,
     );
   }
 

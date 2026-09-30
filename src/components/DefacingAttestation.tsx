@@ -1,4 +1,5 @@
 import type { DefacingAttestation as DefacingAttestationType } from '../types/metadata';
+import { DEFACING_MODALITY_LABELS } from '../types/detection';
 
 interface DefacingAttestationProps {
   attestation: DefacingAttestationType;
@@ -10,12 +11,11 @@ interface DefacingAttestationProps {
 /**
  * Defacing attestation component.
  *
- * Per governance framework GOV-001, structural MRI (T1w, T2w) in
- * ses-preimplant/anat/ and ses-postsurgery/anat/ must be defaced
- * before upload. The user must attest via checkbox that this was done.
- *
- * Records: user, timestamp, tool name, and tool version for the
- * ALCOA+ audit log.
+ * Per governance framework GOV-001, structural MRI (DEFACING_MODALITIES
+ * in types/detection.ts) must be defaced before the dataset is shared.
+ * The user must attest via checkbox that this was done. The confirmation
+ * timestamp is kept, and leaving the Metadata step with the box ticked
+ * adds a "defacing attested" entry to the audit log.
  */
 export default function DefacingAttestation({
   attestation,
@@ -41,7 +41,7 @@ export default function DefacingAttestation({
         </div>
         <div className="p-5">
           <p className="text-sm text-gray-500 italic">
-            No structural MRI files (T1w, T2w) were detected in your data. Defacing attestation is not required for this upload.
+            No structural MRI ({DEFACING_MODALITY_LABELS}) was detected in your data. Defacing attestation is not required for this dataset.
           </p>
         </div>
       </div>
@@ -65,10 +65,10 @@ export default function DefacingAttestation({
             <span className="text-amber-600 text-lg mt-0.5">&#9888;</span>
             <div>
               <p className="text-sm font-medium text-amber-800">
-                HIPAA Compliance Requirement
+                Required by GOV-001
               </p>
               <p className="text-sm text-amber-700 mt-1">
-                All structural MRI files (T1w, T2w) must be defaced or de-identified before upload to protect patient privacy. Defacing removes facial features from brain scans that could be used to identify a patient.
+                All structural MRI ({DEFACING_MODALITY_LABELS}) must be defaced before the dataset is shared. Defacing removes facial features from brain scans that could be used to identify a patient.
               </p>
             </div>
           </div>
@@ -84,7 +84,7 @@ export default function DefacingAttestation({
             className="mt-1 w-5 h-5 rounded border-gray-300 text-[#011F5B] focus:ring-[#011F5B]"
           />
           <label htmlFor="defacing-confirm" className="text-sm text-gray-700 cursor-pointer">
-            <span className="font-medium">I confirm that all structural MRI files in this upload have been defaced or de-identified</span>
+            <span className="font-medium">I confirm that all structural MRI files in this dataset have been defaced or de-identified</span>
             <span className="text-gray-500"> using an approved defacing tool before being included in this dataset.</span>
           </label>
         </div>
