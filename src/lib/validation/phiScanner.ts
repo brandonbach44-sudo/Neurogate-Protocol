@@ -281,6 +281,14 @@ const SCAN_VOCAB = new Set([
   'structural', 'localiser', 'repeat', 'redo', 'rescan', 'motion',
   'corrected', 'raw', 'processed', 'derived', 'left', 'right', 'bilateral',
   'anterior', 'posterior', 'superior', 'inferior', 'medial', 'lateral',
+  // PET: tracer names and reconstruction terms, so "Amyloid Florbetapir"
+  // or "Attenuation Correction" isn't flagged as a person's name.
+  'pet', 'emission', 'tomography', 'tracer', 'uptake', 'suv', 'frame',
+  'frames', 'attenuation', 'correction', 'reconstruction', 'osem', 'low',
+  'dose', 'list', 'mode', 'amyloid', 'tau', 'fdg', 'fluorodeoxyglucose',
+  'glucose', 'florbetapir', 'amyvid', 'florbetaben', 'neuraceq',
+  'flutemetamol', 'vizamyl', 'flortaucipir', 'tauvid', 'pittsburgh',
+  'compound', 'flumazenil', 'raclopride', 'fluorodopa',
 ]);
 
 /** True if a word is common scan/imaging vocabulary, not likely a name token. */

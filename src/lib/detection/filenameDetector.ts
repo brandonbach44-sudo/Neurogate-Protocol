@@ -12,6 +12,7 @@
  */
 
 import type { Modality, Session, DetectionReason } from '../../types/detection';
+import { PET_PATTERN, CTAC_PATTERN, CTAC_LOOSE_PATTERN } from './petVocabulary';
 
 export interface FilenameResult {
   modality: Modality | null;
@@ -94,6 +95,17 @@ const MODALITY_PATTERNS: [RegExp, Modality, string][] = [
   // Localizer / scout -- checked FIRST so scout scans are not mislabeled
   // as anatomical (they sometimes carry "t1"/"3-plane" in the name).
   [/\b(localizer|localiser|scout|aahead[-_]?scout|aascout|3[-_]?plane[-_]?loc|survey[-_]?scan)\b/i, 'localizer', 'Localizer / scout scan keyword'],
+
+  // PET, and the attenuation-correction CT / mu-map that comes with it.
+  // Checked before every MRI and CT rule below, which would otherwise
+  // claim PET names: "\bct\b" takes "PET_CT_FDG", "tof" (time-of-flight
+  // reconstruction) reads as MR angiography, "cbf" (H2O perfusion PET)
+  // as ASL, "structural" as T1w. The correction CT is checked first of
+  // all, since "PET_CTAC" is the CT, not a PET image. Vocabulary and
+  // reasoning: petVocabulary.ts.
+  [CTAC_PATTERN, 'ct-ac', 'PET attenuation-correction CT / mu-map keyword'],
+  [PET_PATTERN, 'pet', 'PET / tracer keyword'],
+  [CTAC_LOOSE_PATTERN, 'ct-ac', 'PET attenuation-correction CT keyword (CT_AC)'],
 
   // Motion-correction series (Siemens fMRI byproduct) -- checked before
   // the T1w rules so it never falls through to a generic T1 keyword.

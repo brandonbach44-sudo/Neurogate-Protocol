@@ -6,6 +6,8 @@
  *   2. PHI scanning
  *   3. Required files check
  *   4. Cross-session consistency
+ *   5. PET sidecar completeness (warnings)
+ *   6. Metadata, sparse and empty-dataset checks
  *
  * Produces a ValidationReport with all issues, counts, and pass/fail.
  */
@@ -21,6 +23,7 @@ import { validateBidsStructure } from './bidsValidator';
 import { scanForPhi, scanSidecarContentForPhi } from './phiScanner';
 import { checkRequiredFiles } from './requiredFilesChecker';
 import { checkCrossSessionConsistency } from './crossSessionChecker';
+import { checkPetSidecars } from './petChecker';
 
 /** Everything the validation engine needs as input */
 export interface ValidationInput {
@@ -68,6 +71,9 @@ export async function runValidation(input: ValidationInput): Promise<ValidationR
   // ── 4. Cross-Session Consistency ──────────────────────────
   const crossIssues = checkCrossSessionConsistency(input.detectionResults, input.subjects, input.structure);
   allIssues.push(...crossIssues);
+
+  // ── 4b. PET sidecar completeness (warnings only) ──────────
+  allIssues.push(...checkPetSidecars(input.detectionResults));
 
   // ── 5. Metadata completeness checks ───────────────────────
   const metadataIssues = validateMetadata(input);
@@ -187,8 +193,8 @@ function checkSparseDataset(input: ValidationInput): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
 
   const DATA_MODALITIES = new Set([
-    'anat-T1w', 'anat-T2w', 'anat-FLAIR', 'anat-angio',
-    'ct', 'dwi', 'perf', 'func', 'fmap',
+    'anat-T1w', 'anat-T2w', 'anat-FLAIR', 'anat-PDw', 'anat-T2starw', 'anat-angio',
+    'ct', 'pet', 'dwi', 'perf', 'func', 'fmap',
     'ieeg', 'eeg',
     'electrodes', 'channels', 'events',
   ]);

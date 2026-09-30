@@ -49,7 +49,7 @@ export const LOCALIZER_EXCLUDED = '(excluded from export: localizer/scout)';
 /** Modalities that produce a real data file in the BIDS export. */
 const EXPORTABLE_MODALITIES = new Set<Modality>([
   'anat-T1w', 'anat-T2w', 'anat-FLAIR', 'anat-PDw', 'anat-T2starw', 'anat-angio',
-  'ct', 'dwi', 'perf', 'eeg', 'ieeg', 'func', 'fmap',
+  'ct', 'pet', 'dwi', 'perf', 'eeg', 'ieeg', 'func', 'fmap',
   'electrodes', 'channels', 'events',
 ]);
 
@@ -62,6 +62,7 @@ const SUFFIX: Record<string, string> = {
   'anat-T2starw': 'T2starw',
   'anat-angio': 'angio',
   'ct': 'ct',
+  'pet': 'pet',
   'dwi': 'dwi',
   'perf': 'asl',
   'eeg': 'eeg',
@@ -328,6 +329,15 @@ function complexAcquisitionIdentity(fileName: string): string {
 // ── Entity assignment ─────────────────────────────────────────────
 
 /**
+ * PET images with different tracers are different acquisitions with
+ * different trc- names, so they're numbered separately: an FDG and an
+ * amyloid scan in one session must not become run-1 / run-2.
+ */
+function petTracerKey(r: DetectionResult, modality: Modality): string {
+  return modality === 'pet' ? ` trc:${r.pet?.tracer ?? ''}` : '';
+}
+
+/**
  * Assign run / field-map suffix entities to one subject + session +
  * modality group. All files sharing a base name are one acquisition and
  * get the same entity, so a scan's .nii, .bval, and .bvec stay together.
@@ -342,8 +352,11 @@ function assignGroupEntities(
   // magnitude1/magnitude2/phasediff, and single-band reference images for
   // "sbref"; anything not listed falls back to SUFFIX[modality].
   suffixOf: Map<number, string>,
+  // PET rec- label (acstat / nacdyn / ...), see petReconstructionLabels().
+  recOf: Map<number, string>,
 ): void {
   const modality = getEffectiveModality(results[indices[0]]);
+  if (modality === 'pet') petReconstructionLabels(results, indices, recOf);
 
   // distinct acquisitions, keyed by base name, in a stable order
   const baseToIndices = new Map<string, number[]>();
@@ -409,7 +422,7 @@ function assignGroupEntities(
         for (const i of baseToIndices.get(b)!) suffixOf.set(i, 'sbref');
       }
     }
-    const key = `${isMotionCorrected(sample.fileName) ? 'rec-moco' : ''}|${sbref ? 'sbref' : ''}`;
+    const key = `${isMotionCorrected(sample.fileName) ? 'rec-moco' : ''}|${sbref ? 'sbref' : ''}|${recOf.get(baseToIndices.get(identityToBases.get(id)![0])![0]) ?? ''}`;
     const list = recGroups.get(key);
     if (list) list.push(id);
     else recGroups.set(key, [id]);
@@ -424,6 +437,29 @@ function assignGroupEntities(
         }
       });
     }
+  }
+}
+
+/**
+ * BIDS rec- labels for one subject + session + tracer group of PET
+ * images. Set only when the group holds both attenuation-corrected and
+ * non-corrected reconstructions (names containing "NAC" / "noAC"), since
+ * that is when two images of one acquisition would otherwise collide.
+ * Uses the BIDS reserved values: ac/nac + dyn/stat (dynamic when the
+ * sidecar lists more than one frame). If framing is unknown the label is
+ * just ac / nac. A group with no NAC image gets no rec- at all; repeated
+ * scans there are numbered with run- like any other modality.
+ */
+function petReconstructionLabels(results: DetectionResult[], indices: number[], recOf: Map<number, string>): void {
+  const states = indices.map(i => results[i].pet?.attenuationCorrected ?? null);
+  const hasNac = states.includes(false);
+  const hasAc = states.some(s => s !== false);
+  if (!hasNac || !hasAc) return;
+  for (const i of indices) {
+    const pet = results[i].pet;
+    const correction = pet?.attenuationCorrected === false ? 'nac' : 'ac';
+    const framing = pet?.dynamic === true ? 'dyn' : pet?.dynamic === false ? 'stat' : '';
+    recOf.set(i, `${correction}${framing}`);
   }
 }
 
@@ -570,10 +606,16 @@ function buildFilename(
   fmapSuffix: string | undefined,
   derivedLabel?: string,
   part?: string,
+  // PET only: trc-<tracer> and rec-<reconstruction>, in BIDS entity
+  // order (after task, before run).
+  tracer?: string | null,
+  rec?: string,
 ): string {
   const parts: string[] = session ? [sub, session] : [sub];
   const task = taskEntity(modality);
   if (task) parts.push(task);
+  if (modality === 'pet' && tracer) parts.push(`trc-${tracer}`);
+  if (rec) parts.push(`rec-${rec}`);
   // BIDS rec-<label> marks a reconstruction of an acquisition. Siemens
   // emits MoCoSeries as the motion-corrected version of a BOLD run, so it
   // is the same acquisition reconstructed differently -- not a second run.
@@ -722,8 +764,8 @@ export function computeBidsNames(
           ? `${getEffectiveSubjectGroup(r)} ${modality} derived:${r.derivedLabel}`
           : `${getEffectiveSubjectGroup(r)} ${session} ${modality} derived:${r.derivedLabel}`)
       : sessionless
-      ? `${getEffectiveSubjectGroup(r)} ${modality}`
-      : `${getEffectiveSubjectGroup(r)} ${session} ${modality}`;
+      ? `${getEffectiveSubjectGroup(r)} ${modality}${petTracerKey(r, modality)}`
+      : `${getEffectiveSubjectGroup(r)} ${session} ${modality}${petTracerKey(r, modality)}`;
     const list = groups.get(key);
     if (list) list.push(i);
     else groups.set(key, [i]);
@@ -732,8 +774,9 @@ export function computeBidsNames(
   const runOf = new Map<number, number>();
   const partOf = new Map<number, string>();
   const fmapSuffixOf = new Map<number, string>();
+  const recOf = new Map<number, string>();
   for (const indices of groups.values()) {
-    assignGroupEntities(out, indices, runOf, partOf, fmapSuffixOf);
+    assignGroupEntities(out, indices, runOf, partOf, fmapSuffixOf, recOf);
   }
 
   // ── Name the data files ──────────────────────────────────────────
@@ -795,6 +838,7 @@ export function computeBidsNames(
     const filename = buildFilename(
       sub, session, modality, r.fileName,
       runOf.get(i), fmapSuffixOf.get(i), r.derivedLabel, partOf.get(i),
+      r.pet?.tracer, recOf.get(i),
     );
     const folder = MODALITIES.find(m => m.value === modality)?.bidsFolder ?? '';
     // session is null here exactly when sessionless is true (guarded

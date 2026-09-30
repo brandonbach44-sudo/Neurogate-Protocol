@@ -14,6 +14,7 @@
 
 import type { Modality, Session, DetectionReason } from '../../types/detection';
 import { normalizeForKeywords, isDerivedDiffusionMap } from './filenameDetector';
+import { PET_PATTERN, CTAC_PATTERN } from './petVocabulary';
 
 export interface FolderResult {
   session: Session | null;
@@ -66,6 +67,12 @@ const AMBIGUOUS_POSTOP_PATTERN = /\b(post[-_]?op|postop)\b/i;
 const FOLDER_MODALITY_PATTERNS: [RegExp, Modality, string][] = [
   // Localizer / scout (check first so scout folders are not mislabeled)
   [/\b(localizer|localiser|scout)\b/i, 'localizer', 'Folder suggests localizer / scout'],
+
+  // PET -- before the anatomical, angio and CT rules, which would claim
+  // "PET_CT", "Brain_TOF_PET", "PET_structural" folders. See
+  // petVocabulary.ts.
+  [CTAC_PATTERN, 'ct-ac', 'Folder suggests PET attenuation-correction CT'],
+  [PET_PATTERN, 'pet', 'Folder suggests PET'],
 
   // Motion-corrected BOLD (Siemens MoCoSeries) -- func, not anat; see the
   // note in filenameDetector.ts (verified 4D, same geometry as the BOLD run).

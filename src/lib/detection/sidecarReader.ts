@@ -42,7 +42,9 @@ const SCAN_NAME_FIELDS = [
  * for anything else. See
  * Documents/Phase1b_Custom_Timepoint_Detection_Spec.md Section 4.
  */
-const DATE_FIELDS = ['AcquisitionDateTime', 'StudyDate', 'SeriesDate'];
+// ScanDate: PET only. dcm2niix omits AcquisitionDateTime for PET, so a
+// PET sidecar written by PET2BIDS may carry its date only here.
+const DATE_FIELDS = ['AcquisitionDateTime', 'StudyDate', 'SeriesDate', 'ScanDate'];
 
 /**
  * Parse a DICOM-derived date value into a real Date, handling both the
@@ -120,6 +122,21 @@ export interface SidecarInfo {
    * matching this reader was originally built for.
    */
   acquisitionDate: Date | null;
+  /**
+   * The DICOM Modality the converter recorded, upper-cased ("MR", "CT",
+   * "PT" for PET, ...), or null if absent. dcm2niix writes it for every
+   * series. It's the scanner's own statement of what kind of image this
+   * is, so engine.ts trusts it over any name: it is how a PET series named
+   * "Brain_3D_OSEM_TOF" (TOF = time-of-flight, not MR angiography) or a
+   * CT named "PET_CT_Brain" is classified correctly.
+   */
+  dicomModality: string | null;
+  /** Every top-level key in the sidecar, for PET-only field detection and the PET completeness check. */
+  fieldNames: string[];
+  /** TracerName (BIDS) or Radiopharmaceutical (older dcm2niix / PET2BIDS), if present. */
+  tracerName: string | null;
+  /** Number of PET frames (length of FrameDuration), or null if absent. More than one = dynamic. */
+  frameCount: number | null;
 }
 
 /**
@@ -179,13 +196,27 @@ export async function readJsonSidecars(
           ? rawImageType.filter((v): v is string => typeof v === 'string')
           : [];
 
+        const rawModality = parsed['Modality'];
+        const dicomModality = typeof rawModality === 'string' && rawModality.trim()
+          ? rawModality.trim().toUpperCase()
+          : null;
+        const rawTracer = parsed['TracerName'] ?? parsed['Radiopharmaceutical'];
+        const tracerName = typeof rawTracer === 'string' && rawTracer.trim() ? rawTracer.trim() : null;
+        const rawFrames = parsed['FrameDuration'];
+        const frameCount = Array.isArray(rawFrames) ? rawFrames.length : null;
+        const fieldNames = Object.keys(parsed);
+
         const scanText = parts.join(' ').trim();
-        if (scanText || acquisitionDate || imageType.length > 0) {
+        if (scanText || acquisitionDate || imageType.length > 0 || dicomModality || fieldNames.length > 0) {
           map.set(getSidecarBaseName(jf.name), {
             scanText,
             sidecarName: jf.name,
             acquisitionDate,
             imageType,
+            dicomModality,
+            fieldNames,
+            tracerName,
+            frameCount,
           });
         }
       } catch {

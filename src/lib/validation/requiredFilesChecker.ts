@@ -80,8 +80,8 @@ export function checkRequiredFiles(
   results = results.filter(r => !isOsJunkFile(r.fileName));
 
   const DATA_MODALITIES = new Set([
-    'anat-T1w', 'anat-T2w', 'anat-FLAIR', 'anat-angio',
-    'ct', 'dwi', 'perf', 'func', 'fmap',
+    'anat-T1w', 'anat-T2w', 'anat-FLAIR', 'anat-PDw', 'anat-T2starw', 'anat-angio',
+    'ct', 'pet', 'dwi', 'perf', 'func', 'fmap',
     'ieeg', 'eeg', 'electrodes', 'channels', 'events',
   ]);
 

@@ -44,6 +44,8 @@ export type Modality =
   | 'anat-T2starw'
   | 'anat-angio'
   | 'ct'
+  | 'ct-ac'
+  | 'pet'
   | 'dwi'
   | 'perf'
   | 'eeg'
@@ -76,6 +78,16 @@ export const MODALITIES: { value: Modality; label: string; bidsFolder: string }[
   { value: 'anat-T2starw', label: 'Anatomical MRI (T2*/SWI)', bidsFolder: 'anat' },
   { value: 'anat-angio', label: 'MR Angiography (TOF)', bidsFolder: 'anat' },
   { value: 'ct', label: 'CT Scan', bidsFolder: 'ct' },
+  // Positron emission tomography (BIDS datatype "pet", suffix _pet).
+  // Recognized from the sidecar's "Modality": "PT" and PET-only fields,
+  // or from PET / tracer names -- see lib/detection/petVocabulary.ts.
+  { value: 'pet', label: 'PET', bidsFolder: 'pet' },
+  // The low-dose CT a PET/CT scanner acquires only to correct the PET
+  // image for attenuation (or the MR-based mu-map on PET/MR). Not a
+  // diagnostic scan and not something BIDS has a place for; left out of
+  // the export like localizers. Before PET support it was detected as a
+  // plain CT and, in the Implant preset, filed under post-implant.
+  { value: 'ct-ac', label: 'PET attenuation CT / mu-map (excluded from export)', bidsFolder: '' },
   { value: 'dwi', label: 'Diffusion MRI', bidsFolder: 'dwi' },
   { value: 'perf', label: 'Perfusion / ASL', bidsFolder: 'perf' },
   { value: 'eeg', label: 'Scalp EEG', bidsFolder: 'eeg' },
@@ -230,6 +242,26 @@ export interface DetectionResult {
    * the export entirely (2026-08-17).
    */
   derivedLabel?: string;
+
+  /**
+   * PET details read from the file's sidecar and name, used for its BIDS
+   * name (trc-, rec-) and the PET sidecar-completeness warning. Set for
+   * any NIfTI with PET evidence, and kept even if the user reassigns the
+   * modality, so switching a file to PET in the mapping table still names
+   * it correctly.
+   */
+  pet?: PetInfo;
+}
+
+export interface PetInfo {
+  /** BIDS trc- label ("FDG", "PiB", ...), from sidecar TracerName or the name; null if unknown. */
+  tracer: string | null;
+  /** From the name (NAC / AC); null if the name doesn't say. */
+  attenuationCorrected: boolean | null;
+  /** True for more than one frame (sidecar FrameDuration) or a "dynamic" name; null if unknown. */
+  dynamic: boolean | null;
+  /** Top-level keys of the paired JSON sidecar; null when the image has no sidecar. */
+  sidecarFields: string[] | null;
 }
 
 // ── Helpers ────────────────────────────────────────────────────────
