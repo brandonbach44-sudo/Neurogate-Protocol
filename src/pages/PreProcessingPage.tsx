@@ -328,7 +328,7 @@ dcm2niix \\
   -z y \\
   -b y \\
   -ba y \\
-  -f "sub-%i_ses-%j_%p" \\
+  -f "%p_%s" \\
   -o /path/to/output/nifti \\
   /path/to/input/dicom`}</CodeBlock>
         </div>
@@ -348,8 +348,8 @@ dcm2niix \\
               <tbody className="bg-white">
                 <FlagRow flag="-z" value="y" desc="gzip the NIfTI output (.nii.gz), the BIDS-expected format. If omitted, NeuroGate compresses the .nii for you on export." />
                 <FlagRow flag="-b" value="y" desc="emit the .json sidecar with acquisition metadata." />
-                <FlagRow flag="-ba" value="y" desc="anonymize the sidecar by stripping PHI fields like PatientName." />
-                <FlagRow flag="-f" value='"sub-%i_ses-%j_%p"' desc="filename template; %i = patient ID, %j = study UID slug, %p = protocol name." />
+                <FlagRow flag="-ba" value="y" desc="anonymize the sidecar: strips dates and identifying fields like PatientName (the dcm2niix default)." />
+                <FlagRow flag="-f" value='"%p_%s"' desc="filename template; %p = protocol name, %s = series number. Never use %i or %n: they put the patient ID or name into the filename." />
                 <FlagRow flag="-o" value="<dir>" desc="output directory; one .nii.gz + .json per series." />
                 <FlagRow flag="-v" value="2" desc="verbose mode; useful when troubleshooting unrecognized series." />
               </tbody>
@@ -437,10 +437,10 @@ dcm2niix \\
               {[
                 ['Siemens (XA30 firmware)', '3T / 7T', 'Enhanced DICOM packs all slices into one file; dcm2niix may merge volumes incorrectly', <><code className="font-mono px-1 rounded" style={{ backgroundColor: 'rgba(124,58,237,0.07)', color: '#7c3aed' }}>-m n</code> disables slice merging</>],
                 ['Siemens 7T Terra', '7T', 'Multiband (SMS) SliceTiming encoded in CSA private header; trigger-time glitches can corrupt it', <><code className="font-mono px-1 rounded" style={{ backgroundColor: 'rgba(124,58,237,0.07)', color: '#7c3aed' }}>--ignore_trigger_times</code> + verify JSON output</>],
-                ['Siemens 7T (MP2RAGE)', '7T', 'INV1, INV2, UNI-Images, and T1map produced as derived series; default drops them', <><code className="font-mono px-1 rounded" style={{ backgroundColor: 'rgba(124,58,237,0.07)', color: '#7c3aed' }}>-i y</code> keeps all derived images</>],
-                ['Philips (all)', '3T / 7T', 'Philips applies proprietary intensity rescaling before DICOM export; distorts quantitative values', <><code className="font-mono px-1 rounded" style={{ backgroundColor: 'rgba(124,58,237,0.07)', color: '#7c3aed' }}>--philips_scaling 0</code> preserves raw values</>],
+                ['Siemens 7T (MP2RAGE)', '7T', 'INV1, INV2, UNI-Images, and T1map produced as derived series; -i y would discard them', <><code className="font-mono px-1 rounded" style={{ backgroundColor: 'rgba(124,58,237,0.07)', color: '#7c3aed' }}>-i n</code> keeps derived images (also the default)</>],
+                ['Philips (all)', '3T / 7T', 'Intensity scaling is stored in private tags; display scaling distorts quantitative values', <><code className="font-mono px-1 rounded" style={{ backgroundColor: 'rgba(124,58,237,0.07)', color: '#7c3aed' }}>-p y</code> precise float scaling (also the default)</>],
                 ['Philips fMRI', '3T / 7T', 'SliceTiming not always embedded in DICOM; may be absent from JSON sidecar', 'Obtain timing from MR physicist if missing from sidecar; add manually'],
-                ['GE (older firmware)', '3T', 'One DICOM file per volume; dcm2niix may misinterpret as a 3D series', <><code className="font-mono px-1 rounded" style={{ backgroundColor: 'rgba(124,58,237,0.07)', color: '#7c3aed' }}>-t y</code> forces per-file time point handling</>],
+                ['GE (older firmware)', '3T', 'One DICOM file per volume', 'No extra flag: dcm2niix stacks files from one series into a 4D volume. Check the volume count in the output'],
                 ['GE fMRI', '3T', 'SliceTiming not stored in standard DICOM tags on some GE sequences', 'Verify with scanner operator; add manually to JSON if absent'],
                 ['All scanners', '7T', 'B0 inhomogeneity is significantly higher; field maps become mandatory (not optional)', 'Always convert fmap/ series; set IntendedFor in field map JSON'],
               ].map(([scanner, field, issue, fix], i) => (
@@ -527,16 +527,16 @@ done`}</CodeBlock>
             <div>
               <div className="text-xs font-semibold text-gray-700 mb-2">Siemens 3T (Prisma / Skyra) — structural</div>
               <CodeBlock>{`dcm2niix -z y -b y -ba y -v 2 \\
-  -f "sub-%i_ses-%j_%p" \\
+  -f "%p_%s" \\
   -o /output/anat/ \\
   /input/dicom/T1_MPRAGE/`}</CodeBlock>
             </div>
             <div>
               <div className="text-xs font-semibold text-gray-700 mb-2">Siemens 7T (Terra XA30) — structural (MP2RAGE)</div>
               <CodeBlock>{`# -m n: handle enhanced DICOM (all slices in one file)
-# -i y: keep all derived images (INV1, INV2, UNI, T1map)
-dcm2niix -z y -b y -ba y -v 2 -m n -i y \\
-  -f "sub-%i_ses-%j_%p_%s" \\
+# -i n: keep derived images (INV1, INV2, UNI, T1map)
+dcm2niix -z y -b y -ba y -v 2 -m n -i n \\
+  -f "%p_%s" \\
   -o /output/anat/ \\
   /input/dicom/MP2RAGE/`}</CodeBlock>
             </div>
@@ -545,7 +545,7 @@ dcm2niix -z y -b y -ba y -v 2 -m n -i y \\
               <CodeBlock>{`# --ignore_trigger_times: prevents clock glitches corrupting SliceTiming
 # -m n: required for XA30 enhanced DICOM
 dcm2niix -z y -b y -ba y -v 2 -m n --ignore_trigger_times \\
-  -f "sub-%i_ses-%j_task-rest_bold" \\
+  -f "%p_%s" \\
   -o /output/func/ \\
   /input/dicom/BOLD_rest/
 
@@ -562,17 +562,18 @@ for p in pathlib.Path('/output/func/').glob('*.json'):
             </div>
             <div>
               <div className="text-xs font-semibold text-gray-700 mb-2">Philips 3T / 7T — all modalities</div>
-              <CodeBlock>{`# --philips_scaling 0: preserve raw scanner values (critical for MP2RAGE, ASL)
-dcm2niix -z y -b y -ba y -v 2 --philips_scaling 0 \\
-  -f "sub-%i_ses-%j_%p" \\
+              <CodeBlock>{`# -p y: precise float scaling (critical for MP2RAGE, ASL)
+dcm2niix -z y -b y -ba y -v 2 -p y \\
+  -f "%p_%s" \\
   -o /output/ \\
   /input/dicom/`}</CodeBlock>
             </div>
             <div>
               <div className="text-xs font-semibold text-gray-700 mb-2">GE 3T — fMRI</div>
-              <CodeBlock>{`# -t y: treat each DICOM as a separate time point (older GE firmware)
-dcm2niix -z y -b y -ba y -v 2 -t y \\
-  -f "sub-%i_ses-%j_task-rest_bold" \\
+              <CodeBlock>{`# Older GE firmware writes one DICOM per volume; dcm2niix stacks them
+# into one 4D file automatically. Check the volume count afterwards.
+dcm2niix -z y -b y -ba y -v 2 \\
+  -f "%p_%s" \\
   -o /output/func/ \\
   /input/dicom/BOLD_rest/`}</CodeBlock>
             </div>
