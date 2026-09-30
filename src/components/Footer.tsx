@@ -41,8 +41,8 @@ export default function Footer() {
               className="mt-4 text-xs leading-relaxed max-w-xs"
               style={{ color: 'rgba(255,255,255,0.55)' }}
             >
-              A governance framework and browser-based tool for multi-site neural data sharing.
-              All processing runs in your browser; no data leaves your machine.
+              A governance framework and desktop app for multi-site neural data sharing.
+              All processing happens on your computer; your data is never uploaded.
             </p>
           </div>
 
@@ -88,7 +88,7 @@ export default function Footer() {
             <ul className="space-y-2.5">
               <li>
                 <a
-                  href="https://github.com/brandonbach44-sudo/Epilepsy_GUI"
+                  href="https://github.com/brandonbach44-sudo/Neurogate-Protocol"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="no-underline inline-flex items-center gap-2 text-sm transition-colors"
@@ -157,10 +157,10 @@ export default function Footer() {
             &copy; {year} Brandon Bach
           </span>
           <span style={{ color: 'rgba(255,255,255,0.45)' }}>
-            Browser-based &middot; Client-side processing &middot; No data leaves your machine
+            Desktop app &middot; Local processing &middot; Nothing uploaded
           </span>
           <span style={{ color: 'rgba(255,255,255,0.45)' }}>
-            <span style={{ color: TEAL }}>&#9679;</span> v{APP_VERSION} &middot; Beta
+            <span style={{ color: TEAL }}>&#9679;</span> v{APP_VERSION}
           </span>
         </div>
       </div>

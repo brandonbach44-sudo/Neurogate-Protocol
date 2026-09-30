@@ -308,7 +308,7 @@
           "confidence": "high",
           "subjectGroup": "001",
           "bidsFilename": "sub-001_ses-preimplant_task-monitor_channels.tsv",
-          "bidsPath": "primary/sub-001/ses-preimplant/ieeg/sub-001_ses-preimplant_task-monitor_channels.tsv"
+          "bidsPath": "primary/sub-001/ses-preimplant/eeg/sub-001_ses-preimplant_task-monitor_channels.tsv"
         },
         {
           "relativePath": "Patient_001/Session_preimplant/eeg/scalp_eeg_001.edf",
@@ -660,7 +660,7 @@
           "confidence": "high",
           "subjectGroup": "002",
           "bidsFilename": "sub-002_ses-preimplant_task-monitor_channels.tsv",
-          "bidsPath": "primary/sub-002/ses-preimplant/ieeg/sub-002_ses-preimplant_task-monitor_channels.tsv"
+          "bidsPath": "primary/sub-002/ses-preimplant/eeg/sub-002_ses-preimplant_task-monitor_channels.tsv"
         },
         {
           "relativePath": "Patient_002/Session_preimplant/eeg/scalp_eeg_002.edf",
@@ -1012,7 +1012,7 @@
           "confidence": "high",
           "subjectGroup": "003",
           "bidsFilename": "sub-003_ses-preimplant_task-monitor_channels.tsv",
-          "bidsPath": "primary/sub-003/ses-preimplant/ieeg/sub-003_ses-preimplant_task-monitor_channels.tsv"
+          "bidsPath": "primary/sub-003/ses-preimplant/eeg/sub-003_ses-preimplant_task-monitor_channels.tsv"
         },
         {
           "relativePath": "Patient_003/Session_preimplant/eeg/scalp_eeg_003.edf",
@@ -1364,7 +1364,7 @@
           "confidence": "high",
           "subjectGroup": "004",
           "bidsFilename": "sub-004_ses-preimplant_task-monitor_channels.tsv",
-          "bidsPath": "primary/sub-004/ses-preimplant/ieeg/sub-004_ses-preimplant_task-monitor_channels.tsv"
+          "bidsPath": "primary/sub-004/ses-preimplant/eeg/sub-004_ses-preimplant_task-monitor_channels.tsv"
         },
         {
           "relativePath": "Patient_004/Session_preimplant/eeg/scalp_eeg_004.edf",
@@ -1716,7 +1716,7 @@
           "confidence": "high",
           "subjectGroup": "005",
           "bidsFilename": "sub-005_ses-preimplant_task-monitor_channels.tsv",
-          "bidsPath": "primary/sub-005/ses-preimplant/ieeg/sub-005_ses-preimplant_task-monitor_channels.tsv"
+          "bidsPath": "primary/sub-005/ses-preimplant/eeg/sub-005_ses-preimplant_task-monitor_channels.tsv"
         },
         {
           "relativePath": "Patient_005/Session_preimplant/eeg/scalp_eeg_005.edf",

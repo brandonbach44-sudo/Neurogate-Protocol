@@ -156,7 +156,7 @@ No per-file corrections are possible in the CLI.
 | Functional MRI | `func/` `_bold`, always `task-rest` |
 | Field maps | `fmap/` `_magnitude1/2`, `_phasediff`, `_phase1/2` |
 | Scalp EEG, iEEG | `eeg/`, `ieeg/`, always `task-monitor` |
-| electrodes / channels / events tables | always `ieeg/`, even for scalp EEG. channels and events get `task-monitor`; electrodes gets no task. |
+| electrodes / channels / events tables | Beside their recording: `eeg/` for scalp EEG, `ieeg/` for iEEG. Tables are matched to an EEG/iEEG recording in the same source folder first, then in the same subject + session; otherwise, or when both kinds are present, they go to `ieeg/`. channels and events get `task-monitor`; electrodes gets no task. |
 
 **Recognized but never exported:**
 - Localizer / scout scans.

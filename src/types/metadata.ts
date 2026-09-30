@@ -60,7 +60,7 @@ export function createDefaultDatasetDescription(): DatasetDescription {
 // Logged per ALCOA+ audit requirements.
 
 export interface DefacingAttestation {
-  /** User confirms defacing was performed on the structural MRIs in the upload. */
+  /** User confirms defacing was performed on the structural MRIs in the dataset. */
   confirmed: boolean;
   /** Timestamp when the attestation checkbox was ticked (auto-generated). */
   timestamp: string | null;

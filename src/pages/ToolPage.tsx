@@ -395,7 +395,7 @@ function ToolPage() {
               </h2>
               <p className="mt-3 max-w-lg mx-auto text-base leading-relaxed text-gray-500">
                 Drop your patient data folder to auto-detect sessions and modalities,
-                validate BIDS compliance, and export a ready-to-upload dataset.
+                validate BIDS compliance, and export a ready-to-share dataset.
               </p>
             </div>
 
@@ -452,7 +452,7 @@ function ToolPage() {
               {[
                 {
                   title: 'Auto-Detection',
-                  desc: '5-layer engine identifies sessions, modalities, and subject groups',
+                  desc: 'Reads file names, folders, JSON sidecars and EDF headers to identify sessions, modalities and subjects',
                   accent: '#00d4ff',
                 },
                 {
@@ -461,8 +461,8 @@ function ToolPage() {
                   accent: '#ff6b6b',
                 },
                 {
-                  title: 'ALCOA+ Audit Trail',
-                  desc: 'Every correction and decision is logged for regulatory compliance',
+                  title: 'Audit Trail',
+                  desc: 'Your mapping corrections, metadata and export are logged in an ALCOA+-aligned audit log',
                   accent: '#00d4ff',
                 },
               ].map((feat) => (

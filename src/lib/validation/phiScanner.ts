@@ -213,7 +213,7 @@ export function scanForPhi(
         category: 'phi-risk',
         severity: 'error',
         title: 'Subject group name looks like a person\'s name',
-        description: `The subject group "${group}" appears to be a person's name (two capitalized words). If this is a patient's real name, it must be replaced with a de-identified subject ID before upload. The BIDS renaming will replace this with the assigned subject ID, but the original folder name may still be visible in audit logs.`,
+        description: `The subject group "${group}" appears to be a person's name (two capitalized words). If this is a patient's real name, it must be replaced with a de-identified subject ID before sharing. The BIDS renaming will replace this with the assigned subject ID, but the original folder name is still recorded in the audit log, which must stay at your site.`,
         affectedFiles: results.filter(r => r.subjectGroup === group).map(r => r.relativePath),
         subjectGroup: group,
         dismissable: false,
@@ -366,7 +366,7 @@ export async function scanSidecarContentForPhi(
             category: 'phi-risk',
             severity: phiPattern.severity,
             title: `Potential ${phiPattern.name} in sidecar JSON`,
-            description: `${phiPattern.description}\n\nFound in field "${path}" of ${result.fileName}. This field is a free-text descriptive field and is NOT touched by automatic de-identification -- if this is patient data, correct it in the source file before re-uploading.`,
+            description: `${phiPattern.description}\n\nFound in field "${path}" of ${result.fileName}. This field is a free-text descriptive field and is NOT touched by automatic de-identification -- if this is patient data, correct it in the source file, then add the folder again.`,
             affectedFiles: [result.relativePath],
             dismissable: phiPattern.severity === 'warning',
           });

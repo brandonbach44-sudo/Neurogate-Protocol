@@ -779,6 +779,37 @@ export function computeBidsNames(
     assignGroupEntities(out, indices, runOf, partOf, fmapSuffixOf, recOf);
   }
 
+  // ── Which recording each electrodes/channels/events table belongs to ──
+  // BIDS keeps these tables next to their recording: eeg/ for scalp EEG,
+  // ieeg/ for intracranial. They were always written to ieeg/, so a scalp
+  // EEG session's channels.tsv landed in an ieeg/ folder with no iEEG
+  // recording in it. A table follows an EEG/iEEG recording in its own
+  // source folder first, then in its subject + session; with no scalp EEG
+  // (or with both kinds and nothing closer), it stays in ieeg/.
+  const recordingsIn = new Map<string, Set<Modality>>();
+  const noteRecording = (key: string, m: Modality) => {
+    const set = recordingsIn.get(key);
+    if (set) set.add(m);
+    else recordingsIn.set(key, new Set([m]));
+  };
+  for (const r of out) {
+    const m = getEffectiveModality(r);
+    if (m !== 'eeg' && m !== 'ieeg') continue;
+    noteRecording(`dir:${getEffectiveSubjectGroup(r)}|${r.relativePath.slice(0, r.relativePath.lastIndexOf('/') + 1)}`, m);
+    noteRecording(`ses:${getEffectiveSubjectGroup(r)}|${getEffectiveSession(r) ?? ''}`, m);
+  }
+  const tableFolder = (r: DetectionResult): string => {
+    const group = getEffectiveSubjectGroup(r);
+    for (const key of [
+      `dir:${group}|${r.relativePath.slice(0, r.relativePath.lastIndexOf('/') + 1)}`,
+      `ses:${group}|${getEffectiveSession(r) ?? ''}`,
+    ]) {
+      const kinds = recordingsIn.get(key);
+      if (kinds?.size === 1) return kinds.has('eeg') ? 'eeg' : 'ieeg';
+    }
+    return 'ieeg';
+  };
+
   // ── Name the data files ──────────────────────────────────────────
   out.forEach((r, i) => {
     const modality = getEffectiveModality(r);
@@ -840,7 +871,9 @@ export function computeBidsNames(
       runOf.get(i), fmapSuffixOf.get(i), r.derivedLabel, partOf.get(i),
       r.pet?.tracer, recOf.get(i),
     );
-    const folder = MODALITIES.find(m => m.value === modality)?.bidsFolder ?? '';
+    const folder = modality === 'electrodes' || modality === 'channels' || modality === 'events'
+      ? tableFolder(r)
+      : MODALITIES.find(m => m.value === modality)?.bidsFolder ?? '';
     // session is null here exactly when sessionless is true (guarded
     // above), so the ses- path segment is simply omitted rather than
     // ever being an empty/undefined string.

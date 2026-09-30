@@ -178,7 +178,7 @@ export default function PreProcessingPage() {
   const dcmInstall: Record<OS, string> = {
     macos: '# Recommended: Homebrew\nbrew install dcm2niix\n\n# Verify install\ndcm2niix --version',
     windows:
-      '# Option A: Chocolatey\nchoco install dcm2niix\n\n# Option B: Download prebuilt binary\n# https://github.com/rordenlab/dcm2niix/releases\n# Extract and add the folder containing dcm2niix.exe to your PATH\n\n# Verify install (PowerShell)\ndcm2niix --version',
+      '# Download the prebuilt Windows binary (dcm2niix_win.zip)\n# https://github.com/rordenlab/dcm2niix/releases\n# Extract it and add the folder containing dcm2niix.exe to your PATH\n\n# Verify install (PowerShell)\ndcm2niix --version',
     linux:
       '# Debian / Ubuntu\nsudo apt update\nsudo apt install dcm2niix\n\n# RHEL / Fedora\nsudo dnf install dcm2niix\n\n# Verify install\ndcm2niix --version',
     conda:
@@ -188,13 +188,13 @@ export default function PreProcessingPage() {
   // ── pydeface install commands per OS ────────────────────────
   const pydefaceInstall: Record<OS, string> = {
     macos:
-      '# 1. Install FSL (FLIRT is required by pydeface)\n#    See: https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FslInstallation\n\n# 2. Install pydeface\npython -m pip install pydeface\n\n# Verify install\npydeface --help',
+      '# 1. Install FSL (FLIRT is required by pydeface)\n#    See: https://fsl.fmrib.ox.ac.uk/fsl/docs/#/install/index\n\n# 2. Install pydeface\npython -m pip install pydeface\n\n# Verify install\npydeface --help',
     windows:
       '# pydeface depends on FSL FLIRT, which does not run natively on Windows.\n# Use Windows Subsystem for Linux (WSL) and follow the Linux instructions below.\n\nwsl --install\n# After WSL reboot, open Ubuntu and run the Linux install steps.',
     linux:
-      '# 1. Install FSL\n#    See: https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FslInstallation\n\n# 2. Install pydeface\npython -m pip install pydeface\n\n# Verify install\npydeface --help',
+      '# 1. Install FSL\n#    See: https://fsl.fmrib.ox.ac.uk/fsl/docs/#/install/index\n\n# 2. Install pydeface\npython -m pip install pydeface\n\n# Verify install\npydeface --help',
     conda:
-      '# Create a clean env with FSL + pydeface\nconda create -n deface -c conda-forge fsl pydeface python=3.11\nconda activate deface\n\n# Verify install\npydeface --help',
+      '# FSL is not on conda-forge: install it with the official FSL installer\n#    See: https://fsl.fmrib.ox.ac.uk/fsl/docs/#/install/index\n\n# Then install pydeface into a conda env\nconda create -n deface python=3.11\nconda activate deface\npython -m pip install pydeface\n\n# Verify install\npydeface --help',
   };
 
   return (
@@ -206,12 +206,13 @@ export default function PreProcessingPage() {
           <h1 className="text-3xl font-bold text-gray-900 mt-4 leading-tight">
             Convert and de-identify
             <br />
-            before you upload.
+            before you open NeuroGate.
           </h1>
           <p className="mt-4 text-sm text-gray-500 leading-relaxed max-w-lg">
-            NeuroGate expects BIDS-ready NIfTI files with all identifying facial features removed.
-            These two open-source tools, dcm2niix and pydeface, handle that step. Install them once,
-            then run them on every dataset before opening the NeuroGate Tool.
+            NeuroGate expects imaging as NIfTI files with JSON sidecars, with facial features removed
+            from structural MRI. These open-source tools handle that step: dcm2niix for MRI and CT,
+            PET2BIDS for PET, and pydeface for defacing. Install them once, then run them on every
+            dataset before opening it in NeuroGate. NeuroGate itself does not convert or deface.
           </p>
           <div className="mt-6 flex items-center gap-3">
             <Link
@@ -240,8 +241,8 @@ export default function PreProcessingPage() {
         </div>
         <div className="flex items-end md:justify-end">
           <div className="md:text-right">
-            <div className="text-3xl font-bold" style={{ color: PENN_BLUE }}>2</div>
-            <div className="text-xs text-gray-500 uppercase tracking-wide mt-1">Required tools</div>
+            <div className="text-3xl font-bold" style={{ color: PENN_BLUE }}>3</div>
+            <div className="text-xs text-gray-500 uppercase tracking-wide mt-1">Open-source tools</div>
           </div>
         </div>
       </div>
@@ -280,9 +281,10 @@ export default function PreProcessingPage() {
           ))}
         </div>
         <div className="mt-5 pt-4 border-t border-gray-100 text-xs text-gray-500 leading-relaxed">
-          The two highlighted steps run on your local machine before files reach NeuroGate.
+          The two highlighted steps run on your local machine before you open the files in NeuroGate.
           The governance framework (GOV-001) requires both DICOM-to-NIfTI conversion and facial
-          de-identification before any image leaves your site.
+          de-identification before any image leaves your site. For PET, convert with PET2BIDS
+          (below) instead of plain dcm2niix.
         </div>
       </div>
 
@@ -310,7 +312,7 @@ export default function PreProcessingPage() {
 
         <WhatWhy
           what="A small command-line tool by Chris Rorden that reads a folder of DICOM files and writes one .nii.gz volume per series, plus a .json sidecar with acquisition parameters that BIDS validators read."
-          why="BIDS only accepts NIfTI; it does not accept raw DICOM. Without dcm2niix you cannot produce a valid BIDS dataset, and NeuroGate will reject the upload."
+          why="BIDS only accepts NIfTI; it does not accept raw DICOM. Without dcm2niix you cannot produce a valid BIDS dataset: NeuroGate flags DICOM files and leaves them out of the export."
         />
 
         {/* Install */}
@@ -459,8 +461,8 @@ dcm2niix \\
         <h3 className="text-sm font-semibold text-gray-900 mb-1">Automation script</h3>
         <p className="text-xs text-gray-500 mb-4 leading-relaxed">
           The NeuroGate automation script reads your DICOM headers before calling dcm2niix,
-          detects manufacturer, field strength, and sequence type, then applies the correct flags automatically.
-          It also patches fMRI sidecars with the required TaskName field and verifies all GOV-001 required fields are present.
+          detects the manufacturer (Siemens, GE or Philips), field strength and MRI sequence type, then applies the matching flags.
+          It also adds the required TaskName field to fMRI sidecars and checks the key required sidecar fields. It is for MRI; use PET2BIDS for PET.
         </p>
         <CodeBlock label="Install dependency + run">{`# Install once
 pip install pydicom
@@ -603,6 +605,61 @@ dcm2niix -z y -b y -ba y -v 2 \\
         </div>
       </section>
 
+      {/* ═══ PET: PET2BIDS (dcm2niix4pet) ═════════════════════ */}
+      <section
+        id="pet2bids"
+        className="rounded-2xl border border-gray-100 bg-white p-8 shadow-sm mb-10"
+      >
+        <ToolHeader
+          badge="STEP 2 · PET"
+          name="PET2BIDS (dcm2niix4pet)"
+          tagline="Convert PET DICOM to NIfTI with a complete BIDS PET sidecar: tracer, injected dose, timing and reconstruction."
+          tagColor={PENN_BLUE}
+          tagBg="rgba(1,31,91,0.08)"
+          iconColor={PENN_BLUE}
+          homepage="https://github.com/openneuropet/PET2BIDS"
+          icon={
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke={PENN_BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="3" />
+              <circle cx="12" cy="12" r="7" />
+              <circle cx="12" cy="12" r="10" />
+            </svg>
+          }
+        />
+
+        <WhatWhy
+          what="dcm2niix4pet runs dcm2niix on a PET series, then fills the BIDS-required PET sidecar fields from the DICOM headers. Values the headers don't contain can be supplied with --kwargs."
+          why="Plain dcm2niix writes only some PET fields (tracer, radionuclide, injected dose, units) and none of the timing fields BIDS requires, such as TimeZero, ScanStart and InjectionStart. NeuroGate recognizes PET either way, but warns about every missing required field."
+        />
+
+        <div className="mt-8">
+          <h3 className="text-sm font-semibold text-gray-900 mb-3">Install</h3>
+          <CodeBlock>{`# Python 3; also needs dcm2niix (see above), v1.0.20220720 or newer
+python -m pip install pypet2bids
+
+# Verify install
+dcm2niix4pet --help`}</CodeBlock>
+        </div>
+
+        <div className="mt-8">
+          <h3 className="text-sm font-semibold text-gray-900 mb-3">Quick start</h3>
+          <CodeBlock label="Convert one PET series">{`dcm2niix4pet /path/to/pet/dicom -d /path/to/output/pet
+
+# Supply values the DICOM headers don't carry, e.g. for FDG:
+dcm2niix4pet /path/to/pet/dicom -d /path/to/output/pet \\
+  --kwargs InjectedMass=n/a InjectedMassUnits=n/a \\
+  SpecificRadioactivity=n/a SpecificRadioactivityUnits=n/a \\
+  ModeOfAdministration=bolus`}</CodeBlock>
+        </div>
+
+        <div className="mt-6 rounded-lg p-3 text-xs leading-relaxed" style={{ backgroundColor: 'rgba(1,31,91,0.04)', color: '#374151' }}>
+          <span className="font-semibold">Also for PET:</span> Siemens HRRT ECAT files (.v) must be converted to NIfTI too;
+          PET2BIDS includes <code className="font-mono mx-1 px-1 rounded bg-gray-100">ecatpet2bids</code> for that.
+          The low-dose CT a PET/CT scanner takes for attenuation correction does not need to be kept: NeuroGate
+          recognizes it and leaves it out of the export. PET blood data (_blood.tsv) is not supported.
+        </div>
+      </section>
+
       {/* ═══ TOOL 2: pydeface ═══════════════════════════════ */}
       <section
         id="pydeface"
@@ -611,7 +668,7 @@ dcm2niix -z y -b y -ba y -v 2 \\
         <ToolHeader
           badge="STEP 3"
           name="pydeface"
-          tagline="Remove facial features from T1w, T2w, and FLAIR images so subjects cannot be re-identified from a 3D render."
+          tagline="Remove facial features from T1w, T2w, FLAIR, PDw and T2*w images so subjects cannot be re-identified from a 3D render."
           tagColor={TEAL_TEXT}
           tagBg="rgba(109,211,206,0.16)"
           iconColor={TEAL_TEXT}
@@ -650,8 +707,8 @@ dcm2niix -z y -b y -ba y -v 2 \\
           <CodeBlock label="Deface a single anatomical scan">{`# Produces sub-ID001_ses-01_T1w_defaced.nii.gz next to the input
 pydeface sub-ID001_ses-01_T1w.nii.gz
 
-# Loop over every T1w / T2w / FLAIR in a folder
-for f in *_T1w.nii.gz *_T2w.nii.gz *_FLAIR.nii.gz; do
+# Loop over every structural MRI in a folder
+for f in *_T1w.nii.gz *_T2w.nii.gz *_FLAIR.nii.gz *_PDw.nii.gz *_T2starw.nii.gz; do
   pydeface "$f"
 done`}</CodeBlock>
         </div>
@@ -692,7 +749,7 @@ done`}</CodeBlock>
               <p className="text-xs text-gray-600 mt-1 leading-relaxed">
                 Open every defaced volume in a 3D viewer (FSLeyes, ITK-SNAP, or Mango) and confirm the face region is zeroed
                 and that brain tissue, especially temporal lobes, is intact. NeuroGate's metadata step asks you to attest that
-                this QA was performed; the attestation is recorded in the ALCOA+ audit log.
+                all structural MRI has been defaced; the attestation is recorded in the audit log.
               </p>
             </div>
           </div>
@@ -711,11 +768,11 @@ done`}</CodeBlock>
               Why we require these two tools
             </h3>
             <p className="mt-3 text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.7)' }}>
-              The Regulatory Governance Framework (GOV-001) defines two pre-upload obligations: any imaging
-              data leaving a site must be in an open, non-proprietary format (NIfTI), and any full-face anatomical
-              scan must have facial features removed. dcm2niix and pydeface are the open-source defaults the
-              project uses to satisfy both obligations. Sites are free to substitute equivalent tools, but the
-              attestation step in NeuroGate still requires a tool name and version for the audit trail.
+              The Regulatory Governance Framework (GOV-001) defines two obligations before any image leaves a
+              site: it must be in an open, non-proprietary format (NIfTI), and any structural MRI must have facial
+              features removed. dcm2niix, PET2BIDS and pydeface are the open-source defaults the project uses to
+              meet them. Sites may substitute equivalent tools; NeuroGate records that defacing was attested,
+              not which tool was used.
             </p>
           </div>
           <div className="flex md:justify-end">

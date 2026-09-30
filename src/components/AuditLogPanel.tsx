@@ -94,7 +94,7 @@ export default function AuditLogPanel({ isOpen, onClose }: AuditLogPanelProps) {
           </button>
           <div className="flex-1" />
           <span className="text-xs text-gray-500 self-center">
-            ALCOA+ Compliant
+            ALCOA+ aligned
           </span>
         </div>
 
