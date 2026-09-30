@@ -113,7 +113,13 @@
     },
     "linux": {
       "target": "AppImage",
-      "icon": "electron/icons/icon.png"
+      "icon": "electron/icons/icon.png",
+      "extraResources": [
+        {
+          "from": "dist-cli/neurogate",
+          "to": "cli/neurogate"
+        }
+      ]
     },
     "publish": [
       {

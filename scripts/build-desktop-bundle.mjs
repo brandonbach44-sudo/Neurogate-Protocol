@@ -12,9 +12,11 @@
 import { build } from 'esbuild';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { readFileSync } from 'node:fs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
+const { version } = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf-8'));
 
 build({
   entryPoints: [join(ROOT, 'src', 'lib', 'adapters', 'desktopExport.ts')],
@@ -23,6 +25,8 @@ build({
   platform: 'node',
   target: 'node20',
   format: 'cjs',
+  // See src/version.ts.
+  define: { __APP_VERSION__: JSON.stringify(version) },
   minify: false,
   sourcemap: false,
   logLevel: 'info',

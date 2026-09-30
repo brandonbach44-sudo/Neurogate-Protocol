@@ -13,6 +13,8 @@
  * with a timestamp, actor, action type, and details.
  */
 
+import { APP_VERSION } from '../version';
+
 // ── Action Categories ─────────────────────────────────────────
 
 export type AuditAction =
@@ -93,7 +95,7 @@ export interface AuditExportHeader {
 export function createAuditLog(): AuditLog {
   return {
     sessionStarted: new Date().toISOString(),
-    toolVersion: '1.0.0-alpha',
+    toolVersion: APP_VERSION,
     entries: [],
   };
 }
