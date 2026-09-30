@@ -28,9 +28,11 @@
 import { build } from 'esbuild';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { readFileSync } from 'node:fs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
+const { version } = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf-8'));
 
 async function main() {
   const result = await build({
@@ -40,6 +42,8 @@ async function main() {
     platform: 'node',
     target: 'node20',
     format: 'cjs',
+    // See src/version.ts.
+    define: { __APP_VERSION__: JSON.stringify(version) },
     // SEA blobs are more predictable (and errors easier to read) from
     // readable output -- this isn't a size-sensitive artifact like a
     // web bundle, it never leaves the user's disk as a download of its

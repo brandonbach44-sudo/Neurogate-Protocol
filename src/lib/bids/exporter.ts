@@ -55,6 +55,7 @@ import type {
 } from '../../types/metadata';
 import type { DatasetStructure } from '../../types/sessionStructure';
 import { resolveSessionIds } from '../../types/sessionStructure';
+import { APP_VERSION } from '../../version';
 
 // ── Public types ──────────────────────────────────────────────────
 
@@ -109,7 +110,7 @@ function generateDatasetDescription(desc: DatasetDescription, structure?: Datase
   const structureDescription = describeStructure(structure);
   obj.GeneratedBy = [{
     Name: 'NeuroGate',
-    Version: '1.0.0',
+    Version: APP_VERSION,
     ...(structureDescription ? { Description: structureDescription } : {}),
   }];
 

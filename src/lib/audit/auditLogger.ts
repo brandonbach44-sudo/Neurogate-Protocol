@@ -44,10 +44,13 @@ export function createAuditLogger() {
   // ── Convenience methods for common actions ──────────────────
 
   function logStructureSelected(presetId: string, sessionCount: number, sessionIds: string[]) {
-    addEntry('structure-selected',
+    const summary =
       presetId === 'custom-timepoints'
         ? `Structure selected: Custom timepoints (${sessionCount} timepoint${sessionCount !== 1 ? 's' : ''}: ${sessionIds.join(', ')})`
-        : `Structure selected: Implant sessions (${sessionCount} fixed sessions: ${sessionIds.join(', ')})`,
+        : presetId === 'single-session'
+          ? 'Structure selected: Single session (no session folders)'
+          : `Structure selected: Implant sessions (${sessionCount} fixed sessions: ${sessionIds.join(', ')})`;
+    addEntry('structure-selected', summary,
       { presetId, sessionCount, sessionIds },
     );
   }

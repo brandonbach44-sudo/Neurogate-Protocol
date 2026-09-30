@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Wordmark from './Wordmark';
+import { APP_VERSION } from '../version';
 
 const TEAL = '#6DD3CE';
 const EMAIL = 'brandon.bach44@gmail.com';
@@ -159,7 +160,7 @@ export default function Footer() {
             Browser-based &middot; Client-side processing &middot; No data leaves your machine
           </span>
           <span style={{ color: 'rgba(255,255,255,0.45)' }}>
-            <span style={{ color: TEAL }}>&#9679;</span> Beta
+            <span style={{ color: TEAL }}>&#9679;</span> v{APP_VERSION} &middot; Beta
           </span>
         </div>
       </div>
