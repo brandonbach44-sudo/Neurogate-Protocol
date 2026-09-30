@@ -162,32 +162,27 @@ def build_command(props: dict, input_dir: str, output_dir: str,
 
     # --- Philips-specific flags ---
     if props["is_philips"]:
-        # Philips applies proprietary intensity rescaling before export.
-        # Setting --philips_scaling 0 preserves raw scanner values,
-        # which is required for quantitative sequences (MP2RAGE, ASL).
-        cmd += ["--philips_scaling", "0"]
-
-    # --- GE-specific flags ---
-    if props["is_ge"] and props["is_fmri"]:
-        # GE sometimes writes one DICOM per volume in older (14.x) software.
-        # -t y forces dcm2niix to treat each DICOM as a separate time point,
-        # avoiding accidental 3D misinterpretation.
-        cmd += ["-t", "y"]
+        # Philips stores intensity scaling in private tags. -p y ("precise
+        # float" scaling) is dcm2niix's default and the right choice for
+        # quantitative sequences (MP2RAGE, ASL); set it explicitly so a
+        # changed default can't silently alter values.
+        cmd += ["-p", "y"]
 
     # --- MP2RAGE (common at 7T Siemens) ---
     if props["is_mp2rage"]:
         # MP2RAGE produces INV1, INV2, UNI-Images, and T1 map as separate
-        # derived series. -i y keeps all derived images so the UNI image
-        # (used for registration) and T1map are not discarded.
-        cmd += ["-i", "y"]
+        # derived series. -i n keeps derived images (-i y would DISCARD
+        # them), so the UNI image (used for registration) and T1map survive.
+        cmd += ["-i", "n"]
 
     # --- fMRI BOLD ---
-    if props["is_fmri"]:
-        # For fMRI, explicitly request the full slice timing array.
-        # This is critical for preprocessing pipelines (fMRIPrep, FSL FEAT).
-        # SliceTiming is extracted from private CSA headers on Siemens;
-        # for GE and Philips verify the JSON output contains this field.
-        cmd += ["--export_nrrd", "n"]  # ensure NIfTI output only, not NRRD
+    # No extra flags: dcm2niix writes SliceTiming to the JSON sidecar
+    # automatically (from the CSA header on Siemens). For GE and Philips,
+    # verify the sidecar contains it -- verify_sidecars() below checks.
+    #
+    # Deliberately NOT used anywhere in this script: -t y. It writes a
+    # text file that INCLUDES PRIVATE PATIENT DETAILS, which defeats the
+    # de-identification this pipeline exists for.
 
     # --- DWI ---
     if props["is_dwi"]:
