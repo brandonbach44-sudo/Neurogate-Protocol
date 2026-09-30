@@ -28,6 +28,8 @@ import type { DatasetStructure } from './src/types/sessionStructure';
 import { groupIntoSubject } from './src/lib/detection/subjectGrouping';
 import { isOsJunkFile } from './src/lib/detection/extensionDetector';
 import type { ScannedFile } from './src/types/files';
+import { DEFACING_MODALITIES } from './src/types/detection';
+import type { Modality } from './src/types/detection';
 
 let failures = 0;
 function report(section: string, ok: boolean, detail: string) {
@@ -178,6 +180,15 @@ for (const junk of [
 console.log('modality folders are not timepoints');
 for (const f of ['T1','T2','T1w','T2w','DWI','CT','anat','func','SWI','FLAIR']) {
   report('safety', !looksLikeTimepointFolder(f), `"${f}" read as a timepoint label`);
+}
+
+// ── 8. SAFETY: every face-bearing structural contrast needs defacing ──
+// GOV-001 requires defacing for all five. Before 2026-09-30 the check only
+// covered T1w/T2w/FLAIR, so a PDw- or T2*w-only dataset exported with no
+// attestation at all.
+console.log('defacing covers all structural MRI');
+for (const m of ['anat-T1w', 'anat-T2w', 'anat-FLAIR', 'anat-PDw', 'anat-T2starw'] as Modality[]) {
+  report('safety', DEFACING_MODALITIES.includes(m), `${m} does not require the defacing attestation`);
 }
 
 if (failures > 0) {

@@ -14,7 +14,7 @@ import type { DetectionResult } from '../../types/detection';
 import type { SubjectMetadata, DatasetDescription, DefacingAttestation, InstitutionConfig } from '../../types/metadata';
 import type { ValidationIssue, ValidationReport } from '../../types/validation';
 import { finalizeReport } from '../../types/validation';
-import { getEffectiveModality } from '../../types/detection';
+import { getEffectiveModality, requiresDefacing, DEFACING_MODALITY_LABELS } from '../../types/detection';
 import type { DatasetStructure } from '../../types/sessionStructure';
 
 import { validateBidsStructure } from './bidsValidator';
@@ -140,10 +140,7 @@ function validateMetadata(input: ValidationInput): ValidationIssue[] {
   }
 
   // Defacing attestation (only if structural MRI present)
-  const hasStructuralMri = input.detectionResults.some(r => {
-    const mod = getEffectiveModality(r);
-    return mod === 'anat-T1w' || mod === 'anat-T2w' || mod === 'anat-FLAIR';
-  });
+  const hasStructuralMri = input.detectionResults.some(requiresDefacing);
 
   if (hasStructuralMri) {
     if (!input.defacingAttestation.confirmed) {
@@ -152,12 +149,9 @@ function validateMetadata(input: ValidationInput): ValidationIssue[] {
         category: 'defacing',
         severity: 'error',
         title: 'Defacing attestation not confirmed',
-        description: 'Your upload includes structural MRI files (T1w/T2w) which must be defaced per HIPAA requirements. Go back to the Metadata step and confirm that all structural MRIs have been defaced.',
+        description: `This dataset includes structural MRI (${DEFACING_MODALITY_LABELS}), which GOV-001 requires to be defaced before sharing. Go back to the Metadata step and confirm that all structural MRIs have been defaced.`,
         affectedFiles: input.detectionResults
-          .filter(r => {
-            const mod = getEffectiveModality(r);
-            return mod === 'anat-T1w' || mod === 'anat-T2w' || mod === 'anat-FLAIR';
-          })
+          .filter(requiresDefacing)
           .map(r => r.relativePath),
         dismissable: false,
       });

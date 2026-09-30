@@ -244,6 +244,23 @@ export function getEffectiveModality(result: DetectionResult): Modality {
   return result.userModality ?? result.detectedModality;
 }
 
+/**
+ * Structural MRI contrasts that GOV-001 requires to be defaced before
+ * sharing, since a face can be reconstructed from them. Their presence
+ * makes the defacing attestation mandatory (Metadata step, validation,
+ * and the CLI prompt all use this one list).
+ */
+export const DEFACING_MODALITIES: readonly Modality[] = [
+  'anat-T1w', 'anat-T2w', 'anat-FLAIR', 'anat-PDw', 'anat-T2starw',
+];
+
+/** Human-readable list of DEFACING_MODALITIES for UI and prompt text. */
+export const DEFACING_MODALITY_LABELS = 'T1w, T2w, FLAIR, PDw, T2*w';
+
+export function requiresDefacing(result: DetectionResult): boolean {
+  return DEFACING_MODALITIES.includes(getEffectiveModality(result));
+}
+
 /** Get the effective subject group (user override or detected) */
 export function getEffectiveSubjectGroup(result: DetectionResult): string {
   return result.userSubjectGroup ?? result.subjectGroup;
