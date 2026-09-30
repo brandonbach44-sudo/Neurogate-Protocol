@@ -116,6 +116,9 @@ let mainWindow = null;
  */
 async function startServer() {
   process.env.PORT = String(SERVER_PORT);
+  // Tells server/index.js not to mount its upload/download API routes --
+  // unused by the desktop app, which exports by streaming to disk.
+  process.env.NEUROGATE_DESKTOP = '1';
   // In fast-dev mode the frontend is served by Vite on its own origin
   // (default http://localhost:5173), not by this server, so SERVE_STATIC
   // must stay off and the server's existing CORS_ORIGIN default (also
@@ -127,7 +130,9 @@ async function startServer() {
   console.log(`[electron] loading server in-process: ${serverEntry}`);
 
   const { start } = require(serverEntry);
-  httpServer = await start(SERVER_PORT);
+  // Loopback only: the server exists to serve this app's own pages to its
+  // own window, never to anything else on the network.
+  httpServer = await start(SERVER_PORT, '127.0.0.1');
 }
 
 function stopServer() {
