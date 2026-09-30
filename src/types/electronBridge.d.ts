@@ -1,11 +1,13 @@
 /**
  * Type declaration for the one global electron/preload.cjs exposes via
  * contextBridge -- window.neurogateDesktop. Only actually present when
- * the app is running inside the Electron desktop shell; the hosted web
- * build never loads preload.cjs, so this is always undefined there.
+ * the app is running inside the Electron desktop shell; a plain browser
+ * never loads preload.cjs, so this is always undefined there.
  * Renderer code must feature-detect (`if (window.neurogateDesktop)`)
  * before using it, not assume it exists.
  */
+import type { DeidentificationSummary, FileEntry } from '../lib/bids/exporter';
+
 export interface InstallCliResult {
   destPath: string;
   destDir: string;
@@ -14,8 +16,36 @@ export interface InstallCliResult {
   pathError: string | null;
 }
 
+/** Mirror of DesktopExportEntry in src/lib/adapters/desktopExport.ts (kept separate so the renderer never imports Node-only code). */
+export interface DesktopExportEntry {
+  path: string;
+  text?: string;
+  sourcePath?: string;
+  needsGzip?: boolean;
+  edfDeidentify?: FileEntry['edfDeidentify'];
+  jsonDeidentify?: FileEntry['jsonDeidentify'];
+  subjectGroup?: string;
+}
+
+export interface ExportFolderChoice {
+  parentDir: string;
+  outputDir: string;
+}
+
+export interface ExportProgress {
+  current: number;
+  total: number;
+  path: string;
+}
+
 export interface NeuroGateDesktopBridge {
   installCli: () => Promise<InstallCliResult>;
+  getPathForFile: (file: File) => string;
+  chooseExportFolder: (suggestedName: string) => Promise<ExportFolderChoice | null>;
+  exportToFolder: (outputDir: string, plan: DesktopExportEntry[]) => Promise<{ summary: DeidentificationSummary; filesWritten: number }>;
+  writeExportFile: (outputDir: string, name: string, text: string) => Promise<string>;
+  revealExportFolder: (outputDir: string) => Promise<void>;
+  onExportProgress: (callback: (progress: ExportProgress) => void) => () => void;
 }
 
 declare global {

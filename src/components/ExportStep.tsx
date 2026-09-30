@@ -16,6 +16,8 @@ import {
 } from '../lib/api/exportApi';
 import { getEffectiveSubjectGroup } from '../types/detection';
 import type { DatasetStructure } from '../types/sessionStructure';
+import { isFileLike } from '../types/fileLike';
+import type { DesktopExportEntry } from '../types/electronBridge';
 
 interface ExportStepProps {
   detectionResults: DetectionResult[];
@@ -23,7 +25,15 @@ interface ExportStepProps {
   datasetDescription: DatasetDescription;
   institutionConfig: InstitutionConfig;
   onBack: () => void;
-  onExportComplete: (deidentifySummary: DeidentificationSummary) => void;
+  /**
+   * Called once the dataset has been written. `destination` is set for a
+   * desktop folder export (the audit log is then saved into that folder);
+   * it's absent for a browser ZIP download.
+   */
+  onExportComplete: (
+    deidentifySummary: DeidentificationSummary,
+    destination?: { outputDir: string },
+  ) => void | Promise<void>;
   /** The dataset's chosen session structure, recorded in dataset_description.json's GeneratedBy field. */
   structure?: DatasetStructure;
 }
@@ -42,6 +52,14 @@ export default function ExportStep({
   const [exportError, setExportError] = useState<string>('');
   const [zipUrl, setZipUrl] = useState<string | null>(null);
   const [zipFilename, setZipFilename] = useState<string>('');
+
+  // Desktop app: export streams straight to a folder on disk through the
+  // same writer the CLI uses (see electron/main.cjs "Export to folder"),
+  // so there is no file-size limit and no ZIP step. A plain browser has
+  // no bridge and keeps the in-memory ZIP path below.
+  const desktop = typeof window !== 'undefined' ? window.neurogateDesktop : undefined;
+  const isDesktopExport = Boolean(desktop?.exportToFolder);
+  const [desktopResult, setDesktopResult] = useState<{ outputDir: string; filesWritten: number } | null>(null);
 
   // Server upload results — populated when hasServerApi and large files exist
   interface ServerEdfResult {
@@ -70,14 +88,71 @@ export default function ExportStep({
   );
 
   const fileEntries = useMemo(
-    () => buildFileEntries(detectionResults, subjects, datasetDescription, dateShifts, structure),
-    [detectionResults, subjects, datasetDescription, dateShifts, structure]
+    () => buildFileEntries(
+      detectionResults, subjects, datasetDescription, dateShifts, structure,
+      // Desktop export streams from disk, so nothing is too large; the
+      // browser ZIP keeps the default in-memory cap.
+      isDesktopExport ? Infinity : undefined,
+    ),
+    [detectionResults, subjects, datasetDescription, dateShifts, structure, isDesktopExport]
   );
 
   const tree = useMemo(() => buildTreeFromEntries(fileEntries), [fileEntries]);
   const stats = useMemo(() => getExportStats(fileEntries), [fileEntries]);
 
-  // Step 1: build the ZIP (and optionally upload large files to the server).
+  const exportBaseName = () => {
+    const timestamp = new Date().toISOString().slice(0, 10);
+    const prefix = institutionConfig.prefix || 'BIDS';
+    return `${prefix}_bids_export_${timestamp}`;
+  };
+
+  // Desktop: pick a folder, then stream every file into it.
+  const handleDesktopExport = async () => {
+    if (!desktop) return;
+    setExportError('');
+    const choice = await desktop.chooseExportFolder(exportBaseName());
+    if (!choice) return;
+
+    setIsExporting(true);
+    setExportProgress('Preparing files...');
+    const unsubscribe = desktop.onExportProgress(p => {
+      setExportProgress(`Writing file ${p.current} of ${p.total}...`);
+    });
+    try {
+      const plan: DesktopExportEntry[] = fileEntries.map(entry => {
+        const base = {
+          path: entry.path,
+          needsGzip: entry.needsGzip,
+          edfDeidentify: entry.edfDeidentify,
+          jsonDeidentify: entry.jsonDeidentify,
+          subjectGroup: entry.subjectGroup,
+        };
+        if (!isFileLike(entry.content)) return { ...base, text: entry.content };
+        const sourcePath = desktop.getPathForFile(entry.content as File);
+        if (!sourcePath) {
+          throw new Error(`Cannot find "${entry.content.name}" on disk. Add the folder again and retry.`);
+        }
+        return { ...base, sourcePath };
+      });
+
+      const { summary, filesWritten } = await desktop.exportToFolder(choice.outputDir, plan);
+      setDeidentifySummary(summary);
+      setExportProgress('Saving audit log...');
+      await onExportComplete(summary, { outputDir: choice.outputDir });
+      setDesktopResult({ outputDir: choice.outputDir, filesWritten });
+      setExportProgress('');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error('Export failed:', err);
+      setExportError(`Export failed: ${msg}`);
+      setExportProgress('');
+    } finally {
+      unsubscribe();
+      setIsExporting(false);
+    }
+  };
+
+  // Browser: build the ZIP (and optionally upload large files to the server).
   const handleBuild = async () => {
     setIsExporting(true);
     setZipUrl(null);
@@ -165,9 +240,7 @@ export default function ExportStep({
       };
       setDeidentifySummary(mergedSummary);
 
-      const timestamp = new Date().toISOString().slice(0, 10);
-      const prefix = institutionConfig.prefix || 'BIDS';
-      const filename = `${prefix}_bids_export_${timestamp}.zip`;
+      const filename = `${exportBaseName()}.zip`;
 
       if (zipUrl) URL.revokeObjectURL(zipUrl);
       setZipUrl(URL.createObjectURL(blob));
@@ -193,7 +266,9 @@ export default function ExportStep({
       <div className="text-center mb-8">
         <h2 className="text-2xl font-semibold text-gray-800">Export BIDS Dataset</h2>
         <p className="text-gray-500 mt-2">
-          Review the output structure below, then download the ZIP to upload to your data infrastructure.
+          {isDesktopExport
+            ? 'Review the output structure below, then export it to a folder on your computer.'
+            : 'Review the output structure below, then download it as a ZIP.'}
         </p>
       </div>
 
@@ -253,7 +328,7 @@ export default function ExportStep({
           <p className="text-sm font-semibold text-amber-800 mb-1">File not locally available</p>
           <p className="text-sm text-amber-700">
             <strong>{unreadableFiles.join(', ')}</strong> could not be read — it may be a cloud-only OneDrive file.
-            In Windows Explorer, right-click the file and choose <strong>"Always keep on this device"</strong>, then re-upload.
+            In Windows Explorer, right-click the file and choose <strong>"Always keep on this device"</strong>, then add the folder again.
           </p>
         </div>
       )}
@@ -308,25 +383,45 @@ export default function ExportStep({
             </div>
           )
         ) : (
-          // No server — original copy-manually instructions
+          // Plain browser with no server: these files can't be packaged in
+          // memory. They are NOT exported -- copying them in by hand would
+          // put raw, un-de-identified headers into the dataset. The
+          // desktop app and CLI export them with no size limit.
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
             <p className="text-sm font-semibold text-amber-800 mb-2">
-              Large files excluded from ZIP — copy manually
+              Files over 500 MB will not be included
             </p>
             <p className="text-sm text-amber-700 mb-3">
-              The following files exceed 500 MB and cannot be packaged in the browser.
-              After extracting the ZIP, copy each file to the path shown.
+              A browser can't process files this large. Use the NeuroGate desktop app or CLI
+              to export them de-identified.
             </p>
             {stats.largeFiles.map(f => (
               <div key={f.bidsPath} className="bg-white border border-amber-200 rounded p-3 mb-2 font-mono text-xs text-gray-700">
                 <span className="font-semibold text-gray-900">{f.originalName}</span>
-                <span className="text-amber-600 mx-2">→</span>
-                <span>bids_output/{f.bidsPath}</span>
                 <span className="text-gray-400 ml-2">({formatSize(f.sizeBytes)})</span>
               </div>
             ))}
           </div>
         )
+      )}
+
+      {desktopResult && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-green-800">
+              <span className="text-green-600 text-lg mr-1">&#10003;</span>
+              Exported {desktopResult.filesWritten} files, with the audit log, to:
+            </p>
+            <p className="font-mono text-xs text-green-900 mt-1 break-all">{desktopResult.outputDir}</p>
+          </div>
+          <Button
+            variant="secondary"
+            onClick={() => desktop?.revealExportFolder(desktopResult.outputDir).catch(err => setExportError(String(err)))}
+            className="shrink-0"
+          >
+            Show Folder
+          </Button>
+        </div>
       )}
 
       {zipUrl && (
@@ -349,7 +444,20 @@ export default function ExportStep({
           {isExporting && (
             <span className="text-sm text-gray-500">{exportProgress}</span>
           )}
-          {zipUrl ? (
+          {isDesktopExport ? (
+            <Button variant="primary" onClick={handleDesktopExport} disabled={isExporting} className="gap-2">
+              {isExporting ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Exporting...
+                </>
+              ) : desktopResult ? (
+                'Export Again'
+              ) : (
+                'Export to Folder'
+              )}
+            </Button>
+          ) : zipUrl ? (
             <a
               href={zipUrl}
               download={zipFilename}

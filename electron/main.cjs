@@ -462,3 +462,79 @@ ipcMain.handle('install-cli', async () => {
     pathError,
   };
 });
+
+// ── Export to folder ────────────────────────────────────────────────
+
+/**
+ * The desktop Export step writes the dataset to a folder on disk,
+ * streamed by the same writer the CLI uses (src/lib/adapters/
+ * desktopExport.ts, bundled to electron/desktop-export.cjs by
+ * scripts/build-desktop-bundle.mjs). This replaced the in-renderer ZIP,
+ * which had to leave out files over 500 MB -- so multi-GB EDF recordings
+ * couldn't be exported de-identified from the desktop app at all.
+ *
+ * Flow: 'choose-export-folder' shows a native folder picker and reserves
+ * a fresh, uniquely named output folder inside the chosen location;
+ * 'export-to-folder' streams every file into it; 'write-export-file'
+ * saves the audit log next to bids_output/; 'reveal-export-folder' opens
+ * it in Finder/Explorer. The last three only accept an output folder
+ * that 'choose-export-folder' handed out this session, so the renderer
+ * can't direct writes anywhere the user didn't pick.
+ */
+const allowedExportDirs = new Set();
+
+function assertAllowedExportDir(outputDir) {
+  if (!allowedExportDirs.has(outputDir)) {
+    throw new Error('Export folder was not chosen through the folder picker.');
+  }
+}
+
+/** First of `<parent>/<name>`, `<name>-2`, `<name>-3`, ... that doesn't exist yet. */
+function uniqueChildDir(parent, name) {
+  let candidate = path.join(parent, name);
+  for (let n = 2; fs.existsSync(candidate); n++) {
+    candidate = path.join(parent, `${name}-${n}`);
+  }
+  return candidate;
+}
+
+ipcMain.handle('choose-export-folder', async (_event, suggestedName) => {
+  const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
+    title: 'Choose where to save the BIDS export',
+    buttonLabel: 'Export Here',
+    properties: ['openDirectory', 'createDirectory'],
+  });
+  if (canceled || filePaths.length === 0) return null;
+
+  const safeName = String(suggestedName || 'bids_export').replace(/[^A-Za-z0-9._-]/g, '_');
+  const outputDir = uniqueChildDir(filePaths[0], safeName);
+  allowedExportDirs.add(outputDir);
+  return { parentDir: filePaths[0], outputDir };
+});
+
+ipcMain.handle('export-to-folder', async (event, { outputDir, plan }) => {
+  assertAllowedExportDir(outputDir);
+  await fs.promises.mkdir(outputDir, { recursive: true });
+
+  const { runDesktopExport } = require('./desktop-export.cjs');
+  return runDesktopExport(plan, outputDir, (progress) => {
+    if (!event.sender.isDestroyed()) event.sender.send('export-progress', progress);
+  });
+});
+
+ipcMain.handle('write-export-file', async (_event, { outputDir, name, text }) => {
+  assertAllowedExportDir(outputDir);
+  // Only the audit log is written this way -- nothing else needs to be.
+  if (!/^audit_log_[A-Za-z0-9-]+\.json$/.test(name)) {
+    throw new Error(`Refusing to write unexpected file "${name}".`);
+  }
+  const dest = path.join(outputDir, name);
+  await fs.promises.writeFile(dest, text, 'utf-8');
+  return dest;
+});
+
+ipcMain.handle('reveal-export-folder', async (_event, outputDir) => {
+  assertAllowedExportDir(outputDir);
+  const error = await shell.openPath(outputDir);
+  if (error) throw new Error(error);
+});

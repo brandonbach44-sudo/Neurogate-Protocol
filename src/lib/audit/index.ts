@@ -4,4 +4,4 @@
 export { createAuditLogger } from './auditLogger';
 export type { AuditLogger } from './auditLogger';
 export { AuditProvider, useAudit } from './AuditContext';
-export { downloadAuditJson, downloadAuditCsv } from './auditExporter';
+export { downloadAuditJson, downloadAuditCsv, auditJsonFile } from './auditExporter';

@@ -15,7 +15,7 @@ import type { DetectionResult, DetectionSummary, Session, Modality } from '../ty
 import { getEffectiveSession, getEffectiveModality } from '../types/detection';
 import { runDetection, generateSummary, readJsonSidecars, readEdfHeaders } from '../lib/detection';
 import { computeBidsNames } from '../lib/bids/bidsNaming';
-import { useAudit, downloadAuditJson } from '../lib/audit';
+import { useAudit, downloadAuditJson, auditJsonFile } from '../lib/audit';
 import type { DatasetStructure } from '../types/sessionStructure';
 import { createDefaultDatasetStructure, resolveSessionIds } from '../types/sessionStructure';
 import {
@@ -550,16 +550,29 @@ function ToolPage() {
             institutionConfig={metadataOutput.institutionConfig}
             structure={datasetStructure}
             onBack={() => setStep('validation')}
-            onExportComplete={(deidentifySummary) => {
+            onExportComplete={async (deidentifySummary, destination) => {
               // Record the de-identification summary and the export event
-              // in the audit log BEFORE downloading, so the downloaded
-              // audit file documents both actions itself.
+              // in the audit log BEFORE saving it, so the saved audit file
+              // documents both actions itself.
               audit.logDeidentificationSummary(deidentifySummary);
-              audit.addEntry('export-completed', 'BIDS dataset exported as ZIP', {
-                subjectCount: metadataOutput!.subjects.length,
-                fileCount: detectionResults.length,
-              }, 'system');
-              downloadAuditJson(audit, 'user');
+              audit.addEntry(
+                'export-completed',
+                destination ? 'BIDS dataset exported to folder' : 'BIDS dataset exported as ZIP',
+                {
+                  subjectCount: metadataOutput!.subjects.length,
+                  fileCount: detectionResults.length,
+                },
+                'system',
+              );
+              // Desktop folder export: the audit log goes into the export
+              // folder next to bids_output/, like the CLI. Browser ZIP: it
+              // downloads as a separate file.
+              if (destination && window.neurogateDesktop) {
+                const { name, text } = auditJsonFile(audit, 'user');
+                await window.neurogateDesktop.writeExportFile(destination.outputDir, name, text);
+              } else {
+                downloadAuditJson(audit, 'user');
+              }
             }}
           />
         )}
