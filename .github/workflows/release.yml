@@ -67,6 +67,9 @@ jobs:
       - name: Build CLI binary
         run: npm run cli:sea
 
+      - name: Bundle desktop export writer
+        run: npm run desktop:bundle
+
       - name: Build and publish installers
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

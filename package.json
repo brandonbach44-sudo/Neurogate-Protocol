@@ -23,9 +23,10 @@
     "cli:bundle": "node scripts/build-cli-bundle.mjs",
     "cli:sea": "npm run cli:bundle && node scripts/build-cli-sea.mjs",
     "verify:cli-bundle": "node scripts/verify-cli-bundle.mjs",
-    "electron:dev": "npm run build && electron .",
-    "electron:dev:fast": "node scripts/dev-electron.mjs",
-    "electron:build": "npm run build && npm run cli:sea && electron-builder"
+    "desktop:bundle": "node scripts/build-desktop-bundle.mjs",
+    "electron:dev": "npm run build && npm run desktop:bundle && electron .",
+    "electron:dev:fast": "npm run desktop:bundle && node scripts/dev-electron.mjs",
+    "electron:build": "npm run build && npm run desktop:bundle && npm run cli:sea && electron-builder"
   },
   "dependencies": {
     "busboy": "^1.6.0",

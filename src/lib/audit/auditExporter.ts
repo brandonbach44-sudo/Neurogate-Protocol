@@ -91,10 +91,20 @@ export function downloadFile(content: string, filename: string, mimeType: string
  * Export and download audit log as JSON.
  */
 export function downloadAuditJson(logger: AuditLogger, exportedBy: string) {
-  const json = exportAsJson(logger, exportedBy);
+  const { name, text } = auditJsonFile(logger, exportedBy);
+  downloadFile(text, name, 'application/json');
+}
+
+/**
+ * The audit log as a named JSON file, for callers that save it
+ * themselves instead of triggering a browser download -- the desktop
+ * app writes it into the export folder next to bids_output/.
+ */
+export function auditJsonFile(logger: AuditLogger, exportedBy: string): { name: string; text: string } {
+  const text = exportAsJson(logger, exportedBy);
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-  downloadFile(json, `audit_log_${timestamp}.json`, 'application/json');
   logger.logAuditExported('JSON');
+  return { name: `audit_log_${timestamp}.json`, text };
 }
 
 /**

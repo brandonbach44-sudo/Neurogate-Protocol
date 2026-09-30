@@ -2,6 +2,39 @@ import { useState, useCallback, useRef } from 'react';
 import type { ScannedFile } from '../types/files';
 import { cacheFileBuffer } from '../lib/fileCache';
 
+/**
+ * Matches LARGE_FILE_THRESHOLD_BYTES in lib/bids/exporter.ts: a browser
+ * leaves files above this out of the ZIP, so there's no point caching
+ * them -- and reading a multi-GB file into memory would fail anyway.
+ */
+const BROWSER_CACHE_LIMIT_BYTES = 500 * 1024 * 1024;
+
+/**
+ * Get a dropped/browsed file ready for export. Returns false if it
+ * can't be read (e.g. a cloud-only OneDrive file not downloaded locally).
+ *
+ * Desktop app: files are never loaded into memory. Export streams them
+ * from their path on disk (see lib/adapters/desktopExport.ts), so all
+ * that's needed is that the path is known -- this is what lets multi-GB
+ * EDF recordings through.
+ *
+ * Browser: eagerly cache the content, since drag-and-drop File handles
+ * can lose read permission by the time the user reaches export.
+ */
+async function prepareFile(file: File): Promise<boolean> {
+  const desktop = window.neurogateDesktop;
+  if (desktop?.getPathForFile) {
+    return Boolean(desktop.getPathForFile(file));
+  }
+  if (file.size > BROWSER_CACHE_LIMIT_BYTES) return true;
+  try {
+    cacheFileBuffer(file, await file.arrayBuffer());
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 interface FileDropZoneProps {
   onFilesScanned: (files: ScannedFile[]) => void;
 }
@@ -29,13 +62,7 @@ export default function FileDropZone({ onFilesScanned }: FileDropZoneProps) {
         const file = await new Promise<File>((resolve, reject) => {
           fileEntry.file(resolve, reject);
         });
-        // Eagerly cache file content. Also detects cloud-only files (e.g.
-        // OneDrive files not downloaded locally) before the user reaches
-        // the export step.
-        try {
-          const buffer = await file.arrayBuffer();
-          cacheFileBuffer(file, buffer);
-        } catch {
+        if (!(await prepareFile(file))) {
           // Tag unreadable files so the UI can warn the user up front.
           (file as any).__unreadable = true;
         }
@@ -83,12 +110,8 @@ export default function FileDropZone({ onFilesScanned }: FileDropZoneProps) {
     const files: ScannedFile[] = [];
     for (let i = 0; i < fileList.length; i++) {
       const file = fileList[i];
-      try {
-        const buffer = await file.arrayBuffer();
-        cacheFileBuffer(file, buffer);
-      } catch {
-        // Surface at export time if unreadable.
-      }
+      // Unreadable files surface at export time.
+      await prepareFile(file);
       files.push({
         relativePath: (file as any).webkitRelativePath || file.name,
         name: file.name,
