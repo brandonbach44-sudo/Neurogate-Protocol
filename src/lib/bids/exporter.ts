@@ -48,7 +48,7 @@ import type { DetectionResult } from '../../types/detection';
 import { getEffectiveSubjectGroup } from '../../types/detection';
 import { computeBidsNames, isExportedPath } from './bidsNaming';
 import { deidentifyEdf } from '../deidentify/edfDeidentifier';
-import { deidentifyJsonSidecar, isJsonSidecarFile } from '../deidentify/jsonSidecarDeidentifier';
+import { deidentifyJsonSidecar, isJsonSidecarFile, shiftDateString } from '../deidentify/jsonSidecarDeidentifier';
 import type {
   SubjectMetadata,
   DatasetDescription,
@@ -124,10 +124,28 @@ function generateParticipantsTsv(subjects: SubjectMetadata[]): string {
   return header + rows;
 }
 
-function generateSessionsTsv(subject: SubjectMetadata): string {
+/**
+ * acq_time is filled from the source data (a dropped sessions.tsv, or a
+ * sidecar's AcquisitionDateTime -- see lib/metadata/tsvReader.ts), so it
+ * holds real acquisition dates. It gets the subject's same date shift as
+ * that subject's EDF headers and JSON sidecars, keeping intervals between
+ * sessions intact. A value in a format that can't be shifted is written
+ * as n/a rather than exported as-is (fail closed, same rule as
+ * deidentifyJsonSidecar's unparseable dates).
+ */
+function generateSessionsTsv(subject: SubjectMetadata, dateShiftDays: number): string {
   const header = 'session_id\tacq_time';
   const rows = subject.sessions
-    .map(s => `${s.sessionId}\t${s.acqTime || 'n/a'}`)
+    .map(s => {
+      const raw = s.acqTime?.trim();
+      let shifted = raw ? shiftDateString(raw, dateShiftDays) : null;
+      // BIDS acq_time is ISO 8601; a DICOM-style YYYYMMDD source date is
+      // written as YYYY-MM-DD.
+      if (shifted && /^\d{8}$/.test(shifted)) {
+        shifted = `${shifted.slice(0, 4)}-${shifted.slice(4, 6)}-${shifted.slice(6)}`;
+      }
+      return `${s.sessionId}\t${shifted ?? 'n/a'}`;
+    })
     .join('\n');
   return header + '\n' + rows;
 }
@@ -278,7 +296,7 @@ export function buildFileEntries(
     for (const subject of subjects) {
       entries.push({
         path: `primary/${subject.bidsSubjectId}/${subject.bidsSubjectId}_sessions.tsv`,
-        content: generateSessionsTsv(subject),
+        content: generateSessionsTsv(subject, dateShifts?.get(subject.subjectGroup) ?? 0),
       });
     }
   }

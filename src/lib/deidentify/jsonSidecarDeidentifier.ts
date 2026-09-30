@@ -116,7 +116,7 @@ export interface JsonSidecarDeidentifyResult {
  * left completely unshifted, leaking the true absolute date into the
  * export. Both formats are now handled.
  */
-function shiftDateString(value: string, shiftDays: number): string | null {
+export function shiftDateString(value: string, shiftDays: number): string | null {
   const isoMatch = value.match(/^(\d{4}-\d{2}-\d{2})(T\d{2}:\d{2}:\d{2}(?:\.\d+)?)?(Z|[+-]\d{2}:?\d{2})?$/);
   if (isoMatch) {
     const [, datePart, timePart, tzPart] = isoMatch;

@@ -103,5 +103,6 @@
     "subjectCount": 3,
     "hasAllGroups": true,
     "allInRange": true
-  }
+  },
+  "sessionsTsv": "session_id\tacq_time\nses-preimplant\t2024-03-13T09:30:00\nses-postimplant\t2024-04-20\nses-postsurgery\tn/a"
 }
