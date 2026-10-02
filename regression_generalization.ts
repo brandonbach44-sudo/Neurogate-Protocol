@@ -30,6 +30,10 @@ import { isOsJunkFile } from './src/lib/detection/extensionDetector';
 import type { ScannedFile } from './src/types/files';
 import { DEFACING_MODALITIES } from './src/types/detection';
 import { runDetection, readJsonSidecars, readEdfHeaders } from './src/lib/detection';
+import { scanSidecarContentForPhi } from './src/lib/validation/phiScanner';
+import { buildFileEntries, generateZip } from './src/lib/bids/exporter';
+import { createDefaultDatasetDescription } from './src/types/metadata';
+import type { SubjectMetadata } from './src/types/metadata';
 import type { Modality } from './src/types/detection';
 
 let failures = 0;
@@ -267,6 +271,31 @@ console.log('same-named files in different subjects');
   ] as const) {
     report('safety', modalityOf(path) === expected, `${path}: ${modalityOf(path)}, expected ${expected} (decided by another subject's file?)`);
   }
+}
+
+// ── 7d. SAFETY: a sidecar that isn't valid JSON is never exported ──
+// It can't be de-identified, so validation blocks it and export refuses
+// it (before 2026-10-02 it was copied through with every field intact).
+console.log('broken sidecars are blocked');
+{
+  const mk = (relativePath: string, content: string | Uint8Array): ScannedFile => {
+    const name = relativePath.split('/').pop()!;
+    const file = new File([content], name);
+    return { relativePath, name, size: file.size, file } as ScannedFile;
+  };
+  const files = [
+    mk('Patient_C/T1_MPRAGE.nii.gz', new Uint8Array([0])),
+    mk('Patient_C/T1_MPRAGE.json', '{ "PatientName": "Smith^John", '),
+  ];
+  const results = runDetection(files, await readJsonSidecars(files), await readEdfHeaders(files));
+  const issues = await scanSidecarContentForPhi(results);
+  const blocking = issues.find(i => i.title.startsWith('Sidecar is not valid JSON'));
+  report('safety', Boolean(blocking && blocking.severity === 'error' && !blocking.dismissable), 'broken exported sidecar did not raise a blocking error');
+  const subjects = [{ subjectGroup: results[0].subjectGroup, bidsSubjectId: 'sub-T001', sessions: [{ sessionId: 'ses-preimplant', acqTime: '', age: '' }] }] as SubjectMetadata[];
+  const entries = buildFileEntries(results, subjects, createDefaultDatasetDescription(), new Map([[results[0].subjectGroup, 5]]));
+  let refused = false;
+  try { await generateZip(entries); } catch { refused = true; }
+  report('safety', refused, 'export copied a sidecar it could not de-identify');
 }
 
 // ── 8. SAFETY: every face-bearing structural contrast needs defacing ──

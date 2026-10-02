@@ -20,6 +20,7 @@ import type { DetectionResult } from '../../types/detection';
 import type { SubjectMetadata } from '../../types/metadata';
 import type { ValidationIssue } from '../../types/validation';
 import { isJsonSidecarFile, BLANK_STRING_FIELDS, DATE_FIELDS } from '../deidentify/jsonSidecarDeidentifier';
+import { isExportedPath } from '../bids/bidsNaming';
 
 // ── PHI Detection Patterns ──────────────────────────────────────
 
@@ -344,19 +345,35 @@ export async function scanSidecarContentForPhi(
 
   const scans = await Promise.all(
     sidecarResults.map(async (result) => {
+      let parsed: unknown;
       try {
-        const text = await result.file.text();
-        const parsed = JSON.parse(text) as Record<string, unknown>;
-        const strings: { path: string; value: string }[] = [];
-        collectStringValues(parsed, '', strings);
-        return { result, strings };
+        parsed = JSON.parse(await result.file.text());
       } catch {
-        return { result, strings: [] as { path: string; value: string }[] };
+        parsed = undefined;
       }
+      const isObject = typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed);
+      const strings: { path: string; value: string }[] = [];
+      if (isObject) collectStringValues(parsed, '', strings);
+      return { result, strings, isObject };
     }),
   );
 
-  for (const { result, strings } of scans) {
+  for (const { result, strings, isObject } of scans) {
+    // Fail closed: export de-identifies sidecars by parsing them, and
+    // refuses one it can't parse. Say so here, before export, and only
+    // for sidecars that would actually be exported.
+    if (!isObject && isExportedPath(result.bidsPath)) {
+      issues.push({
+        id: nextId(),
+        category: 'file-format',
+        severity: 'error',
+        title: "Sidecar is not valid JSON, so it can't be de-identified",
+        description: `${result.fileName} could not be read as a JSON object, so NeuroGate can't remove identifying fields from it and won't export it. Fix the file (or remove it), then add the folder again.`,
+        affectedFiles: [result.relativePath],
+        dismissable: false,
+      });
+      continue;
+    }
     for (const { path, value } of strings) {
       const normalizedValue = normalizeForPhiMatching(value);
       for (const phiPattern of PHI_PATTERNS) {

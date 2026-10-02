@@ -59,6 +59,16 @@ const jsonCases: Record<string, string> = {
     ContentDate: '2024-01-01',
     InstanceCreationDate: '2024-01-01T00:00:00.500',
   }),
+  // Identifying fields nested inside objects and arrays must be cleaned
+  // too (top-level only before 2026-10-02).
+  nestedIdentifying: JSON.stringify({
+    Manufacturer: 'Siemens',
+    Source: { PatientName: 'Smith^John', AcquisitionDateTime: '2024-04-22T10:30:00' },
+    Series: [{ PatientID: 'MRN00123', StudyDate: '20240422' }, { SeriesDescription: 'T1' }],
+  }),
+  // Valid JSON that isn't an object can't be a sidecar: rejected, not copied.
+  topLevelArray: JSON.stringify([{ PatientName: 'Smith^John' }]),
+  topLevelNull: 'null',
 };
 
 function runJsonCases() {
@@ -66,6 +76,7 @@ function runJsonCases() {
   for (const [name, text] of Object.entries(jsonCases)) {
     const result = deidentifyJsonSidecar(text, { dateShiftDays: 10 });
     results[name] = {
+      ok: result.ok,
       strippedFields: result.strippedFields.sort(),
       shiftedFields: result.shiftedFields.sort(),
       // Parse back so key order in the diff doesn't matter and malformed

@@ -389,6 +389,14 @@ function sortTree(node: TreeNode) {
   }
 }
 
+/** A sidecar that isn't a JSON object can't be de-identified, so export stops rather than copy it. */
+export class SidecarNotJsonError extends Error {
+  constructor(fileName: string) {
+    super(`"${fileName}" is not a valid JSON object, so it can't be de-identified. Fix or remove it, then add the folder again.`);
+    this.name = 'SidecarNotJsonError';
+  }
+}
+
 // ── ZIP generation ────────────────────────────────────────────────
 
 /**
@@ -452,6 +460,7 @@ export async function generateZip(
         try {
           const text = await entry.content.text();
           const result = deidentifyJsonSidecar(text, entry.jsonDeidentify);
+          if (!result.ok) throw new SidecarNotJsonError(entry.content.name);
           zip.file(`bids_output/${entry.path}`, result.text);
           if (result.strippedFields.length > 0 || result.shiftedFields.length > 0 || result.unparseableDateFields.length > 0) {
             summary.jsonSidecars.push({
@@ -463,6 +472,7 @@ export async function generateZip(
             });
           }
         } catch (err) {
+          if (err instanceof SidecarNotJsonError) throw err;
           throw new Error(`Cannot read "${entry.content.name}". Make sure the file is stored locally (not cloud-only) and add the folder again. (${(err as Error).message})`);
         }
       } else {

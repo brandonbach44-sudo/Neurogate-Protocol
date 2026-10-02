@@ -35,6 +35,7 @@ import { createGzip } from 'node:zlib';
 import { pipeline } from 'node:stream/promises';
 
 import type { FileEntry, DeidentificationSummary } from '../bids/exporter';
+import { SidecarNotJsonError } from '../bids/exporter';
 import { isFileLike } from '../../types/fileLike';
 import { NodeFileAdapter } from './nodeFileAdapter';
 import { deidentifyEdfStream } from './nodeEdfDeidentifyStream';
@@ -103,6 +104,7 @@ export async function writeFileEntriesToDisk(
     } else if (entry.jsonDeidentify) {
       const text = await source.text();
       const result = deidentifyJsonSidecar(text, entry.jsonDeidentify);
+      if (!result.ok) throw new SidecarNotJsonError(source.name);
       await writeFile(destPath, result.text, 'utf-8');
       if (result.strippedFields.length > 0 || result.shiftedFields.length > 0 || result.unparseableDateFields.length > 0) {
         summary.jsonSidecars.push({

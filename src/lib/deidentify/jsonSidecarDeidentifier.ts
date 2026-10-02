@@ -77,11 +77,19 @@ export interface JsonSidecarDeidentifyOptions {
 }
 
 export interface JsonSidecarDeidentifyResult {
+  /**
+   * False when the content isn't a JSON object (invalid JSON, or valid
+   * JSON that is null, a number, a string or an array). Such a file can't
+   * be de-identified, so callers must not export it: `text` is then empty.
+   * Before 2026-10-02 invalid JSON was copied through unchanged, so a
+   * broken sidecar kept every identifying field.
+   */
+  ok: boolean;
   /** The de-identified JSON, pretty-printed with the same 2-space indent BIDS tooling expects. */
   text: string;
-  /** Names of fields that were blanked because they contained identifying content. */
+  /** Paths of fields that were blanked because they contained identifying content ("PatientName", or "Source.PatientName" when nested). */
   strippedFields: string[];
-  /** Names of date fields that were shifted. */
+  /** Paths of date fields that were shifted. */
   shiftedFields: string[];
   /**
    * Names of DATE_FIELDS present with a non-empty value that didn't match
@@ -160,61 +168,84 @@ export function shiftDateString(value: string, shiftDays: number): string | null
 /**
  * De-identify a BIDS/dcm2niix JSON sidecar's text content.
  *
- * Parses the JSON, blanks known-identifying fields, shifts known date
- * fields, and re-serializes. If the content isn't valid JSON (shouldn't
- * happen for a real sidecar, but a malformed file must not crash export),
- * the original text is returned unchanged with empty field lists.
+ * Parses the JSON, blanks known-identifying fields and shifts known date
+ * fields wherever they appear (top level, nested objects, arrays), and
+ * re-serializes. Content that isn't a JSON object returns ok: false and
+ * must not be exported (fail closed; see JsonSidecarDeidentifyResult.ok).
  */
 export function deidentifyJsonSidecar(
   jsonText: string,
   options: JsonSidecarDeidentifyOptions,
 ): JsonSidecarDeidentifyResult {
-  let parsed: Record<string, unknown>;
+  let parsed: unknown;
   try {
     parsed = JSON.parse(jsonText);
   } catch {
-    return { text: jsonText, strippedFields: [], shiftedFields: [], unparseableDateFields: [] };
+    return { ok: false, text: '', strippedFields: [], shiftedFields: [], unparseableDateFields: [] };
+  }
+  if (!isPlainObject(parsed)) {
+    return { ok: false, text: '', strippedFields: [], shiftedFields: [], unparseableDateFields: [] };
   }
 
   const strippedFields: string[] = [];
   const shiftedFields: string[] = [];
   const unparseableDateFields: string[] = [];
+  const blank = new Set(BLANK_STRING_FIELDS);
+  const dates = new Set(DATE_FIELDS);
 
-  for (const field of BLANK_STRING_FIELDS) {
-    if (field in parsed && parsed[field] !== '' && parsed[field] != null) {
-      parsed[field] = 'X';
-      strippedFields.push(field);
+  // Walk every object at any depth. Identifying fields are blanked and
+  // dates shifted wherever they sit: converters and hand-edited sidecars
+  // sometimes nest acquisition or patient details (e.g. under a source or
+  // series block), and the PHI scanner skips these field names at every
+  // depth on the understanding that they're handled here.
+  const walk = (node: unknown, path: string): void => {
+    if (Array.isArray(node)) {
+      node.forEach((item, i) => walk(item, `${path}[${i}]`));
+      return;
     }
-  }
-
-  for (const field of DATE_FIELDS) {
-    const value = parsed[field];
-    if (typeof value === 'string' && value) {
-      const shifted = shiftDateString(value, options.dateShiftDays);
-      if (shifted) {
-        parsed[field] = shifted;
-        shiftedFields.push(field);
+    if (!isPlainObject(node)) return;
+    for (const [key, value] of Object.entries(node)) {
+      const fieldPath = path ? `${path}.${key}` : key;
+      if (blank.has(key)) {
+        if (value !== '' && value != null) {
+          node[key] = 'X';
+          strippedFields.push(fieldPath);
+        }
+      } else if (dates.has(key) && typeof value === 'string' && value) {
+        const shifted = shiftDateString(value, options.dateShiftDays);
+        if (shifted) {
+          node[key] = shifted;
+          shiftedFields.push(fieldPath);
+        } else {
+          // Fail closed: a present date value in an unrecognized format
+          // must not be left in the export with its real, unshifted
+          // absolute value -- that would defeat the entire purpose of this
+          // field's de-identification. Blank it instead, and track it
+          // separately from strippedFields/shiftedFields so this specific
+          // "unknown format, safety fallback" case is visible in the audit
+          // trail rather than looking identical to a normal strip or a
+          // successful shift. Decided with Brandon 2026-08-02.
+          node[key] = 'X';
+          unparseableDateFields.push(fieldPath);
+        }
       } else {
-        // Fail closed: a present date value in an unrecognized format
-        // must not be left in the export with its real, unshifted
-        // absolute value -- that would defeat the entire purpose of this
-        // field's de-identification. Blank it instead, and track it
-        // separately from strippedFields/shiftedFields so this specific
-        // "unknown format, safety fallback" case is visible in the audit
-        // trail rather than looking identical to a normal strip or a
-        // successful shift. Decided with Brandon 2026-08-02.
-        parsed[field] = 'X';
-        unparseableDateFields.push(field);
+        walk(value, fieldPath);
       }
     }
-  }
+  };
+  walk(parsed, '');
 
   return {
+    ok: true,
     text: JSON.stringify(parsed, null, 2),
     strippedFields,
     shiftedFields,
     unparseableDateFields,
   };
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 /** True for a file that dcm2niix-style tooling would treat as a scan sidecar. */

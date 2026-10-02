@@ -1,6 +1,7 @@
 {
   "jsonSidecar": {
     "fullyIdentifying": {
+      "ok": true,
       "strippedFields": [
         "DeviceSerialNumber",
         "InstitutionName",
@@ -33,6 +34,7 @@
       }
     },
     "noIdentifyingFields": {
+      "ok": true,
       "strippedFields": [],
       "shiftedFields": [],
       "output": {
@@ -43,6 +45,7 @@
       }
     },
     "emptyStringFields": {
+      "ok": true,
       "strippedFields": [],
       "shiftedFields": [],
       "output": {
@@ -52,13 +55,15 @@
       }
     },
     "malformedJson": {
+      "ok": false,
       "strippedFields": [],
       "shiftedFields": [],
       "output": {
-        "__raw": "{ this is not valid json "
+        "__raw": ""
       }
     },
     "dateOnly": {
+      "ok": true,
       "strippedFields": [],
       "shiftedFields": [
         "ContentDate",
@@ -67,6 +72,49 @@
       "output": {
         "ContentDate": "2024-01-11",
         "InstanceCreationDate": "2024-01-11T00:00:00.500"
+      }
+    },
+    "nestedIdentifying": {
+      "ok": true,
+      "strippedFields": [
+        "Series[0].PatientID",
+        "Source.PatientName"
+      ],
+      "shiftedFields": [
+        "Series[0].StudyDate",
+        "Source.AcquisitionDateTime"
+      ],
+      "output": {
+        "Manufacturer": "Siemens",
+        "Source": {
+          "PatientName": "X",
+          "AcquisitionDateTime": "2024-05-02T10:30:00"
+        },
+        "Series": [
+          {
+            "PatientID": "X",
+            "StudyDate": "20240502"
+          },
+          {
+            "SeriesDescription": "T1"
+          }
+        ]
+      }
+    },
+    "topLevelArray": {
+      "ok": false,
+      "strippedFields": [],
+      "shiftedFields": [],
+      "output": {
+        "__raw": ""
+      }
+    },
+    "topLevelNull": {
+      "ok": false,
+      "strippedFields": [],
+      "shiftedFields": [],
+      "output": {
+        "__raw": ""
       }
     }
   },
