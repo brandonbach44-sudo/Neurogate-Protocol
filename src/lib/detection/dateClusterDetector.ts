@@ -111,7 +111,7 @@ export function assignDateClusterSessions(
   if (clusters.length !== sortedSessionIds.length) {
     const mismatchReason: DetectionReason = {
       layer: 'date-cluster',
-      message: `Found ${clusters.length} date-cluster${clusters.length !== 1 ? 's' : ''} of files (grouped by acquisition timestamp) but ${sortedSessionIds.length} timepoint${sortedSessionIds.length !== 1 ? 's are' : ' is'} defined -- counts don't match, so sessions were not auto-assigned by date. Assign manually, or check for a missed visit / extra rescan.`,
+      message: `Found ${clusters.length} date-cluster${clusters.length !== 1 ? 's' : ''} of files (grouped by acquisition timestamp) but ${sortedSessionIds.length} timepoint${sortedSessionIds.length !== 1 ? 's are' : ' is'} defined: counts don't match, so sessions were not auto-assigned by date. Assign manually, or check for a missed visit / extra rescan.`,
       weight: 0,
     };
     return { assignments, mismatchReason };

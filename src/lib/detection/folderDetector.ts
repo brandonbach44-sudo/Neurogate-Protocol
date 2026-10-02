@@ -176,7 +176,7 @@ export function detectFromFolderPath(relativePath: string): FolderResult {
         ambiguousSessionCandidate = 'ses-postsurgery';
         reasons.push({
           layer: 'folder',
-          message: `Folder name is ambiguous ("post-op" could mean post-implant monitoring or post-surgery follow-up) (folder: "${segment}") -- deferring to nearby CT/iEEG evidence if available`,
+          message: `Folder name is ambiguous ("post-op" could mean post-implant monitoring or post-surgery follow-up) (folder: "${segment}"); deferring to nearby CT/iEEG evidence if available`,
           weight: 0,
         });
       }

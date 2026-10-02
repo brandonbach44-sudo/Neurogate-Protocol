@@ -72,7 +72,7 @@ export async function runDesktopExport(
       try {
         content = await NodeFileAdapter.fromPath(item.sourcePath);
       } catch (err) {
-        throw new Error(`Cannot read "${item.sourcePath}" -- make sure the file is stored locally (not cloud-only) and still exists. (${(err as Error).message})`);
+        throw new Error(`Cannot read "${item.sourcePath}". Make sure the file is stored locally (not cloud-only) and still exists. (${(err as Error).message})`);
       }
     } else if (item.text !== undefined) {
       content = item.text;

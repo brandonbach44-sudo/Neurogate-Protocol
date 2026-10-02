@@ -127,6 +127,20 @@ function unitInfo(unit: TimepointUnit) {
  * disallowed "." character ("ses-2.5mo"), since BIDS entity values must be
  * alphanumeric only. Found via adversarial testing 2026-08-02.
  */
+/** Largest timepoint number the Structure step offers (0 = baseline). */
+export const MAX_TIMEPOINT_NUMBER = 99;
+
+/** A timepoint number is a whole number from 0 to MAX_TIMEPOINT_NUMBER. Shared by the GUI and the CLI. */
+export function isValidTimepointNumber(n: number): boolean {
+  return Number.isInteger(n) && n >= 0 && n <= MAX_TIMEPOINT_NUMBER;
+}
+
+/** Clamp any typed value to a valid timepoint number (used by the Structure step's number input). */
+export function toTimepointNumber(value: number): number {
+  if (!Number.isFinite(value)) return 0;
+  return Math.max(0, Math.min(MAX_TIMEPOINT_NUMBER, Math.round(value)));
+}
+
 function assertValidTimepointNumber(n: number): void {
   if (!Number.isInteger(n) || n < 0) {
     throw new Error(
@@ -260,8 +274,8 @@ export function getSessionOptions(structure: DatasetStructure): SessionOption[] 
 
 /**
  * Validate a full set of custom timepoints before letting the user
- * continue past Step 2: at least one timepoint, no duplicates, no more
- * than MAX_CUSTOM_TIMEPOINTS.
+ * continue past Step 2: at least one timepoint, every number a whole number
+ * from 0 to 99, no duplicates, no more than MAX_CUSTOM_TIMEPOINTS.
  */
 export interface TimepointsValidation {
   valid: boolean;
@@ -276,6 +290,12 @@ export function validateCustomTimepoints(timepoints: CustomTimepoint[]): Timepoi
   }
   if (timepoints.length > MAX_CUSTOM_TIMEPOINTS) {
     errors.push(`No more than ${MAX_CUSTOM_TIMEPOINTS} timepoints per dataset.`);
+  }
+  // Check numbers before anything builds a label from them: label building
+  // throws on a negative or decimal number.
+  if (timepoints.some(tp => !isValidTimepointNumber(tp.number))) {
+    errors.push(`Timepoint numbers must be whole numbers from 0 to ${MAX_TIMEPOINT_NUMBER}.`);
+    return { valid: false, errors, duplicateIndices: [] };
   }
   const duplicateIndices = findDuplicateTimepoints(timepoints);
   if (duplicateIndices.length > 0) {

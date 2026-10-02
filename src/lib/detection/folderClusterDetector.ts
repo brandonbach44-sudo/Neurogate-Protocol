@@ -128,8 +128,8 @@ export function assignFolderClusterSessions(
       plausibleVisitCounts.length > 0 && Math.max(...plausibleVisitCounts) >= 1;
 
     const message = likelyMissedVisit
-      ? `This subject has ${Math.max(...plausibleVisitCounts)} visit folder${Math.max(...plausibleVisitCounts) !== 1 ? 's' : ''} but the study defines ${sortedSessionIds.length} timepoints (${sortedSessionIds.join(', ')}) -- most likely a missed or not-yet-acquired visit. Which timepoint this is cannot be determined from the folder structure alone, so assign it manually.`
-      : `No folder level splits this subject's files into ${sortedSessionIds.length} group${sortedSessionIds.length !== 1 ? 's' : ''} to match the ${sortedSessionIds.length} defined timepoint${sortedSessionIds.length !== 1 ? 's' : ''} (found ${distinctCountsTried.join(', ')} distinct folders at depths 1..${maxDepth}) -- sessions were not auto-assigned by folder structure. Assign manually.`;
+      ? `This subject has ${Math.max(...plausibleVisitCounts)} visit folder${Math.max(...plausibleVisitCounts) !== 1 ? 's' : ''} but the study defines ${sortedSessionIds.length} timepoints (${sortedSessionIds.join(', ')}): most likely a missed or not-yet-acquired visit. Which timepoint this is cannot be determined from the folder structure alone, so assign it manually.`
+      : `No folder level splits this subject's files into ${sortedSessionIds.length} group${sortedSessionIds.length !== 1 ? 's' : ''} to match the ${sortedSessionIds.length} defined timepoint${sortedSessionIds.length !== 1 ? 's' : ''} (found ${distinctCountsTried.join(', ')} distinct folders at depths 1..${maxDepth}): sessions were not auto-assigned by folder structure. Assign manually.`;
 
     const mismatchReason: DetectionReason = {
       layer: 'folder-cluster',
@@ -155,7 +155,7 @@ export function assignFolderClusterSessions(
     const session = sortedSessionIds[i];
     const reason: DetectionReason = {
       layer: 'folder-cluster',
-      message: `Assigned by subfolder structure: folder "${folder.split('/').pop()}" (${i + 1} of ${ordered.length}, ordered ${numbered ? 'by a number embedded in the folder name' : 'alphabetically -- lowest-confidence ordering, no number or date to go on'}) matched to timepoint ${i + 1} of ${sortedSessionIds.length} ("${session}"). Verify this is correct.`,
+      message: `Assigned by subfolder structure: folder "${folder.split('/').pop()}" (${i + 1} of ${ordered.length}, ordered ${numbered ? 'by a number embedded in the folder name' : 'alphabetically: lowest-confidence ordering, no number or date to go on'}) matched to timepoint ${i + 1} of ${sortedSessionIds.length} ("${session}"). Verify this is correct.`,
       // Lower than Layer A's 0.6 either way; numeric folder order is more
       // trustworthy than a bare alphabetical fallback, so it scores higher
       // within this layer, but both stay below a real timestamp's weight.

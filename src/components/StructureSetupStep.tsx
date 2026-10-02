@@ -8,6 +8,8 @@ import {
   sortTimepoints,
   findDuplicateTimepoints,
   validateCustomTimepoints,
+  toTimepointNumber,
+  MAX_TIMEPOINT_NUMBER,
   type PresetId,
   type CustomTimepoint,
   type TimepointUnit,
@@ -124,7 +126,7 @@ export default function StructureSetupStep({ onContinue, onBack, initialStructur
           >
             <div className="text-sm font-semibold text-gray-900 mb-1">No</div>
             <div className="text-xs text-gray-500 leading-relaxed">
-              One folder of data per subject -- a cross-sectional study, or a single-block acute/implant recording with no follow-up timepoints.
+              One folder of data per subject: a cross-sectional study, or a single-block acute/implant recording with no follow-up timepoints.
             </div>
           </button>
           <button
@@ -134,7 +136,7 @@ export default function StructureSetupStep({ onContinue, onBack, initialStructur
           >
             <div className="text-sm font-semibold text-gray-900 mb-1">Yes</div>
             <div className="text-xs text-gray-500 leading-relaxed">
-              Multiple sessions per subject -- an implant workup, a longitudinal study with defined timepoints, or another multi-session structure.
+              Multiple sessions per subject: an implant workup, a longitudinal study with defined timepoints, or another multi-session structure.
             </div>
           </button>
         </div>
@@ -218,9 +220,10 @@ export default function StructureSetupStep({ onContinue, onBack, initialStructur
                   <input
                     type="number"
                     min={0}
-                    max={99}
+                    max={MAX_TIMEPOINT_NUMBER}
+                    step={1}
                     value={tp.number}
-                    onChange={e => updateTimepoint(i, { number: Math.max(0, Math.min(99, Number(e.target.value) || 0)) })}
+                    onChange={e => updateTimepoint(i, { number: toTimepointNumber(Number(e.target.value)) })}
                     className="w-16 text-sm border border-gray-300 rounded px-2 py-1.5"
                     aria-label={`Timepoint ${i + 1} number`}
                   />

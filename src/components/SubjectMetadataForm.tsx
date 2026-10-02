@@ -71,7 +71,7 @@ export default function SubjectMetadataForm({
         {subject.sessions.length === 0 && (
           <div className="px-5 py-4 text-sm text-gray-500 italic">
             {isSingleSession
-              ? 'Single session dataset -- all of this subject\'s files are grouped together, no separate sessions.'
+              ? 'Single session dataset: all of this subject\'s files are grouped together, no separate sessions.'
               : 'No sessions detected for this subject. Sessions will be added based on the mapping table.'}
           </div>
         )}
