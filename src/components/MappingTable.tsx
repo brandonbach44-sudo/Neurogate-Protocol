@@ -26,6 +26,8 @@ interface MappingTableProps {
   onBack: () => void;
   /** Active session structure; defaults to Implant sessions if not passed. */
   structure?: DatasetStructure;
+  /** Offered next to Back: returns to the Structure step (ToolPage confirms first, since files are cleared). */
+  onChangeStructure?: () => void;
 }
 
 // ── Confidence badge colors ───────────────────────────────────────
@@ -79,6 +81,7 @@ export default function MappingTable({
   onBulkUpdateModality,
   onContinue,
   onBack,
+  onChangeStructure,
   structure = createDefaultDatasetStructure(),
 }: MappingTableProps) {
   const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
@@ -559,7 +562,12 @@ export default function MappingTable({
 
       {/* ── Action Buttons ───────────────────────────────────── */}
       <div className="flex justify-between mt-6">
-        <Button variant="secondary" onClick={onBack}>Back to Drop Zone</Button>
+        <div className="flex items-center gap-3">
+          <Button variant="secondary" onClick={onBack}>Back to Drop Zone</Button>
+          {onChangeStructure && (
+            <Button variant="secondary" onClick={onChangeStructure}>Change structure</Button>
+          )}
+        </div>
         <Button variant="primary" onClick={onContinue}>Continue to Metadata</Button>
       </div>
     </div>

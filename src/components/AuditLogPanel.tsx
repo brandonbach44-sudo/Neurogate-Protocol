@@ -4,6 +4,7 @@ import { downloadAuditJson, downloadAuditCsv } from '../lib/audit';
 import type { AuditEntry } from '../types/audit';
 
 const ACTION_LABELS: Record<string, string> = {
+  'structure-changed': 'Structure Changed',
   'files-scanned': 'Files Scanned',
   'detection-completed': 'Detection Complete',
   'session-corrected': 'Session Corrected',

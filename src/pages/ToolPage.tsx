@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import FileDropZone from '../components/FileDropZone';
+import Button from '../components/Button';
 import MappingTable from '../components/MappingTable';
 import MetadataStep from '../components/MetadataStep';
 import ValidationStep from '../components/ValidationStep';
@@ -230,6 +231,46 @@ function ToolPage() {
     }
   }, [audit]);
 
+  // ── Change structure ─────────────────────────────────────────
+  // The structure decides every session label, so changing it means
+  // starting the files over. Offered from Drop Files and Mapping. The
+  // audit log is kept and records the switch.
+  const [changingFrom, setChangingFrom] = useState<DatasetStructure | null>(null);
+  const [confirmingChange, setConfirmingChange] = useState(false);
+
+  const beginChangeStructure = useCallback(() => {
+    setConfirmingChange(false);
+    setChangingFrom(datasetStructure);
+    setScannedFiles([]);
+    setDetectionResults([]);
+    setSummary(null);
+    setMetadataOutput(null);
+    setMetadataDraft(null);
+    loggedMetadata.current = null;
+    clearToolSession();
+    setSavedSession(null);
+    setStep('structure');
+  }, [datasetStructure]);
+
+  const requestChangeStructure = useCallback(() => {
+    if (scannedFiles.length > 0) setConfirmingChange(true);
+    else beginChangeStructure();
+  }, [scannedFiles.length, beginChangeStructure]);
+
+  const changeStructureConfirm = confirmingChange && (
+    <div className="max-w-3xl mx-auto mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4">
+      <p className="text-sm font-semibold text-amber-800">Change the structure?</p>
+      <p className="text-sm text-amber-700 mt-1">
+        The files you added and your corrections will be cleared, and you'll add the folder again
+        after choosing the new structure. The audit log is kept.
+      </p>
+      <div className="flex gap-3 mt-3">
+        <Button variant="primary" onClick={beginChangeStructure}>Change structure and clear files</Button>
+        <Button variant="secondary" onClick={() => setConfirmingChange(false)}>Keep working</Button>
+      </div>
+    </div>
+  );
+
   // ── Reset to start ───────────────────────────────────────────
   const handleStartOver = useCallback(() => {
     setStep('drop');
@@ -386,14 +427,34 @@ function ToolPage() {
         <h1 className="sr-only">NeuroGate Protocol: neural data organization tool</h1>
 
         {/* Step 1: Dataset structure setup */}
+        {step === 'structure' && changingFrom && (
+          <div className="max-w-3xl mx-auto mb-4 flex justify-end">
+            <button
+              type="button"
+              onClick={() => { setChangingFrom(null); setStep('drop'); }}
+              className="btn-cta text-sm font-medium text-gray-500 hover:text-gray-800"
+            >
+              Cancel, keep the current structure
+            </button>
+          </div>
+        )}
         {step === 'structure' && (
           <StructureSetupStep
+            key={changingFrom ? 'changing' : 'first'}
             initialStructure={structureChosen ? datasetStructure : undefined}
             onContinue={(structure) => {
+              const sessionIds = resolveSessionIds(structure);
+              if (changingFrom) {
+                audit.logStructureChanged(
+                  { presetId: changingFrom.presetId, sessionIds: resolveSessionIds(changingFrom) },
+                  { presetId: structure.presetId, sessionIds },
+                );
+                setChangingFrom(null);
+              } else {
+                audit.logStructureSelected(structure.presetId, sessionIds.length, sessionIds);
+              }
               setDatasetStructure(structure);
               setStructureChosen(true);
-              const sessionIds = resolveSessionIds(structure);
-              audit.logStructureSelected(structure.presetId, sessionIds.length, sessionIds);
               setStep('drop');
             }}
           />
@@ -461,6 +522,16 @@ function ToolPage() {
 
             <FileDropZone onFilesScanned={handleFilesScanned} />
 
+            <p className="text-center text-xs text-gray-500 mt-4">
+              Structure: {datasetStructure.presetId === 'custom-timepoints'
+                ? `Custom timepoints (${resolveSessionIds(datasetStructure).join(', ')})`
+                : datasetStructure.presetId === 'single-session' ? 'Single session' : 'Implant sessions'}
+              {' · '}
+              <button type="button" onClick={requestChangeStructure} className="btn-cta font-medium underline" style={{ color: '#011F5B' }}>
+                Change structure
+              </button>
+            </p>
+
             {/* Feature cards below drop zone */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-10 max-w-3xl mx-auto">
               {[
@@ -513,6 +584,8 @@ function ToolPage() {
 
         {/* Step 2: Mapping table */}
         {step === 'mapping' && summary && (
+          <>
+          {changeStructureConfirm}
           <MappingTable
             results={detectionResults}
             summary={summary}
@@ -521,8 +594,10 @@ function ToolPage() {
             onBulkUpdateModality={handleBulkUpdateModality}
             onContinue={() => setStep('metadata')}
             onBack={handleStartOver}
+            onChangeStructure={requestChangeStructure}
             structure={datasetStructure}
           />
+          </>
         )}
 
         {/* Step 3: Metadata */}

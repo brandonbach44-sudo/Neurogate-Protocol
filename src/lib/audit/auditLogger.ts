@@ -43,15 +43,28 @@ export function createAuditLogger() {
 
   // ── Convenience methods for common actions ──────────────────
 
+  function describePreset(presetId: string, sessionCount: number, sessionIds: string[]): string {
+    return presetId === 'custom-timepoints'
+      ? `Custom timepoints (${sessionCount} timepoint${sessionCount !== 1 ? 's' : ''}: ${sessionIds.join(', ')})`
+      : presetId === 'single-session'
+        ? 'Single session (no session folders)'
+        : `Implant sessions (${sessionCount} fixed sessions: ${sessionIds.join(', ')})`;
+  }
+
   function logStructureSelected(presetId: string, sessionCount: number, sessionIds: string[]) {
-    const summary =
-      presetId === 'custom-timepoints'
-        ? `Structure selected: Custom timepoints (${sessionCount} timepoint${sessionCount !== 1 ? 's' : ''}: ${sessionIds.join(', ')})`
-        : presetId === 'single-session'
-          ? 'Structure selected: Single session (no session folders)'
-          : `Structure selected: Implant sessions (${sessionCount} fixed sessions: ${sessionIds.join(', ')})`;
-    addEntry('structure-selected', summary,
+    addEntry('structure-selected', `Structure selected: ${describePreset(presetId, sessionCount, sessionIds)}`,
       { presetId, sessionCount, sessionIds },
+    );
+  }
+
+  /** The user went back and switched structure; the files they had added were cleared. */
+  function logStructureChanged(
+    from: { presetId: string; sessionIds: string[] },
+    to: { presetId: string; sessionIds: string[] },
+  ) {
+    addEntry('structure-changed',
+      `Structure changed from ${describePreset(from.presetId, from.sessionIds.length, from.sessionIds)} to ${describePreset(to.presetId, to.sessionIds.length, to.sessionIds)}; added files were cleared`,
+      { from, to },
     );
   }
 
@@ -233,6 +246,7 @@ export function createAuditLogger() {
     addEntry,
     // Convenience loggers
     logStructureSelected,
+    logStructureChanged,
     logFilesScanned,
     logDetectionCompleted,
     logSessionCorrected,
