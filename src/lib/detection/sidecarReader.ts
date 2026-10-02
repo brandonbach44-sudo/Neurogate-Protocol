@@ -154,8 +154,22 @@ export function getSidecarBaseName(fileName: string): string {
 }
 
 /**
+ * Lookup key pairing a data file with its sidecar: the file's folder plus
+ * its base name. A sidecar only describes the scan sitting next to it, so
+ * the folder is part of the key. Keying by base name alone let
+ * "Patient_001/T1w.json" and "Patient_002/T1w.json" overwrite each other,
+ * so one subject's scans were classified (and dated) using another
+ * subject's sidecar.
+ */
+export function sidecarKey(relativePath: string): string {
+  const slash = relativePath.lastIndexOf('/');
+  const folder = slash === -1 ? '' : relativePath.slice(0, slash + 1);
+  return folder + getSidecarBaseName(relativePath.slice(slash + 1));
+}
+
+/**
  * Read every JSON sidecar in the dropped file set and return a map keyed
- * by base name (filename minus extension) -> extracted scan-name text.
+ * by sidecarKey() (folder + base name) -> extracted scan-name text.
  *
  * Sidecars are tiny (a few KB), so reading them all in parallel is cheap
  * even for large datasets. Malformed or unreadable JSON is skipped
@@ -208,7 +222,7 @@ export async function readJsonSidecars(
 
         const scanText = parts.join(' ').trim();
         if (scanText || acquisitionDate || imageType.length > 0 || dicomModality || fieldNames.length > 0) {
-          map.set(getSidecarBaseName(jf.name), {
+          map.set(sidecarKey(jf.relativePath), {
             scanText,
             sidecarName: jf.name,
             acquisitionDate,

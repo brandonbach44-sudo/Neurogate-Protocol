@@ -305,7 +305,8 @@ export async function readEdfHeaders(
         if (buffer.byteLength < 256) return;
 
         const info = parseEdfHeader(buffer);
-        map.set(ef.name, info);
+        // Keyed by path: two subjects' EDFs can share a file name.
+        map.set(ef.relativePath, info);
       } catch {
         // Unreadable file -- skip, not fatal. Detection continues
         // using filename/folder heuristics alone.

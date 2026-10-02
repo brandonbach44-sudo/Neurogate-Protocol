@@ -29,6 +29,7 @@ import { groupIntoSubject } from './src/lib/detection/subjectGrouping';
 import { isOsJunkFile } from './src/lib/detection/extensionDetector';
 import type { ScannedFile } from './src/types/files';
 import { DEFACING_MODALITIES } from './src/types/detection';
+import { runDetection, readJsonSidecars, readEdfHeaders } from './src/lib/detection';
 import type { Modality } from './src/types/detection';
 
 let failures = 0;
@@ -226,6 +227,46 @@ console.log('tracer names are not subjects');
   }
   const hup = groupIntoSubject(flat[2], flat).groupName;
   report('safety', /HUP015/i.test(hup), `"HUP015_AV45" grouped as "${hup}", expected HUP015`);
+}
+
+// ── 7c. SAFETY: same-named files in different subjects stay separate ──
+// Sidecars, EDF headers and the neighbor-modality map were keyed by bare
+// file name, so Patient_A/scan.json and Patient_B/scan.json overwrote
+// each other and one subject's scan was classified from the other's
+// sidecar (found 2026-10-02). Each file here must be decided by its own
+// sidecar / header.
+console.log('same-named files in different subjects');
+{
+  const edf = (labels: string[]) => {
+    const ns = labels.length;
+    const bytes = new Uint8Array(256 + ns * 256).fill(0x20);
+    const put = (at: number, len: number, v: string) => { for (let i = 0; i < len; i++) bytes[at + i] = (v.padEnd(len, ' ')).charCodeAt(i); };
+    put(0, 8, '0'); put(8, 80, 'X X X X'); put(168, 8, '01.01.24'); put(176, 8, '00.00.00');
+    put(184, 8, String(256 + ns * 256)); put(236, 8, '1'); put(244, 8, '1'); put(252, 4, String(ns));
+    labels.forEach((l, i) => put(256 + i * 16, 16, l));
+    return bytes;
+  };
+  const mk = (relativePath: string, content: string | Uint8Array): ScannedFile => {
+    const name = relativePath.split('/').pop()!;
+    const file = new File([content], name);
+    return { relativePath, name, size: file.size, file } as ScannedFile;
+  };
+  const files = [
+    mk('Patient_A/scan.nii.gz', new Uint8Array([0])),
+    mk('Patient_A/scan.json', JSON.stringify({ Modality: 'PT', TracerName: 'FDG' })),
+    mk('Patient_A/night.edf', edf(['LA1', 'LA2', 'LA3', 'LB1', 'LB2'])),
+    mk('Patient_B/scan.nii.gz', new Uint8Array([0])),
+    mk('Patient_B/scan.json', JSON.stringify({ Modality: 'MR', SeriesDescription: 'T1_MPRAGE' })),
+    mk('Patient_B/night.edf', edf(['Fp1', 'Fp2', 'C3', 'C4', 'O1'])),
+  ];
+  const results = runDetection(files, await readJsonSidecars(files), await readEdfHeaders(files));
+  const modalityOf = (p: string) => results.find(r => r.relativePath === p)?.detectedModality;
+  for (const [path, expected] of [
+    ['Patient_A/scan.nii.gz', 'pet'], ['Patient_B/scan.nii.gz', 'anat-T1w'],
+    ['Patient_A/night.edf', 'ieeg'], ['Patient_B/night.edf', 'eeg'],
+  ] as const) {
+    report('safety', modalityOf(path) === expected, `${path}: ${modalityOf(path)}, expected ${expected} (decided by another subject's file?)`);
+  }
 }
 
 // ── 8. SAFETY: every face-bearing structural contrast needs defacing ──
