@@ -70,6 +70,11 @@ export interface DeidentifyResult {
   bytes: ArrayBuffer;
   /** Original patient ID string, for the audit log. Never written to output. */
   originalPatientId: string;
+  /**
+   * Identifying text replaced with X inside EDF+/BDF+ annotations (see
+   * edfStructure.ts). 0 for plain EDF, or annotations with nothing to redact.
+   */
+  annotationRedactions?: number;
   /** Original recording start date, for the audit log. */
   originalDate: string;
   /** The shifted date written into the output. */
@@ -80,6 +85,7 @@ export interface DeidentifyResult {
 
 import { readFileBuffer } from '../fileCache';
 import type { FileLike } from '../../types/fileLike';
+import { redactEdfBody } from './edfStructure';
 
 // ── Month name tables ─────────────────────────────────────────────
 
@@ -385,6 +391,11 @@ export async function deidentifyEdf(
 
   const headerResult = transformEdfHeader(fullBytes.subarray(0, 256), options);
   fullBytes.set(headerResult.headerBytes, 0);
+  // Annotation text and per-signal free-text fields, in place (same
+  // length, so the file layout is unchanged).
+  const { annotationRedactions } = redactEdfBody(
+    fullBytes, headerResult.originalPatientId, headerResult.originalRecordingId,
+  );
 
   return {
     bytes: fullBytes.buffer.slice(fullBytes.byteOffset, fullBytes.byteOffset + fullBytes.byteLength),
@@ -392,6 +403,7 @@ export async function deidentifyEdf(
     originalDate: headerResult.originalDate,
     shiftedDate: headerResult.shiftedDate,
     containedPhi: headerResult.containedPhi,
+    annotationRedactions,
   };
 }
 

@@ -99,6 +99,7 @@ export async function writeFileEntriesToDisk(
           subjectGroup: entry.subjectGroup ?? '',
           containedPhi: result.containedPhi,
           dateShifted: entry.edfDeidentify.dateShiftDays !== 0,
+          annotationRedactions: result.annotationRedactions,
         });
       }
     } else if (entry.jsonDeidentify) {
