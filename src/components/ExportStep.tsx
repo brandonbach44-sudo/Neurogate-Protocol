@@ -173,12 +173,18 @@ export default function ExportStep({
     setServerEdfResults([]);
 
     try {
+      // Filled by the server path below and merged into the summary
+      // directly: the serverEdfResults state set here isn't readable
+      // until the next render, so reading it in this same call used to
+      // leave these files out of the audit summary.
+      const newServerResults: ServerEdfResult[] = [];
+
       // ── Server upload path for large EDF files ──────────────────
       if (hasServerApi && stats.largeFiles.length > 0) {
         const subjectIdMap = new Map<string, string>();
         for (const s of subjects) subjectIdMap.set(s.subjectGroup, s.bidsSubjectId);
 
-        const newServerResults: ServerEdfResult[] = [];
+
 
         for (let i = 0; i < stats.largeFiles.length; i++) {
           const lf = stats.largeFiles[i] as LargeFileEntry & { file?: File };
@@ -238,7 +244,7 @@ export default function ExportStep({
       const mergedSummary: DeidentificationSummary = {
         edfFiles: [
           ...summary.edfFiles,
-          ...serverEdfResults.map(r => {
+          ...newServerResults.map(r => {
             const match = detectionResults.find(d => d.fileName === r.originalName);
             const subjectGroup = match ? getEffectiveSubjectGroup(match) : '';
             return {
