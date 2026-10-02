@@ -46,7 +46,7 @@ The stepper labels are **Structure · Drop Files · Mapping · Metadata · Valid
       - Labels come out as `ses-2wk`, `ses-6mo`, `ses-1d`, `ses-1yr`, or `ses-1` for the "sessions" unit. 0 is shown as "(baseline)".
       - Timepoints are sorted by elapsed time (a month counts as 30 days, a year as 365), and duplicates are blocked.
 - **The structure can't be changed on screen once you continue.** To change it, click "Back to Drop Zone" on Mapping, then reload the app.
-  - The page currently says "You can change this later", which isn't accurate.
+  - The page says: "This can't be changed after you add files without starting over."
 
 ### Step 2: Drop Files (`src/components/FileDropZone.tsx`)
 - Drag in a folder or files, or use the "browse folder" / "select files" links. Any folder layout works.
@@ -276,7 +276,9 @@ bids_output/
                              (no dataset_description.json of its own)
 ```
 
-No `participants.json`, `README` or `CHANGES` is generated. In the GUI, subjects are numbered in the order they were detected.
+No `participants.json`, `README` or `CHANGES` is generated.
+
+**This is NeuroGate's own BIDS-based layout, by design.** File names, entities, datatype folders and sidecars follow BIDS conventions, but the root layout deliberately differs from the official BIDS specification: subjects sit under `primary/` and scanner-derived maps under `derivatives/scanner/`. The official BIDS validator expects subjects at the dataset root, so it doesn't apply to the dataset as a whole. The layout is defined in SOP-BIDS-001. In the GUI, subjects are numbered in the order they were detected.
 
 ## 10. Audit log (`src/lib/audit/`, `src/types/audit.ts`)
 
@@ -305,6 +307,8 @@ No `participants.json`, `README` or `CHANGES` is generated. In the GUI, subjects
 
 - dcm2niix commands with PHI-safe filename templates (`%p_%s`, never `%i` or `%n`).
 - A conversion helper script (`public/docs/convert_dicom_auto.py`) with Siemens, GE and Philips branches.
-- pydeface for defacing.
+- PET2BIDS (`pip install pypet2bids`, `dcm2niix4pet`) for PET conversion with complete PET sidecars; `ecatpet2bids` for ECAT.
+- pydeface for defacing (T1w, T2w, FLAIR, PDw, T2*w).
+- Install commands: Homebrew, apt, dnf and conda-forge for dcm2niix, and the prebuilt binary on Windows. FSL comes from its official installer.
 - The install scripts in `tools/` aren't referenced in the app.
 - NeuroGate itself doesn't convert or deface anything.

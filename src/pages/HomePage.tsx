@@ -217,7 +217,7 @@ export default function HomePage() {
             </h1>
             <p className="mt-5 text-base leading-relaxed text-gray-500 max-w-md">
               NeuroGate Protocol helps research sites organize, validate, and export
-              BIDS-compliant neural data, ready to share through cloud and on-premise
+              BIDS-based neural data, ready to share through cloud and on-premise
               standardized data infrastructure toward building a learning health system.
             </p>
             <div className="flex items-center gap-3 mt-8">
@@ -545,7 +545,7 @@ export default function HomePage() {
           <div>
             <h2 className="text-2xl font-bold text-white">Ready to organize your data?</h2>
             <p className="mt-2 text-sm text-blue-200 max-w-lg">
-              No accounts, nothing uploaded. Add a folder and export a BIDS-compliant dataset
+              No accounts, nothing uploaded. Add a folder and export a BIDS-based dataset
               in minutes.
             </p>
           </div>

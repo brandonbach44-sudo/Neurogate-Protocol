@@ -1,125 +1,177 @@
 # Architecture
 
-## High-Level Flow
+How NeuroGate is put together. For *what* it does (every check, field and output), see [`capabilities.md`](./capabilities.md); that file is the source of truth for behavior and is updated first whenever behavior changes.
+
+## High-level picture
+
+NeuroGate ships as one Electron desktop app (macOS Apple Silicon, Windows, Linux) with a CLI binary bundled inside it. Both run the same TypeScript libraries in `src/lib/` for detection, validation, BIDS naming and de-identification. Everything runs on the user's computer; the only network requests are the update check (GitHub) and Google Fonts.
 
 ```
-User browser
-   │
-   ├─ File drop & scan (all client-side)
-   ├─ Modality detection (all client-side)
-   ├─ Mapping table (all client-side)
-   ├─ Metadata forms (all client-side)
-   ├─ Validation (all client-side, using bids-validator npm)
-   ├─ Audit log generation (all client-side)
-   │
-   └─ Export ──► BIDS ZIP download (site uploads manually to its chosen data infrastructure)
+┌──────────────────────── Electron desktop app ────────────────────────┐
+│                                                                      │
+│  Main process (electron/main.cjs)                                    │
+│   ├─ in-process Express server (server/index.js) on 127.0.0.1:3001   │
+│   │    serves the built frontend (dist/); upload routes not mounted  │
+│   ├─ IPC: install-cli, choose/export/write/reveal export folder      │
+│   ├─ desktop export writer (electron/desktop-export.cjs, bundled)    │
+│   └─ update check (electron-updater, GitHub Releases)                │
+│                                                                      │
+│  Preload (electron/preload.cjs) → window.neurogateDesktop            │
+│                                                                      │
+│  Renderer: React app (src/), same code as the web build              │
+│   └─ src/lib: detection · validation · BIDS naming · de-id · audit   │
+└──────────────────────────────────────────────────────────────────────┘
+
+CLI (src/cli/) ── esbuild → dist-cli/cli.cjs ── Node SEA → dist-cli/neurogate(.exe)
+   └─ same src/lib, files read through NodeFileAdapter, streamed export
 ```
 
-## Upload Architecture - Decision Finalized
+## Electron main process (`electron/main.cjs`)
 
-**Decision:** Browser-to-infrastructure direct upload is not feasible in general. Most data infrastructure platforms don't support the CORS headers required for browser-initiated REST API calls, and adding a backend proxy would conflict with the tool's static, client-side-only design.
+- **Plain CommonJS, no build step.** The main process is small, and `.cjs` avoids ESM/Electron interop problems even though the repo root is `"type": "module"`.
+- **In-process server, not a child process.** On launch it sets `PORT=3001`, `NEUROGATE_DESKTOP=1` and `SERVE_STATIC=true`, then `require()`s `server/index.js` and calls its exported `start(3001, '127.0.0.1')`. The window loads `http://127.0.0.1:3001`. Serving the frontend from the same origin means the renderer needs no Electron-specific loading code.
+  - An earlier design spawned a second copy of the app as a child process to run the server. That failed on real installed Windows builds (`spawn … ENOENT`), most likely because antivirus blocks an unsigned `.exe` launching itself. Running the server in-process removed that failure mode.
+  - `NEUROGATE_DESKTOP` tells the server not to mount its `/api/deidentify` and `/api/download` routes; the desktop app exports by streaming to disk instead.
+  - The server binds to loopback only. If port 3001 is taken, the app shows an error and quits.
+- **Fast dev loop.** When `ELECTRON_START_URL` is set (by `scripts/dev-electron.mjs`, `npm run electron:dev:fast`), the window loads the Vite dev server instead and the server runs with `SERVE_STATIC=false`.
+- **Window security:** `contextIsolation: true`, `nodeIntegration: false`, `sandbox: true`. External links open in the system browser.
+- **App name** is forced to `NeuroGate` so `userData` (and therefore the CLI install folder) isn't named after `package.json`'s old `"name"`.
 
-**Final approach:** The tool exports a validated BIDS ZIP file to the user's local machine. The user then uploads that ZIP to their chosen data infrastructure (institutional cloud, on-premise archive, etc.) per their site-specific upload procedure. This keeps the tool fully static and deployable as a plain web URL with no backend.
+### Install CLI
 
-The audit log (JSON + CSV) auto-downloads alongside the BIDS ZIP so sites have an ALCOA+-compliant record regardless of which upload method they use.
+The `install-cli` IPC handler copies the bundled CLI (`resources/cli/neurogate[.exe]` in a packaged build, `dist-cli/` in dev) to `<userData>/bin`. On Windows it then adds that folder to the **User** PATH through PowerShell and .NET's `[Environment]::SetEnvironmentVariable(..., 'User')`, not `setx`, which can silently truncate PATH at 1024 characters. On macOS and Linux it makes the binary executable and the UI shows the folder for the user to add. Doing this from an explicit button click is the consent for touching PATH.
 
----
+### Folder export
 
-## File Handling
+The desktop Export step writes to a folder instead of building a ZIP:
 
-### Reading files from the user's computer
+1. `choose-export-folder` shows a native picker ("Export Here") and reserves `<PREFIX>_bids_export_<date>` inside it, adding `-2`, `-3`, … if needed.
+2. `export-to-folder` passes the export plan to `runDesktopExport()` in `electron/desktop-export.cjs`, which streams every file and sends `export-progress` events back to the renderer.
+3. `write-export-file` saves the audit log next to `bids_output/`. It only accepts names matching `audit_log_<timestamp>.json`.
+4. `reveal-export-folder` opens the folder in Finder/Explorer.
 
-Use the **File System Access API** (Chrome/Edge) for directory picking with write support, with a fallback to `<input type="file" webkitdirectory>` for Firefox/Safari.
+The last three only accept an output folder that `choose-export-folder` handed out in the current session, so the renderer can't write anywhere the user didn't pick. `runDesktopExport()` also rejects any relative path that could escape `bids_output/`.
 
-### Streaming large files
+### Update check (`initAutoUpdater`)
 
-**Never** load a whole imaging file into memory:
+Runs only in a packaged build. `autoDownload` is off, so nothing downloads without the user agreeing.
 
-```typescript
-// ❌ WRONG — will crash the tab on multi-GB files
-const bytes = await file.arrayBuffer();
+- **Windows and Linux:** ask → download (taskbar progress) → ask to restart. "Later" installs on quit.
+- **macOS:** ask → open `…/releases/tag/v<version>`. Squirrel.Mac only installs updates signed with the same Developer ID as the installed app, and NeuroGate's macOS build is only ad-hoc signed, so in-place update isn't possible there.
+- Every failure (offline, rate limit, no release) is logged and otherwise ignored.
 
-// ✅ CORRECT — read in chunks
-const CHUNK_SIZE = 5 * 1024 * 1024; // 5 MB
-for (let offset = 0; offset < file.size; offset += CHUNK_SIZE) {
-  const chunk = file.slice(offset, offset + CHUNK_SIZE);
-  const bytes = await chunk.arrayBuffer();
-  // upload this chunk, then release
+## Preload bridge (`electron/preload.cjs`)
+
+Exposes one object, `window.neurogateDesktop`, with a fixed set of methods and no generic IPC channel:
+
+| Method | Purpose |
+|---|---|
+| `installCli()` | Install the bundled CLI (above). |
+| `getPathForFile(file)` | On-disk path of a dropped or browsed `File` (`webUtils.getPathForFile`), so export can stream from disk. |
+| `chooseExportFolder`, `exportToFolder`, `writeExportFile`, `revealExportFolder` | Folder export IPC. |
+| `onExportProgress(cb)` | Subscribe to per-file progress; returns an unsubscribe function. |
+
+A plain browser never loads the preload script, so the React app checks for `window.neurogateDesktop` to decide between desktop and browser behavior (Install CLI button, file caching, folder export vs. ZIP).
+
+## Renderer (React app, `src/`)
+
+- React 19 + React Router + Tailwind, built by Vite into `dist/`.
+- Pages: Home, Documentation (renders `public/docs/*.md` with react-markdown), Pre-Processing, About, and the 6-step tool (`src/pages/ToolPage.tsx`: Structure · Drop Files · Mapping · Metadata · Validate · Export).
+- **State** is React state in `ToolPage` plus an audit-log context (`src/lib/audit/AuditContext.tsx`). No external state library.
+- **Saved progress** (`src/lib/session/toolSession.ts`): file signatures (name, size, relative path) and detection results go to `sessionStorage` for 12 hours. Dropping the exact same file set again restores the mapping. File contents and Metadata entries are never saved.
+- **File contents in memory:** in the desktop app only file locations are kept; in a browser, files up to 500 MB are cached (`src/lib/fileCache.ts`).
+
+## Shared libraries (`src/lib/`)
+
+Used unchanged by the GUI, the CLI and the desktop export bundle.
+
+| Folder | Role |
+|---|---|
+| `detection/` | Extension classification, sidecar and EDF header reading, filename/folder/neighbour inference, subject grouping, custom-timepoint date and folder clustering, PET vocabulary. `engine.ts` combines the signals. |
+| `validation/` | `bidsValidator.ts` (NeuroGate's own structure checks for its BIDS-based layout; the official bids-validator isn't used, since the layout deliberately differs from the official spec), `phiScanner.ts`, `requiredFilesChecker.ts`, `crossSessionChecker.ts`, `petChecker.ts`, and metadata/defacing checks in `engine.ts`. |
+| `bids/` | `bidsNaming.ts` (entities, runs, collisions, and `tableFolder`, which puts electrodes/channels/events tables in `eeg/` or `ieeg/` beside their recording) and `exporter.ts` (`buildFileEntries()` produces the export file list; `generateZip()` is the browser ZIP path). |
+| `deidentify/` | `edfDeidentifier.ts` (header transform, per-subject date shifts) and `jsonSidecarDeidentifier.ts`. |
+| `audit/` | Audit logger, context and JSON/CSV exporter. |
+| `metadata/` | Reading dropped `dataset_description.json` and `sessions.tsv`. |
+| `adapters/` | **Node-only** (never imported by the web build): `NodeFileAdapter`, `scanDirectory`, the streaming export writer, the streaming EDF de-identifier and `desktopExport.ts`. |
+
+### FileLike
+
+`src/types/fileLike.ts` defines the minimal file interface the libraries use: `name`, `size`, `arrayBuffer()`, `text()`, `slice()`. It's kept to exactly the methods some caller needs.
+
+- In the renderer, the browser's own `File` satisfies it.
+- In the CLI and desktop export, `NodeFileAdapter` implements it over a path on disk, reading lazily. `slice()` matters: EDF header reading only reads the first few KB, so a multi-GB recording is never loaded to classify it.
+- `isFileLike()` replaces `instanceof File` checks, which would fail for the adapter.
+
+`verify_adapter.ts` checks that scanning through `NodeFileAdapter` produces the same detection and validation output as the browser `File` path.
+
+### Validation model (`src/types/validation.ts`)
+
+Each check returns `ValidationIssue { id, category, severity, title, description, affectedFiles, subjectGroup?, session?, dismissable }`, and `finalizeReport()` counts them by severity and category. `passed` is false if any error exists.
+
+- **Severities:** `error`, `warning`, `info`.
+- **Categories produced:** `bids-structure`, `phi-risk`, `required-files`, `cross-session`, `metadata` (including the PET sidecar warning), `defacing`. The type also defines `file-format`, which no check currently emits.
+- **GUI:** errors that aren't dismissed block export. Most errors aren't dismissable; the Implant required-file errors are.
+- **CLI:** subject-scoped errors hold back that subject; other errors stop the export.
+
+## Export
+
+`buildFileEntries()` turns the mapping into `FileEntry[]`: generated metadata files as text, and each data file with its BIDS path plus flags for gzip (`.nii` → `.nii.gz`), EDF de-identification and JSON de-identification.
+
+- **Streaming writer** (`adapters/nodeExportWriter.ts`, used by the CLI and the desktop app): plain files are stream-copied; `.nii` is piped through gzip; EDF/BDF go through `deidentifyEdfStream()`, which rewrites the 256-byte header and streams the rest; JSON sidecars are read as text, transformed and written. No size limit. The streaming EDF path uses the same header transform as the whole-buffer one, and `verify_export_writer.ts` diffs them byte for byte.
+- **Desktop:** the renderer flattens `FileEntry[]` into a serializable plan (data files as on-disk paths from `getPathForFile`), and `desktopExport.ts` rebuilds it with `NodeFileAdapter` and calls the same writer. A desktop export and a CLI export therefore produce the same layout and de-identification. `verify_desktop_export.ts` tests the bundled file.
+- **Browser build:** `generateZip()` builds an uncompressed ZIP in memory and leaves out files over 500 MB. `src/lib/api/exportApi.ts` can instead send large EDFs to the `server/` de-identify routes when the frontend is built with `VITE_API_URL`; no current distribution sets it.
+
+## Audit log (`src/lib/audit/`, `src/types/audit.ts`)
+
+An append-only list kept for the whole app session, exported as JSON (or CSV from the Audit Log panel):
+
+```json
+{
+  "_format": "ALCOA+ Audit Log",
+  "_version": "1.0",
+  "header": {
+    "exportedAt": "...", "exportedBy": "...", "sessionStarted": "...",
+    "toolVersion": "<APP_VERSION>", "totalEntries": 0, "actionSummary": { "<action>": 0 }
+  },
+  "entries": [
+    { "id": 1, "timestamp": "ISO 8601", "actor": "user | system | <OS username>",
+      "action": "<AuditAction>", "summary": "...", "details": {} }
+  ]
 }
 ```
 
-### Header-only reads
+`id` is an auto-incrementing integer. The actor is `user` or `system` in the GUI (there's no login) and the OS username in the CLI. The de-identification summary never includes date-shift values. What is and isn't logged is listed in `capabilities.md` §10.
 
-For modality detection and validation, we only need the file header (first few KB). Use `file.slice(0, 4096)` or similar — never read the whole file for detection.
+## CLI (`src/cli/`)
 
----
+- `index.ts` asks the prompts (`prompts.ts`) and builds a `NeuroGateRunOptions`; `pipeline.ts` does scan → detect → validate → export with no terminal dependency, so it can be tested directly (`verify_cli_pipeline.ts`).
+- **Packaging:** `scripts/build-cli-bundle.mjs` flattens it with esbuild into `dist-cli/cli.cjs` (Node built-ins left as `require`). `scripts/build-cli-sea.mjs` uses Node's single-executable-application feature: it copies the running `node` binary, removes its signature, injects the blob with `postject`, and ad-hoc re-signs on macOS. No V8 snapshot or code cache, to avoid Node-version-specific breakage. `scripts/verify-cli-bundle.mjs` checks the bundle builds and still exports correctly.
+- electron-builder copies the binary into each installer as `resources/cli/neurogate[.exe]`.
 
-## State Management
+## Version (`src/version.ts`)
 
-Start simple. React Context + reducers for the wizard state (current step, parsed files, user corrections, validation results).
+`package.json` `version` is the only place a release sets it. Vite (app) and esbuild (CLI and desktop bundles) replace `__APP_VERSION__` at build time; under tsx, `npm_package_version` is used. It appears in `dataset_description.json` `GeneratedBy`, the audit log header, the page footer (`src/components/Footer.tsx`), and the Home and About pages.
 
-Reach for Zustand only if context performance becomes an issue (which is unlikely for this app's scale).
+Document versions are separate: `src/docVersions.ts` lists each `public/docs/*.md` document and its version for the Documentation page, and `regression_docs.ts` fails if one disagrees with the document's own `| **Version** |` row.
 
-No Redux. No MobX. Not needed.
+## Release pipeline
 
----
+- `.github/workflows/release.yml` runs on a `v*.*.*` tag push (or manually). It checks the tag against `package.json`, then on Windows, macOS and Linux runners (Node 20): `npm ci` → `npm run regression` (all six suites, including `regression_pet.ts` and `regression_docs.ts`) → `npm run build` → `npm run cli:sea` → `npm run desktop:bundle` → `electron-builder --publish always` into a draft release. A final job adds download notes and publishes the release (a manual run leaves it as a draft). electron-updater ignores drafts, so nobody is offered a release that's missing a platform.
+- electron-builder targets: NSIS `.exe` (Windows), `.dmg` + `.zip` (macOS, arm64), `.AppImage` (Linux). `"identity": null` disables macOS signing; the `afterPack` hook `scripts/adhoc-sign-mac.cjs` ad-hoc signs the whole `.app` so Gatekeeper shows the ordinary "unidentified developer" block (cleared with Open Anyway) instead of "damaged".
+- There's no CI on pull requests or pushes. `.github/workflows/deploy.yml` (an AWS website deploy) still exists but is disabled in GitHub's settings; there's no hosted website.
 
-## Validation Architecture
+See [`../neurogate_deployment_workflow.md`](../neurogate_deployment_workflow.md) for the release reference and open questions.
 
-Validation runs in stages, each producing errors and warnings:
+## Design decisions
 
-1. **Structural** — BIDS compliance (via `bids-validator`)
-2. **Metadata** — required fields per governance framework
-3. **Content sanity** — NIfTI headers parse, dimensions reasonable
-4. **PHI scan** — filename patterns
-5. **Cross-batch** — session consistency, subject ID uniqueness
+- **Local only, export to disk.** Most data-sharing platforms don't allow browser-initiated uploads, and uploading patient data through a NeuroGate server would add a PHI-handling service. NeuroGate writes a validated, BIDS-based dataset folder and audit log locally, and the site uploads it by its own procedure.
+- **Own BIDS-based layout.** Files follow BIDS naming conventions, but the root layout (`bids_output/` → `primary/sub-*`, `derivatives/scanner/`) is deliberately NeuroGate's own and differs from the official BIDS spec. The official bids-validator therefore doesn't apply to the dataset as a whole; NeuroGate's own Validate step is the check that must pass.
+- **Validate and attest, don't convert or deface.** DICOM conversion and defacing happen before NeuroGate (the Pre-Processing page gives guidance). The tool checks for and records them.
+- **One set of libraries for GUI and CLI.** The `FileLike` abstraction and the Node adapters let the same detection, validation and de-identification code run in the renderer, the CLI and the desktop export, so the two front ends can't drift apart.
+- **Stream, never buffer, large files.** Multi-GB EDF recordings are common; header-only reads for detection and a streaming writer for export keep memory flat.
 
-Each stage returns a typed result:
+## Open questions
 
-```typescript
-interface ValidationResult {
-  stage: 'structural' | 'metadata' | 'content' | 'phi' | 'cross-batch';
-  severity: 'error' | 'warning';
-  message: string;
-  affectedFile?: string;
-  affectedField?: string;
-  fixAction?: FixActionRef; // link to the UI control that fixes this
-}
-```
-
-The UI groups results by severity and provides jump-to-fix links for errors.
-
----
-
-## Audit Log
-
-Implemented as an append-only array in session state. Each entry:
-
-```typescript
-interface AuditEntry {
-  id: string;            // UUID v4
-  timestamp: string;     // ISO 8601 with ms
-  user: string;          // 'user' | 'system' -- the tool has no login/user-management system
-  action: AuditAction;   // typed enum of tracked actions
-  payload: unknown;      // action-specific details
-  sessionId: string;     // groups entries from one upload session
-}
-```
-
-Exported as JSON + CSV at end of session for the site to retain per their records-management policy.
-
----
-
-## Deployment
-
-- **Frontend:** Static build, auto-deployed from `main` branch (currently Vercel; AWS relaunch planned -- see the phase roadmap notes for status).
-- **CI:** GitHub Actions for lint + test on every PR.
-
----
-
-## Open Questions
-
-1. What's the right institution prefix source: config file committed to repo, admin UI, or derived from workspace name?
-2. How do sites handle the mapping file (their BIDS subject ID vs. internal MRN)? The tool doesn't see it, but we should document the recommended workflow.
-3. iEEG validation: is the `ieeg-BIDS` extension stable enough to rely on?
-4. Versioning: when the governance framework updates (e.g., new required metadata field), how does the deployed tool get updated without breaking in-progress uploads at sites?
+1. How should sites manage the mapping between their BIDS subject IDs and internal MRNs? The tool never sees it; the recommended workflow still needs documenting.
+2. When the governance framework changes (for example a new required field), how do sites with older installed versions stay in step? The update check offers new releases but doesn't force them.
