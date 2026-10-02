@@ -20,7 +20,7 @@ import { getEffectiveModality, requiresDefacing, DEFACING_MODALITY_LABELS } from
 import type { DatasetStructure } from '../../types/sessionStructure';
 
 import { validateBidsStructure } from './bidsValidator';
-import { scanForPhi, scanSidecarContentForPhi } from './phiScanner';
+import { scanForPhi, scanSidecarContentForPhi, scanTsvContentForPhi } from './phiScanner';
 import { checkRequiredFiles } from './requiredFilesChecker';
 import { checkCrossSessionConsistency } from './crossSessionChecker';
 import { checkPetSidecars } from './petChecker';
@@ -63,6 +63,9 @@ export async function runValidation(input: ValidationInput): Promise<ValidationR
   // automatic de-identifier deliberately leaves alone, e.g. SeriesDescription)
   const sidecarPhiIssues = await scanSidecarContentForPhi(input.detectionResults);
   allIssues.push(...sidecarPhiIssues);
+
+  // ── 2c. PHI scanning of exported TSV tables (cell contents) ──
+  allIssues.push(...await scanTsvContentForPhi(input.detectionResults));
 
   // ── 3. Required Files ─────────────────────────────────────
   const requiredIssues = checkRequiredFiles(input.detectionResults, input.subjects, input.structure);
