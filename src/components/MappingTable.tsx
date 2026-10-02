@@ -57,7 +57,7 @@ type FilterMode = 'all' | 'needs-decision' | 'high' | 'medium' | 'low' | 'unclas
  * uncertain. Filtering by confidence buried the handful of genuine
  * decisions among hundreds of files that were already handled properly.
  */
-export function needsUserDecision(r: DetectionResult): boolean {
+function needsUserDecision(r: DetectionResult): boolean {
   // A modality that came only from the blind fallback: never exported
   // until a real modality is chosen.
   if (r.modalityIsGuess && !r.userModality) return true;

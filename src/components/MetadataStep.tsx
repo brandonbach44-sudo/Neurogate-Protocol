@@ -50,7 +50,10 @@ export default function MetadataStep({
 }: MetadataStepProps) {
   const [activeTab, setActiveTab] = useState<TabId>('institution');
   const [institutionConfig, setInstitutionConfig] = useState<InstitutionConfig>(createDefaultInstitutionConfig());
-  const [subjects, setSubjects] = useState<SubjectMetadata[]>([]);
+  // Subjects as detected (groups + sessions). Their BIDS IDs are derived
+  // from the institution prefix and starting number below, so they always
+  // match the current Institution Setup without a state-syncing effect.
+  const [baseSubjects, setSubjects] = useState<SubjectMetadata[]>([]);
   const [datasetDescription, setDatasetDescription] = useState<DatasetDescription>(createDefaultDatasetDescription());
   const [attestation, setAttestation] = useState<DefacingAttestationType>(createDefaultAttestation());
   const [autoFilledSubjects, setAutoFilledSubjects] = useState<Set<string>>(new Set());
@@ -144,7 +147,7 @@ export default function MetadataStep({
           // Try to get auto-filled data for this session
           const autoSession = autoSessions?.find(s => s.sessionId === sessionId);
           sessions.push({
-            sessionId: sessionId as any,
+            sessionId: sessionId as SessionMetadata['sessionId'],
             acqTime: autoSession?.acqTime || '',
             age: autoSession?.age || '',
           });
@@ -175,18 +178,12 @@ export default function MetadataStep({
     init();
   }, []); // Run once on mount
 
-  // ── Regenerate BIDS IDs when institution config changes ───────
-  useEffect(() => {
-    if (isLoading) return;
-    setSubjects(prev => prev.map((subject, i) => {
-      const prefix = institutionConfig.prefix || 'SITE';
-      const paddedNum = String(institutionConfig.startingNumber + i).padStart(3, '0');
-      return {
-        ...subject,
-        bidsSubjectId: `sub-${prefix}${paddedNum}`,
-      };
-    }));
-  }, [institutionConfig.prefix, institutionConfig.startingNumber, isLoading]);
+  // ── BIDS IDs follow the institution config ─────────────────────
+  const subjects = useMemo(() => baseSubjects.map((subject, i) => {
+    const prefix = institutionConfig.prefix || 'SITE';
+    const paddedNum = String(institutionConfig.startingNumber + i).padStart(3, '0');
+    return { ...subject, bidsSubjectId: `sub-${prefix}${paddedNum}` };
+  }), [baseSubjects, institutionConfig.prefix, institutionConfig.startingNumber]);
 
   // ── Update a single subject ───────────────────────────────────
   const updateSubject = (index: number, updated: SubjectMetadata) => {

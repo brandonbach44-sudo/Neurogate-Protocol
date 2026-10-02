@@ -196,7 +196,7 @@ function diff(path: string, expected: unknown, actual: unknown, out: string[]): 
 
   if (bothObjects) {
     const keys = new Set([...Object.keys(expected as object), ...Object.keys(actual as object)]);
-    for (const key of keys) diff(`${path}.${key}`, (expected as any)[key], (actual as any)[key], out);
+    for (const key of keys) diff(`${path}.${key}`, (expected as Record<string, unknown>)[key], (actual as Record<string, unknown>)[key], out);
     return;
   }
 

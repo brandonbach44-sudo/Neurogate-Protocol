@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import type { ScannedFile } from '../types/files';
-import { cacheFileBuffer } from '../lib/fileCache';
+import { cacheFileBuffer, markUnreadable } from '../lib/fileCache';
 
 /**
  * Matches LARGE_FILE_THRESHOLD_BYTES in lib/bids/exporter.ts: a browser
@@ -64,7 +64,7 @@ export default function FileDropZone({ onFilesScanned }: FileDropZoneProps) {
         });
         if (!(await prepareFile(file))) {
           // Tag unreadable files so the UI can warn the user up front.
-          (file as any).__unreadable = true;
+          markUnreadable(file);
         }
         files.push({
           relativePath: path + file.name,
@@ -113,7 +113,7 @@ export default function FileDropZone({ onFilesScanned }: FileDropZoneProps) {
       // Unreadable files surface at export time.
       await prepareFile(file);
       files.push({
-        relativePath: (file as any).webkitRelativePath || file.name,
+        relativePath: file.webkitRelativePath || file.name,
         name: file.name,
         size: file.size,
         file,
@@ -249,7 +249,7 @@ export default function FileDropZone({ onFilesScanned }: FileDropZoneProps) {
         type="file"
         className="hidden"
         onChange={handleInputChange}
-        {...({ webkitdirectory: '', directory: '' } as any)}
+        {...({ webkitdirectory: '', directory: '' } as React.InputHTMLAttributes<HTMLInputElement>)}
       />
       {/* Individual file picker (for single files or mixed selections) */}
       <input

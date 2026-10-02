@@ -22,7 +22,6 @@ import { join } from 'path';
 import { scanDirectory } from './src/lib/adapters/scanDirectory';
 import { runDetection, generateSummary, readJsonSidecars, readEdfHeaders } from './src/lib/detection';
 import { runValidation } from './src/lib/validation';
-import type { ScannedFile } from './src/types/files';
 import type { SubjectMetadata } from './src/types/metadata';
 import {
   createDefaultDatasetDescription,
@@ -106,7 +105,7 @@ function diff(path: string, expected: unknown, actual: unknown, out: string[]): 
   if (bothObjects) {
     const keys = new Set([...Object.keys(expected as object), ...Object.keys(actual as object)]);
     for (const key of keys) {
-      diff(`${path}.${key}`, (expected as any)[key], (actual as any)[key], out);
+      diff(`${path}.${key}`, (expected as Record<string, unknown>)[key], (actual as Record<string, unknown>)[key], out);
     }
     return;
   }

@@ -17,6 +17,7 @@ import {
 import { getEffectiveSubjectGroup } from '../types/detection';
 import type { DatasetStructure } from '../types/sessionStructure';
 import { isFileLike } from '../types/fileLike';
+import { isUnreadable } from '../lib/fileCache';
 import type { DesktopExportEntry } from '../types/electronBridge';
 
 interface ExportStepProps {
@@ -73,7 +74,7 @@ export default function ExportStep({
 
   // Warn up front if any file was unreadable at drop time (e.g. OneDrive cloud-only).
   const unreadableFiles = detectionResults
-    .filter(r => (r.file as any).__unreadable)
+    .filter(r => isUnreadable(r.file))
     .map(r => r.fileName);
 
   // Revoke the object URL when the component unmounts to free memory.

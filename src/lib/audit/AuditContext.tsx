@@ -6,10 +6,9 @@
  * <AuditProvider> and use the useAudit() hook in any component.
  */
 
-import { createContext, useContext, useMemo } from 'react';
-import { createAuditLogger, type AuditLogger } from './auditLogger';
-
-const AuditContext = createContext<AuditLogger | null>(null);
+import { useMemo } from 'react';
+import { createAuditLogger } from './auditLogger';
+import { AuditContext } from './auditContextValue';
 
 export function AuditProvider({ children }: { children: React.ReactNode }) {
   const logger = useMemo(() => createAuditLogger(), []);
@@ -19,12 +18,4 @@ export function AuditProvider({ children }: { children: React.ReactNode }) {
       {children}
     </AuditContext.Provider>
   );
-}
-
-export function useAudit(): AuditLogger {
-  const ctx = useContext(AuditContext);
-  if (!ctx) {
-    throw new Error('useAudit must be used within an <AuditProvider>');
-  }
-  return ctx;
 }

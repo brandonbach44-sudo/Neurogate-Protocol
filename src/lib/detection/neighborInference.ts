@@ -51,7 +51,6 @@ function getBasename(fileName: string): string {
 /**
  * Group files by their parent folder.
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function groupByFolder(files: ScannedFile[]): Map<string, ScannedFile[]> {
   const groups = new Map<string, ScannedFile[]>();
   for (const file of files) {

@@ -60,3 +60,9 @@ temp/
 # Scratch: files staged for manual deletion (device_bash cannot rm)
 _to_delete/
 .fuse_hidden*
+
+# NeuroGate exports: real datasets and audit logs never belong in git
+*_bids_export
+*_bids_export_*
+bids_output/
+audit_log*.json
