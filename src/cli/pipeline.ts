@@ -156,7 +156,7 @@ export async function runNeuroGatePipeline(
     subjectFilesByGroup.set(r.subjectGroup, list);
   }
   const sessionOrder = resolveSessionIds(options.structure);
-  const autoFilled = await autoFillFromDroppedFiles(scanned, subjectFilesByGroup);
+  const autoFilled = await autoFillFromDroppedFiles(scanned, subjectFilesByGroup, sessionOrder);
 
   const subjects: SubjectMetadata[] = summary.subjectGroups.map((group, i) => {
     const paddedNum = String(options.institutionConfig.startingNumber + i).padStart(3, '0');

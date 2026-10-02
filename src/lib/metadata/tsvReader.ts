@@ -44,7 +44,7 @@ function parseTsv(content: string): Record<string, string>[] {
 /**
  * Common column name variations for session-related fields.
  */
-const SESSION_ID_COLUMNS = ['session_id', 'session', 'ses', 'ses_id', 'session_name'];
+export const SESSION_ID_COLUMNS = ['session_id', 'session', 'ses', 'ses_id', 'session_name'];
 const ACQ_TIME_COLUMNS = ['acq_time', 'acquisition_time', 'date', 'scan_date', 'acq_date', 'acquisition_date'];
 const AGE_COLUMNS = ['age', 'age_at_scan', 'age_years', 'age_at_visit', 'participant_age'];
 
@@ -93,11 +93,31 @@ function normalizeSessionName(raw: string): Session | null {
 }
 
 /**
+ * Match a session label from a dropped table to one of the structure's
+ * sessions. With `sessionIds`, only those count: an exact label with or
+ * without "ses-" ("ses-2wk", "2wk"), plus, for the Implant structure, the
+ * keyword matching above ("preop", "monitoring", ...). Without it, the
+ * keyword matching alone (older callers).
+ */
+export function resolveSessionLabel(raw: string, sessionIds?: string[]): string | null {
+  if (!sessionIds || sessionIds.length === 0) return normalizeSessionName(raw);
+  const t = raw.trim().toLowerCase().replace(/\s+/g, '');
+  const candidate = t.startsWith('ses-') ? t : `ses-${t}`;
+  if (sessionIds.includes(candidate)) return candidate;
+  const implant = ['ses-preimplant', 'ses-postimplant', 'ses-postsurgery'];
+  if (sessionIds.length === 3 && implant.every(id => sessionIds.includes(id))) {
+    const n = normalizeSessionName(raw);
+    return n && sessionIds.includes(n) ? n : null;
+  }
+  return null;
+}
+
+/**
  * Try to extract session metadata from a TSV file.
  * Returns an array of SessionMetadata if successful, null if the file
  * doesn't appear to contain session data.
  */
-export async function extractSessionMetadata(file: FileLike): Promise<SessionMetadata[] | null> {
+export async function extractSessionMetadata(file: FileLike, sessionIds?: string[]): Promise<SessionMetadata[] | null> {
   try {
     const content = await file.text();
     const rows = parseTsv(content);
@@ -112,7 +132,7 @@ export async function extractSessionMetadata(file: FileLike): Promise<SessionMet
       const age = findColumn(row, AGE_COLUMNS);
 
       if (rawSessionId) {
-        const sessionId = normalizeSessionName(rawSessionId);
+        const sessionId = resolveSessionLabel(rawSessionId, sessionIds);
         if (sessionId) {
           sessions.push({
             sessionId,
@@ -183,6 +203,8 @@ export interface AutoFilledMetadata {
 export async function autoFillFromDroppedFiles(
   files: ScannedFile[],
   subjectGroups: Map<string, ScannedFile[]>,
+  /** The structure's session ids (resolveSessionIds); labels are matched against these. */
+  sessionIds?: string[],
 ): Promise<AutoFilledMetadata> {
   const result: AutoFilledMetadata = {
     sessionsBySubject: new Map(),
@@ -195,7 +217,7 @@ export async function autoFillFromDroppedFiles(
 
     // Look for sessions.tsv files
     if (lower.includes('session') && lower.endsWith('.tsv')) {
-      const sessions = await extractSessionMetadata(file.file);
+      const sessions = await extractSessionMetadata(file.file, sessionIds);
       if (sessions) {
         // Figure out which subject this sessions.tsv belongs to
         // by checking which subject group folder it's in
@@ -239,7 +261,7 @@ export async function autoFillFromDroppedFiles(
 
       const sesRaw = sessionFromPath(file.relativePath);
       if (!sesRaw) continue;
-      const sessionId = normalizeSessionName(sesRaw);
+      const sessionId = resolveSessionLabel(sesRaw, sessionIds);
       if (!sessionId) continue;
 
       for (const [group, groupFiles] of subjectGroups) {

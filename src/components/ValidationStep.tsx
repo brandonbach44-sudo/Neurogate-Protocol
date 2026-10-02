@@ -31,6 +31,7 @@ const CATEGORY_INFO: Record<ValidationCategory, { label: string; icon: ReactNode
   'file-format': { label: 'File Format', icon: <FileIcon size={18} /> },
   'metadata': { label: 'Metadata', icon: <TagIcon size={18} /> },
   'defacing': { label: 'Defacing', icon: <BrainIcon size={18} /> },
+  'consistency': { label: 'Consistency', icon: <LinkIcon size={18} /> },
 };
 
 const SEVERITY_STYLES: Record<ValidationSeverity, { bg: string; text: string; label: string; border: string }> = {

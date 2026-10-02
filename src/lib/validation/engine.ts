@@ -7,6 +7,7 @@
  *   3. Required files check
  *   4. Cross-session consistency
  *   5. PET sidecar completeness (warnings)
+ *   5b. Consistency: channels vs electrodes, Persyst pairs, sessions.tsv
  *   6. Metadata, sparse and empty-dataset checks
  *
  * Produces a ValidationReport with all issues, counts, and pass/fail.
@@ -24,6 +25,7 @@ import { scanForPhi, scanSidecarContentForPhi, scanTsvContentForPhi, scanNiftiHe
 import { checkRequiredFiles } from './requiredFilesChecker';
 import { checkCrossSessionConsistency } from './crossSessionChecker';
 import { checkPetSidecars } from './petChecker';
+import { checkConsistency } from './consistencyChecker';
 
 /** Everything the validation engine needs as input */
 export interface ValidationInput {
@@ -80,6 +82,9 @@ export async function runValidation(input: ValidationInput): Promise<ValidationR
 
   // ── 4b. PET sidecar completeness (warnings only) ──────────
   allIssues.push(...checkPetSidecars(input.detectionResults));
+
+  // ── 4c. Files that must agree with each other ─────────────
+  allIssues.push(...await checkConsistency(input.detectionResults, input.structure));
 
   // ── 5. Metadata completeness checks ───────────────────────
   const metadataIssues = validateMetadata(input);
