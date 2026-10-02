@@ -381,6 +381,31 @@ console.log('guessed files and name collisions are reported');
   report('safety', hMissingT1, 'a guessed (unexported) T1w satisfied the "T1w present" requirement');
 }
 
+// ── 7h. participants.tsv lists only subjects with exported data ──
+console.log('participants.tsv lists only exported subjects');
+{
+  const mk = (relativePath: string, content: string | Uint8Array): ScannedFile => {
+    const name = relativePath.split('/').pop()!;
+    const file = new File([content], name);
+    return { relativePath, name, size: file.size, file } as ScannedFile;
+  };
+  const files = [
+    mk('Patient_I/preop/series_9.nii.gz', new Uint8Array([0])),   // only a guess: not exported
+    mk('Patient_J/preop/T1_MPRAGE.nii.gz', new Uint8Array([0])),
+  ];
+  const results = runDetection(files, await readJsonSidecars(files), await readEdfHeaders(files));
+  const subjects = [...new Set(results.map(r => r.subjectGroup))].map((g, i) => ({
+    subjectGroup: g, bidsSubjectId: `sub-P00${i + 1}`,
+    sessions: [{ sessionId: 'ses-preimplant', acqTime: '', age: '' }, { sessionId: 'ses-postimplant', acqTime: '', age: '' }],
+  })) as SubjectMetadata[];
+  const entries = buildFileEntries(results, subjects, createDefaultDatasetDescription(), new Map());
+  const participants = String(entries.find(e => e.path === 'participants.tsv')?.content).trim().split('\n').slice(1);
+  const idJ = subjects.find(s => s.subjectGroup === results.find(r => r.relativePath.startsWith('Patient_J'))!.subjectGroup)!.bidsSubjectId;
+  report('safety', participants.length === 1 && participants[0] === idJ, `participants.tsv rows: ${participants.join(', ')} (expected only ${idJ})`);
+  const sessionsTsv = String(entries.find(e => e.path.endsWith(`${idJ}_sessions.tsv`))?.content);
+  report('safety', !sessionsTsv.includes('ses-postimplant'), 'sessions.tsv lists a session with no exported data');
+}
+
 // ── 8. SAFETY: every face-bearing structural contrast needs defacing ──
 // GOV-001 requires defacing for all five. Before 2026-09-30 the check only
 // covered T1w/T2w/FLAIR, so a PDw- or T2*w-only dataset exported with no
