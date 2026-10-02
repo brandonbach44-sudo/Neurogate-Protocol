@@ -128,7 +128,7 @@ Each check returns `ValidationIssue { id, category, severity, title, description
 
 ## Audit log (`src/lib/audit/`, `src/types/audit.ts`)
 
-An append-only list kept for the whole app session, exported as JSON (or CSV from the Audit Log panel):
+An append-only list kept for the whole app session, exported as JSON (or CSV from the Audit Log panel). In the GUI, `AuditProvider` saves it to `sessionStorage` after every change (batched, flushed on `pagehide`) and restores it on start (`auditPersistence.ts`), so a reload or renderer crash keeps it:
 
 ```json
 {
