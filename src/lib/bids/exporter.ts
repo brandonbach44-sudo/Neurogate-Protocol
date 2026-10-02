@@ -217,6 +217,8 @@ export interface DeidentificationSummary {
     containedPhi?: boolean;
     /** Whether a non-zero date shift was applied. Value itself is not recorded here. */
     dateShifted: boolean;
+    /** Identifying text replaced with X inside EDF+/BDF+ annotations. The text itself is never recorded. */
+    annotationRedactions?: number;
   }[];
   jsonSidecars: {
     bidsPath: string;
@@ -448,6 +450,7 @@ export async function generateZip(
             subjectGroup: entry.subjectGroup ?? '',
             containedPhi: result.containedPhi,
             dateShifted: entry.edfDeidentify.dateShiftDays !== 0,
+            annotationRedactions: result.annotationRedactions ?? 0,
           });
         } catch (err) {
           throw new Error(`Cannot read "${entry.content.name}". Make sure the file is stored locally (not cloud-only) and add the folder again. (${(err as Error).message})`);

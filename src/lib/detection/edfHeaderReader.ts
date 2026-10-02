@@ -18,6 +18,7 @@
  */
 
 import type { ScannedFile } from '../../types/files';
+import { readSignalCount } from '../deidentify/edfStructure';
 // Reads via FileLike.slice()/.arrayBuffer() (see types/fileLike.ts), so
 // this module works unmodified against a browser File (web) or a
 // NodeFileAdapter (CLI/desktop) -- either way only the first ~8KB is
@@ -290,16 +291,14 @@ export async function readEdfHeaders(
   await Promise.all(
     edfFiles.map(async (ef) => {
       try {
-        // Read enough bytes to get the global header + all signal labels.
-        // We read the global header first to learn numSignals, then
-        // read the full signal label section. Since browsers provide
-        // File.slice(), we do a two-pass approach with a safe upper bound:
-        // 256 (global header) + 512 channels * 16 bytes = 8448 bytes max.
-        // This covers virtually all EEG/iEEG systems without loading the
-        // entire (potentially GB-sized) recording.
-        const MAX_READ = 256 + 512 * 16; // 8448 bytes
-        const chunk = ef.file.slice(0, MAX_READ);
-        const buffer = await chunk.arrayBuffer();
+        // Read the 256-byte global header first to learn the channel
+        // count, then just the label block for that many channels (16
+        // bytes each) -- never the (potentially GB-sized) recording. A
+        // fixed 512-channel read used to drop every label for larger
+        // iEEG montages, losing the EEG/iEEG hint.
+        const head = await ef.file.slice(0, 256).arrayBuffer();
+        const ns = readSignalCount(new Uint8Array(head));
+        const buffer = ns ? await ef.file.slice(0, 256 + ns * 16).arrayBuffer() : head;
 
         // Must have at least the 256-byte global header
         if (buffer.byteLength < 256) return;
