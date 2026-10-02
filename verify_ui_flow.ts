@@ -5,8 +5,11 @@
  *
  *   1. Metadata entries survive going back (Mapping, and from Validate).
  *   2. Going back and forth doesn't repeat audit entries.
- *   3. "Change structure" returns to the Structure step, keeps the audit
+ *   3. Dismissing an issue, re-running checks and unticking the defacing
+ *      attestation are each logged.
+ *   4. "Change structure" returns to the Structure step, keeps the audit
  *      log, and the new structure is used.
+ *   5. A page reload keeps the audit log.
  *
  * Needs a dev server and Chrome:
  *   npx vite --port 5199 &   then   npx tsx verify_ui_flow.ts
@@ -124,8 +127,9 @@ async function main() {
     await click('Continue');
     await waitFor(`document.querySelector('input[type=file][multiple]')`, 'drop zone');
 
-    // Drop files: one demo patient
-    await addFiles(walk(join(process.cwd(), 'demo-data', 'EpilepsyStudy_Raw', 'Patient_001')));
+    // Drop files: one demo patient, without its events table, so Validate
+    // has a dismissable warning (events.tsv missing in ses-postimplant).
+    await addFiles(walk(join(process.cwd(), 'demo-data', 'EpilepsyStudy_Raw', 'Patient_001')).filter(f => !f.endsWith('events_001.tsv')));
     check(await waitFor(hasText('Continue to Metadata'), 'mapping', 15000), 'files added, mapping shown');
 
     // ── 1. Metadata survives Back to Mapping ─────────────────────────
@@ -165,7 +169,28 @@ async function main() {
     check(count(/Institution configured: prefix=/g) === 1, `institution logged once (found ${count(/Institution configured: prefix=/g)})`);
     check(count(/Defacing attestation confirmed/g) === 1, `defacing attestation logged once (found ${count(/Defacing attestation confirmed/g)})`);
 
-    // ── 3. Change structure ──────────────────────────────────────────
+    // ── 3. Dismissals, re-run, attestation untick ────────────────────
+    await evaluate<void>(`[...document.querySelectorAll('button')].filter(b => b.innerText.trim().endsWith('▶')).forEach(b => b.click())`);
+    await sleep(200);
+    const dismissed = await click('Dismiss this issue');
+    check(dismissed, 'a dismissable issue to dismiss');
+    if (dismissed) {
+      check(/Dismissed (error|warning|info) "/.test(await openAuditPanel()), 'dismissal logged');
+      await click('Re-run Checks');
+      await waitFor(hasText('Back to Metadata'), 'validation re-run', 15000);
+      check(/Checks re-run; 1 dismissed issue shown again/.test(await openAuditPanel()), 're-run that clears a dismissal is logged');
+    }
+    await click('Back to Metadata');
+    await waitFor(`document.querySelector('#ms-institution-prefix')`, 'metadata');
+    await click('Defacing Attestation');
+    await evaluate<void>(`document.querySelector('#defacing-confirm')?.click()`);
+    check(/Defacing attestation was unticked/.test(await openAuditPanel()), 'unticking the attestation is logged');
+    await click('Defacing Attestation');
+    await evaluate<void>(`document.querySelector('#defacing-confirm')?.click()`);
+    await click('Continue to Validation');
+    await waitFor(hasText('Back to Metadata'), 'validation again', 15000);
+
+    // ── 4. Change structure ──────────────────────────────────────────
     await click('Back to Metadata');
     await waitFor(`document.querySelector('#ms-institution-prefix')`, 'metadata');
     await click('Back to Mapping');
@@ -188,6 +213,14 @@ async function main() {
     const audit2 = await openAuditPanel();
     check(/Structure changed from Implant sessions .* to Single session/.test(audit2), 'audit records the change');
     check(/Institution configured: prefix=/.test(audit2), 'earlier audit entries kept');
+
+    // ── 5. Reload keeps the audit log ────────────────────────────────
+    await send('Page.reload');
+    await waitFor(hasText('Does each subject have more than one session'), 'Structure step after reload', 15000);
+    await sleep(300);
+    const audit3 = await openAuditPanel();
+    check(/Page reloaded; audit log restored with \d+ earlier entries/.test(audit3), 'reload restores the log');
+    check(/Structure changed from Implant sessions/.test(audit3) && /Institution configured: prefix=/.test(audit3), 'entries from before the reload are there');
   } finally {
     try { ws?.close(); } catch { /* ignore */ }
     chrome.kill();
