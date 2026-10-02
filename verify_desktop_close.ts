@@ -10,8 +10,9 @@
  * The native dialog can't be clicked from here, so the app is killed
  * once the prompt is reached.
  *
- * Needs a build: npm run build && npm run desktop:bundle, then
- *   npx tsx verify_desktop_close.ts
+ * Needs a build and Node 22+ (built-in WebSocket):
+ *   npm run build && npm run desktop:bundle && npx tsx verify_desktop_close.ts
+ * On Linux without a display, run it under xvfb-run (as CI's "ui" job does).
  */
 import { spawn, type ChildProcess } from 'node:child_process';
 import { mkdtempSync, rmSync, readdirSync, statSync } from 'node:fs';
@@ -34,7 +35,9 @@ interface App { proc: ChildProcess; log: () => string; ws: WebSocket; eval: <T>(
 
 async function launch(userData: string): Promise<App> {
   let out = '';
-  const proc = spawn(ELECTRON, ['.', `--remote-debugging-port=${PORT}`, `--user-data-dir=${userData}`], { stdio: ['ignore', 'pipe', 'pipe'] });
+  // CI runners (Ubuntu 24.04) block Chromium's sandbox, so it's turned off there.
+  const ciFlags = process.env.CI ? ['--no-sandbox'] : [];
+  const proc = spawn(ELECTRON, ['.', ...ciFlags, `--remote-debugging-port=${PORT}`, `--user-data-dir=${userData}`], { stdio: ['ignore', 'pipe', 'pipe'] });
   proc.stdout!.on('data', d => { out += d; });
   proc.stderr!.on('data', d => { out += d; });
   let target: { webSocketDebuggerUrl: string } | undefined;
