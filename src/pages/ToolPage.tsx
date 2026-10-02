@@ -23,6 +23,8 @@ import {
   saveToolSession,
   loadToolSession,
   clearToolSession,
+  saveSessionMetadata,
+  loadSessionMetadata,
   trySessionRestore,
   formatSavedAt,
   type PersistedSession,
@@ -65,13 +67,18 @@ function ToolPage() {
   const loggedMetadata = useRef<MetadataOutput | null>(null);
 
   // ── Save/resume: persist on every detection-state change ──────────────
-  // Only file mappings and detection results are persisted, never metadata
-  // step contents. SessionStorage clears when the tab closes.
+  // File mappings and detection results; the Metadata entries are saved
+  // beside them (saveMetadataEntries). SessionStorage clears when the tab
+  // closes.
   useEffect(() => {
     if (detectionResults.length > 0 && summary) {
       saveToolSession(detectionResults, summary, datasetStructure);
     }
   }, [detectionResults, summary, datasetStructure]);
+
+  const saveMetadataEntries = useCallback((draft: MetadataDraft) => {
+    saveSessionMetadata({ draft, logged: loggedMetadata.current });
+  }, []);
 
   const handleDiscardSavedSession = useCallback(() => {
     clearToolSession();
@@ -97,10 +104,15 @@ function ToolPage() {
         }
         setStep('mapping');
         setSavedSession(null);
+        const savedMetadata = loadSessionMetadata<MetadataDraft, MetadataOutput>();
+        if (savedMetadata) {
+          setMetadataDraft(savedMetadata.draft);
+          loggedMetadata.current = savedMetadata.logged;
+        }
         audit.addEntry(
           'session-restored',
-          `Resumed prior session: ${restored.length} files restored from saved state`,
-          { fileCount: restored.length },
+          `Resumed prior session: ${restored.length} files restored from saved state` + (savedMetadata ? ', with Metadata entries' : ''),
+          { fileCount: restored.length, metadataRestored: Boolean(savedMetadata) },
           'system',
         );
         return;
@@ -220,6 +232,7 @@ function ToolPage() {
     loggedMetadata.current = metadata;
     setMetadataOutput(metadata);
     setMetadataDraft(metadata);
+    saveSessionMetadata({ draft: metadata, logged: metadata });
     setStep('validation');
 
     // Log metadata entries -- only what changed since the last time this
@@ -623,6 +636,7 @@ function ToolPage() {
             scannedFiles={scannedFiles}
             onContinue={handleMetadataComplete}
             onBack={(draft) => { setMetadataDraft(draft); setStep('mapping'); }}
+            onDraftChange={saveMetadataEntries}
             initialDraft={metadataDraft ?? undefined}
             structure={datasetStructure}
           />

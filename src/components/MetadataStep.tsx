@@ -35,6 +35,8 @@ interface MetadataStepProps {
    * recreated on every visit, so without this everything typed was lost.
    */
   initialDraft?: MetadataDraft;
+  /** Called whenever an entry changes, so it can be saved and survive a reload. */
+  onDraftChange?: (draft: MetadataDraft) => void;
   /** Active session structure; used to order sessions correctly for both presets. */
   structure?: DatasetStructure;
 }
@@ -74,6 +76,7 @@ export default function MetadataStep({
   onContinue,
   onBack,
   initialDraft,
+  onDraftChange,
   structure = createDefaultDatasetStructure(),
 }: MetadataStepProps) {
   const [activeTab, setActiveTab] = useState<TabId>('institution');
@@ -111,6 +114,13 @@ export default function MetadataStep({
     if (!next.confirmed && attestation.confirmed) audit.logDefacingRevoked('unticked');
     setAttestation(next);
   };
+
+  // Report the entries as they change, so a reload can bring them back.
+  useEffect(() => {
+    onDraftChange?.({ institutionConfig, datasetDescription, defacingAttestation: attestation, attestedFiles: defacedFileKey(detectionResults) });
+    // Only the entries themselves trigger a report.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [institutionConfig, datasetDescription, attestation]);
   const [autoFilledSubjects, setAutoFilledSubjects] = useState<Set<string>>(new Set());
   const [showErrors, setShowErrors] = useState(false);
   const [autoFilledDataset, setAutoFilledDataset] = useState(false);

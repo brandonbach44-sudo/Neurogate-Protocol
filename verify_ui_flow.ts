@@ -10,6 +10,8 @@
  *   4. "Change structure" returns to the Structure step, keeps the audit
  *      log, and the new structure is used.
  *   5. A page reload keeps the audit log.
+ *   8. After a reload, adding the same folder brings back the mapping and
+ *      the Metadata entries.
  *   7. A task label set in Mapping renames the recording and its tables.
  *   6. Leaving the page asks first while the log has unsaved entries,
  *      and not after it's saved.
@@ -135,7 +137,8 @@ async function main() {
 
     // Drop files: one demo patient, without its events table, so Validate
     // has a dismissable warning (events.tsv missing in ses-postimplant).
-    await addFiles(walk(join(process.cwd(), 'demo-data', 'EpilepsyStudy_Raw', 'Patient_001')).filter(f => !f.endsWith('events_001.tsv')));
+    const demoFiles = walk(join(process.cwd(), 'demo-data', 'EpilepsyStudy_Raw', 'Patient_001')).filter(f => !f.endsWith('events_001.tsv'));
+    await addFiles(demoFiles);
     check(await waitFor(hasText('Continue to Metadata'), 'mapping', 15000), 'files added, mapping shown');
 
     // ── 7. Task label ────────────────────────────────────────────────
@@ -170,6 +173,21 @@ async function main() {
     await waitFor(`document.querySelector('#dd-study-name')`, 'dataset tab again');
     check((await valueOf('#dd-study-name')) === 'UI Test Study', 'study name kept after Back to Mapping');
     check((await valueOf('input[aria-label="Author 1 name"]')) === 'Test Author', 'author kept after Back to Mapping');
+
+    // ── 8. Reload, add the same folder: mapping and Metadata come back ─
+    await sleep(400); // let the entries reach tab storage
+    await send('Page.reload');
+    check(await waitFor(`document.querySelector('input[type=file][multiple]')`, 'drop zone after reload', 15000), 'reload with saved progress opens Drop Files');
+    await addFiles(demoFiles);
+    check(await waitFor(hasText('Continue to Metadata'), 'restored mapping', 15000), 'same folder restores the mapping');
+    check(await evaluate<boolean>(hasText('task-sleep_ieeg.edf')), 'task label survives the reload');
+    await click('Continue to Metadata');
+    await waitFor(`document.querySelector('#ms-institution-prefix')`, 'metadata after reload');
+    check((await valueOf('#ms-institution-prefix')) === 'PENN', 'prefix survives a reload');
+    await click('Dataset Description');
+    await waitFor(`document.querySelector('#dd-study-name')`, 'dataset tab after reload');
+    check((await valueOf('#dd-study-name')) === 'UI Test Study', 'study name survives a reload');
+    check((await valueOf('input[aria-label="Author 1 name"]')) === 'Test Author', 'author survives a reload');
 
     // Attest defacing if asked, then continue to Validate and come back
     await click('Defacing Attestation');

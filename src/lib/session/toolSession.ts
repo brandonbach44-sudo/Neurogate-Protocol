@@ -3,9 +3,9 @@
  *
  * Scope (per "Option B" decision, May 8, 2026):
  *   - Persists: file signatures (name/size/path), detection results, summary
- *   - Does NOT persist: file contents, metadata step entries (subject
- *     demographics, dataset description, defacing attestation), or anything
- *     after the metadata step.
+ *   - Also persists, under its own key: the Metadata step's entries
+ *     (saveSessionMetadata), restored only with the mapping.
+ *   - Does NOT persist: file contents, or anything after the metadata step.
  *
  * Storage: sessionStorage (clears when the browser tab closes).
  *   - Survives accidental clicks, refreshes, and crashes within the tab.
@@ -101,13 +101,50 @@ export function loadToolSession(): PersistedSession | null {
   }
 }
 
-/** Forget the saved session. */
+/** Forget the saved session (and the Metadata entries saved with it). */
 export function clearToolSession(): void {
   if (typeof sessionStorage === 'undefined') return;
   try {
     sessionStorage.removeItem(STORAGE_KEY);
+    sessionStorage.removeItem(METADATA_KEY);
   } catch {
     // ignore
+  }
+}
+
+// ── Metadata entries ─────────────────────────────────────────────────
+// Saved beside the mapping so a reload doesn't lose what was typed in the
+// Metadata step. Restored only together with the mapping (same files
+// added again), and cleared with it. The shape is the GUI's (the draft
+// and the last values written to the audit log), so this module keeps it
+// opaque.
+
+const METADATA_KEY = 'neurogate-tool-metadata-v1';
+
+export interface PersistedMetadata<Draft, Logged> {
+  draft: Draft;
+  /** What the audit log already has, so re-entering Metadata doesn't log it again. */
+  logged: Logged | null;
+}
+
+export function saveSessionMetadata<Draft, Logged>(value: PersistedMetadata<Draft, Logged>): void {
+  if (typeof sessionStorage === 'undefined') return;
+  try {
+    sessionStorage.setItem(METADATA_KEY, JSON.stringify(value));
+  } catch {
+    // sessionStorage full or disabled; silently ignore.
+  }
+}
+
+export function loadSessionMetadata<Draft, Logged>(): PersistedMetadata<Draft, Logged> | null {
+  if (typeof sessionStorage === 'undefined') return null;
+  try {
+    const data = sessionStorage.getItem(METADATA_KEY);
+    if (!data) return null;
+    const parsed = JSON.parse(data) as PersistedMetadata<Draft, Logged>;
+    return parsed && typeof parsed === 'object' && parsed.draft ? parsed : null;
+  } catch {
+    return null;
   }
 }
 
