@@ -406,7 +406,7 @@ export function groupIntoSubject(
         groupName = 'ungrouped';
         reasons.push({
           layer: 'subject-grouping',
-          message: `Single subject — all top-level folders are session labels, no ID in filenames`,
+          message: `Single subject: all top-level folders are session labels, no ID in filenames`,
           weight: 0.3,
         });
       }
@@ -519,7 +519,7 @@ export function groupIntoSubject(
   groupName = 'ungrouped';
   reasons.push({
     layer: 'subject-grouping',
-    message: 'Could not determine subject grouping — manual assignment needed',
+    message: 'Could not determine subject grouping: manual assignment needed',
     weight: 0.1,
   });
 

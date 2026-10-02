@@ -927,7 +927,7 @@ The following are listed in the mapping table but are not exported:
 - Localizer and scout scans (acquisition aids, not analyzable data)
 - PET attenuation-correction CT and mu-map images (Section 6.1.7)
 - The redundant copy of a series converted twice (see Section 12.5)
-- Files whose modality the tool has only guessed. An unidentified `.nii.gz` defaults to T1w, marked "Guessed — pick a modality to export", and is not exported until the user picks a modality. An unidentified `.nii` stays Other / Unknown.
+- Files whose modality the tool has only guessed. An unidentified `.nii.gz` defaults to T1w, marked "Guessed: pick a modality to export", and is not exported until the user picks a modality. An unidentified `.nii` stays Other / Unknown.
 - Files with an unrecognized extension, or that could not be classified (a "Unclassified file" warning)
 - JSON sidecars with no data file of the same base name (an "Orphaned JSON sidecar" warning), and diffusion gradient tables that could not be paired (Section 6.1.2)
 - DICOM files (`.dcm`, `.dicom`, `.ima`) and ECAT PET files (`.v`, `.v.gz`), each with a warning to convert to NIfTI first

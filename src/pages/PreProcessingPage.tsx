@@ -527,14 +527,14 @@ done`}</CodeBlock>
           <h3 className="text-sm font-semibold text-gray-900 mb-3">Manual commands by scanner type</h3>
           <div className="space-y-5">
             <div>
-              <div className="text-xs font-semibold text-gray-700 mb-2">Siemens 3T (Prisma / Skyra) — structural</div>
+              <div className="text-xs font-semibold text-gray-700 mb-2">Siemens 3T (Prisma / Skyra): structural</div>
               <CodeBlock>{`dcm2niix -z y -b y -ba y -v 2 \\
   -f "%p_%s" \\
   -o /output/anat/ \\
   /input/dicom/T1_MPRAGE/`}</CodeBlock>
             </div>
             <div>
-              <div className="text-xs font-semibold text-gray-700 mb-2">Siemens 7T (Terra XA30) — structural (MP2RAGE)</div>
+              <div className="text-xs font-semibold text-gray-700 mb-2">Siemens 7T (Terra XA30): structural (MP2RAGE)</div>
               <CodeBlock>{`# -m n: handle enhanced DICOM (all slices in one file)
 # -i n: keep derived images (INV1, INV2, UNI, T1map)
 dcm2niix -z y -b y -ba y -v 2 -m n -i n \\
@@ -543,7 +543,7 @@ dcm2niix -z y -b y -ba y -v 2 -m n -i n \\
   /input/dicom/MP2RAGE/`}</CodeBlock>
             </div>
             <div>
-              <div className="text-xs font-semibold text-gray-700 mb-2">Siemens 3T / 7T — fMRI (BOLD, multiband)</div>
+              <div className="text-xs font-semibold text-gray-700 mb-2">Siemens 3T / 7T: fMRI (BOLD, multiband)</div>
               <CodeBlock>{`# --ignore_trigger_times: prevents clock glitches corrupting SliceTiming
 # -m n: required for XA30 enhanced DICOM
 dcm2niix -z y -b y -ba y -v 2 -m n --ignore_trigger_times \\
@@ -563,7 +563,7 @@ for p in pathlib.Path('/output/func/').glob('*.json'):
 "`}</CodeBlock>
             </div>
             <div>
-              <div className="text-xs font-semibold text-gray-700 mb-2">Philips 3T / 7T — all modalities</div>
+              <div className="text-xs font-semibold text-gray-700 mb-2">Philips 3T / 7T: all modalities</div>
               <CodeBlock>{`# -p y: precise float scaling (critical for MP2RAGE, ASL)
 dcm2niix -z y -b y -ba y -v 2 -p y \\
   -f "%p_%s" \\
@@ -571,7 +571,7 @@ dcm2niix -z y -b y -ba y -v 2 -p y \\
   /input/dicom/`}</CodeBlock>
             </div>
             <div>
-              <div className="text-xs font-semibold text-gray-700 mb-2">GE 3T — fMRI</div>
+              <div className="text-xs font-semibold text-gray-700 mb-2">GE 3T: fMRI</div>
               <CodeBlock>{`# Older GE firmware writes one DICOM per volume; dcm2niix stacks them
 # into one 4D file automatically. Check the volume count afterwards.
 dcm2niix -z y -b y -ba y -v 2 \\

@@ -57,7 +57,7 @@ const PHI_PATTERNS: PhiPattern[] = [
     name: 'Phone Number',
     pattern: /\b(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b/,
     severity: 'warning',
-    description: 'This looks like it might contain a phone number. Phone numbers are PHI — verify this is not patient data.',
+    description: 'This looks like it might contain a phone number. Phone numbers are PHI, so verify this is not patient data.',
   },
   // Email addresses
   {

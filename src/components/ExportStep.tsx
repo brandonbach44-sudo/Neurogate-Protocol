@@ -189,7 +189,7 @@ export default function ExportStep({
             match.file as File,
             { subjectId, dateShiftDays },
             (p) => setExportProgress(
-              `Uploading ${lf.originalName} — ${p.percent}% (${i + 1}/${stats.largeFiles.length})`
+              `Uploading ${lf.originalName}: ${p.percent}% (${i + 1}/${stats.largeFiles.length})`
             ),
           );
 
@@ -327,7 +327,7 @@ export default function ExportStep({
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
           <p className="text-sm font-semibold text-amber-800 mb-1">File not locally available</p>
           <p className="text-sm text-amber-700">
-            <strong>{unreadableFiles.join(', ')}</strong> could not be read — it may be a cloud-only OneDrive file.
+            <strong>{unreadableFiles.join(', ')}</strong> could not be read. It may be a cloud-only OneDrive file.
             In Windows Explorer, right-click the file and choose <strong>"Always keep on this device"</strong>, then add the folder again.
           </p>
         </div>
@@ -345,7 +345,7 @@ export default function ExportStep({
           serverEdfResults.length > 0 ? (
             <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
               <p className="text-sm font-semibold text-green-800 mb-2">
-                Large files de-identified on server — download below
+                Large files de-identified on the server. Download them below.
               </p>
               <p className="text-sm text-green-700 mb-3">
                 Place each file in the path shown after extracting the ZIP.
@@ -429,7 +429,7 @@ export default function ExportStep({
           <div className="flex items-center gap-2">
             <span className="text-green-600 text-lg">&#10003;</span>
             <p className="text-sm font-medium text-green-800">
-              ZIP ready — click <strong>Download</strong> to save it.
+              ZIP ready. Click <strong>Download</strong> to save it.
             </p>
           </div>
         </div>

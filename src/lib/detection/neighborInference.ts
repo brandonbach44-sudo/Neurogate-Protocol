@@ -100,7 +100,7 @@ export function inferFromNeighbors(
         modality = matchedModality;
         reasons.push({
           layer: 'neighbor',
-          message: `JSON sidecar matches "${matchingFile.name}" — inheriting modality`,
+          message: `JSON sidecar matches "${matchingFile.name}": inheriting modality`,
           weight: 0.7,
           supports: 'modality',
         });
@@ -116,7 +116,7 @@ export function inferFromNeighbors(
       modality = 'dwi';
       reasons.push({
         layer: 'neighbor',
-        message: `Found ${hasBval ? '.bval' : ''}${hasBval && hasBvec ? ' and ' : ''}${hasBvec ? '.bvec' : ''} in same folder — this is a diffusion MRI`,
+        message: `Found ${hasBval ? '.bval' : ''}${hasBval && hasBvec ? ' and ' : ''}${hasBvec ? '.bvec' : ''} in same folder: this is a diffusion MRI`,
         weight: 0.8,
         supports: 'modality',
       });
@@ -131,7 +131,7 @@ export function inferFromNeighbors(
       modality = 'ieeg';
       reasons.push({
         layer: 'neighbor',
-        message: 'EDF/BDF file in folder with electrode/channel metadata — likely intracranial EEG',
+        message: 'EDF/BDF file in folder with electrode/channel metadata: likely intracranial EEG',
         weight: 0.6,
         supports: 'modality',
       });
@@ -165,7 +165,7 @@ export function inferFromNeighbors(
       session = 'ses-postimplant';
       reasons.push({
         layer: 'neighbor',
-        message: 'CT and iEEG found in same subject group — this is the post-implant session',
+        message: 'CT and iEEG found in same subject group: this is the post-implant session',
         weight: 0.7,
         supports: 'session',
       });
@@ -182,7 +182,7 @@ export function inferFromNeighbors(
       // Also check with just any .lay in the folder
       const anyLay = neighborNames.some(n => n.endsWith('.lay'));
       if (!anyLay) {
-        warnings.push(`Persyst .dat file "${file.name}" has no matching .lay file — both are required`);
+        warnings.push(`Persyst .dat file "${file.name}" has no matching .lay file: both are required`);
       }
     }
   }
@@ -196,7 +196,7 @@ export function inferFromNeighbors(
     if (!hasDat) {
       const anyDat = neighborNames.some(n => n.endsWith('.dat'));
       if (!anyDat) {
-        warnings.push(`Persyst .lay file "${file.name}" has no matching .dat file — both are required`);
+        warnings.push(`Persyst .lay file "${file.name}" has no matching .dat file: both are required`);
       }
     }
   }
@@ -209,7 +209,7 @@ export function inferFromNeighbors(
         session = 'ses-preimplant';
         reasons.push({
           layer: 'neighbor',
-          message: 'Anatomical MRI with no CT or iEEG in subject group — likely pre-implant baseline',
+          message: 'Anatomical MRI with no CT or iEEG in subject group: likely pre-implant baseline',
           weight: 0.3,
           supports: 'session',
         });

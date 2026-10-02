@@ -328,7 +328,7 @@ export default function MappingTable({
               </button>
               <span className="text-xs text-blue-700">
                 ({orderedAssignCount} of {selectedIndices.size} will be assigned
-                {selectedIndices.size > orderedAssignCount ? ` — only ${sessionOptions.length} timepoints defined` : ''})
+                {selectedIndices.size > orderedAssignCount ? `; only ${sessionOptions.length} timepoints defined` : ''})
               </span>
             </div>
           )}
@@ -426,7 +426,7 @@ export default function MappingTable({
                             style={{ backgroundColor: 'rgba(249,115,22,0.12)', color: '#c2410c' }}
                             title="No detection layer identified this scan; the modality shown is a fallback guess. It will not be exported until you choose a modality."
                           >
-                            Guessed &mdash; pick a modality to export
+                            Guessed: pick a modality to export
                           </span>
                         )}
                         {result.duplicateOf && !result.userModality && (

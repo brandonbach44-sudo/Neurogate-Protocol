@@ -251,7 +251,7 @@ export function validateBidsStructure(
       category: 'bids-structure',
       severity: 'warning',
       title: 'Diffusion gradient table not matched to an image',
-      description: `"${grad.fileName}" is a diffusion gradient table that could not be matched to any diffusion image — not by base name, and not by b-value and phase-encoding direction. It will not be exported. Confirm which series it belongs to and rename or exclude it; the tool does not guess between multiple candidates, because attaching the wrong gradient directions to a series corrupts the diffusion data silently.`,
+      description: `"${grad.fileName}" is a diffusion gradient table that could not be matched to any diffusion image, either by base name or by b-value and phase-encoding direction. It will not be exported. Confirm which series it belongs to and rename or exclude it; the tool does not guess between multiple candidates, because attaching the wrong gradient directions to a series corrupts the diffusion data silently.`,
       affectedFiles: [grad.relativePath],
       dismissable: true,
     });

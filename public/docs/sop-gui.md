@@ -64,7 +64,7 @@ The following are required before starting the workflow.
 | Requirement | Details |
 |---|---|
 | Operating system | macOS on Apple Silicon, Windows, or Linux. There is no macOS build for Intel Macs. |
-| NeuroGate desktop application | Downloaded from GitHub Releases. See Section 4.4. |
+| NeuroGate desktop application | Downloaded from the Download page of the project website. See Section 4.4. |
 | Storage | Enough free disk space for the exported BIDS folder in addition to the source data. The desktop app copies files into a new folder; it never modifies the source files. |
 
 A command-line interface (CLI) is bundled with every desktop build. It is summarized in Section 15 and is not required to follow this SOP.
@@ -99,9 +99,11 @@ The detection engine combines several signals, strongest first:
 
 ### 4.4 Installation
 
-NeuroGate is distributed through GitHub Releases:
+Download NeuroGate from the Download page of the project website:
 
-<https://github.com/brandonbach44-sudo/Neurogate-Protocol/releases/latest>
+<https://epilepsy-gui.vercel.app/download>
+
+The page always offers the latest release, puts your system first, and shows the install steps below for each platform. The installer files themselves are published on GitHub Releases (<https://github.com/brandonbach44-sudo/Neurogate-Protocol/releases/latest>), which also lists older versions.
 
 | Platform | File |
 |---|---|
@@ -316,7 +318,7 @@ The filter bar shows a count for each filter: **All**, **High**, **Medium**, **L
 
 ### 8.3 Badges Under the File Name
 
-**Guessed — pick a modality to export (orange).** No signal identified the scan, so the modality shown is the T1w fallback. The file is not exported until you choose a modality in the Modality dropdown, even if T1w is correct. Choosing any modality clears the badge. A guessed file gets no message in the Validate step, so this badge is the only warning. A guessed T1w still counts as structural MRI for the defacing attestation.
+**Guessed: pick a modality to export (orange).** No signal identified the scan, so the modality shown is the T1w fallback. The file is not exported until you choose a modality in the Modality dropdown, even if T1w is correct. Choosing any modality clears the badge. A guessed file gets no message in the Validate step, so this badge is the only warning. A guessed T1w still counts as structural MRI for the defacing attestation.
 
 **Duplicate of `<filename>` (yellow).** The same series was converted twice (a bare name plus dcm2niix's decorated `_<name>_<digits>_<n>` copy in the same folder). The decorated copy, which carries the scanner sidecar, is exported and this copy is not. Setting a modality on this row exports it as well.
 
@@ -756,7 +758,7 @@ Differences from the desktop app:
 | `neurogate` not found after Install CLI | The `bin` folder is not on PATH, or the terminal was already open | On Windows, open a new terminal. On macOS and Linux, add the folder shown in the panel to PATH. |
 | A file does not appear or is Other / Unknown | The extension is not recognized, or the file is DICOM or ECAT | Check Section 7.2. Convert DICOM and ECAT to NIfTI first. |
 | Most files are Low or Needs Review | Source names and folders carry little information | Organize files into subject and session folders, or use bulk edits in Mapping |
-| A file shows "Guessed — pick a modality to export" | No signal identified the scan | Choose the correct modality. Guessed files are not exported otherwise. |
+| A file shows "Guessed: pick a modality to export" | No signal identified the scan | Choose the correct modality. Guessed files are not exported otherwise. |
 | A file you expected is missing from the export | It was guessed, unclassified, a duplicate copy, a localizer, an attenuation CT, or (browser only) over 500 MB | Check its badge and modality in Mapping |
 | "Fix N Errors to Continue" on Validate | Undismissed errors remain | Expand each error. Most must be fixed in Mapping or in the source data (Section 10.3). |
 | Validate shows "no session assigned" | Mapping let you continue with files that have no session | Back to Metadata, Back to Mapping, assign sessions, then re-enter Metadata |

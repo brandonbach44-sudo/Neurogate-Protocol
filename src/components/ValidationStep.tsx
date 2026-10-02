@@ -232,7 +232,7 @@ export default function ValidationStep({
         {filteredIssues.length === 0 ? (
           <div className="text-center py-12 text-gray-500">
             {report.issues.length === 0
-              ? 'No issues found — your data looks great!'
+              ? 'No issues found. Your data looks great!'
               : 'No issues match the current filter.'}
           </div>
         ) : (

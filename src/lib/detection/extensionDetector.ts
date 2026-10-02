@@ -73,7 +73,7 @@ export function detectFromExtension(fileName: string, _relativePath: string): Ex
       bestGuess: 'other',
       reason: {
         layer: 'extension',
-        message: `Operating system metadata file ("${fileName}") — not scan data, excluded from export`,
+        message: `Operating system metadata file ("${fileName}"): not scan data, excluded from export`,
         weight: 0,
       },
     };
@@ -88,7 +88,7 @@ export function detectFromExtension(fileName: string, _relativePath: string): Ex
       bestGuess: null, // need filename/folder keywords to narrow down
       reason: {
         layer: 'extension',
-        message: 'NIfTI gzipped file — imaging data (MRI, CT or PET)',
+        message: 'NIfTI gzipped file: imaging data (MRI, CT or PET)',
         weight: 0.3,
       },
     };
@@ -103,7 +103,7 @@ export function detectFromExtension(fileName: string, _relativePath: string): Ex
       bestGuess: null,
       reason: {
         layer: 'extension',
-        message: 'Uncompressed NIfTI (.nii) — will be compressed to .nii.gz automatically on export',
+        message: 'Uncompressed NIfTI (.nii): will be compressed to .nii.gz automatically on export',
         weight: 0.3,
       },
     };
@@ -117,7 +117,7 @@ export function detectFromExtension(fileName: string, _relativePath: string): Ex
       bestGuess: null, // need filename/folder to distinguish eeg vs ieeg
       reason: {
         layer: 'extension',
-        message: 'EDF/BDF file — electrophysiology recording (EEG or iEEG)',
+        message: 'EDF/BDF file: electrophysiology recording (EEG or iEEG)',
         weight: 0.4,
       },
     };
@@ -131,7 +131,7 @@ export function detectFromExtension(fileName: string, _relativePath: string): Ex
       bestGuess: 'ieeg',
       reason: {
         layer: 'extension',
-        message: 'NWB file — intracranial EEG (Neurodata Without Borders)',
+        message: 'NWB file: intracranial EEG (Neurodata Without Borders)',
         weight: 0.9,
       },
     };
@@ -145,7 +145,7 @@ export function detectFromExtension(fileName: string, _relativePath: string): Ex
       bestGuess: 'ieeg',
       reason: {
         layer: 'extension',
-        message: 'Persyst .dat file — intracranial EEG (requires matching .lay file)',
+        message: 'Persyst .dat file: intracranial EEG (requires matching .lay file)',
         weight: 0.8,
       },
     };
@@ -158,7 +158,7 @@ export function detectFromExtension(fileName: string, _relativePath: string): Ex
       bestGuess: 'ieeg',
       reason: {
         layer: 'extension',
-        message: 'Persyst .lay layout file — companion to iEEG .dat file',
+        message: 'Persyst .lay layout file: companion to iEEG .dat file',
         weight: 0.8,
       },
     };
@@ -171,7 +171,7 @@ export function detectFromExtension(fileName: string, _relativePath: string): Ex
       bestGuess: 'dwi',
       reason: {
         layer: 'extension',
-        message: 'b-values file — diffusion MRI companion',
+        message: 'b-values file: diffusion MRI companion',
         weight: 0.9,
       },
     };
@@ -184,7 +184,7 @@ export function detectFromExtension(fileName: string, _relativePath: string): Ex
       bestGuess: 'dwi',
       reason: {
         layer: 'extension',
-        message: 'b-vectors file — diffusion MRI companion',
+        message: 'b-vectors file: diffusion MRI companion',
         weight: 0.9,
       },
     };
@@ -199,7 +199,7 @@ export function detectFromExtension(fileName: string, _relativePath: string): Ex
       bestGuess: 'sidecar-json',
       reason: {
         layer: 'extension',
-        message: 'JSON sidecar — metadata for an imaging or recording file',
+        message: 'JSON sidecar: metadata for an imaging or recording file',
         weight: 0.5,
       },
     };
@@ -216,7 +216,7 @@ export function detectFromExtension(fileName: string, _relativePath: string): Ex
         bestGuess: 'electrodes',
         reason: {
           layer: 'extension',
-          message: 'TSV file with "electrode" in name — electrode position metadata',
+          message: 'TSV file with "electrode" in name: electrode position metadata',
           weight: 0.9,
         },
       };
@@ -227,7 +227,7 @@ export function detectFromExtension(fileName: string, _relativePath: string): Ex
         bestGuess: 'channels',
         reason: {
           layer: 'extension',
-          message: 'TSV file with "channel" in name — channel description metadata',
+          message: 'TSV file with "channel" in name: channel description metadata',
           weight: 0.9,
         },
       };
@@ -238,7 +238,7 @@ export function detectFromExtension(fileName: string, _relativePath: string): Ex
         bestGuess: 'events',
         reason: {
           layer: 'extension',
-          message: 'TSV file with "event" in name — event timing metadata',
+          message: 'TSV file with "event" in name: event timing metadata',
           weight: 0.9,
         },
       };
@@ -261,7 +261,7 @@ export function detectFromExtension(fileName: string, _relativePath: string): Ex
       bestGuess: 'sidecar-tsv',
       reason: {
         layer: 'extension',
-        message: 'WARNING: CSV file detected — BIDS requires TSV format, not CSV',
+        message: 'WARNING: CSV file detected: BIDS requires TSV format, not CSV',
         weight: 0.3,
       },
     };
@@ -274,7 +274,7 @@ export function detectFromExtension(fileName: string, _relativePath: string): Ex
       bestGuess: 'other',
       reason: {
         layer: 'extension',
-        message: 'WARNING: DICOM file detected — must be converted to NIfTI (.nii.gz) first; not exported',
+        message: 'WARNING: DICOM file detected: must be converted to NIfTI (.nii.gz) first; not exported',
         weight: 0.9,
       },
     };
@@ -289,7 +289,7 @@ export function detectFromExtension(fileName: string, _relativePath: string): Ex
       bestGuess: 'other',
       reason: {
         layer: 'extension',
-        message: 'WARNING: ECAT PET file detected — must be converted to NIfTI (.nii.gz) before export, e.g. with PET2BIDS (ecatpet2bids)',
+        message: 'WARNING: ECAT PET file detected: must be converted to NIfTI (.nii.gz) before export, e.g. with PET2BIDS (ecatpet2bids)',
         weight: 0.9,
       },
     };
