@@ -7,7 +7,9 @@
  *
  * The log is saved to tab storage after every change and restored on
  * start (auditPersistence.ts), so a reload or a renderer crash doesn't
- * lose it.
+ * lose it. Closing does, so when the log has unsaved entries the desktop
+ * app asks before its window closes (electron/main.cjs) and a browser
+ * tab shows its leave-page prompt.
  */
 
 import { useEffect, useState } from 'react';
@@ -36,17 +38,35 @@ export function AuditProvider({ children }: { children: React.ReactNode }) {
       if (timer) { clearTimeout(timer); timer = null; }
       saveAuditLog(logger.getLog());
     };
+    const desktop = window.neurogateDesktop;
+    let reportedUnsaved: boolean | null = null;
+    const reportUnsaved = () => {
+      const unsaved = logger.hasUnsavedWork();
+      if (unsaved === reportedUnsaved) return;
+      reportedUnsaved = unsaved;
+      desktop?.setAuditUnsaved?.(unsaved);
+    };
     const unsubscribe = logger.subscribe(() => {
       if (!timer) timer = setTimeout(flush, 250);
+      reportUnsaved();
     });
     flush();
+    reportUnsaved();
+    // Browser only: the desktop app asks in its own dialog, and a
+    // beforeunload prompt in Electron would silently block closing.
+    const warnBeforeLeaving = (event: BeforeUnloadEvent) => {
+      flush();
+      if (desktop || !logger.hasUnsavedWork()) return;
+      event.preventDefault();
+      event.returnValue = '';
+    };
     window.addEventListener('pagehide', flush);
-    window.addEventListener('beforeunload', flush);
+    window.addEventListener('beforeunload', warnBeforeLeaving);
     return () => {
       unsubscribe();
       flush();
       window.removeEventListener('pagehide', flush);
-      window.removeEventListener('beforeunload', flush);
+      window.removeEventListener('beforeunload', warnBeforeLeaving);
     };
   }, [logger]);
 

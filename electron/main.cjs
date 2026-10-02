@@ -90,6 +90,20 @@ const APP_ROOT = path.join(__dirname, '..');
 let httpServer = null;
 let mainWindow = null;
 
+// Unsaved-audit-log guard. The renderer reports (via preload's
+// setAuditUnsaved) whether its audit log has entries no saved copy
+// includes. Closing the window then asks first, since the log lives only
+// in the window and closing it clears it. `allowClose` lets the second,
+// confirmed close through; `quitting` remembers that the close came from
+// a quit (Cmd+Q, update restart), so the quit can be resumed.
+let auditUnsaved = false;
+let allowClose = false;
+let quitting = false;
+ipcMain.on('audit-unsaved', (_event, unsaved) => {
+  auditUnsaved = Boolean(unsaved);
+  console.log(`[audit] unsaved entries: ${auditUnsaved}`);
+});
+
 /**
  * Sets the env vars server/index.js reads at module-load time, then
  * requires it and calls its exported start(). The env vars must be set
@@ -154,8 +168,32 @@ function createWindow() {
     mainWindow.webContents.openDevTools({ mode: 'detach' });
   }
 
+  mainWindow.on('close', (event) => {
+    if (allowClose || !auditUnsaved) return;
+    event.preventDefault();
+    console.log('[audit] close requested with an unsaved audit log; asking');
+    const response = dialog.showMessageBoxSync(mainWindow, {
+      type: 'warning',
+      title: 'Audit log not saved',
+      message: "This session's audit log hasn't been saved.",
+      detail: 'It records your corrections, metadata, dismissed issues and exports, and it is cleared when NeuroGate closes. To keep it, choose Keep Open, then save it with Audit Log > Export JSON, or by exporting the dataset.',
+      buttons: ['Keep Open', 'Close Without Saving'],
+      defaultId: 0,
+      cancelId: 0,
+    });
+    if (response === 1) {
+      allowClose = true;
+      if (quitting) app.quit();
+      else mainWindow.close();
+    } else {
+      quitting = false;
+    }
+  });
+
   mainWindow.on('closed', () => {
     mainWindow = null;
+    allowClose = false;
+    auditUnsaved = false;
   });
 }
 
@@ -302,8 +340,11 @@ app.on('window-all-closed', () => {
   }
 });
 
+// The server is stopped in will-quit, not before-quit: before-quit fires
+// before windows close, and a close can still be cancelled (the unsaved
+// audit log prompt), which would leave the app open with no server.
 app.on('before-quit', () => {
-  stopServer();
+  quitting = true;
 });
 
 app.on('will-quit', () => {

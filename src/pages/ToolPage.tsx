@@ -665,7 +665,7 @@ function ToolPage() {
               // Browser ZIP: both download as separate files.
               const idMap = new Map(metadataOutput!.subjects.map(s => [s.subjectGroup, s.bidsSubjectId]));
               const named = computeBidsNames(detectionResults, idMap, datasetStructure);
-              const { full, shareable } = auditJsonFiles(audit, 'user', buildAuditRedactionPairs(named, metadataOutput!.subjects));
+              const { full, shareable, throughId } = auditJsonFiles(audit, 'user', buildAuditRedactionPairs(named, metadataOutput!.subjects));
               if (destination && window.neurogateDesktop) {
                 await window.neurogateDesktop.writeExportFile(destination.outputDir, full.name, full.text);
                 await window.neurogateDesktop.writeExportFile(destination.outputDir, shareable.name, shareable.text);
@@ -673,6 +673,7 @@ function ToolPage() {
                 downloadFile(full.text, full.name, 'application/json');
                 downloadFile(shareable.text, shareable.name, 'application/json');
               }
+              audit.markSaved(throughId);
             }}
           />
         )}

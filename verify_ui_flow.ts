@@ -10,6 +10,8 @@
  *   4. "Change structure" returns to the Structure step, keeps the audit
  *      log, and the new structure is used.
  *   5. A page reload keeps the audit log.
+ *   6. Leaving the page asks first while the log has unsaved entries,
+ *      and not after it's saved.
  *
  * Needs a dev server and Chrome:
  *   npx vite --port 5199 &   then   npx tsx verify_ui_flow.ts
@@ -221,6 +223,16 @@ async function main() {
     const audit3 = await openAuditPanel();
     check(/Page reloaded; audit log restored with \d+ earlier entries/.test(audit3), 'reload restores the log');
     check(/Structure changed from Implant sessions/.test(audit3) && /Institution configured: prefix=/.test(audit3), 'entries from before the reload are there');
+
+    // ── 6. Leaving the page with an unsaved log ──────────────────────
+    const leaveBlocked = () => evaluate<boolean>(`(() => { const e = new Event('beforeunload', { cancelable: true }); window.dispatchEvent(e); return e.defaultPrevented; })()`);
+    check(await leaveBlocked(), 'leaving with unsaved audit entries asks first');
+    await click('Audit Log');
+    await sleep(300);
+    await click('Export JSON');
+    await sleep(300);
+    await evaluate<void>(`document.querySelector('[aria-label="Close audit log panel"]')?.click()`);
+    check(!(await leaveBlocked()), 'no prompt once the log is saved');
   } finally {
     try { ws?.close(); } catch { /* ignore */ }
     chrome.kill();

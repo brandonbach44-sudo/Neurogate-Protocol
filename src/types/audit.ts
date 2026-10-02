@@ -75,6 +75,12 @@ export interface AuditLog {
   toolVersion: string;
   /** All entries in chronological order */
   entries: AuditEntry[];
+  /**
+   * The id of the last entry included in a saved copy (an export, or
+   * Export JSON / CSV). Kept with the log so a reload remembers it; not
+   * written into exported files.
+   */
+  savedThroughId?: number;
 }
 
 // ── Export Formats ────────────────────────────────────────────
