@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import FileDropZone from '../components/FileDropZone';
 import MappingTable from '../components/MappingTable';
@@ -9,7 +9,7 @@ import AuditLogPanel from '../components/AuditLogPanel';
 import NeuralParticles from '../components/NeuralParticles';
 import Wordmark from '../components/Wordmark';
 import StructureSetupStep from '../components/StructureSetupStep';
-import type { MetadataOutput } from '../components/MetadataStep';
+import type { MetadataOutput, MetadataDraft } from '../components/MetadataStep';
 import type { ScannedFile } from '../types/files';
 import type { DetectionResult, DetectionSummary, Session, Modality } from '../types/detection';
 import { getEffectiveSession, getEffectiveModality } from '../types/detection';
@@ -53,10 +53,15 @@ function ToolPage() {
   const [detectionResults, setDetectionResults] = useState<DetectionResult[]>([]);
   const [summary, setSummary] = useState<DetectionSummary | null>(null);
   const [metadataOutput, setMetadataOutput] = useState<MetadataOutput | null>(null);
+  // What was typed on the Metadata step, restored when the user returns
+  // to it (it is recreated on every visit).
+  const [metadataDraft, setMetadataDraft] = useState<MetadataDraft | null>(null);
   const [auditPanelOpen, setAuditPanelOpen] = useState(false);
   const [savedSession, setSavedSession] = useState<PersistedSession | null>(initialSaved);
 
   const audit = useAudit();
+  // The Metadata values last written to the audit log (see handleMetadataComplete).
+  const loggedMetadata = useRef<MetadataOutput | null>(null);
 
   // ── Save/resume: persist on every detection-state change ──────────────
   // Only file mappings and detection results are persisted, never metadata
@@ -193,20 +198,34 @@ function ToolPage() {
 
   // ── Handle metadata completion ────────────────────────────────
   const handleMetadataComplete = useCallback((metadata: MetadataOutput) => {
+    const previous = loggedMetadata.current;
+    loggedMetadata.current = metadata;
     setMetadataOutput(metadata);
+    setMetadataDraft(metadata);
     setStep('validation');
 
-    // Log metadata entries
-    audit.logInstitutionConfigured(metadata.institutionConfig.prefix, metadata.institutionConfig.startingNumber);
-
-    for (const subject of metadata.subjects) {
-      audit.logSubjectMetadataEntered(subject.bidsSubjectId, subject.sessions.length);
+    // Log metadata entries -- only what changed since the last time this
+    // step was completed, so going back and forth doesn't repeat entries.
+    const inst = metadata.institutionConfig;
+    if (!previous || previous.institutionConfig.prefix !== inst.prefix || previous.institutionConfig.startingNumber !== inst.startingNumber) {
+      audit.logInstitutionConfigured(inst.prefix, inst.startingNumber);
     }
 
-    const filledAuthors = metadata.datasetDescription.authors.filter(a => a.trim()).length;
-    audit.logDatasetDescriptionEntered(metadata.datasetDescription.name, filledAuthors);
+    const previousSubjects = new Map(previous?.subjects.map(s => [s.bidsSubjectId, s.sessions.length]) ?? []);
+    for (const subject of metadata.subjects) {
+      if (previousSubjects.get(subject.bidsSubjectId) !== subject.sessions.length) {
+        audit.logSubjectMetadataEntered(subject.bidsSubjectId, subject.sessions.length);
+      }
+    }
 
-    if (metadata.defacingAttestation.confirmed) {
+    const desc = metadata.datasetDescription;
+    const filledAuthors = desc.authors.filter(a => a.trim());
+    const previousAuthors = previous?.datasetDescription.authors.filter(a => a.trim()) ?? null;
+    if (!previous || previous.datasetDescription.name !== desc.name || previousAuthors?.join('\n') !== filledAuthors.join('\n')) {
+      audit.logDatasetDescriptionEntered(desc.name, filledAuthors.length);
+    }
+
+    if (metadata.defacingAttestation.confirmed && !previous?.defacingAttestation.confirmed) {
       audit.logDefacingAttested();
     }
   }, [audit]);
@@ -218,6 +237,8 @@ function ToolPage() {
     setDetectionResults([]);
     setSummary(null);
     setMetadataOutput(null);
+    setMetadataDraft(null);
+    loggedMetadata.current = null;
     clearToolSession();
     setSavedSession(null);
   }, []);
@@ -510,7 +531,8 @@ function ToolPage() {
             detectionResults={detectionResults}
             scannedFiles={scannedFiles}
             onContinue={handleMetadataComplete}
-            onBack={() => setStep('mapping')}
+            onBack={(draft) => { setMetadataDraft(draft); setStep('mapping'); }}
+            initialDraft={metadataDraft ?? undefined}
             structure={datasetStructure}
           />
         )}

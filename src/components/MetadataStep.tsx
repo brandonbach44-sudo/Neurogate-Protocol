@@ -26,17 +26,43 @@ interface MetadataStepProps {
   detectionResults: DetectionResult[];
   scannedFiles: ScannedFile[];
   onContinue: (metadata: MetadataOutput) => void;
-  onBack: () => void;
+  /** Called with what was entered so far, so it can be restored next time. */
+  onBack: (draft: MetadataDraft) => void;
+  /**
+   * Entries from an earlier visit to this step (Back to Mapping, or Back
+   * from Validate), restored instead of the defaults. The step is
+   * recreated on every visit, so without this everything typed was lost.
+   */
+  initialDraft?: MetadataDraft;
   /** Active session structure; used to order sessions correctly for both presets. */
   structure?: DatasetStructure;
 }
 
 /** Everything the metadata step produces */
-export interface MetadataOutput {
+export interface MetadataOutput extends MetadataDraft {
   subjects: SubjectMetadata[];
+}
+
+/**
+ * What the user typed on this step, kept between visits. Subjects aren't
+ * part of it: they're rebuilt from the mapping every time, since the user
+ * may have changed it.
+ */
+export interface MetadataDraft {
+  institutionConfig: InstitutionConfig;
   datasetDescription: DatasetDescription;
   defacingAttestation: DefacingAttestationType;
-  institutionConfig: InstitutionConfig;
+  /**
+   * The structural MRI files the attestation covered. If the mapping now
+   * gives a different set, the attestation no longer applies and must be
+   * confirmed again.
+   */
+  attestedFiles: string[];
+}
+
+/** The files a defacing attestation covers, as a stable list. */
+function defacedFileKey(results: DetectionResult[]): string[] {
+  return results.filter(requiresDefacing).map(r => r.relativePath).sort();
 }
 
 type TabId = 'institution' | 'subjects' | 'dataset' | 'defacing';
@@ -46,16 +72,27 @@ export default function MetadataStep({
   scannedFiles,
   onContinue,
   onBack,
+  initialDraft,
   structure = createDefaultDatasetStructure(),
 }: MetadataStepProps) {
   const [activeTab, setActiveTab] = useState<TabId>('institution');
-  const [institutionConfig, setInstitutionConfig] = useState<InstitutionConfig>(createDefaultInstitutionConfig());
+  const [institutionConfig, setInstitutionConfig] = useState<InstitutionConfig>(
+    () => initialDraft?.institutionConfig ?? createDefaultInstitutionConfig(),
+  );
   // Subjects as detected (groups + sessions). Their BIDS IDs are derived
   // from the institution prefix and starting number below, so they always
   // match the current Institution Setup without a state-syncing effect.
   const [baseSubjects, setSubjects] = useState<SubjectMetadata[]>([]);
-  const [datasetDescription, setDatasetDescription] = useState<DatasetDescription>(createDefaultDatasetDescription());
-  const [attestation, setAttestation] = useState<DefacingAttestationType>(createDefaultAttestation());
+  const [datasetDescription, setDatasetDescription] = useState<DatasetDescription>(
+    () => initialDraft?.datasetDescription ?? createDefaultDatasetDescription(),
+  );
+  // A restored attestation only stands if it still covers exactly the
+  // same structural MRI files.
+  const [attestation, setAttestation] = useState<DefacingAttestationType>(() => {
+    if (!initialDraft) return createDefaultAttestation();
+    const same = initialDraft.attestedFiles.join('\n') === defacedFileKey(detectionResults).join('\n');
+    return same ? initialDraft.defacingAttestation : createDefaultAttestation();
+  });
   const [autoFilledSubjects, setAutoFilledSubjects] = useState<Set<string>>(new Set());
   const [showErrors, setShowErrors] = useState(false);
   const [autoFilledDataset, setAutoFilledDataset] = useState(false);
@@ -125,8 +162,9 @@ export default function MetadataStep({
       }
       setAutoFilledSubjects(filledSet);
 
-      // Pre-fill dataset description if found
-      if (autoFilled.datasetDescription) {
+      // Pre-fill dataset description if found, but never over what the
+      // user already entered on an earlier visit.
+      if (autoFilled.datasetDescription && !initialDraft) {
         setDatasetDescription(prev => ({
           ...prev,
           ...autoFilled.datasetDescription,
@@ -436,7 +474,17 @@ export default function MetadataStep({
 
       {/* Action buttons */}
       <div className="flex justify-between mt-6">
-        <Button variant="secondary" onClick={onBack}>Back to Mapping</Button>
+        <Button
+          variant="secondary"
+          onClick={() => onBack({
+            institutionConfig,
+            datasetDescription,
+            defacingAttestation: attestation,
+            attestedFiles: defacedFileKey(detectionResults),
+          })}
+        >
+          Back to Mapping
+        </Button>
         <Button
           variant="primary"
           onClick={() => {
@@ -448,6 +496,7 @@ export default function MetadataStep({
                 datasetDescription,
                 defacingAttestation: attestation,
                 institutionConfig,
+                attestedFiles: defacedFileKey(detectionResults),
               });
             }
           }}
