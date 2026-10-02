@@ -171,7 +171,7 @@ export default function MetadataStep({
       }
 
       // Try auto-fill from dropped files
-      const autoFilled = await autoFillFromDroppedFiles(scannedFiles, filesByGroup);
+      const autoFilled = await autoFillFromDroppedFiles(scannedFiles, filesByGroup, resolveSessionIds(structure));
 
       // Track which subjects were auto-filled
       const filledSet = new Set<string>();

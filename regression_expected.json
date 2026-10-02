@@ -334,7 +334,7 @@
       },
       "validationSummary": {
         "passed": true,
-        "issueCount": 1,
+        "issueCount": 2,
         "issues": [
           {
             "id": "cross-1",
@@ -347,6 +347,20 @@
               "Patient_001/Session_preimplant/eeg/channels_001.tsv"
             ],
             "subjectGroup": "001",
+            "dismissable": true
+          },
+          {
+            "id": "cons-1",
+            "category": "consistency",
+            "severity": "warning",
+            "title": "1 channel with no matching electrode",
+            "description": "Patient_001/Session_implant/ieeg/channels_001.tsv lists 1 electrode channel that is not in Patient_001/Session_implant/ieeg/electrodes_001.tsv: LA3. Tools match channels to electrode positions by exact name, so these recordings would have no location. Fix the names in the source tables so they agree.",
+            "affectedFiles": [
+              "Patient_001/Session_implant/ieeg/channels_001.tsv",
+              "Patient_001/Session_implant/ieeg/electrodes_001.tsv"
+            ],
+            "subjectGroup": "001",
+            "session": "ses-postimplant",
             "dismissable": true
           }
         ]
@@ -686,7 +700,7 @@
       },
       "validationSummary": {
         "passed": true,
-        "issueCount": 1,
+        "issueCount": 2,
         "issues": [
           {
             "id": "cross-1",
@@ -699,6 +713,20 @@
               "Patient_002/Session_preimplant/eeg/channels_002.tsv"
             ],
             "subjectGroup": "002",
+            "dismissable": true
+          },
+          {
+            "id": "cons-1",
+            "category": "consistency",
+            "severity": "warning",
+            "title": "1 channel with no matching electrode",
+            "description": "Patient_002/Session_implant/ieeg/channels_002.tsv lists 1 electrode channel that is not in Patient_002/Session_implant/ieeg/electrodes_002.tsv: LA3. Tools match channels to electrode positions by exact name, so these recordings would have no location. Fix the names in the source tables so they agree.",
+            "affectedFiles": [
+              "Patient_002/Session_implant/ieeg/channels_002.tsv",
+              "Patient_002/Session_implant/ieeg/electrodes_002.tsv"
+            ],
+            "subjectGroup": "002",
+            "session": "ses-postimplant",
             "dismissable": true
           }
         ]
@@ -1038,7 +1066,7 @@
       },
       "validationSummary": {
         "passed": true,
-        "issueCount": 1,
+        "issueCount": 2,
         "issues": [
           {
             "id": "cross-1",
@@ -1051,6 +1079,20 @@
               "Patient_003/Session_preimplant/eeg/channels_003.tsv"
             ],
             "subjectGroup": "003",
+            "dismissable": true
+          },
+          {
+            "id": "cons-1",
+            "category": "consistency",
+            "severity": "warning",
+            "title": "1 channel with no matching electrode",
+            "description": "Patient_003/Session_implant/ieeg/channels_003.tsv lists 1 electrode channel that is not in Patient_003/Session_implant/ieeg/electrodes_003.tsv: LA3. Tools match channels to electrode positions by exact name, so these recordings would have no location. Fix the names in the source tables so they agree.",
+            "affectedFiles": [
+              "Patient_003/Session_implant/ieeg/channels_003.tsv",
+              "Patient_003/Session_implant/ieeg/electrodes_003.tsv"
+            ],
+            "subjectGroup": "003",
+            "session": "ses-postimplant",
             "dismissable": true
           }
         ]
@@ -1390,7 +1432,7 @@
       },
       "validationSummary": {
         "passed": true,
-        "issueCount": 1,
+        "issueCount": 2,
         "issues": [
           {
             "id": "cross-1",
@@ -1403,6 +1445,20 @@
               "Patient_004/Session_preimplant/eeg/channels_004.tsv"
             ],
             "subjectGroup": "004",
+            "dismissable": true
+          },
+          {
+            "id": "cons-1",
+            "category": "consistency",
+            "severity": "warning",
+            "title": "1 channel with no matching electrode",
+            "description": "Patient_004/Session_implant/ieeg/channels_004.tsv lists 1 electrode channel that is not in Patient_004/Session_implant/ieeg/electrodes_004.tsv: LA3. Tools match channels to electrode positions by exact name, so these recordings would have no location. Fix the names in the source tables so they agree.",
+            "affectedFiles": [
+              "Patient_004/Session_implant/ieeg/channels_004.tsv",
+              "Patient_004/Session_implant/ieeg/electrodes_004.tsv"
+            ],
+            "subjectGroup": "004",
+            "session": "ses-postimplant",
             "dismissable": true
           }
         ]
@@ -1742,7 +1798,7 @@
       },
       "validationSummary": {
         "passed": true,
-        "issueCount": 1,
+        "issueCount": 2,
         "issues": [
           {
             "id": "cross-1",
@@ -1755,6 +1811,20 @@
               "Patient_005/Session_preimplant/eeg/channels_005.tsv"
             ],
             "subjectGroup": "005",
+            "dismissable": true
+          },
+          {
+            "id": "cons-1",
+            "category": "consistency",
+            "severity": "warning",
+            "title": "1 channel with no matching electrode",
+            "description": "Patient_005/Session_implant/ieeg/channels_005.tsv lists 1 electrode channel that is not in Patient_005/Session_implant/ieeg/electrodes_005.tsv: LA3. Tools match channels to electrode positions by exact name, so these recordings would have no location. Fix the names in the source tables so they agree.",
+            "affectedFiles": [
+              "Patient_005/Session_implant/ieeg/channels_005.tsv",
+              "Patient_005/Session_implant/ieeg/electrodes_005.tsv"
+            ],
+            "subjectGroup": "005",
+            "session": "ses-postimplant",
             "dismissable": true
           }
         ]

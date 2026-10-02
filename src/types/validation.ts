@@ -17,7 +17,8 @@ export type ValidationCategory =
   | 'cross-session'     // Inconsistencies across sessions for a subject
   | 'file-format'       // File format issues (uncompressed NIfTI, DICOM, etc.)
   | 'metadata'          // Missing or invalid metadata fields
-  | 'defacing';         // Structural MRI defacing concerns
+  | 'defacing'          // Structural MRI defacing concerns
+  | 'consistency';      // Files that must agree: channels vs electrodes, Persyst pairs, sessions.tsv
 
 // ── Severity Levels ───────────────────────────────────────────────
 
@@ -90,6 +91,7 @@ export function createEmptyReport(): ValidationReport {
       'file-format': 0,
       'metadata': 0,
       'defacing': 0,
+      'consistency': 0,
     },
   };
 }
