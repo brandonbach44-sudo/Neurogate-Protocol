@@ -1,38 +1,23 @@
 /**
  * NeuroGate Desktop (Electron main process)
  *
- * Wraps the existing web app and the existing Express API server in a
- * native installer. See Documents/NeuroGate_Phase_Roadmap.md, "Phase
- * 4/6 Revision," Step 3.
+ * Wraps the web app in a native installer.
  *
- * Architecture: on launch, requires server/index.js IN-PROCESS (see
- * "Why in-process, not a child process" below) with SERVE_STATIC=true,
- * calls its exported start(), then points the BrowserWindow at
- * http://127.0.0.1:<port>. Frontend and API share one origin/port --
- * this avoids CORS entirely and means the renderer needs zero
- * Electron-specific code; it's the exact same built dist/ the web
- * deployment ships, just served locally instead of from S3/CloudFront.
- * See server/index.js's SERVE_STATIC block, which this process is the
- * reason that block was actually finished (it existed but was dead code
- * from the earlier, now-superseded Dockerized-desktop plan).
+ * Architecture: on launch, requires server/index.js IN-PROCESS with
+ * SERVE_STATIC=true, calls its exported start() on 127.0.0.1, then
+ * points the BrowserWindow at http://127.0.0.1:<port>. The renderer is
+ * the exact same built dist/ the website ships, served locally. The
+ * server only serves pages; desktop-only features (folder export, CLI
+ * install) go through the preload bridge.
  *
- * Why in-process, not a child process: the original design spawned a
- * second copy of the packaged .exe (via process.execPath +
- * ELECTRON_RUN_AS_NODE=1) as a child process running server/index.js.
- * That worked in `npm run electron:dev` but failed consistently on a
- * real installed build with `spawn ...\NeuroGate.exe ENOENT`, every
- * launch, even though the target file plainly exists (the app IS that
- * file). Root cause, most likely: an unsigned .exe launching a second
- * instance of itself is a classic dropper/self-replication pattern,
- * and AV/EDR behavioral rules commonly block that CreateProcess call
- * and report it back as "file not found" rather than "access denied"
- * specifically so the block doesn't look like a block. Electron's main
- * process is already a full Node.js runtime -- requiring the server
- * module directly and calling its exported start() removes the second
- * process, and that whole failure mode, entirely. See server/index.js
- * for the corresponding `module.exports = { app, start }` and the
- * `require.main === module` guard that keeps standalone usage (local
- * dev, AWS/EC2 deployment) working unchanged.
+ * Why in-process, not a child process: an earlier design spawned a
+ * second copy of the packaged .exe (process.execPath +
+ * ELECTRON_RUN_AS_NODE=1). On a real installed Windows build that
+ * failed every launch with `spawn ...\NeuroGate.exe ENOENT`, most
+ * likely because antivirus blocks an unsigned .exe launching itself and
+ * reports it as "file not found". Electron's main process is already a
+ * Node.js runtime, so requiring the module directly removes the second
+ * process and that failure mode.
  *
  * Deliberately plain CommonJS (.cjs), not TypeScript or ESM: the main
  * process is small enough that a build step (electron-vite, tsc, etc.)
@@ -91,7 +76,7 @@ const APP_URL = `http://127.0.0.1:${SERVER_PORT}`;
 // Fast dev loop (see scripts/dev-electron.mjs / "npm run electron:dev:fast"):
 // when set, the window loads the Vite dev server directly instead of a
 // built dist/ served by Express, so every save is a Vite HMR update --
-// no `npm run build` + relaunch cycle. The API server still runs
+// no `npm run build` + relaunch cycle. The page server still runs
 // in-process below, just with SERVE_STATIC off, since the Vite dev
 // server is what's serving the frontend now. This is what closes the
 // "close, reinstall the app" complaint for iterating on small changes --
@@ -107,23 +92,14 @@ let mainWindow = null;
 
 /**
  * Sets the env vars server/index.js reads at module-load time, then
- * requires it and calls its exported start(). Env vars are set BEFORE
- * the require() call since the module reads process.env.PORT /
- * process.env.SERVE_STATIC while building the Express app at the top
- * level, not lazily inside start(). Setting them here (rather than
- * relying on dotenv) also means this doesn't depend on a server/.env
- * file existing in the packaged app at all.
+ * requires it and calls its exported start(). The env vars must be set
+ * BEFORE require(), since the module reads them while building the
+ * Express app at the top level.
  */
 async function startServer() {
   process.env.PORT = String(SERVER_PORT);
-  // Tells server/index.js not to mount its upload/download API routes --
-  // unused by the desktop app, which exports by streaming to disk.
-  process.env.NEUROGATE_DESKTOP = '1';
-  // In fast-dev mode the frontend is served by Vite on its own origin
-  // (default http://localhost:5173), not by this server, so SERVE_STATIC
-  // must stay off and the server's existing CORS_ORIGIN default (also
-  // http://localhost:5173 -- see server/index.js) already covers it
-  // without any extra config here.
+  // In fast-dev mode the window loads the Vite dev server directly, so
+  // this server has no pages to serve.
   process.env.SERVE_STATIC = DEV_SERVER_URL ? 'false' : 'true';
 
   const serverEntry = path.join(APP_ROOT, 'server', 'index.js');

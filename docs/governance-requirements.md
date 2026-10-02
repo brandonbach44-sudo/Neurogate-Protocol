@@ -2,7 +2,7 @@
 
 > Internal developer notes. This file extracts the enforceable rules in GOV-001 and SOP-BIDS-001 (`public/docs/gov-001.md`, `public/docs/sop-bids.md`) and records, for each one, whether the tool implements it or whether it is a site responsibility the tool does not enforce. What the tool actually does is defined by `docs/capabilities.md`; if this file and capabilities.md disagree, capabilities.md wins and this file is wrong. Update this file whenever either governance document or capabilities.md changes.
 
-**Last sync:** 2026-10-02, against GOV-001 v2.3, SOP-BIDS-001 v3.3, `docs/capabilities.md` (updated for release 1.3.0) and the owner's policy decisions in §0. Where GOV-001 or SOP-BIDS-001 text still says otherwise, §0 governs and the document is due for revision.
+**Last sync:** 2026-10-02, against GOV-001 v2.3, SOP-BIDS-001 v3.3, `docs/capabilities.md` (updated for release 1.4.0) and the owner's policy decisions in §0. Where GOV-001 or SOP-BIDS-001 text still says otherwise, §0 governs and the document is due for revision.
 
 **How to read this file.** Every rule is tagged:
 
@@ -39,7 +39,7 @@ QMS change tracking is done in each document's Revision History table. There is 
 ## 2. Distribution and Processing
 
 - **[TOOL]** Desktop app (macOS Apple Silicon, Windows, Linux) and bundled CLI, from GitHub Releases; a browser version of the same tool and the documents on the project website (https://epilepsy-gui.vercel.app, Vercel, auto-deployed from `main`), also fully local, with a 500 MB per-file export limit. (`electron/main.cjs`, `src/cli/`, `vercel.json`)
-- **[TOOL]** All processing is local; no patient data leaves the computer. The only network requests are the update check and Google Fonts. The `server/` upload API is not mounted in the desktop app.
+- **[TOOL]** All processing is local; no patient data leaves the computer. The only network requests are the update check and Google Fonts. The tool has no upload code; its local server only serves the app's pages.
 - **[SITE]** Uploading the exported dataset to a data infrastructure, and access control on that infrastructure.
 
 ---
@@ -265,6 +265,6 @@ The official bids-validator isn't run and isn't required (§0.9).
 **Source documents:**
 - `public/docs/gov-001.md` (GOV-001 v2.3)
 - `public/docs/sop-bids.md` (SOP-BIDS-001 v3.3)
-- `docs/capabilities.md` (tool capability inventory, updated for release 1.3.0)
+- `docs/capabilities.md` (tool capability inventory, updated for release 1.4.0)
 - BIDS Specification: https://bids-specification.readthedocs.io
 - iEEG-BIDS Extension: https://bids-specification.readthedocs.io/en/stable/modality-specific-files/intracranial-electroencephalography.html

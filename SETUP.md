@@ -79,7 +79,7 @@ All fixtures are synthetic (`demo-data/` or built in memory). Never commit real 
 | `src/version.ts` | App version, read from `package.json` at build time; the single source for the footer, `dataset_description.json` and the audit log. |
 | `src/docVersions.ts` | Versions of the `public/docs/` documents shown on the Documentation page (checked by `regression_docs.ts`). |
 | `electron/` | Electron main process (`main.cjs`), preload bridge (`preload.cjs`), icons. `desktop-export.cjs` is generated. |
-| `server/` | Express server the desktop app runs in-process to serve the built frontend. |
+| `server/` | Express server the desktop app runs in-process to serve the built frontend. It has no upload or processing routes. |
 | `scripts/` | Build scripts (CLI bundle and binary, desktop bundle, fast dev loop, macOS ad-hoc signing). |
 | `public/docs/` | GOV-001, SOP-BIDS-001, SOP-GUI-001 and the DICOM conversion helper script, shown in the app. |
 | `docs/` | Internal notes. `docs/capabilities.md` is the source of truth for behavior; update it first whenever behavior changes. |
