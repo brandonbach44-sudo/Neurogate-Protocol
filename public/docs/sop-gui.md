@@ -591,7 +591,7 @@ If a file could not be read (for example, a cloud-only OneDrive file), a "File n
 
 ### 11.5 Exporting from a Web Browser
 
-There is no hosted NeuroGate website. If NeuroGate is run in a web browser instead of the desktop app (for example, by a developer running it from source), the Export step works differently:
+The project website (https://epilepsy-gui.vercel.app) runs the same tool in a web browser. Processing still happens on your computer and nothing is uploaded, but the Export step works differently:
 
 - **Download** builds `<PREFIX>_bids_export_<date>.zip` (uncompressed, with `bids_output/` inside). A second click on **Download** saves it. The audit log downloads as a separate file.
 - Files over 500 MB are left out of the ZIP and listed as not included. Use the desktop app or the CLI for these.

@@ -38,7 +38,7 @@ QMS change tracking is done in each document's Revision History table. There is 
 
 ## 2. Distribution and Processing
 
-- **[TOOL]** Desktop app (macOS Apple Silicon, Windows, Linux) and bundled CLI, from GitHub Releases. No hosted website. (`electron/main.cjs`, `src/cli/`)
+- **[TOOL]** Desktop app (macOS Apple Silicon, Windows, Linux) and bundled CLI, from GitHub Releases; a browser version of the same tool and the documents on the project website (https://epilepsy-gui.vercel.app, Vercel, auto-deployed from `main`), also fully local, with a 500 MB per-file export limit. (`electron/main.cjs`, `src/cli/`, `vercel.json`)
 - **[TOOL]** All processing is local; no patient data leaves the computer. The only network requests are the update check and Google Fonts. The `server/` upload API is not mounted in the desktop app.
 - **[SITE]** Uploading the exported dataset to a data infrastructure, and access control on that infrastructure.
 

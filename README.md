@@ -2,6 +2,8 @@
 
 A desktop tool and governance framework for organizing multi-site neural data into a BIDS-based dataset, ready for sharing through cloud or on-premise data infrastructure toward a learning health system. "Neural data" covers structural and functional MRI, CT, PET, diffusion, perfusion, field maps, scalp EEG and intracranial EEG.
 
+
+**Website:** https://epilepsy-gui.vercel.app hosts these pages and documents and a browser version of the tool. It also processes everything locally, but can't export files over 500 MB; use the desktop app or CLI for those. It redeploys automatically on every push to `main`.
 ## Status
 
 Beta, in active development. The tool works; the documentation is a draft pending review.

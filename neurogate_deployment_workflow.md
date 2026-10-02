@@ -36,7 +36,7 @@ Download page: <https://github.com/brandonbach44-sudo/Neurogate-Protocol/release
 | Version shown in the app footer, audit log, `dataset_description.json` | Working | `src/version.ts` (from `package.json` at build time) |
 | Developer ID / Windows code signing | Not set up | See open questions |
 | Intel macOS build | Not built | See open questions |
-| Public website | Not used | See "Retired: AWS website" |
+| Public website | https://epilepsy-gui.vercel.app on Vercel, redeployed automatically on every push to `main` | See "Website" |
 
 ---
 
@@ -86,9 +86,14 @@ On every launch of a packaged app, `initAutoUpdater()` checks the latest publish
 
 ---
 
-## Retired: AWS website
+## Website
 
-The earlier plan to host a landing page and documentation on AWS S3 + CloudFront was dropped. `.github/workflows/deploy.yml` still exists in the repo but is disabled in GitHub's settings, and no website is used. Documentation is shown inside the app (Documentation page, from `public/docs/`), and downloads come from GitHub Releases.
+https://epilepsy-gui.vercel.app is hosted on Vercel, connected to this GitHub repo. Every push to `main` builds the web app (`npm run build`, routing in `vercel.json`) and deploys it to production within a minute or two; GitHub shows each one as a "Vercel" check on the commit. Nothing in this repo triggers it.
+
+- It serves the same pages and documents as the desktop app, plus a browser version of the tool. The build sets no `VITE_API_URL`, so the browser tool processes everything locally and never uploads files; files over 500 MB can't be exported there.
+- So pushing to `main` updates the public website immediately, before any release; a release only updates the desktop app.
+- It has no download link for the desktop app; downloads come from GitHub Releases.
+- The older AWS S3 + CloudFront plan was dropped. `.github/workflows/deploy.yml` still exists but is disabled in GitHub's settings.
 
 ---
 
