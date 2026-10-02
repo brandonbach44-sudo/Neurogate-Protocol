@@ -9,9 +9,12 @@ import type {
 } from '../types/detection';
 import {
   MODALITIES,
+  TASK_MODALITIES,
   getEffectiveSession,
   getEffectiveModality,
   getEffectiveSubjectGroup,
+  sanitizeTaskLabel,
+  taskInBidsName,
 } from '../types/detection';
 import { formatFileSize } from '../types/files';
 import { getSessionOptions, createDefaultDatasetStructure, type DatasetStructure } from '../types/sessionStructure';
@@ -22,6 +25,8 @@ interface MappingTableProps {
   onUpdateResult: (index: number, updates: Partial<DetectionResult>) => void;
   onBulkUpdateSession: (indices: number[], session: Session) => void;
   onBulkUpdateModality: (indices: number[], modality: Modality) => void;
+  /** Sets the task label on the selected files that carry one (functional MRI, EEG / iEEG and their tables). */
+  onBulkUpdateTask?: (indices: number[], task: string) => void;
   onContinue: () => void;
   onBack: () => void;
   /** Active session structure; defaults to Implant sessions if not passed. */
@@ -46,6 +51,37 @@ const CONFIDENCE_COLORS: Record<Confidence, { bg: string; color: string }> = {
 };
 
 type FilterMode = 'all' | 'needs-decision' | 'high' | 'medium' | 'low' | 'unclassified';
+
+/**
+ * Task label field. Letters and digits only (anything else is dropped as
+ * you type); the change is applied when the field loses focus or on
+ * Enter, so the audit log records the label, not each keystroke. Empty
+ * means the default, shown as the placeholder.
+ */
+function TaskInput({ value, placeholder, label, onCommit }: {
+  value: string;
+  placeholder: string;
+  label: string;
+  onCommit: (task: string) => void;
+}) {
+  const [draft, setDraft] = useState(value);
+  const commit = () => { if (draft !== value) onCommit(draft); };
+  return (
+    <label className="flex items-center gap-1 mt-1 text-xs text-gray-500">
+      <span className="font-mono">task-</span>
+      <input
+        type="text"
+        value={draft}
+        placeholder={placeholder}
+        aria-label={label}
+        onChange={(e) => setDraft(sanitizeTaskLabel(e.target.value))}
+        onBlur={commit}
+        onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+        className="w-full min-w-0 font-mono text-xs border border-gray-200 rounded px-1.5 py-1 hover:border-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+      />
+    </label>
+  );
+}
 
 /**
  * True when this file will not be exported until the reviewer supplies
@@ -79,6 +115,7 @@ export default function MappingTable({
   onUpdateResult,
   onBulkUpdateSession,
   onBulkUpdateModality,
+  onBulkUpdateTask,
   onContinue,
   onBack,
   onChangeStructure,
@@ -89,6 +126,7 @@ export default function MappingTable({
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
   const [bulkSession, setBulkSession] = useState<Session | ''>('');
   const [bulkModality, setBulkModality] = useState<Modality | ''>('');
+  const [bulkTask, setBulkTask] = useState('');
   const sessionOptions = useMemo(() => getSessionOptions(structure), [structure]);
 
   const decisionCount = useMemo(
@@ -138,6 +176,14 @@ export default function MappingTable({
     if (bulkModality && selectedIndices.size > 0) {
       onBulkUpdateModality(Array.from(selectedIndices), bulkModality as Modality);
       setBulkModality('');
+    }
+  };
+
+  const selectedWithTask = Array.from(selectedIndices).filter(i => results[i] && TASK_MODALITIES.includes(getEffectiveModality(results[i])));
+  const applyBulkTask = () => {
+    if (bulkTask && selectedWithTask.length > 0 && onBulkUpdateTask) {
+      onBulkUpdateTask(selectedWithTask, bulkTask);
+      setBulkTask('');
     }
   };
 
@@ -318,6 +364,28 @@ export default function MappingTable({
               Apply
             </button>
           </div>
+
+          {onBulkUpdateTask && selectedWithTask.length > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-mono text-blue-800">task-</span>
+              <input
+                type="text"
+                value={bulkTask}
+                onChange={(e) => setBulkTask(sanitizeTaskLabel(e.target.value))}
+                placeholder="Set task..."
+                aria-label="Bulk-assign task label to selected files"
+                className="text-sm border border-blue-300 rounded px-2 py-1.5 bg-white w-32 font-mono"
+              />
+              <button
+                onClick={applyBulkTask}
+                disabled={!bulkTask}
+                className="btn-cta text-sm px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                title={`Applies to the ${selectedWithTask.length} selected file${selectedWithTask.length !== 1 ? 's' : ''} that carry a task (functional MRI, EEG / iEEG and their channels and events tables).`}
+              >
+                Apply
+              </button>
+            </div>
+          )}
 
           {isCustomTimepoints && selectedIndices.size > 1 && (
             <div className="flex items-center gap-2 border-l border-blue-200 pl-4">
@@ -507,6 +575,15 @@ export default function MappingTable({
                         <option key={m.value} value={m.value}>{m.label}</option>
                       ))}
                     </select>
+                    {TASK_MODALITIES.includes(effectiveModality) && (
+                      <TaskInput
+                        key={`${resultIndex}:${result.userTask ?? ''}`}
+                        value={result.userTask ?? ''}
+                        placeholder={taskInBidsName(result.bidsFilename) ?? ''}
+                        label={`Task for ${result.fileName}`}
+                        onCommit={(task) => onUpdateResult(resultIndex, { userTask: task || null })}
+                      />
+                    )}
                   </div>
 
                   {/* Confidence badge */}

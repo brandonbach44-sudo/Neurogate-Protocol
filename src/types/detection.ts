@@ -173,6 +173,12 @@ export interface DetectionResult {
   userModality: Modality | null;
   /** User-corrected subject group (null = user hasn't changed it) */
   userSubjectGroup: string | null;
+  /**
+   * User-set BIDS task label (letters and digits only) for functional MRI,
+   * EEG / iEEG recordings and their channels / events tables. Unset: the
+   * default (defaultTask), and a table follows its recording's task.
+   */
+  userTask?: string | null;
 
   /** Preview of what the BIDS-compliant filename will be */
   bidsFilename: string;
@@ -317,6 +323,26 @@ export const DEFACING_MODALITY_LABELS = 'T1w, T2w, FLAIR, PDw, T2*w';
 
 export function requiresDefacing(result: DetectionResult): boolean {
   return DEFACING_MODALITIES.includes(getEffectiveModality(result));
+}
+
+/** Modalities whose BIDS names carry a task- entity. */
+export const TASK_MODALITIES: readonly Modality[] = ['func', 'eeg', 'ieeg', 'channels', 'events'];
+
+/** The task label used when none is set: rest for functional MRI, monitor for EEG / iEEG. */
+export function defaultTask(modality: Modality): string | null {
+  if (modality === 'func') return 'rest';
+  if (modality === 'eeg' || modality === 'ieeg' || modality === 'channels' || modality === 'events') return 'monitor';
+  return null;
+}
+
+/** A BIDS label is letters and digits only; everything else is dropped. */
+export function sanitizeTaskLabel(raw: string): string {
+  return raw.replace(/[^A-Za-z0-9]/g, '');
+}
+
+/** The task label in an exported BIDS name, e.g. "rest" from "..._task-rest_bold.nii.gz", or null. */
+export function taskInBidsName(bidsFilename: string): string | null {
+  return /_task-([A-Za-z0-9]+)/.exec(bidsFilename)?.[1] ?? null;
 }
 
 /** Get the effective subject group (user override or detected) */

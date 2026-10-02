@@ -132,6 +132,20 @@ export function createAuditLogger() {
     );
   }
 
+  function logTaskCorrected(fileName: string, fromTask: string | null, toTask: string) {
+    addEntry('task-corrected',
+      `Changed task for "${fileName}": ${fromTask ?? '(none)'} → ${toTask}`,
+      { fileName, fromTask, toTask },
+    );
+  }
+
+  function logBulkTaskApplied(fileCount: number, task: string) {
+    addEntry('bulk-task-applied',
+      `Bulk-applied task "${task}" to ${fileCount} files`,
+      { fileCount, task },
+    );
+  }
+
   function logInstitutionConfigured(prefix: string, startingNumber: number) {
     addEntry('institution-configured',
       `Institution configured: prefix="${prefix}", starting number=${startingNumber}`,
@@ -349,6 +363,8 @@ export function createAuditLogger() {
     logSubjectCorrected,
     logBulkSessionApplied,
     logBulkModalityApplied,
+    logTaskCorrected,
+    logBulkTaskApplied,
     logInstitutionConfigured,
     logSubjectMetadataEntered,
     logDatasetDescriptionEntered,

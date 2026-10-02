@@ -15,6 +15,8 @@ const ACTION_LABELS: Record<string, string> = {
   'subject-corrected': 'Subject Corrected',
   'bulk-session-applied': 'Bulk Session',
   'bulk-modality-applied': 'Bulk Modality',
+  'task-corrected': 'Task Corrected',
+  'bulk-task-applied': 'Bulk Task',
   'institution-configured': 'Institution Config',
   'subject-metadata-entered': 'Subject Metadata',
   'dataset-description-entered': 'Dataset Description',
