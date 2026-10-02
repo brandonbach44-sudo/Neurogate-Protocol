@@ -37,6 +37,8 @@ import { generateSubjectDateShifts } from '../lib/deidentify/edfDeidentifier';
 import { autoFillFromDroppedFiles } from '../lib/metadata';
 import { createAuditLogger } from '../lib/audit/auditLogger';
 import { exportAsJson } from '../lib/audit/auditExporter';
+import { buildAuditRedactionPairs } from '../lib/audit/auditRedaction';
+import { computeBidsNames } from '../lib/bids/bidsNaming';
 import { createDefaultAttestation } from '../types/metadata';
 import type { SubjectMetadata, DatasetDescription, InstitutionConfig } from '../types/metadata';
 import { resolveSessionIds } from '../types/sessionStructure';
@@ -265,6 +267,12 @@ export async function runNeuroGatePipeline(
 
   const auditPath = resolve(options.outputDir, 'audit_log.json');
   await writeFile(auditPath, exportAsJson(audit, options.exportedBy), 'utf-8');
+  // Shareable copy: original names replaced by exported BIDS names. All
+  // subjects (held-back ones included) have IDs, so none of their folder
+  // names can reach this file.
+  const idMap = new Map(subjects.map(s => [s.subjectGroup, s.bidsSubjectId]));
+  const redaction = buildAuditRedactionPairs(computeBidsNames(detectionResults, idMap, options.structure), subjects);
+  await writeFile(resolve(options.outputDir, 'audit_log_shareable.json'), exportAsJson(audit, options.exportedBy, redaction), 'utf-8');
   audit.logAuditExported('JSON');
 
   return {

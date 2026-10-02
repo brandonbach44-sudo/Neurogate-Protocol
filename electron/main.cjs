@@ -530,7 +530,7 @@ ipcMain.handle('export-to-folder', async (event, { outputDir, plan }) => {
 ipcMain.handle('write-export-file', async (_event, { outputDir, name, text }) => {
   assertAllowedExportDir(outputDir);
   // Only the audit log is written this way -- nothing else needs to be.
-  if (!/^audit_log_[A-Za-z0-9-]+\.json$/.test(name)) {
+  if (!/^audit_log_[A-Za-z0-9-]+(_shareable)?\.json$/.test(name)) {
     throw new Error(`Refusing to write unexpected file "${name}".`);
   }
   const dest = path.join(outputDir, name);
