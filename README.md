@@ -18,7 +18,7 @@ The desktop app walks through six steps:
 2. **Drop Files:** drag in a folder in any layout. Files are scanned in place.
 3. **Mapping:** NeuroGate detects each file's subject, session and modality (T1w, T2w, FLAIR, PDw, T2*w, MR angiography, CT, PET, diffusion, perfusion/ASL, functional MRI, field maps, scalp EEG, iEEG, and electrodes/channels/events tables) and proposes a BIDS name, using sidecars, EDF headers and NIfTI headers (dimensions) as well as names. You can correct any of it inline.
 4. **Metadata:** institution prefix (for `sub-<PREFIX>001` IDs), study name, authors, and a defacing attestation when structural MRI is present. Entries are kept when you go back a step.
-5. **Validate:** checks BIDS structure, PHI in file and folder names, sidecar text, TSV table contents and NIfTI header text, required files (Implant sessions), cross-session consistency, PET sidecars and metadata completeness. Errors block export.
+5. **Validate:** checks BIDS structure, PHI in file and folder names, sidecar text, TSV table contents and NIfTI header text, required files (Implant sessions), cross-session consistency, consistency between tables and paired files (channels vs electrodes, Persyst `.dat`/`.lay`, a dropped `sessions.tsv`), PET sidecars and metadata completeness. Errors block export.
 6. **Export:** writes a `bids_output/` folder plus two JSON audit logs (the full log and a shareable copy) to a folder you choose. Files are streamed, so there's no size limit.
 
 The export layout is NeuroGate's own BIDS-based structure: files follow BIDS naming conventions, but the root layout (`primary/sub-*`, `derivatives/scanner/`) deliberately differs from the official BIDS specification, so the official bids-validator doesn't apply to the dataset as a whole. NeuroGate's own Validate step is the check that must pass.
@@ -111,6 +111,7 @@ npx tsx verify_desktop_export.ts --large   # same, with a 600 MB EDF
 
 npx vite --port 5199 &                     # then, with Google Chrome installed:
 npx tsx verify_ui_flow.ts                  # the tool page's step flow in headless Chrome
+npx tsx verify_desktop_close.ts            # after npm run build + desktop:bundle: the unsaved-log prompt in Electron
 ```
 
 `regression_docs.ts` checks that each version in `src/docVersions.ts` matches the `| **Version** |` row of its `public/docs/*.md` file. `npm run regression:update` rewrites the golden snapshots (detection, de-identification, Flywheel suites) after an intended behavior change.
@@ -132,7 +133,7 @@ The **Release desktop app** workflow (`.github/workflows/release.yml`) then:
 
 A manual `workflow_dispatch` run leaves the release as a draft.
 
-Separately, the **CI** workflow (`.github/workflows/ci.yml`) runs on every push and pull request: lint, build, `npm run regression`, the `verify:export`, `verify:cli` and `verify:adapter` scripts, and the desktop export check. Vercel deploys `main` without running tests, so CI is what tells you a push broke something. Installed apps only see published releases, and update as described under [Download](#download).
+Separately, the **CI** workflow (`.github/workflows/ci.yml`) runs on every push and pull request: lint, build, `npm run regression`, the `verify:export`, `verify:cli` and `verify:adapter` scripts, and the desktop export check; a second job runs the browser step-flow test in Chrome and the close-prompt test in Electron. Vercel deploys `main` without running tests, so CI is what tells you a push broke something. Installed apps only see published releases, and update as described under [Download](#download).
 
 ## Documentation
 

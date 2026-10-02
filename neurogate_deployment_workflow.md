@@ -28,7 +28,7 @@ Download page: <https://github.com/brandonbach44-sudo/Neurogate-Protocol/release
 
 | Component | Status | Where |
 |---|---|---|
-| CI (lint, build, regression, verify scripts, desktop export check) | Runs on every push and pull request | `.github/workflows/ci.yml` |
+| CI (lint, build, regression, verify scripts, desktop export check, browser and Electron tests) | Runs on every push and pull request | `.github/workflows/ci.yml` |
 | Release workflow | Working | `.github/workflows/release.yml` |
 | Installers for Windows, macOS (Apple Silicon), Linux | Built on every release | electron-builder config in `package.json` (`"build"`) |
 | CLI binary bundled in each installer | Working | `scripts/build-cli-bundle.mjs`, `scripts/build-cli-sea.mjs`; `extraResources` in `package.json` |
@@ -68,7 +68,7 @@ Because electron-updater ignores drafts, installed apps are never offered a rele
 
 ## CI
 
-`.github/workflows/ci.yml` runs on every push (any branch) and every pull request, on `ubuntu-latest` with Node 20: `npm ci`, `npm run lint`, `npm run build`, `npm run regression`, then `npm run verify:export`, `verify:cli` and `verify:adapter`, then `npm run desktop:bundle` and `npx tsx verify_desktop_export.ts`. It builds no installers and publishes nothing. Vercel deploys `main` to the website without waiting for it, so a red CI run on `main` means the website may already be serving the broken commit. Check that CI is green before tagging a release.
+`.github/workflows/ci.yml` runs on every push (any branch) and every pull request, on `ubuntu-latest` with Node 20: `npm ci`, `npm run lint`, `npm run build`, `npm run regression`, then `npm run verify:export`, `verify:cli` and `verify:adapter`, then `npm run desktop:bundle` and `npx tsx verify_desktop_export.ts`. A second job, `ui` (Node 22), runs `verify_ui_flow.ts` in Chrome and `verify_desktop_close.ts` in Electron under `xvfb-run`. CI builds no installers and publishes nothing. Vercel deploys `main` to the website without waiting for it, so a red CI run on `main` means the website may already be serving the broken commit. Check that CI is green before tagging a release.
 
 ---
 

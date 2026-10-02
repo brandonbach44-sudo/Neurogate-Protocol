@@ -54,7 +54,11 @@ npx tsx verify_desktop_export.ts --large   # with a 600 MB EDF
 npx vite --port 5199 &                     # then, with Google Chrome installed:
 npx tsx verify_ui_flow.ts                  # drives the tool page in headless Chrome: Metadata kept
                                            # on Back, no repeated audit entries, Change structure
+npx tsx verify_desktop_close.ts            # after npm run build + desktop:bundle: the unsaved audit
+                                           # log prompt in the real Electron app
 ```
+
+Both need Node 22 or newer (they use its built-in WebSocket); CI's `ui` job runs them.
 
 After an intended change to detection, validation or de-identification output, run `npm run regression:update` (it rewrites the `regression.ts`, `regression_deidentify.ts` and `regression_flywheel.ts` snapshots) and review the snapshot diff before committing it.
 
@@ -83,7 +87,7 @@ All fixtures are synthetic (`demo-data/` or built in memory). Never commit real 
 | `scripts/` | Build scripts (CLI bundle and binary, desktop bundle, fast dev loop, macOS ad-hoc signing). |
 | `public/docs/` | GOV-001, SOP-BIDS-001, SOP-GUI-001 and the DICOM conversion helper script, shown in the app. |
 | `docs/` | Internal notes. `docs/capabilities.md` is the source of truth for behavior; update it first whenever behavior changes. |
-| `.github/workflows/ci.yml` | CI on every push and pull request: lint, build, regression, verify scripts, desktop export check. |
+| `.github/workflows/ci.yml` | CI on every push and pull request: lint, build, regression, verify scripts, desktop export check; the `ui` job runs the browser and Electron tests. |
 | `.github/workflows/release.yml` | Release pipeline (see the README's Releasing section). |
 
 See [`docs/architecture.md`](./docs/architecture.md) for how these pieces fit together.

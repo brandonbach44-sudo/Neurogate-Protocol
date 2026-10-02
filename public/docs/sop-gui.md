@@ -3,12 +3,12 @@
 | Field | Value |
 |---|---|
 | **Document ID** | SOP-GUI-001 |
-| **Version** | 3.3 |
+| **Version** | 3.4 |
 | **Effective Date** | 2026-10-02 |
 | **Author** | Brandon Bach |
 | **Status** | Draft, Pending Advisor Review |
-| **Parent Framework** | GOV-001 Regulatory and Governance Framework v2.4 |
-| **Related Documents** | SOP-BIDS-001 v3.4 |
+| **Parent Framework** | GOV-001 Regulatory and Governance Framework v2.5 |
+| **Related Documents** | SOP-BIDS-001 v3.5 |
 
 ---
 
@@ -208,7 +208,7 @@ The stepper only shows progress; it cannot be clicked. Use the buttons at the bo
 
 Going back and forth does not repeat audit entries: when you leave Metadata again, only values that changed are logged.
 
-The audit log lasts for the whole app session, including across Back to Drop Zone, Change structure and additional datasets, and it survives a reload. Closing the app clears it, so save it first (Section 12.1).
+The audit log lasts for the whole app session, including across Back to Drop Zone, Change structure and additional datasets, and it survives a reload. Closing the app clears it, so save it first (Section 12.1); if it hasn't been saved, closing asks first.
 
 Section-by-section instructions for each step begin in Section 6.
 
@@ -409,7 +409,7 @@ If defacing has not been done for one or more files, do not tick the box. Deface
 ### 9.5 Auto-Fill
 
 - The study name and authors are filled from a dropped `dataset_description.json`.
-- Session dates are taken from a dropped `sessions.tsv`, or from a sidecar's `AcquisitionDateTime` when the file sits in a `ses-<label>` folder. These dates are not shown on screen. They are used by the date-order check (Section 10.4) and exported, date-shifted, in `sessions.tsv`.
+- Session dates are taken from a dropped `sessions.tsv`, or from a sidecar's `AcquisitionDateTime` when the file sits in a `ses-<label>` folder. Session names are matched to the chosen structure: its exact labels, with or without `ses-`, and for Implant sessions also words such as preop, monitoring or postop. Validate reports rows that match no session (Section 10.4). These dates are not shown on screen. They are used by the date-order check (Section 10.4) and exported, date-shifted, in `sessions.tsv`.
 
 ### 9.6 Proceeding to Step 5
 
@@ -424,7 +424,7 @@ The Validate step runs the tool's checks and shows the results. Under SOP-BIDS-0
 ### 10.1 The Validation Screen
 
 - A banner reads **Validation Passed** or **Validation Failed**, with counts of errors, warnings and info (and dismissed issues, if any).
-- Category cards appear for each category that has issues: BIDS Structure, PHI / Privacy, Required Files, Cross-Session, File Format, Metadata, Defacing. Clicking a card filters the list to that category.
+- Category cards appear for each category that has issues: BIDS Structure, PHI / Privacy, Required Files, Cross-Session, File Format, Metadata, Defacing, Consistency. Clicking a card filters the list to that category.
 - A severity filter shows **All**, **Error**, **Warning** and **Info**, with counts.
 - Clicking an issue expands it. Issues that allow it show **Dismiss this issue**.
 - **Re-run Checks** runs the checks again and clears all dismissals.
@@ -493,9 +493,16 @@ A subject with fewer than 4 imaging, EEG or table files gets these as warnings i
 
 **PET:** a warning, which can be dismissed, when a PET image has no sidecar or its sidecar lacks any of the PET fields required by SOP-BIDS-001 (Section 6.1.7). It never blocks export.
 
+**Consistency** (warnings and info, all can be dismissed):
+
+- **Channels without a matching electrode:** an electrode channel in `channels.tsv` (type SEEG, ECOG or DBS for iEEG, EEG for scalp EEG) that has no contact of the same name in the `electrodes.tsv` beside it. The issue lists the names and points out names that differ only in letter case (for example `la2` / `LA2`). Without a `type` column, every channel except ECG, EMG, EOG, trigger, status and similar names is checked. A bipolar channel such as `LA1-LA2` passes when both contacts are listed. Fix the names in the source tables so they agree.
+- **electrodes.tsv has no "name" column.**
+- **Persyst .dat has no .lay file**, or **.lay has no .dat file** (same name, same folder).
+- **A dropped sessions.tsv:** rows whose session matches no session in the structure (warning: their dates are not used); sessions listed with no files (info); sessions with files that the table does not list (info).
+
 **Metadata:** missing dataset name, authors, prefix or defacing attestation are errors, but the Metadata step already prevents them. Also: sparse dataset (warning) and empty dataset (error).
 
-**Not checked:** per-modality required JSON fields (other than PET); channel names against electrodes; NIfTI dimensions (they are only shown, with warnings, in Mapping); iEEG minimum duration; Persyst `.dat`/`.lay` pairing; `sessions.tsv` against the folders; scanner or site consistency.
+**Not checked:** per-modality required JSON fields (other than PET); NIfTI dimensions (they are only shown, with warnings, in Mapping); iEEG minimum duration; scanner or site consistency.
 
 ### 10.5 Proceeding to Step 6
 
@@ -649,7 +656,7 @@ The audit log records what happened during an app session, with timestamps. It i
 
 The **Audit Log** button in the tool header shows the number of entries. It opens a panel listing the log, with **Export JSON** and **Export CSV** buttons, available at any time.
 
-The log lasts for the whole app session, including across Back to Drop Zone, Change structure and additional datasets. A reload keeps it: the log is saved in the app's tab storage after every change and restored with a "Page reloaded; audit log restored" entry. Closing the app clears it. The desktop export also writes the JSON log into the export folder automatically, together with a shareable copy (Section 11.4). The panel's Export JSON and Export CSV buttons always save the full log.
+The log lasts for the whole app session, including across Back to Drop Zone, Change structure and additional datasets. A reload keeps it: the log is saved in the app's tab storage after every change and restored with a "Page reloaded; audit log restored" entry. Closing the app clears it. If the log has entries that no saved copy includes (an export, or Export JSON / CSV), closing the window or quitting asks first: **Keep Open** or **Close Without Saving**. In a web browser, the browser's own leave-page prompt appears instead. The desktop export also writes the JSON log into the export folder automatically, together with a shareable copy (Section 11.4). The panel's Export JSON and Export CSV buttons always save the full log.
 
 ### 12.2 Contents of the Audit Log
 
@@ -836,3 +843,4 @@ Do not send the full audit log or screenshots of the Mapping table outside the s
 | 3.1 | October 2, 2026 | Brandon Bach | Updated for NeuroGate 1.2.0. Section 2: PHI row covers table scanning, EDF annotations and Persyst `.lay`. Section 7.2: sidecars pair by base name in the same folder; `.lay` files are rewritten on export. Section 8.5: guessed files now get a Validate warning. Section 10: added the duplicate-name and invalid-sidecar errors and how to resolve them, the per-subject guessed-files warning, the TSV table content scan, and that only exported files satisfy required-file checks. Section 11.1: date shift covers the `.lay` test date; added EDF+/BDF+ annotation redaction and signal-header checks, Persyst `.lay` handling, sidecar fields at any depth, and that a sidecar that is not a JSON object blocks export; removed Persyst `.lay`, annotations and the top-level-only limit from what is not de-identified. Sections 11.2, 11.3: `_dup-N` is a Validate error; participants.tsv and sessions.tsv list only subjects and sessions with exported data. Sections 11.4 to 11.6 and 12: every export writes a full audit log (stays at the site) and a shareable copy (original names replaced by BIDS paths and `sub-` IDs, operator shown as "site") that can be sent with the dataset; the de-identification summary includes redaction counts. Section 15: CLI custom timepoints are checked (1 to 24 timepoints, whole numbers 0 to 99, no duplicate labels); the CLI writes the shareable copy; its sessions.tsv no longer lists sessions without data. Section 16: new troubleshooting rows for these behaviors. Header updates the parent to GOV-001 v2.2 and the related document to SOP-BIDS-001 v3.2. |
 | 3.2 | October 2, 2026 | Brandon Bach | Updated for NeuroGate 1.3.0. Section 4.3: the NIfTI header is read (dimensions, warnings when a name contradicts them, a 4D series is not defaulted to T1w, PET framing). Section 5.1 rewritten as "Going Back": Metadata entries are now kept on Back, and audit entries are not repeated. New Section 6.5 Changing the Structure Later (Change structure on Drop Files and Mapping, with confirmation and cancel; logged as "Structure changed"). Sections 7, 8 and 9: Change structure link and button, NIfTI reasons in Mapping, guessed files listed in Validate. Section 10.4: NIfTI header text is PHI-scanned. Sections 12 and 16 updated to match. |
 | 3.3 | October 2, 2026 | Brandon Bach | Updated for NeuroGate 1.5.0. Sections 5.1 and 12: the audit log survives a reload. Section 9.4: the attestation is logged when ticked, unticked or cleared. Section 10.2: dismissals and re-runs are logged, and Validation passed lists dismissed issues. Section 11.2: field-map sidecars get `IntendedFor`. Sections 12.3, 12.5 and 16 updated to match. |
+| 3.4 | October 2, 2026 | Brandon Bach | Updated for NeuroGate 1.6.0. Section 10.4: new Consistency checks (channels against electrodes, Persyst pairs, a dropped sessions.tsv), removed from Not checked. Section 9.5: session names in a dropped sessions.tsv are matched to the chosen structure. Sections 5.1 and 12.1: closing with an unsaved audit log asks first. |

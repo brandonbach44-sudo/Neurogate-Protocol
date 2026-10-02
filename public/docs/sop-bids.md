@@ -3,13 +3,13 @@
 | Field | Value |
 |---|---|
 | **Document ID** | SOP-BIDS-001 |
-| **Version** | 3.4 |
+| **Version** | 3.5 |
 | **Effective Date** | 2026-10-02 |
 | **Author** | Brandon Bach |
 | **Advisor** | Nishant Sinha |
 | **Status** | Draft, Pending Advisor Review |
-| **Parent Document** | GOV-001 Regulatory and Governance Framework v2.4 |
-| **Related Documents** | SOP-GUI-001 v3.3 |
+| **Parent Document** | GOV-001 Regulatory and Governance Framework v2.5 |
+| **Related Documents** | SOP-GUI-001 v3.4 |
 
 ---
 
@@ -34,7 +34,7 @@ This SOP implements specific requirements from the Regulatory and Governance Fra
 | 6 to 8 (Structure presets and session requirements) | 3 (Data Standards by Modality) | Organization under the Implant sessions, Custom timepoints, or Single session preset |
 | 9 (Derivatives folder) | 3 (Data Standards by Modality), 2.2 (ALCOA+ Accurate) | Scanner-computed derivatives kept out of the raw tree so downstream analysis does not mistake computed maps for acquired data |
 | 10 (Metadata files) | 2.1, 2.2, 4 (FAIR, ALCOA+, Metadata Completeness) | Complete, standardized metadata for findability, attributability, and reusability |
-| 10.5 (Channels and electrodes consistency) | 2.2 (ALCOA+ Accurate) | Channel names consistent with electrodes.tsv; a site responsibility, not checked by the tool |
+| 10.5 (Channels and electrodes consistency) | 2.2 (ALCOA+ Accurate) | Channel names consistent with electrodes.tsv; the tool warns on mismatches (Section 13.8), the site corrects them |
 | 11 (De-identification and defacing) | 2.3 (HIPAA/PHI) | DICOM stripping, facial defacing, EDF header and annotation, Persyst `.lay` and JSON sidecar de-identification, PHI checks on names, sidecars and tables |
 | 12 (NeuroGate tool) | 2.2 (ALCOA+ Legible, Consistent) | Automated organization and checks reduce human error across sites |
 | 13 (Validation pipeline) | 2.2 (ALCOA+ Accurate), 6.1 (Pre-Upload Checklist) | No undismissed blocking errors before export |
@@ -790,7 +790,7 @@ Required columns (site responsibility, per the BIDS EEG and iEEG specifications)
 | sampling_frequency | float, recommended | Sampling rate in Hz |
 | status | string, recommended | `good` or `bad` |
 
-**Consistency rule:** Every intracranial channel name in `channels.tsv` should have a corresponding entry in `electrodes.tsv` for the same subject and session. This is a site responsibility; the tool does not cross-check the two tables.
+**Consistency rule:** Every intracranial channel name in `channels.tsv` should have a corresponding entry in `electrodes.tsv` for the same subject and session. The tool checks this during validation and warns on mismatches (Section 13.8). Correcting the tables is a site responsibility.
 
 ### 10.6 README
 
@@ -1016,7 +1016,15 @@ In the command-line interface, warnings do not stop the export and are listed af
 
 ### 13.8 iEEG-Specific Validation
 
-The only iEEG-specific check is the warning for an iEEG recording in a session with no `electrodes.tsv` (Section 13.4), plus the post-implant required files under the Implant preset (Section 13.2). The tool does not check recording duration (the 48-hour minimum is a site rule), Persyst `.dat`/`.lay` pairing, or channel names against `electrodes.tsv`; these remain site responsibilities (Section 6.2.2).
+The iEEG-specific checks are:
+
+- A warning for an iEEG recording in a session with no `electrodes.tsv` (Section 13.4), and the post-implant required files under the Implant preset (Section 13.2).
+- **Channels against electrodes:** an electrode channel in `channels.tsv` (type `SEEG`, `ECOG` or `DBS`; `EEG` for scalp EEG) with no contact of the same name in the `electrodes.tsv` beside it is a warning that lists the names and points out names that differ only in letter case. Without a `type` column, every channel except ECG, EMG, EOG, trigger, status and similar names is checked. A bipolar channel such as `LA1-LA2` passes when both contacts are listed. Analysis tools match the two tables by exact name.
+- **Persyst pairs:** a `.dat` with no `.lay` of the same name in the same folder, or the reverse, is a warning.
+
+These warnings can be dismissed. The tool does not check recording duration (the 48-hour minimum is a site rule, Section 6.2.2).
+
+A supplied `sessions.tsv` is also checked against the sessions that have files: rows that match no session in the chosen structure are a warning (their dates are not used), and sessions listed with no files, or with files but not listed, are reported as info.
 
 ### 13.9 Held-Back Subjects (Command-Line Interface Only)
 
@@ -1039,11 +1047,8 @@ The tool does not issue a validation message when it routes scanner-computed der
 ### 13.11 What the Tool Does NOT Check or Enforce
 
 - Per-modality required JSON sidecar fields (other than PET, which is a warning)
-- Channel names in `channels.tsv` against `electrodes.tsv`
 - Image dimensions in validation (the NIfTI header is read during detection, and a name that contradicts the dimensions gets a warning in the mapping table, but validation does not check them), or image quality (blurry images export successfully; image quality is a site QC concern)
 - iEEG minimum recording duration (the 48-hour site rule, Section 6.2.2)
-- Persyst `.dat`/`.lay` pairing
-- `sessions.tsv` against the session folders
 - Scanner or site consistency across a subject's sessions
 - Clinical accuracy of metadata content
 - IRB documentation or consent status
@@ -1065,6 +1070,7 @@ The tool does not issue a validation message when it routes scanner-computed der
 | 3.2 | October 2, 2026 | Brandon Bach | Updated for NeuroGate 1.2.0. Section 5.1: the export folder holds a full audit log and a shareable copy (CLI: `audit_log.json` and `audit_log_shareable.json`); participants.tsv lists subjects with exported data. Section 5.3: a leftover `_dup-N` collision is now a blocking validation error. Section 6.2: Persyst `.lay` files are de-identified and their `File=` line points at the renamed `.dat`; EDF+/BDF+ annotations are de-identified; NWB and the Persyst `.dat` remain a site step. Section 7: the CLI's sessions.tsv no longer lists sessions with no data. Section 10: participants.tsv and sessions.tsv list only subjects and sessions with exported data (desktop and CLI); electrodes and channels tables are PHI-scanned but exported unchanged; JSON pairing is by base name in the same folder. Section 11.1: date shift covers the `.lay` test date; added EDF+/BDF+ annotation redaction (same byte length, event text and timestamps kept), signal-header transducer and prefiltering checks, and Persyst `.lay` handling; sidecar fields are handled at any depth, and a sidecar that is not a JSON object blocks validation and is not exported (replacing the top-level-only and copy-unchanged limits). Section 11.2: manual de-identification now covers NWB, the Persyst `.dat`, NIfTI header text and TSV tables, with review of annotations and `.lay` comments. Section 11.3: added the TSV table content scan. Section 11.4: described the shareable audit log. Section 12: updated the automation list, workflow table and guessed-file note. Section 13.1: added the duplicate-name and invalid-sidecar errors and the per-subject guessed-files warning. Section 13.2: only exported files satisfy required-file checks. Section 13.6: table contents are scanned. Header updates the parent to GOV-001 v2.2 and the related document to SOP-GUI-001 v3.1. |
 | 3.3 | October 2, 2026 | Brandon Bach | Updated for NeuroGate 1.3.0. Section 5.4: the structure can be changed later with Change structure (files cleared, change audit-logged). Section 6.1.7: with no sidecar, PET framing comes from the NIfTI volume count. Sections 11.1 to 11.3: NIfTI header text (`descrip`, `aux_file`) is PHI-scanned in a fourth scan, and exported unchanged. Section 13: a 4D NIfTI is not defaulted to T1w; the not-checked list now reflects that headers are read during detection. |
 | 3.4 | October 2, 2026 | Brandon Bach | Updated for NeuroGate 1.5.0. Section 6.1.5: the tool fills `IntendedFor` in field-map sidecars with the session's EPI images and replaces any stale value. Section 13.7: dismissals are recorded in the audit log. Sidecars are now paired with their image by folder and name in export naming as well as detection. |
+| 3.5 | October 2, 2026 | Brandon Bach | Updated for NeuroGate 1.6.0. Sections 10.5 and 13.8: the tool now warns on channels.tsv names missing from electrodes.tsv and on unpaired Persyst `.dat`/`.lay` files, and checks a supplied sessions.tsv against the sessions with files. Section 13.11 updated to match. Traceability matrix row 10.5 updated. |
 
 ---
 
