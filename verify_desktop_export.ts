@@ -94,6 +94,8 @@ async function main() {
     await mkdir(src, { recursive: true });
     const edfPath = join(src, 'night1_ieeg.edf');
     const jsonPath = join(src, 'T1_MPRAGE.json');
+    const layPath = join(src, 'night1.lay');
+    await writeFile(layPath, '[FileInfo]\nFile=night1.dat\n[Patient]\nFirst=Jane\nLast=Doe\nSex=F\nTestDate=03/03/2024\n[Comments]\n5.0,0,0,1,Seizure onset\n9.0,0,0,1,Doe asleep\n');
     console.log(`Writing synthetic EDF (${(PAYLOAD_BYTES / 1024 / 1024).toFixed(0)} MB payload)...`);
     await writeSyntheticEdf(edfPath);
     await writeFile(jsonPath, JSON.stringify({
@@ -106,6 +108,7 @@ async function main() {
 
     const edfBids = 'primary/sub-PENN001/ses-postimplant/ieeg/sub-PENN001_ses-postimplant_task-monitor_ieeg.edf';
     const jsonBids = 'primary/sub-PENN001/ses-preimplant/anat/sub-PENN001_ses-preimplant_T1w.json';
+    const layBids = 'primary/sub-PENN001/ses-postimplant/ieeg/sub-PENN001_ses-postimplant_task-monitor_ieeg.lay';
     const outputDir = join(work, 'PENN_bids_export_test');
     const progress: number[] = [];
 
@@ -114,12 +117,13 @@ async function main() {
       { path: 'participants.tsv', text: 'participant_id\nsub-PENN001' },
       { path: edfBids, sourcePath: edfPath, edfDeidentify: { dateShiftDays: SHIFT_DAYS, anonymousSubjectId: 'sub-PENN001' }, subjectGroup: 'Patient_900' },
       { path: jsonBids, sourcePath: jsonPath, jsonDeidentify: { dateShiftDays: SHIFT_DAYS }, subjectGroup: 'Patient_900' },
+      { path: layBids, sourcePath: layPath, layDeidentify: { dateShiftDays: SHIFT_DAYS, datFileName: 'sub-PENN001_ses-postimplant_task-monitor_ieeg.dat' }, subjectGroup: 'Patient_900' },
     ], outputDir, (p: { current: number }) => progress.push(p.current));
 
     const root = join(outputDir, 'bids_output');
     const outEdf = join(root, ...edfBids.split('/'));
-    check('all 4 files written', result.filesWritten === 4, `filesWritten=${result.filesWritten}`);
-    check('progress reported per file', progress.join(',') === '1,2,3,4', progress.join(','));
+    check('all 5 files written', result.filesWritten === 5, `filesWritten=${result.filesWritten}`);
+    check('progress reported per file', progress.join(',') === '1,2,3,4,5', progress.join(','));
     check('EDF at its BIDS path', existsSync(outEdf));
 
     const [inSize, outSize] = [(await stat(edfPath)).size, (await stat(outEdf)).size];
@@ -136,6 +140,11 @@ async function main() {
     check('sidecar name blanked', sidecar.PatientName === 'X', sidecar.PatientName);
     check('sidecar institution blanked', sidecar.InstitutionName === 'X', sidecar.InstitutionName);
     check('sidecar date shifted', sidecar.AcquisitionDateTime !== '2024-03-03T09:30:00', sidecar.AcquisitionDateTime);
+
+    const lay = await readFile(join(root, ...layBids.split('/')), 'utf-8');
+    check('.lay File= points at the renamed .dat', lay.includes('File=sub-PENN001_ses-postimplant_task-monitor_ieeg.dat'));
+    check('.lay patient name removed', !lay.includes('Jane') && !lay.includes('Doe'), lay.split('\n').filter(l => /Doe|Jane/.test(l)).join(' | '));
+    check('.lay event marker kept', lay.includes('Seizure onset'));
 
     let refused = false;
     try {
