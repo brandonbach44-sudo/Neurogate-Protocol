@@ -165,21 +165,29 @@ async function main() {
     check(count(/Institution configured: prefix=/g) === 1, `institution logged once (found ${count(/Institution configured: prefix=/g)})`);
     check(count(/Defacing attestation confirmed/g) === 1, `defacing attestation logged once (found ${count(/Defacing attestation confirmed/g)})`);
 
-    // ── 3. Change structure (B3) ─────────────────────────────────────
-    if (process.argv.includes('--change-structure')) {
-      await click('Back to Metadata');
-      await click('Back to Mapping');
-      await waitFor(hasText('Change structure'), 'change structure button');
-      await click('Change structure');
-      await waitFor(hasText('Change the structure?') || hasText('Does each subject'), 'confirm');
-      await click('Change structure and clear files');
-      check(await waitFor(hasText('Implant sessions'), 'structure step'), 'returned to the Structure step with the current structure');
-      await click('Single session');
-      await click('Continue');
-      check(await waitFor(`document.querySelector('input[type=file][multiple]')`, 'drop zone'), 'back at Drop Files after changing structure');
-      const audit2 = await openAuditPanel();
-      check(/Structure changed/i.test(audit2) && /Institution configured/i.test(audit2), 'audit log kept and records the change');
-    }
+    // ── 3. Change structure ──────────────────────────────────────────
+    await click('Back to Metadata');
+    await waitFor(`document.querySelector('#ms-institution-prefix')`, 'metadata');
+    await click('Back to Mapping');
+    await waitFor(hasText('Change structure'), 'change structure button');
+    await click('Change structure');
+    check(await waitFor(hasText('Change the structure?'), 'confirmation'), 'asks before clearing files');
+    await click('Keep working');
+    check(await waitFor(`!${hasText('Change the structure?')} && ${hasText('Continue to Metadata')}`, 'cancel'), 'Keep working leaves the mapping as it was');
+    await click('Change structure');
+    await click('Change structure and clear files');
+    check(await waitFor(hasText('Cancel, keep the current structure'), 'structure step'), 'returned to the Structure step');
+    check(await evaluate<boolean>(hasText('Implant sessions')), 'current structure (Implant) preselected');
+    // Implant -> Single session: back to the first question, answer No
+    await click('Back');
+    await waitFor(hasText('Does each subject have more than one session'), 'first question');
+    await click('No');
+    await click('Continue');
+    check(await waitFor(`document.querySelector('input[type=file][multiple]')`, 'drop zone'), 'back at Drop Files');
+    check(await evaluate<boolean>(hasText('Structure: Single session')), 'new structure in use');
+    const audit2 = await openAuditPanel();
+    check(/Structure changed from Implant sessions .* to Single session/.test(audit2), 'audit records the change');
+    check(/Institution configured: prefix=/.test(audit2), 'earlier audit entries kept');
   } finally {
     try { ws?.close(); } catch { /* ignore */ }
     chrome.kill();

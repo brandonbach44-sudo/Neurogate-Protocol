@@ -112,7 +112,7 @@ export default function StructureSetupStep({ onContinue, onBack, initialStructur
       <div className="max-w-3xl mx-auto py-8">
         <h2 className="text-lg font-semibold text-gray-900 mb-1">Study structure</h2>
         <p className="text-sm text-gray-500 mb-6">
-          Choose how this dataset's sessions are organized. This can't be changed after you add files without starting over.
+          Choose how this dataset's sessions are organized. You can change it later from the Drop Files or Mapping step; the files you've added are then cleared.
         </p>
 
         <p className="text-sm font-medium text-gray-800 mb-4">
@@ -157,7 +157,7 @@ export default function StructureSetupStep({ onContinue, onBack, initialStructur
       <div className="max-w-3xl mx-auto py-8">
         <h2 className="text-lg font-semibold text-gray-900 mb-1">Study structure</h2>
         <p className="text-sm text-gray-500 mb-6">
-          Choose how this dataset's sessions are organized. This can't be changed after you add files without starting over.
+          Choose how this dataset's sessions are organized. You can change it later from the Drop Files or Mapping step; the files you've added are then cleared.
         </p>
 
         <div className="rounded-xl border border-gray-200 bg-white p-4 mb-8">
@@ -182,7 +182,7 @@ export default function StructureSetupStep({ onContinue, onBack, initialStructur
     <div className="max-w-3xl mx-auto py-8">
       <h2 className="text-lg font-semibold text-gray-900 mb-1">Study structure</h2>
       <p className="text-sm text-gray-500 mb-6">
-        Choose how this dataset's sessions are organized. This can't be changed after you add files without starting over.
+        Choose how this dataset's sessions are organized. You can change it later from the Drop Files or Mapping step; the files you've added are then cleared.
       </p>
 
       {/* ── Step 1: preset picker ─────────────────────────────── */}
