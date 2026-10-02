@@ -3,12 +3,12 @@
 | Field | Value |
 |---|---|
 | **Document ID** | SOP-GUI-001 |
-| **Version** | 3.4 |
+| **Version** | 3.5 |
 | **Effective Date** | 2026-10-02 |
 | **Author** | Brandon Bach |
 | **Status** | Draft, Pending Advisor Review |
-| **Parent Framework** | GOV-001 Regulatory and Governance Framework v2.5 |
-| **Related Documents** | SOP-BIDS-001 v3.5 |
+| **Parent Framework** | GOV-001 Regulatory and Governance Framework v2.6 |
+| **Related Documents** | SOP-BIDS-001 v3.6 |
 
 ---
 
@@ -286,7 +286,7 @@ The structure in use is shown below the drop zone, with a **Change structure** l
 | `.nwb`, `.dat`, `.lay` | iEEG. Every `.dat` file is treated as Persyst. A `.lay` file is rewritten on export (Section 11.1). |
 | `.bval`, `.bvec` | Diffusion gradient tables |
 | `.tsv` | electrodes, channels and events tables. Other `.tsv` files export only alongside a data file of the same base name. |
-| `.csv` | Warning: BIDS needs `.tsv`. Exported only alongside a data file of the same base name, renamed (not converted) to `.tsv`. |
+| `.csv` | electrodes, channels and events tables saved as CSV are recognized like `.tsv` tables. Any other `.csv` gets a warning and is exported only alongside a data file of the same base name. Every exported `.csv` is converted to a tab-separated `.tsv`. |
 | `.dcm`, `.dicom`, `.ima` | Warning: convert DICOM to NIfTI first. Not exported. |
 | `.v`, `.v.gz` (ECAT PET) | Warning: convert to NIfTI first. Not exported. |
 | anything else | Other / Unknown. Not exported. |
@@ -302,7 +302,7 @@ Operating-system files never appear in the Mapping table and are never exported:
 The tool saves the Mapping state in the app's tab storage for 12 hours. When saved progress exists, a "Saved progress from … ago" banner appears with a **Discard** button.
 
 - Adding exactly the same folder again (same names, sizes and paths) restores the mapping automatically. Anything different discards it.
-- Metadata is not saved here. It is kept while you move between steps (Section 5.1), but is lost on a reload and must be re-entered.
+- Your Metadata entries are saved too, as you type, and come back with the mapping.
 
 ---
 
@@ -318,7 +318,7 @@ The Mapping table shows every file with its automatic classification and lets yo
 | Original File | The file's path in the dropped folder, with the BIDS path it will be exported to shown underneath |
 | Subject | The subject group, as a free-text field. This is the name from the source data; BIDS IDs are assigned in Metadata. |
 | Session | Dropdown of the structure's sessions. Hidden for Single session. |
-| Modality | Dropdown of modalities |
+| Modality | Dropdown of modalities. Functional MRI and EEG / iEEG rows also have a `task-` field (Section 8.4). |
 | Confidence | High (green), Medium (yellow), Low (orange), or Needs Review (red) |
 
 Clicking a row shows its **Detection Reasons** and **File Info**. For a NIfTI image the reasons include its dimensions, and any WARNING reason (for example, a "T1w" with 200 volumes) means the name and the image disagree; check the modality.
@@ -341,15 +341,17 @@ The filter bar shows a count for each filter: **All**, **High**, **Medium**, **L
 
 **Single-file correction:** edit the Subject text, or choose a new value in the Session or Modality dropdown. The change applies immediately and is logged.
 
+**Task labels:** functional MRI and EEG / iEEG rows have a `task-` field under the modality. Type a label (letters and digits only; other characters are dropped) and press Enter or click elsewhere. Leave it empty for the default: `rest` for functional MRI, `monitor` for EEG and iEEG. The BIDS path under the file name shows the result. A channels or events table follows its recording's task when all the recordings in its folder have the same one; you can also set a table's task directly. For a functional run, the exported sidecar's `TaskName` is set to the same label. Runs are numbered separately per task.
+
 **Bulk correction:**
 
 1. Tick the checkboxes of the rows to change
-2. Use **Set session…** or **Set modality…**, then click **Apply**
+2. Use **Set session…** or **Set modality…**, then click **Apply**. **Set task…** appears when the selection includes files that carry a task, and applies only to those.
 3. Click **Clear selection** when done
 
 **Assign in order to timepoints:** with Custom timepoints and two or more rows ticked, this button assigns the ticked rows to the timepoints in the order you ticked them (first ticked to the earliest timepoint, and so on).
 
-**Audit log:** each session, modality or subject correction is logged with the old and new value. Subject edits are logged per keystroke. Bulk edits are logged as a count of files.
+**Audit log:** each session, modality, subject or task correction is logged with the old and new value. Subject edits are logged per keystroke. Bulk edits are logged as a count of files.
 
 ### 8.5 Proceeding to Step 4
 
@@ -566,7 +568,7 @@ Review these file types yourself before the dataset leaves the site. Also skim E
 - Magnitude and phase pairs get `part-mag` and `part-phase`
 - Single-band references get the `_sbref` suffix
 - Field maps get `_magnitude1`/`_magnitude2`, `_phasediff`, or `_phase1`/`_phase2`
-- Functional MRI is always `task-rest`. Scalp EEG and iEEG are always `task-monitor`. Task labels cannot be changed.
+- Functional MRI is `task-rest` and scalp EEG and iEEG are `task-monitor`, unless you set another task in Mapping (Section 8.4)
 - electrodes, channels and events tables go beside their recording: `eeg/` for scalp EEG, `ieeg/` for iEEG. A table is matched to an EEG or iEEG recording in the same source folder first, then in the same subject and session; otherwise, or when both kinds are present, it goes in `ieeg/`. Check the BIDS path under each table's name in Mapping. channels and events get `task-monitor`; electrodes gets no task.
 - A name collision that survives all of the above is renamed `…_dup-N`, and Validate shows it as an error that must be fixed before export (Section 10.3)
 - Field-map sidecars get `IntendedFor`, listing every EPI image (func, dwi, perf) exported in the same session. A field map meant for only some of those scans has to be edited after export.
@@ -677,7 +679,7 @@ Events recorded:
 
 - **Setup:** structure selected; structure changed (old and new structure); files scanned; session restored
 - **Detection:** detection completed (counts)
-- **Mapping:** session, modality and subject corrections (old value and new value); bulk applies (count of files)
+- **Mapping:** session, modality, subject and task corrections (old value and new value); bulk applies (count of files)
 - **Metadata** (written when you leave Metadata; after going back, only values that changed are written again): institution configured; subject sessions; dataset description
 - **Defacing attestation** (written when it changes): ticked, unticked, or cleared because the structural MRI files changed
 - **Validation:** each dismissed issue; Re-run Checks when it brings dismissed issues back; validation passed (on Continue to Export, with the issues dismissed at that point)
@@ -844,3 +846,4 @@ Do not send the full audit log or screenshots of the Mapping table outside the s
 | 3.2 | October 2, 2026 | Brandon Bach | Updated for NeuroGate 1.3.0. Section 4.3: the NIfTI header is read (dimensions, warnings when a name contradicts them, a 4D series is not defaulted to T1w, PET framing). Section 5.1 rewritten as "Going Back": Metadata entries are now kept on Back, and audit entries are not repeated. New Section 6.5 Changing the Structure Later (Change structure on Drop Files and Mapping, with confirmation and cancel; logged as "Structure changed"). Sections 7, 8 and 9: Change structure link and button, NIfTI reasons in Mapping, guessed files listed in Validate. Section 10.4: NIfTI header text is PHI-scanned. Sections 12 and 16 updated to match. |
 | 3.3 | October 2, 2026 | Brandon Bach | Updated for NeuroGate 1.5.0. Sections 5.1 and 12: the audit log survives a reload. Section 9.4: the attestation is logged when ticked, unticked or cleared. Section 10.2: dismissals and re-runs are logged, and Validation passed lists dismissed issues. Section 11.2: field-map sidecars get `IntendedFor`. Sections 12.3, 12.5 and 16 updated to match. |
 | 3.4 | October 2, 2026 | Brandon Bach | Updated for NeuroGate 1.6.0. Section 10.4: new Consistency checks (channels against electrodes, Persyst pairs, a dropped sessions.tsv), removed from Not checked. Section 9.5: session names in a dropped sessions.tsv are matched to the chosen structure. Sections 5.1 and 12.1: closing with an unsaved audit log asks first. |
+| 3.5 | October 2, 2026 | Brandon Bach | Updated for NeuroGate 1.7.0. Section 7.2: CSV tables are recognized and converted to TSV. Section 7.4: Metadata entries are saved with the mapping and survive a reload. Sections 8.1 and 8.4: task labels can be set per file and in bulk. Sections 11.2 and 12 updated to match. |

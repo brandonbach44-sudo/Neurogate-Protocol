@@ -3,13 +3,13 @@
 | Field | Value |
 |---|---|
 | **Document ID** | SOP-BIDS-001 |
-| **Version** | 3.5 |
+| **Version** | 3.6 |
 | **Effective Date** | 2026-10-02 |
 | **Author** | Brandon Bach |
 | **Advisor** | Nishant Sinha |
 | **Status** | Draft, Pending Advisor Review |
-| **Parent Document** | GOV-001 Regulatory and Governance Framework v2.5 |
-| **Related Documents** | SOP-GUI-001 v3.4 |
+| **Parent Document** | GOV-001 Regulatory and Governance Framework v2.6 |
+| **Related Documents** | SOP-GUI-001 v3.5 |
 
 ---
 
@@ -50,7 +50,7 @@ This SOP applies to any site organizing neural data for multi-site sharing. It c
 - Metadata requirements including JSON sidecars, participant tables, session tables, and electrode and channel tables
 - De-identification and defacing requirements
 - Session-based organization under the Implant sessions preset (pre-implant, post-implant, post-surgery), the Custom timepoints preset for longitudinal studies, or the Single session preset (no session level)
-- BIDS entities the tool assigns automatically: `run-`, `part-`, `rec-`, `trc-`, `desc-`, and the `sbref` suffix, plus the fixed task labels `task-rest` and `task-monitor`
+- BIDS entities the tool assigns automatically: `run-`, `part-`, `rec-`, `trc-`, `desc-`, and the `sbref` suffix, plus the default task labels `task-rest` and `task-monitor`, which the user can change in the mapping table
 
 Uploading the exported dataset to a data infrastructure is out of scope. Each site follows its own upload procedure for the platform it has chosen.
 
@@ -170,7 +170,7 @@ The tool assigns the following BIDS entities automatically to keep filenames uni
 
 | Entity | Purpose | Section |
 |---|---|---|
-| `task-rest` / `task-monitor` | Fixed task labels: `task-rest` for every functional MRI run; `task-monitor` for every EEG and iEEG recording and for channels and events tables. They cannot be changed in the tool. | 6.1.3, 6.1.6, 6.2.2 |
+| `task-<label>` | `task-rest` for functional MRI and `task-monitor` for EEG and iEEG by default; the user can set another label (letters and digits) per file in the mapping table. channels and events tables follow their recording's task. Runs are numbered per task. | 6.1.3, 6.1.6, 6.2.2 |
 | `trc-<tracer>` | PET tracer | 6.1.7 |
 | `rec-moco` | Marks the motion-corrected reconstruction of a functional run | 5.3.3 |
 | `rec-ac` / `rec-nac` (with `stat` / `dyn`) | Separates attenuation-corrected and non-corrected PET reconstructions | 6.1.7 |
@@ -342,7 +342,7 @@ Functional MRI acquisitions are placed in `func/`:
 
 **Required JSON sidecar fields for fMRI** (site requirement per GOV-001 Section 3; not checked by the tool): `Manufacturer`, `MagneticFieldStrength`, `RepetitionTime`, `EchoTime`, `TaskName`, `SliceTiming`.
 
-**Task labels.** The `task-<label>` entity is required by BIDS for all functional MRI. NeuroGate names every functional run `task-rest` and the label cannot be changed in the tool. The tool is therefore suited to resting-state fMRI. A task-based run exported by the tool also carries `task-rest`, and any events table is named `task-monitor` and placed with an EEG or iEEG recording, or in `ieeg/` when there is none (Section 6.1.6), not in `func/`. A site sharing task-based fMRI must correct the task label, the sidecar `TaskName`, and the events-table placement after export.
+**Task labels.** The `task-<label>` entity is required by BIDS for all functional MRI. NeuroGate names functional runs `task-rest` by default; for a task-based run, set its task in the mapping table (for example `motor`), and the run is exported as `task-motor` with its sidecar `TaskName` set to `motor`. Runs are numbered separately per task. An events table, however, is always placed with an EEG or iEEG recording, or in `ieeg/` when there is none (Section 6.1.6), never in `func/`; a site sharing task-based fMRI with events must move the events table to `func/` and name it after its run after export.
 
 **Motion-corrected reconstructions.** When a scanner produces both a raw functional run and a motion-corrected reconstruction of the same acquisition (Siemens `MoCoSeries`), the reconstruction is marked with the `rec-moco` entity (see Section 5.3.3). Both files are placed in `func/`. For example:
 
@@ -490,7 +490,7 @@ Required files:
 | `sub-<ID>_ses-postimplant_electrodes.tsv` | TSV | Yes |
 | `sub-<ID>_ses-postimplant_task-monitor_events.tsv` | TSV | Recommended |
 
-Every iEEG recording, channels table, and events table is named `task-monitor`; the electrodes table carries no task entity. The label cannot be changed in the tool. The tables are placed in `ieeg/` with the recording (Section 6.1.6 describes how a table is matched to its recording).
+Every iEEG recording is named `task-monitor` unless another task is set in the mapping table; its channels and events tables follow the recording's task when the recordings in their folder agree, and the electrodes table carries no task entity. The tables are placed in `ieeg/` with the recording (Section 6.1.6 describes how a table is matched to its recording).
 
 **Minimum recording requirement:** 48 hours of continuous iEEG recording is a site rule under this SOP. The tool does not check recording duration; the site confirms it before export.
 
@@ -500,7 +500,7 @@ Accepted iEEG formats:
 - `.nwb`: Neurodata Without Borders
 - `.dat` and `.lay`: Persyst format, accepted as the pair. The site must supply both files of each pair. The tool does not check that both are present. On export, the `.lay` file's `File=` line is pointed at the paired `.dat` file's new BIDS name, so the renamed pair stays linked.
 
-Tables supplied as `.csv` produce a warning (BIDS requires `.tsv`); a `.csv` is exported only when it shares a base name with a data file, and it is renamed to `.tsv` without its contents being converted. Sites should convert tables to tab-separated `.tsv` before import.
+Electrodes, channels, and events tables supplied as `.csv` are recognized like their `.tsv` versions; any other `.csv` produces a warning and is exported only when it shares a base name with a data file. Every exported `.csv` is converted to tab-separated `.tsv`: quoted cells, semicolon-separated files (from locales that use a decimal comma), a byte order mark and Windows line endings are handled, and tabs or line breaks inside a cell become spaces.
 
 **Required JSON sidecar fields for iEEG** (site requirement per GOV-001 Section 3; not checked by the tool): `SamplingFrequency`, `iEEGReference`, `ElectrodeManufacturer`, `iEEGPlacementScheme`.
 
@@ -778,7 +778,7 @@ RA1     28.9    -15.6   42.1    2.0
 
 ### 10.5 channels.tsv
 
-Required for any subject and session that includes EEG or iEEG. The site supplies this table; NeuroGate names it `task-monitor`, places it beside its recording (`eeg/` for scalp EEG, `ieeg/` for iEEG; Section 6.1.6), and scans its cells for PHI during validation (Section 11.3). It does not check the columns or de-identify the contents; the table is exported unchanged.
+Required for any subject and session that includes EEG or iEEG. The site supplies this table; NeuroGate gives it its recording's task (`task-monitor` by default), places it beside its recording (`eeg/` for scalp EEG, `ieeg/` for iEEG; Section 6.1.6), and scans its cells for PHI during validation (Section 11.3). It does not check the columns or de-identify the contents; the table is exported unchanged.
 
 Required columns (site responsibility, per the BIDS EEG and iEEG specifications):
 
@@ -1071,6 +1071,7 @@ The tool does not issue a validation message when it routes scanner-computed der
 | 3.3 | October 2, 2026 | Brandon Bach | Updated for NeuroGate 1.3.0. Section 5.4: the structure can be changed later with Change structure (files cleared, change audit-logged). Section 6.1.7: with no sidecar, PET framing comes from the NIfTI volume count. Sections 11.1 to 11.3: NIfTI header text (`descrip`, `aux_file`) is PHI-scanned in a fourth scan, and exported unchanged. Section 13: a 4D NIfTI is not defaulted to T1w; the not-checked list now reflects that headers are read during detection. |
 | 3.4 | October 2, 2026 | Brandon Bach | Updated for NeuroGate 1.5.0. Section 6.1.5: the tool fills `IntendedFor` in field-map sidecars with the session's EPI images and replaces any stale value. Section 13.7: dismissals are recorded in the audit log. Sidecars are now paired with their image by folder and name in export naming as well as detection. |
 | 3.5 | October 2, 2026 | Brandon Bach | Updated for NeuroGate 1.6.0. Sections 10.5 and 13.8: the tool now warns on channels.tsv names missing from electrodes.tsv and on unpaired Persyst `.dat`/`.lay` files, and checks a supplied sessions.tsv against the sessions with files. Section 13.11 updated to match. Traceability matrix row 10.5 updated. |
+| 3.6 | October 2, 2026 | Brandon Bach | Updated for NeuroGate 1.7.0. Sections 3, 5.3 and 6.1.3: task labels can be set per file (default `task-rest` / `task-monitor`); TaskName follows; runs are numbered per task. Section 6.2.2: tables follow their recording's task, and CSV tables are recognized and converted to TSV on export. Section 10.5 updated to match. |
 
 ---
 
