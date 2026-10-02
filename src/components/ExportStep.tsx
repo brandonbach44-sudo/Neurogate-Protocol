@@ -126,6 +126,7 @@ export default function ExportStep({
           needsGzip: entry.needsGzip,
           edfDeidentify: entry.edfDeidentify,
           jsonDeidentify: entry.jsonDeidentify,
+          layDeidentify: entry.layDeidentify,
           subjectGroup: entry.subjectGroup,
         };
         if (!isFileLike(entry.content)) return { ...base, text: entry.content };

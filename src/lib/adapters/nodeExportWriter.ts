@@ -40,6 +40,7 @@ import { isFileLike } from '../../types/fileLike';
 import { NodeFileAdapter } from './nodeFileAdapter';
 import { deidentifyEdfStream } from './nodeEdfDeidentifyStream';
 import { deidentifyJsonSidecar } from '../deidentify/jsonSidecarDeidentifier';
+import { deidentifyPersystLay } from '../deidentify/persystLayDeidentifier';
 
 export type WriteProgressCallback = (progress: {
   current: number;
@@ -48,7 +49,7 @@ export type WriteProgressCallback = (progress: {
 }) => void;
 
 function emptyDeidentificationSummary(): DeidentificationSummary {
-  return { edfFiles: [], jsonSidecars: [] };
+  return { edfFiles: [], jsonSidecars: [], layFiles: [] };
 }
 
 /**
@@ -116,6 +117,17 @@ export async function writeFileEntriesToDisk(
           unparseableDateFields: result.unparseableDateFields,
         });
       }
+    } else if (entry.layDeidentify) {
+      // Persyst layout: small text file (see persystLayDeidentifier.ts).
+      const result = deidentifyPersystLay(await source.text(), entry.layDeidentify);
+      await writeFile(destPath, result.text, 'utf-8');
+      summary.layFiles!.push({
+        bidsPath: entry.path,
+        subjectGroup: entry.subjectGroup ?? '',
+        removedFields: result.removedFields,
+        shiftedFields: result.shiftedFields,
+        commentRedactions: result.commentRedactions,
+      });
     } else if (entry.needsGzip) {
       // Uncompressed .nii -> .nii.gz, streamed through Node's zlib
       // (the Node-side equivalent of the web path's browser

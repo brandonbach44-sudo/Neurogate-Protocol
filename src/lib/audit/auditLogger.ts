@@ -172,11 +172,14 @@ export function createAuditLogger() {
     const sidecarsWithFields = summary.jsonSidecars.filter(
       s => s.strippedFields.length > 0 || s.shiftedFields.length > 0 || s.unparseableDateFields.length > 0,
     ).length;
+    const layCount = summary.layFiles?.length ?? 0;
     addEntry('deidentification-summary',
-      `De-identified ${summary.edfFiles.length} EDF file(s) (${edfWithPhi} contained detected PHI) and ${sidecarsWithFields} JSON sidecar(s) with identifying content`,
+      `De-identified ${summary.edfFiles.length} EDF file(s) (${edfWithPhi} contained detected PHI), ${sidecarsWithFields} JSON sidecar(s) with identifying content` +
+        (layCount ? ` and ${layCount} Persyst layout file(s)` : ''),
       {
         edfFiles: summary.edfFiles,
         jsonSidecars: summary.jsonSidecars,
+        ...(layCount ? { layFiles: summary.layFiles } : {}),
       },
       'system',
     );
