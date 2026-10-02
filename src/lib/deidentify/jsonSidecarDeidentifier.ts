@@ -74,6 +74,12 @@ export interface JsonSidecarDeidentifyOptions {
    * compared across a subject's EDF and MRI sidecars stays consistent.
    */
   dateShiftDays: number;
+  /**
+   * The sidecar's IntendedFor, rewritten for the export (see
+   * lib/bids/intendedFor.ts): set to this list, or removed when it's
+   * empty. Left unset, an existing IntendedFor is kept as is.
+   */
+  intendedFor?: string[];
 }
 
 export interface JsonSidecarDeidentifyResult {
@@ -234,6 +240,11 @@ export function deidentifyJsonSidecar(
     }
   };
   walk(parsed, '');
+
+  if (options.intendedFor) {
+    if (options.intendedFor.length > 0) parsed.IntendedFor = options.intendedFor;
+    else delete parsed.IntendedFor;
+  }
 
   return {
     ok: true,

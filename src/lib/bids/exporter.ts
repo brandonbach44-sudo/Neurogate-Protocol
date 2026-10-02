@@ -47,6 +47,7 @@ import { isFileLike } from '../../types/fileLike';
 import type { DetectionResult } from '../../types/detection';
 import { getEffectiveSubjectGroup } from '../../types/detection';
 import { computeBidsNames, isExportedPath } from './bidsNaming';
+import { computeIntendedFor } from './intendedFor';
 import { deidentifyEdf } from '../deidentify/edfDeidentifier';
 import { deidentifyJsonSidecar, isJsonSidecarFile, shiftDateString } from '../deidentify/jsonSidecarDeidentifier';
 import { deidentifyPersystLay, type LayDeidentifyOptions } from '../deidentify/persystLayDeidentifier';
@@ -177,6 +178,8 @@ export interface FileEntry {
    */
   jsonDeidentify?: {
     dateShiftDays: number;
+    /** Field maps: what IntendedFor is set to (lib/bids/intendedFor.ts). Other sidecars: [] removes a stale one. */
+    intendedFor?: string[];
   };
   /**
    * When set, this is a Persyst .lay layout: File= is pointed at the
@@ -362,6 +365,12 @@ export function buildFileEntries(
     }
   }
 
+  // IntendedFor for each field-map sidecar, from the paths being exported.
+  const exportedPaths = named
+    .filter(r => subjectIdMap.has(getEffectiveSubjectGroup(r)) && isExportedPath(r.bidsPath))
+    .map(r => r.bidsPath);
+  const intendedFor = computeIntendedFor(exportedPaths);
+
   for (const result of named) {
     // Export only files that belong to a configured subject and that
     // resolved to a real BIDS path -- primary/ for acquisitions, or the
@@ -383,7 +392,7 @@ export function buildFileEntries(
         ? { dateShiftDays, anonymousSubjectId: subjectId }
         : undefined,
       jsonDeidentify: isJsonSidecarFile(result.fileName)
-        ? { dateShiftDays }
+        ? { dateShiftDays, intendedFor: intendedFor.get(result.bidsPath) ?? [] }
         : undefined,
       layDeidentify: isPersystLayFile(result.fileName)
         ? { dateShiftDays, datFileName: exportedDatName.get(persystPairKey(result.relativePath)) }
