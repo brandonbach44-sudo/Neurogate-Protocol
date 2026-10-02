@@ -99,6 +99,16 @@ export default function ExportStep({
   );
 
   const tree = useMemo(() => buildTreeFromEntries(fileEntries), [fileEntries]);
+  // Subjects and sessions.tsv files as actually written (subjects with no
+  // exported data are left out of the export, see buildFileEntries).
+  const sessionsTsvPaths = useMemo(
+    () => fileEntries.map(e => e.path).filter(p => p.endsWith('_sessions.tsv')),
+    [fileEntries],
+  );
+  const exportedSubjectCount = useMemo(() => {
+    const participants = fileEntries.find(e => e.path === 'participants.tsv')?.content;
+    return typeof participants === 'string' ? participants.trim().split('\n').length - 1 : subjects.length;
+  }, [fileEntries, subjects.length]);
   const stats = useMemo(() => getExportStats(fileEntries), [fileEntries]);
 
   const exportBaseName = () => {
@@ -276,9 +286,9 @@ export default function ExportStep({
 
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
-          <p className="text-2xl font-semibold text-[#011F5B]">{subjects.length}</p>
+          <p className="text-2xl font-semibold text-[#011F5B]">{exportedSubjectCount}</p>
           <p className="text-sm text-gray-500 mt-1">
-            {subjects.length === 1 ? 'Subject' : 'Subjects'}
+            {exportedSubjectCount === 1 ? 'Subject' : 'Subjects'}
           </p>
         </div>
         <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
@@ -312,14 +322,12 @@ export default function ExportStep({
             <span className="w-2 h-2 rounded-full bg-blue-400 shrink-0" />
             <span className="text-sm text-blue-700">participants.tsv</span>
           </div>
-          {/* Single session preset: exporter.ts's buildFileEntries deliberately
-              skips writing a sessions.tsv for these subjects (nothing to
-              describe, see the comment there), so this list must not claim
-              one is included. */}
-          {structure?.presetId !== 'single-session' && subjects.map(s => (
-            <div key={s.bidsSubjectId} className="flex items-center gap-2">
+          {/* The sessions.tsv files actually written: none for the Single
+              session preset, and none for a subject with no exported data. */}
+          {sessionsTsvPaths.map(p => (
+            <div key={p} className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-blue-400 shrink-0" />
-              <span className="text-sm text-blue-700">{s.bidsSubjectId}_sessions.tsv</span>
+              <span className="text-sm text-blue-700">{p.split('/').pop()}</span>
             </div>
           ))}
         </div>

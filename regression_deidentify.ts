@@ -21,6 +21,7 @@ import { deidentifyEdf, generateSubjectDateShifts } from './src/lib/deidentify/e
 import { deidentifyPersystLay } from './src/lib/deidentify/persystLayDeidentifier';
 import { buildFileEntries } from './src/lib/bids/exporter';
 import type { SubjectMetadata, DatasetDescription } from './src/types/metadata';
+import type { DetectionResult } from './src/types/detection';
 
 const EXPECTED_PATH = join(process.cwd(), 'regression_deidentify_expected.json');
 const UPDATE_MODE = process.argv.includes('--update');
@@ -191,7 +192,15 @@ function runSessionsTsvCase() {
     ],
   } as SubjectMetadata];
   const description: DatasetDescription = { name: 'Test', bidsVersion: '1.8.0', datasetType: 'raw', authors: ['A'] } as DatasetDescription;
-  const entries = buildFileEntries([], subjects, description, new Map([['Patient_001', 10]]));
+  // One exported T1w per session: sessions.tsv lists only sessions with
+  // exported data, and participants.tsv only subjects that have some.
+  const results = (['ses-preimplant', 'ses-postimplant', 'ses-postsurgery'] as const).map((session, i) => ({
+    relativePath: `Patient_001/s${i}/T1w.nii.gz`, fileName: 'T1w.nii.gz', fileSize: 1,
+    file: new File([new Uint8Array([0])], 'T1w.nii.gz'), subjectGroup: 'Patient_001',
+    detectedSession: session, detectedModality: 'anat-T1w', confidence: 'high', reasons: [],
+    userSession: null, userModality: null, userSubjectGroup: null, bidsFilename: '', bidsPath: '',
+  })) as DetectionResult[];
+  const entries = buildFileEntries(results, subjects, description, new Map([['Patient_001', 10]]));
   return entries.find(e => e.path.endsWith('_sessions.tsv'))?.content;
 }
 

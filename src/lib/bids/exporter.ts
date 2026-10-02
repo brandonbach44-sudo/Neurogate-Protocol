@@ -296,6 +296,30 @@ export function buildFileEntries(
 ): FileEntry[] {
   const entries: FileEntry[] = [];
 
+  // computeBidsNames assigns every file its final BIDS path using the
+  // metadata subject ids, run / field-map entities, and sidecar pairing.
+  // The exporter simply places each file where that path says.
+  const subjectIdMap = new Map<string, string>();
+  for (const s of subjects) {
+    subjectIdMap.set(s.subjectGroup, s.bidsSubjectId);
+  }
+  const named = computeBidsNames(results, subjectIdMap, structure);
+
+  // Which subjects and sessions actually have exported data. A subject
+  // whose files were all left out (guessed, unclassified, localizers) must
+  // not appear in participants.tsv, and a session with nothing exported
+  // must not appear in sessions.tsv.
+  const exportedSessions = new Map<string, Set<string>>();
+  for (const r of named) {
+    const group = getEffectiveSubjectGroup(r);
+    if (!subjectIdMap.has(group) || !isExportedPath(r.bidsPath)) continue;
+    const set = exportedSessions.get(group) ?? new Set<string>();
+    const session = r.userSession ?? r.detectedSession;
+    if (session) set.add(session);
+    exportedSessions.set(group, set);
+  }
+  const listedSubjects = subjects.filter(s => exportedSessions.has(s.subjectGroup));
+
   // ── Dataset-level metadata files ────────────────────────────
   entries.push({
     path: 'dataset_description.json',
@@ -304,7 +328,7 @@ export function buildFileEntries(
 
   entries.push({
     path: 'participants.tsv',
-    content: generateParticipantsTsv(subjects),
+    content: generateParticipantsTsv(listedSubjects),
   });
 
   // ── Per-subject sessions.tsv ─────────────────────────────────
@@ -316,24 +340,17 @@ export function buildFileEntries(
   // for something that structurally doesn't exist would be noise, not
   // useful metadata.
   if (structure?.presetId !== 'single-session') {
-    for (const subject of subjects) {
+    for (const subject of listedSubjects) {
+      const present = exportedSessions.get(subject.subjectGroup)!;
+      const withData = { ...subject, sessions: subject.sessions.filter(ses => present.has(ses.sessionId)) };
       entries.push({
         path: `primary/${subject.bidsSubjectId}/${subject.bidsSubjectId}_sessions.tsv`,
-        content: generateSessionsTsv(subject, dateShifts?.get(subject.subjectGroup) ?? 0),
+        content: generateSessionsTsv(withData, dateShifts?.get(subject.subjectGroup) ?? 0),
       });
     }
   }
 
   // ── Data files and their sidecars ───────────────────────────
-  // computeBidsNames assigns every file its final BIDS path using the
-  // metadata subject ids, run / field-map entities, and sidecar pairing.
-  // The exporter simply places each file where that path says.
-  const subjectIdMap = new Map<string, string>();
-  for (const s of subjects) {
-    subjectIdMap.set(s.subjectGroup, s.bidsSubjectId);
-  }
-
-  const named = computeBidsNames(results, subjectIdMap, structure);
 
   // Each exported Persyst .dat's new file name, by its original folder +
   // base name, so the matching .lay's File= can be pointed at it.
