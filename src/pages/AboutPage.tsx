@@ -106,7 +106,7 @@ export default function AboutPage() {
           </h1>
           <p className="mt-4 text-sm text-gray-500 leading-relaxed max-w-lg">
             NeuroGate Protocol combines a regulatory governance framework with a desktop app
-            and command-line tool that help research sites organize, validate, and prepare BIDS-compliant
+            and command-line tool that help research sites organize, validate, and prepare BIDS-based
             neural data ready for multi-site sharing through cloud and on-premise
             standardized data infrastructure toward building a learning health system. The
             framework is the spine; the tool is one of its implementations.
@@ -193,7 +193,7 @@ export default function AboutPage() {
           />
           <PillarCard
             title="A desktop app and CLI"
-            body="A 6-step workflow that organizes, validates, and exports BIDS-compliant datasets entirely on your computer, for MRI, CT, PET, EEG and iEEG. PHI scanning, header de-identification, defacing attestation, and an ALCOA+-aligned audit log are built in."
+            body="A 6-step workflow that organizes, validates, and exports BIDS-based datasets entirely on your computer, for MRI, CT, PET, EEG and iEEG. PHI scanning, header de-identification, defacing attestation, and an ALCOA+-aligned audit log are built in."
             accent="#7c3aed"
             bg="rgba(124,58,237,0.08)"
             icon={

@@ -3,34 +3,34 @@
 | Field | Value |
 |---|---|
 | **Document ID** | SOP-GUI-001 |
-| **Version** | 2.0 |
-| **Effective Date** | 2026-08-31 |
+| **Version** | 3.0 |
+| **Effective Date** | 2026-09-30 |
 | **Author** | Brandon Bach |
-| **Status** | Draft |
-| **Parent Framework** | GOV-001 Regulatory Governance Framework v1.15 |
-| **Related Documents** | SOP-BIDS-001 |
+| **Status** | Draft, Pending Advisor Review |
+| **Parent Framework** | GOV-001 Regulatory and Governance Framework v2.1 |
+| **Related Documents** | SOP-BIDS-001 v3.1 |
 
 ---
 
 ## 1. Purpose
 
-This Standard Operating Procedure provides instructions for using the NeuroGate compliance tool to organize, validate, and export neural data in Brain Imaging Data Structure (BIDS) format. NeuroGate is a desktop application that classifies imaging and electrophysiology files, enforces BIDS naming conventions, scans for protected health information, quarantines files that require manual review, and generates an audit trail compliant with ALCOA+ data integrity principles.
+This Standard Operating Procedure explains how to use NeuroGate to organize, check, and export neural data in NeuroGate's BIDS-based structure, which follows Brain Imaging Data Structure (BIDS) naming conventions (SOP-BIDS-001 Section 5). NeuroGate is a desktop application. It classifies imaging and electrophysiology files, assigns BIDS names, scans file and folder names and JSON sidecars for protected health information (PHI) patterns, applies a limited set of de-identification steps on export, and keeps an audit log of the session.
 
-The tool exports a validated BIDS folder to the local machine. Uploading that folder to a data infrastructure is out of scope for this SOP and is handled per each site's own procedures for the platform it has chosen.
+The tool writes a BIDS-based dataset folder to the local computer. Uploading that folder to a data infrastructure is out of scope for this SOP and is handled per each site's own procedures for the platform it has chosen.
 
 ---
 
 ## 2. Governance Traceability
 
-This SOP implements the following requirements from GOV-001:
+This SOP supports the following requirements from GOV-001:
 
 | GOV-001 Section | Requirement | How This SOP Addresses It |
 |---|---|---|
-| 2.1 FAIR Principles | Data must be structured in machine-readable, interoperable formats | The tool enforces BIDS folder structure and generates JSON sidecars for every imaging file |
-| 2.2 ALCOA+ Data Integrity | All data transformations must be attributable and contemporaneous | The audit log captures every automated decision and user correction with timestamps |
-| 2.3 HIPAA/PHI Protection | PHI must be removed before data leaves the originating site | The tool scans filenames and sidecar free-text fields for PHI patterns and de-identifies EDF headers and JSON sidecar date fields automatically on export |
-| 2.5 QMS Documentation | SOPs must include step-by-step procedures | Sections 6 through 11 provide sequential workflow instructions |
-| Section 5 Audit Traceability | Corrections and detection decisions must be documented | Every user override and detection reason is written to the audit log |
+| 2.1 FAIR Principles | Data must be structured in machine-readable, interoperable formats | The tool places each file in a BIDS folder with a BIDS name, carries over existing JSON sidecars next to their data files, and generates `dataset_description.json`, `participants.tsv` and per-subject `sessions.tsv` files (Section 11) |
+| 2.2 ALCOA+ Data Integrity | Data transformations must be attributable and contemporaneous | The audit log records timestamped setup, detection, correction, metadata, validation and export events. Its limits are listed in Section 12. |
+| 2.3 HIPAA/PHI Protection | PHI must be removed before data leaves the originating site | The tool scans file names, folder names and sidecar text for PHI patterns (Section 10.4) and on export de-identifies EDF/BDF headers, selected JSON sidecar fields and `sessions.tsv` dates (Section 11.1). It does not de-identify everything; see Section 11.1 for what is not changed. |
+| 2.5 QMS Documentation | SOPs must include step-by-step procedures | Sections 6 through 11 give the workflow in order |
+| 5 Audit Traceability | Corrections and detection decisions must be documented | Every Mapping correction is logged with its old and new value. Detection is logged as summary counts; per-file detection reasons are shown in the Mapping table but are not written to the log (Section 12.3). |
 
 ---
 
@@ -40,18 +40,18 @@ This SOP applies to anyone preparing neural data files for sharing, whether at a
 
 **In scope:**
 
-- Organizing raw neural data files into BIDS-compliant folder structures. Supported inputs include NIfTI imaging files, EDF and BrainVision electrophysiology recordings, JSON sidecars, and TSV metadata files.
+- Organizing neural data files into a BIDS folder structure. Supported inputs are NIfTI imaging files, EDF/BDF, NWB and Persyst recordings, JSON sidecars, diffusion gradient tables, and TSV tables (full list in Section 7.2)
 - Reviewing and correcting the tool's automatic classifications
-- Entering subject-level and dataset-level metadata
-- Validating data completeness and compliance before export
-- Exporting a BIDS-formatted folder with a complete audit trail
+- Entering dataset-level metadata and the defacing attestation
+- Running the tool's checks before export
+- Exporting a BIDS folder together with the audit log
 
 **Out of scope:**
 
-- Converting DICOM files to NIfTI. This must be completed before opening NeuroGate. Install scripts for dcm2niix are provided in the repository under `tools/dcm2niix/`.
-- Defacing anatomical images. This must be completed before opening NeuroGate. Install scripts for pydeface are provided under `tools/pydeface/`.
+- Converting DICOM or ECAT PET files to NIfTI. This must be done before opening NeuroGate. The in-app Pre-Processing page gives dcm2niix commands with PHI-safe filename templates, a conversion helper script, and PET2BIDS (`dcm2niix4pet`) commands for PET.
+- Defacing anatomical images. This must be done before opening NeuroGate (the Pre-Processing page describes pydeface). NeuroGate does not deface images and cannot verify that defacing was done.
 - Uploading the exported folder to a data infrastructure. Each site follows its own upload procedure for the platform it has chosen.
-- Any processing under `derivatives/` beyond what the tool itself produces from scanner-computed maps. Site-specific analysis pipelines populate `derivatives/` separately.
+- Any processing under `derivatives/` beyond the scanner-computed maps the tool places in `derivatives/scanner/`. Site-specific analysis pipelines populate `derivatives/` separately.
 
 ---
 
@@ -63,11 +63,11 @@ The following are required before starting the workflow.
 
 | Requirement | Details |
 |---|---|
-| Operating system | macOS, Windows, or Linux. See Section 4.4 for supported versions. |
-| NeuroGate desktop application | Downloaded from the project website. See Section 4.4 for installation. |
-| Storage | Sufficient free disk space to hold the source data plus the exported BIDS folder. As a rule of thumb, plan for roughly 1.5 times the size of the source data. |
+| Operating system | macOS on Apple Silicon, Windows, or Linux. There is no macOS build for Intel Macs. |
+| NeuroGate desktop application | Downloaded from GitHub Releases. See Section 4.4. |
+| Storage | Enough free disk space for the exported BIDS folder in addition to the source data. The desktop app copies files into a new folder; it never modifies the source files. |
 
-Users who prefer a command-line workflow can use the CLI binary bundled inside the desktop application. Command-line usage is documented separately in the repository README and is not required to follow this SOP.
+A command-line interface (CLI) is bundled with every desktop build. It is summarized in Section 15 and is not required to follow this SOP.
 
 ### 4.2 Data Preparation
 
@@ -75,783 +75,716 @@ Before opening NeuroGate, the following must be complete:
 
 | Requirement | Details |
 |---|---|
-| DICOM conversion | All imaging files must be in NIfTI format. Uncompressed `.nii` is accepted and will be compressed to `.nii.gz` automatically on export. DICOM files (`.dcm`) are not accepted by the tool. |
-| Defacing | All anatomical scans (T1w, T2w, FLAIR, PDw, T2starw) intended for structural review must be defaced. The tool does not perform defacing and cannot verify it was done. An attestation checkbox is required before export. |
+| DICOM conversion | All imaging files must be NIfTI. Uncompressed `.nii` is accepted and is gzipped to `.nii.gz` on export. DICOM (`.dcm`, `.dicom`, `.ima`) and ECAT PET (`.v`, `.v.gz`) files are flagged with a warning and are not exported. |
+| Defacing | All structural MRI (T1w, T2w, FLAIR, PDw, T2*w) must be defaced. The tool does not deface and cannot verify defacing. An attestation checkbox is required before the workflow can continue when any of these modalities is present. PET is exempt from defacing. |
 | Institution prefix | A 2 to 6 letter uppercase code used in BIDS subject IDs (for example, PENN, CHOP, HUP). Sites choose their own prefix. |
-| Starting subject number | The three-digit starting number for this batch. Coordinate with any collaborators sharing the same institution prefix to avoid ID collisions. |
-| Source data organization | Files should be organized into per-subject folders where possible. Descriptive folder or file names (containing session or modality keywords) improve automatic detection but are not strictly required. |
+| Starting subject number | A whole number of 1 or more for the first subject in this batch. It is padded to at least three digits in the ID. Coordinate with any collaborators sharing the same prefix to avoid ID collisions. |
+| Source data organization | Per-subject folders are recommended. Any folder layout is accepted, but descriptive folder and file names (containing session or modality keywords) improve automatic detection. |
 
-### 4.3 What the Tool Can and Cannot Infer From File Names
+### 4.3 What the Tool Uses to Classify Files
 
-The auto-detection engine reads folder paths, filenames, and JSON sidecar contents to classify files. It performs well when file or folder names contain any of the following patterns.
+The detection engine combines several signals, strongest first:
 
-Session hints the tool recognizes:
+1. The JSON sidecar's DICOM `Modality` field (`PT`, `CT`, `MR`) and PET-only fields
+2. The sidecar's `ImageType`, which identifies scanner-derived ADC, FA and TRACEW maps
+3. EDF channel labels, which tell scalp EEG from iEEG
+4. Keywords in the sidecar scan name (`SeriesDescription`, `ProtocolName` and similar fields)
+5. Keywords in the file name
+6. Folder names
+7. Neighbouring files
+8. Subject grouping
+9. For Custom timepoints only: clusters of dates and folders
 
-- Implant-preset keywords such as `preop`, `preimplant`, `postimplant`, `postsurgery`
-- Custom-timepoint labels the site defined (`ses-2mo`, `2weeks`, `week2`, `W2`, `visit1`, `V1`, `baseline`, `followup`)
-- ISO-format dates (`YYYYMMDD` or `YYYY-MM-DD`)
-
-Modality hints the tool recognizes:
-
-- Standard BIDS suffixes (`T1w`, `T2w`, `FLAIR`, `angio`, `bold`, `asl`, `dwi`, `ieeg`, and so on)
-- Common Siemens, GE, and Philips sequence names (`MPRAGE`, `SPGR`, `BRAVO`, `FSPGR`, `TFLR`, `TIRM`, `SWI`, `SWAN`, `ep2d_diff`, `MoCoSeries`, `pd_tse`, and others)
-- Descriptive keywords (`resting`, `diffusion`, `fieldmap`, `perfusion`)
-
-The tool does not guess when there is no supporting evidence. Files it cannot confidently classify are held in a review queue rather than assigned to a default modality. This behavior is described in Section 8.4.
+**Fallback:** a `.nii.gz` file that no signal identifies is set to T1w, marked as a guess, and is not exported until the user picks a modality (Section 8.3). An unidentified `.nii` file stays Other / Unknown.
 
 ### 4.4 Installation
 
-The NeuroGate desktop application is distributed as an installer for each supported operating system. Downloads are available from the project website under the Downloads page.
+NeuroGate is distributed through GitHub Releases:
 
-| Platform | Installer | Supported Versions |
-|---|---|---|
-| macOS | `NeuroGate-<version>.dmg` | macOS 12 Monterey or later, Intel or Apple Silicon |
-| Windows | `NeuroGate-<version>-Setup.exe` | Windows 10 or later, 64-bit |
-| Linux | `NeuroGate-<version>.AppImage` | Ubuntu 22.04 or later, or any modern 64-bit distribution supporting AppImage |
+<https://github.com/brandonbach44-sudo/Neurogate-Protocol/releases/latest>
+
+| Platform | File |
+|---|---|
+| macOS (Apple Silicon only) | `NeuroGate-<version>-arm64.dmg` |
+| Windows | `NeuroGate-Setup-<version>.exe` |
+| Linux | `NeuroGate-<version>.AppImage` |
+
+The builds are not signed with an Apple Developer ID or a Windows code-signing certificate (the macOS build is ad-hoc signed), so each operating system shows a warning on first launch.
 
 **macOS installation:**
 
-1. Download the `.dmg` file from the project website
+1. Download the `.dmg` file from the Releases page
 2. Double-click the file to mount the disk image
 3. Drag the NeuroGate icon to the Applications folder
-4. Launch NeuroGate from Applications or Launchpad
-5. On first launch, macOS may display a security warning. Right-click the app and select Open, then confirm the dialog. This is required only once.
+4. Launch NeuroGate from Applications
+5. If macOS blocks the app, open System Settings, go to Privacy & Security, and click Open Anyway next to the NeuroGate message. Confirm when asked.
 
 **Windows installation:**
 
-1. Download the `Setup.exe` file from the project website
+1. Download the `NeuroGate-Setup-<version>.exe` file from the Releases page
 2. Double-click to run the installer
-3. Follow the installer prompts and accept the default installation location
-4. Launch NeuroGate from the Start menu
+3. If Windows SmartScreen shows "Windows protected your PC", click More info, then Run anyway
+4. Follow the installer prompts, then launch NeuroGate
 
 **Linux installation:**
 
-1. Download the `.AppImage` file from the project website
-2. Make it executable by running `chmod +x NeuroGate-<version>.AppImage` in a terminal, or by right-clicking and enabling execute permission in file properties
+1. Download the `.AppImage` file from the Releases page
+2. Make it executable by running `chmod +x NeuroGate-<version>.AppImage` in a terminal, or by enabling execute permission in the file's properties
 3. Double-click the file to launch, or run it from a terminal
 
-The tool runs entirely on the local machine. No files are transmitted over the network at any point during the workflow.
+All processing happens on the local computer. No patient data is uploaded anywhere. The desktop app runs a small web server on `127.0.0.1:3001` that is reachable only from the same computer and serves the app's own pages. The only network requests the app makes are the update check (to GitHub) and loading fonts from Google Fonts.
 
-### 4.5 Verifying the Installation
+### 4.5 Updates
 
-After launching NeuroGate for the first time, the welcome screen displays the current version number in the lower right corner. Confirm the version matches the download you installed.
+Each time the installed app starts, it checks GitHub Releases for a newer version. If the check fails (for example, when offline), nothing is shown.
+
+- **Windows and Linux:** a dialog offers the new version with Download or Later. After Download, the update downloads in the background while you keep working, then a second dialog offers Restart now or Later. If you choose Later, the update installs the next time you quit NeuroGate.
+- **macOS:** a dialog offers Open download page or Later. Open download page opens the release page in the browser. Download the new `.dmg` and drag NeuroGate into Applications to replace the old version.
+
+### 4.6 Installing the Command-Line Tool (Optional)
+
+An **Install CLI** button appears in the top navigation bar of the Home, Documentation, Pre-Processing and About pages. It is not shown on the tool page, and it is hidden when the window is narrow.
+
+Clicking it copies the `neurogate` command into a `bin` folder inside NeuroGate's application-data folder.
+
+- **Windows:** the folder is also added to your user PATH. Open a new terminal window before using the command.
+- **macOS and Linux:** the panel shows the folder; add it to your PATH yourself.
+
+When it succeeds, the panel shows the command `neurogate <folder>` with a Copy button.
+
+### 4.7 Verifying the Installation
+
+The NeuroGate version appears in the footer of the Home, Documentation, Pre-Processing and About pages. Confirm it matches the release you downloaded.
 
 ---
 
 ## 5. Tool Overview
 
-NeuroGate operates as a six-step linear workflow. Each step must be completed before the next becomes available.
+The tool page runs a six-step workflow. The stepper at the top shows the steps as:
+
+**Structure · Drop Files · Mapping · Metadata · Validate · Export**
 
 ```
-Step 1: Choose Structure
-    Pick the Implant sessions preset or define Custom timepoints
+Step 1: Structure
+    Answer whether subjects have more than one session, then choose
+    Single session, Implant sessions, or Custom timepoints
         |
         v
-Step 2: File Drop
-    Add source files by dragging a folder onto the drop zone
+Step 2: Drop Files
+    Add a folder or files
         |
         v
-Step 3: Mapping Table
-    Review the tool's automatic classifications and correct any errors
+Step 3: Mapping
+    Review the automatic classifications and correct them
         |
         v
 Step 4: Metadata
-    Enter institution prefix, subject demographics, dataset description,
-    and the defacing attestation
+    Institution prefix, dataset description, defacing attestation
         |
         v
-Step 5: Validation
-    Review automated compliance checks and resolve any blocking issues
+Step 5: Validate
+    Review the checks and resolve anything that blocks export
         |
         v
 Step 6: Export
-    Generate the BIDS folder and download it with the audit log
+    Write the BIDS folder and the audit log
 ```
 
-Progress is tracked in a stepper at the top of the window. The user can return to a previous step at any time to revise inputs. When a change in an earlier step affects a later step, the tool clearly indicates that the later step must be reviewed again before export.
+The stepper only shows progress; it cannot be clicked. Use the buttons at the bottom of each step to move forward or back.
 
-All processing happens locally. No data leaves the machine at any point in the workflow. The exported BIDS folder is written to a location the user chooses on their own file system.
+### 5.1 Going Back Loses Work
+
+Some Back buttons discard what was entered. Plan the workflow so that you do not need them:
+
+| Action | What is lost |
+|---|---|
+| **Back to Drop Zone** (on Mapping) | The dropped files, every Mapping correction, and the saved progress. The chosen structure and the audit log are kept. |
+| **Back to Mapping** (on Metadata), then returning to Metadata | Every Metadata entry: prefix, starting number, study name, authors, attestation |
+| **Back to Metadata** (on Validate) | Every Metadata entry, as above |
+| **Back to Validation** (on Export) | Validation is re-run, which clears every dismissed issue |
+
+The audit log lasts for the whole app session, including across Back to Drop Zone and additional datasets. Reloading or closing the app loses it, so save it first (Section 12.1).
 
 Section-by-section instructions for each step begin in Section 6.
 
 ---
 
-## 6. Step 1: Choose Your Structure
+## 6. Step 1: Structure
 
-Before dropping any files, select how the dataset's sessions are organized. This choice determines which session labels the mapping table offers and how the auto-detection engine assigns sessions to files.
+Before dropping any files, choose how the dataset's sessions are organized. This choice decides whether the export has `ses-` folders, which session labels the Mapping table offers, and how detection assigns sessions.
 
-### 6.1 The Two Presets
+### 6.1 The First Question
 
-**Implant sessions** is NeuroGate's original built-in preset. It defines a fixed set of three sessions corresponding to phases of a surgical evaluation and treatment timeline:
+The Structure screen first asks: **"Does each subject have more than one session of data?"**
 
-- `ses-preimplant`: baseline pre-surgical evaluation
-- `ses-postimplant`: intracranial monitoring after electrode placement
-- `ses-postsurgery`: post-resection imaging
+- **No** selects **Single session**: one folder per subject with no `ses-` level and no `sessions.tsv`. Use it for cross-sectional studies, or a single-block acute or implant recording with no follow-up timepoints.
+- **Yes** shows two presets to choose from: **Implant sessions** and **Custom timepoints**.
 
-This preset is documented in SOP-BIDS-001 Section 6. Use it for surgical epilepsy workups or any dataset that follows the same three-phase clinical structure.
+### 6.2 The Multi-Session Presets
 
-**Custom timepoints** is for any longitudinal study not organized around an implant procedure. The tool provides a number-and-unit picker where the site defines its own timepoints. Selecting, for example, 0 months, 2 months, and 6 months generates the session labels `ses-0mo`, `ses-2mo`, and `ses-6mo`.
+**Implant sessions** defines three fixed sessions for an implant-based surgical workup:
 
-The picker accepts days, weeks, months, or years as units. There is no free-text entry anywhere in this step. Labels are generated only from the numeric input and the selected unit, so a site name, patient identifier, or PI name can never end up in a session label. Timepoints are automatically sorted chronologically by elapsed time regardless of the order they were entered. Duplicate labels within a single dataset are blocked by the tool.
+- `ses-preimplant`
+- `ses-postimplant`
+- `ses-postsurgery`
 
-By convention, a timepoint numbered 0 (in any unit) represents the study baseline. This is documented in SOP-BIDS-001 Section 7.
+The per-session file requirements are documented in SOP-BIDS-001. Only this preset has required-file checks (Section 10.4).
 
-### 6.2 How to Choose
+**Custom timepoints** is for longitudinal studies without an implant procedure. Each timepoint is a number from 0 to 99 plus a unit: days, weeks, months, years, or "sessions (no time interval)". Labels are generated from those two inputs only, with no free text, for example `ses-1d`, `ses-2wk`, `ses-6mo`, `ses-1yr`, or `ses-1` for the "sessions" unit. A timepoint numbered 0 is marked as baseline. Between 1 and 24 timepoints can be defined. Timepoints are ordered by elapsed time (a month counts as 30 days and a year as 365), not by the order they were entered, and duplicate labels are blocked.
+
+### 6.3 How to Choose
 
 The choice depends on the study design rather than the modalities present.
 
-Select **Implant sessions** if the dataset represents phases of a surgical workup, monitoring period, and post-operative follow-up for the same patient.
+- Choose **Single session** if each subject has one block of data.
+- Choose **Implant sessions** if the data represent pre-implant evaluation, intracranial monitoring, and post-surgery follow-up for the same patient.
+- Choose **Custom timepoints** if the data represent visits at defined intervals (for example, 2 weeks and 6 months after baseline).
 
-Select **Custom timepoints** if the dataset represents a longitudinal study measured at defined intervals from a baseline visit (for example, treatment response at 2, 6, and 12 months; developmental cohorts sampled annually; drug trial follow-ups).
+### 6.4 Procedure
 
-If neither model fits, contact the project lead before proceeding. A study that does not have a defined session structure may not yet be a candidate for BIDS organization.
+1. On the Structure screen, answer the first question with **No** or **Yes**.
+2. If you answered No, review the Single session card and click **Continue**.
+3. If you answered Yes, click **Implant sessions** or **Custom timepoints**. The selected card is highlighted.
+4. For Custom timepoints, use the **Define timepoints** panel: enter a number and choose a unit for each visit, click **+ Add timepoint** for more, and **Remove** to delete one. Check the generated labels and the **Session order** preview.
+5. Click **Continue** to go to Drop Files. **Back** returns to the first question.
 
-### 6.3 Procedure
-
-1. On the Choose Structure screen, review the descriptions of both presets displayed side by side
-2. Click the preset that matches your study design. The card is highlighted when selected.
-3. If Custom timepoints was selected, the timepoint builder opens. For each visit in the study, enter the numeric offset from baseline and select the unit. Click Add Timepoint to add another. To remove a timepoint, click the delete icon next to it.
-4. When all timepoints are entered, review the generated session labels in the preview area. Confirm the labels match the site's intended session structure.
-5. Click Continue to Files to proceed to Step 2.
-
-Once files are dropped in Step 2, the structure preset cannot be changed. To switch presets after files have been added, the workflow must be restarted from Step 1. This restriction exists because sessions detected under one preset would not map correctly to labels in the other.
+**The structure can't be changed after you add files without starting over,** as the Structure screen says. To change it, click Back to Drop Zone on the Mapping step and then reload the app. Reloading also clears the audit log, so save the log first if you need it.
 
 ---
 
-## 7. Step 2: File Drop
+## 7. Step 2: Drop Files
 
 ### 7.1 Procedure
 
-1. On the File Drop screen, either drag a folder containing the source data onto the drop zone, or click Browse to select files using the system file picker
-2. The tool accepts individual files or entire folder hierarchies. When a folder is dropped, the tool preserves the hierarchy and uses it as evidence during detection.
-3. As files are read, a progress indicator displays the current file count and total size
-4. When scanning is complete, the tool automatically advances to Step 3 (Mapping Table)
+1. Drag a folder or files onto the drop zone, or use the "browse folder" or "select files" links. Any folder layout is accepted, and the folder hierarchy is used as evidence during detection.
+2. The tool scans the files and moves to the Mapping step when detection is complete.
 
-### 7.2 Accepted File Types
+**Memory use:** the desktop app records only the location of each file, not its contents, so files of any size work. (When NeuroGate runs in a web browser instead of the desktop app, files up to 500 MB are held in memory.)
 
-| Extension | Description |
+### 7.2 Recognized File Types
+
+| Extension | How it is handled |
 |---|---|
-| `.nii` | Uncompressed NIfTI imaging (compressed to `.nii.gz` automatically on export) |
-| `.nii.gz` | Gzip-compressed NIfTI imaging |
-| `.json` | JSON sidecar metadata |
-| `.edf`, `.bdf` | European Data Format electrophysiology recordings |
-| `.dat`, `.lay` | Persyst format electrophysiology (both files required as a pair) |
-| `.nwb` | Neurodata Without Borders |
+| `.nii.gz`, `.nii` | Imaging. `.nii` is gzipped to `.nii.gz` on export. |
+| `.json` | Sidecar, paired with the data file of the same base name |
+| `.edf`, `.bdf` | Scalp EEG or iEEG, told apart by the channel labels in the EDF header |
+| `.nwb`, `.dat`, `.lay` | iEEG. Every `.dat` file is treated as Persyst. |
 | `.bval`, `.bvec` | Diffusion gradient tables |
-| `.tsv` | Tab-separated values for metadata files (electrodes, channels, events) |
+| `.tsv` | electrodes, channels and events tables. Other `.tsv` files export only alongside a data file of the same base name. |
+| `.csv` | Warning: BIDS needs `.tsv`. Exported only alongside a data file of the same base name, renamed (not converted) to `.tsv`. |
+| `.dcm`, `.dicom`, `.ima` | Warning: convert DICOM to NIfTI first. Not exported. |
+| `.v`, `.v.gz` (ECAT PET) | Warning: convert to NIfTI first. Not exported. |
+| anything else | Other / Unknown. Not exported. |
 
-Files with unrecognized extensions are ignored during scanning. If an expected file does not appear in the mapping table, verify the extension is in the list above.
+BrainVision (`.vhdr`, `.eeg`, `.vmrk`), DICOM input, ECAT, and PET blood data (`_blood.tsv`) are not supported.
 
-### 7.3 Files That Are Automatically Excluded
+### 7.3 Files That Are Dropped Silently
 
-The tool identifies and excludes certain operating-system artifacts and transient files that are not scan data. These files never appear in the mapping table and are never written to the export:
+Operating-system files never appear in the Mapping table and are never exported: `.DS_Store`, `Thumbs.db`, any file whose name begins with a period (including macOS `._` AppleDouble files), and in-progress copy files. If a real data file has been renamed to begin with a period, restore its name before dropping the folder.
 
-- Files whose name begins with a period (`.`), including macOS resource forks (`._filename`) and rsync in-progress copies
-- Hidden system files such as `.DS_Store` and `Thumbs.db`
+### 7.4 Saved Progress
 
-If a legitimate data file has been renamed to begin with a period, restore its original name before dropping the folder.
+The tool saves the Mapping state in the app's tab storage for 12 hours. When saved progress exists, a "Saved progress from … ago" banner appears with a **Discard** button.
 
-### 7.4 Files That Are Recognized but Not Exported
-
-Some scan types are recognized by the tool but excluded from the BIDS export because they are not analyzable data. These appear in the mapping table for transparency but are not written to the output folder:
-
-- Localizer and scout scans (three-plane acquisitions used to plan diagnostic scans)
-- Duplicate copies of the same acquisition (see Section 8.4)
+- Adding exactly the same folder again (same names, sizes and paths) restores the mapping automatically. Anything different discards it.
+- Metadata is never saved and must be re-entered.
 
 ---
 
-## 8. Step 3: Mapping Table
+## 8. Step 3: Mapping
 
-The mapping table is the central review interface. It displays every file with the tool's automatic classifications and provides controls for reviewing, correcting, and confirming those classifications before proceeding to metadata entry.
+The Mapping table shows every file with its automatic classification and lets you correct it.
 
 ### 8.1 Table Columns
 
 | Column | Description |
 |---|---|
-| File | The original relative path of the file within the dropped folder |
-| Subject | The subject ID the tool assigned to this file. Displayed as the group identifier from the source data (later mapped to the BIDS ID in Step 4). |
-| Session | The session label the tool assigned. Blank if no session could be determined. |
-| Modality | The modality the tool assigned (T1w, T2w, dwi, fmap, ieeg, and so on) |
-| Confidence | The tool's confidence in the classification: high, medium, or low |
-| Status | Any flags requiring the user's attention. See Section 8.4. |
+| (checkbox) | Selects the row for bulk edits |
+| Original File | The file's path in the dropped folder, with the BIDS path it will be exported to shown underneath |
+| Subject | The subject group, as a free-text field. This is the name from the source data; BIDS IDs are assigned in Metadata. |
+| Session | Dropdown of the structure's sessions. Hidden for Single session. |
+| Modality | Dropdown of modalities |
+| Confidence | High (green), Medium (yellow), Low (orange), or Needs Review (red) |
 
-Every column except File is editable. Click any cell to open a dropdown of valid values and select an override. Overrides are logged in the audit trail.
+Clicking a row shows its **Detection Reasons** and **File Info**.
 
-### 8.2 How the Automatic Detection Works
+### 8.2 Filters
 
-The auto-detection engine analyzes each file using several signals in combination:
+The filter bar shows a count for each filter: **All**, **High**, **Medium**, **Low**, **Needs Review**, and **Needs your decision**.
 
-- **File extension** identifies the base file type (imaging, electrophysiology, sidecar, tabular)
-- **Filename tokens** are matched against a vocabulary of modality names, scanner sequence names, and session keywords
-- **JSON sidecar contents** are read when a matching sidecar is present. The engine extracts `SeriesDescription`, `ProtocolName`, and DICOM `ImageType` to classify files whose own names are generic.
-- **Folder path** provides session and subject context when files are organized into per-subject or per-session folders
-- **Neighboring files** are used to resolve ambiguous cases (for example, when several unnamed diffusion files sit alongside a `.bval` file)
+**Needs your decision** lists the files that will not be exported until you act: files with a guessed modality, and files with no session that the tool cannot place. Start the review with this filter.
 
-The tool combines evidence from these signals independently for subject, session, and modality. A classification is marked high confidence only when multiple signals agree specifically on that dimension. A modality that was assigned as a fallback with no supporting evidence is never marked high confidence, even if the subject and session for that file are certain.
+### 8.3 Badges Under the File Name
 
-Under the Implant sessions preset, if no signal identifies a session for a file, the engine may assign a provisional session based on modality (for example, CT scans default to `ses-postimplant`) and flag the assignment as low confidence for the user to verify. Under Custom timepoints, no such fallback exists. Sessions are assigned only when the file's folder path or filename literally contains one of the dataset's defined labels. Files without a recognizable label are left with a blank session for manual assignment.
+**Guessed — pick a modality to export (orange).** No signal identified the scan, so the modality shown is the T1w fallback. The file is not exported until you choose a modality in the Modality dropdown, even if T1w is correct. Choosing any modality clears the badge. A guessed file gets no message in the Validate step, so this badge is the only warning. A guessed T1w still counts as structural MRI for the defacing attestation.
 
-### 8.3 Longitudinal Studies and Session Assignment
+**Duplicate of `<filename>` (yellow).** The same series was converted twice (a bare name plus dcm2niix's decorated `_<name>_<digits>_<n>` copy in the same folder). The decorated copy, which carries the scanner sidecar, is exported and this copy is not. Setting a modality on this row exports it as well.
 
-Longitudinal datasets require particular attention. The tool handles several common conventions automatically:
+**Derived: `<label>` (blue).** The file is a scanner-computed map (ADC, FA, TRACEW or mIP). It is exported under `derivatives/scanner/` with a `desc-<label>` entity instead of under `primary/`. The Mapping table has no control to move it to `primary/`.
 
-- Timepoint folder names such as `2weeks`, `2wk`, `week2`, `W2`, `visit1`, `V1`, `baseline`, and `followup` are recognized as sessions when they map to one of the timepoints defined in Step 1
-- ISO-format date folders (`YYYYMMDD` or `YYYY-MM-DD`) are recognized as visits and grouped chronologically when the number of date folders equals the number of defined timepoints
-- Nested folder structures are handled at any depth. The tool searches for the folder level that partitions a subject's files into the correct number of visits.
+### 8.4 Correcting Classifications
 
-The tool intentionally does not guess timepoint assignments in cases where the folder structure does not carry enough information. Two situations produce this outcome:
-
-**A subject with fewer visit folders than the study defines.** When a study is set up with two or more timepoints but a subject has only a single visit folder present, the tool cannot determine which timepoint that visit represents. The subject is held back from export with a message identifying the situation. See Section 8.6 for how to resolve this.
-
-**Date folders that could belong to either a subject or a session.** When the top-level folder inside a subject is a date such as `20180510`, the tool treats it as a session (this is the correct behavior for the overwhelming majority of cases). Date-named patient folders are not supported.
-
-### 8.4 Status Flags in the Mapping Table
-
-The Status column displays badges indicating that a file requires attention or that the tool applied special handling. Each badge has a specific meaning and required action.
-
-**Guessed (amber).** The tool assigned a modality by fallback because no signal in the file's name, folder path, or sidecar identified it. Files with this badge are held back from the primary export. To export the file, either confirm the tool's guess is correct by selecting the same modality in the Modality dropdown, or select a different modality. Making any explicit modality selection clears the badge and allows the file to be exported.
-
-Because the tool refuses to write a guessed modality to `primary/`, files with this badge do not appear in the export folder unless the user takes action. This is the primary safety mechanism preventing misclassified anatomical scans from being exported as legitimate BIDS data.
-
-**Duplicate of `<filename>` (yellow).** The tool identified this file as a redundant copy of another file in the same folder. This occurs when scanner export pipelines produce two copies of the same acquisition (one with the bare series name, one with a decorated name including timestamp and series number). The tool selects the copy with a JSON sidecar as the file to keep, since the sidecar carries information the export needs. The other copy is excluded from the export.
-
-No action is required. The badge exists so the exclusion is visible and can be reversed. To export the duplicate copy instead, select any modality on the excluded file. This overrides the exclusion and the file will be included in the export.
-
-**Derived: `<label>` (blue).** The tool identified this file as a scanner-computed derivative rather than a raw acquisition. Examples include ADC maps, FA maps, TRACEW maps, and minimum-intensity projections computed by the scanner console. The label indicates which derivative it is.
-
-Derived files are written to `derivatives/scanner/` in the export rather than `primary/`, preserving the raw versus derived distinction required by BIDS. No action is required. The badge exists to explain why the file will not appear in the raw `primary/` tree.
-
-**No session assigned (red).** The tool could not determine a session for the file. Under Implant sessions, this indicates the modality is ambiguous enough that even the modality-based fallback did not apply. Under Custom timepoints, this indicates the file's folder path and filename did not match any of the dataset's defined labels.
-
-Files with this badge must have a session selected in the Session dropdown before proceeding to metadata. If several files require assignment to different timepoints in sequence, use the "Assign in order to timepoints" action described in Section 8.6.
-
-**Duplicate name across sessions.** Informational. The same file name appears in multiple sessions for the same subject. This is expected in longitudinal studies where the same scan protocol runs at every visit. The tool automatically assigns run entities to keep filenames unique in the export.
-
-### 8.5 The "Needs Your Decision" Filter
-
-Above the mapping table, a filter bar provides quick access to files that require action:
-
-- **All files** shows every file
-- **Needs your decision** shows only files carrying a badge requiring user action (Guessed, No session assigned). This is the filter to use to identify what remains to be resolved before export.
-- **High confidence**, **Medium**, **Low** filter by the confidence column
-- **By subject** groups the display by subject ID
-
-The Needs your decision filter is the recommended starting point for the review pass. When the filter shows no results, the mapping table is ready to proceed.
-
-### 8.6 Resolving Files That Need a Session
-
-Files without a session assigned must be resolved before continuing.
-
-**When the file has a session in its name or folder path that the tool did not recognize:** Select the correct session from the Session dropdown. If several files share the same missing pattern, select them all using the checkboxes and use bulk assignment.
-
-**When a subject has fewer visit folders than the study defines:** This is a common longitudinal case. A subject with a single visit against two or more defined timepoints cannot have that visit automatically labeled, because the tool has no way to determine whether it is the baseline or a later timepoint.
-
-To resolve, use the Session dropdown to assign each file to the correct timepoint. If the file names or dates make the correct assignment ambiguous, consult the site's clinical records to determine which visit occurred. Do not guess. An incorrect session assignment will place a scan under the wrong timepoint in the exported dataset, which is difficult to catch downstream.
-
-**When several files must be assigned in chronological order:** Use the Assign in order to timepoints action. Select the files in the order they were acquired (earliest first) using the checkboxes, then click Assign in order to timepoints. The first selected file is paired with the earliest timepoint, the second with the next timepoint, and so on.
-
-### 8.7 Reviewing and Correcting Classifications
-
-The correction workflow supports both single-file edits and bulk operations.
-
-**Single-file correction:**
-
-1. Click the cell containing the value to change (Subject, Session, or Modality)
-2. A dropdown opens showing all valid values for that column
-3. Select the correct value. The change is applied immediately and logged to the audit trail.
+**Single-file correction:** edit the Subject text, or choose a new value in the Session or Modality dropdown. The change applies immediately and is logged.
 
 **Bulk correction:**
 
-1. Select multiple files using the checkboxes in the leftmost column
-2. The bulk action bar appears at the top of the table
-3. Choose the field to change (Session or Modality) and the value to assign
-4. Click Apply. The value is set on all selected files at once.
+1. Tick the checkboxes of the rows to change
+2. Use **Set session…** or **Set modality…**, then click **Apply**
+3. Click **Clear selection** when done
 
-**Reverting a change:** Click the cell again and select the original detected value from the dropdown. Detected values are marked in the dropdown with a small icon so they can be distinguished from user selections.
+**Assign in order to timepoints:** with Custom timepoints and two or more rows ticked, this button assigns the ticked rows to the timepoints in the order you ticked them (first ticked to the earliest timepoint, and so on).
 
-### 8.8 Audit Trail
+**Audit log:** each session, modality or subject correction is logged with the old and new value. Subject edits are logged per keystroke. Bulk edits are logged as a count of files.
 
-Every user correction is logged in the audit trail with:
+### 8.5 Proceeding to Step 4
 
-- The original auto-detected value
-- The new user-assigned value
-- The field that was changed
-- A timestamp
-- The tool's reasons for its original classification (so the reviewer's decision is contextualized)
+**Continue to Metadata** is always enabled. The Mapping step does not stop you from continuing with unresolved files:
 
-The audit trail is described in full in Section 12.
+- Files with no session produce an error in Validate that cannot be dismissed and blocks export.
+- Guessed files are simply not exported, with no further warning.
 
-### 8.9 Proceeding to Step 4
-
-The Continue to Metadata button becomes active when all of the following are true:
-
-- No files have the No session assigned badge
-- No files have the Guessed badge (each has either been confirmed or reassigned to a different modality)
-- Every subject has at least one file with a valid session and modality assignment
-
-Files with the Duplicate or Derived badges do not block progress. These are informational and represent completed automatic decisions.
-
-Click Continue to Metadata to proceed.
+Clear the **Needs your decision** filter before continuing.
 
 ---
 
 ## 9. Step 4: Metadata
 
-The Metadata step collects the information the tool cannot infer from the source files. This includes institution configuration, subject demographics, dataset-level description fields, and the defacing attestation.
+The Metadata step has four tabs. The header shows "N of 4 sections complete", and each tab is marked complete or incomplete.
 
-### 9.1 Institution Configuration
+### 9.1 Institution Setup
 
 | Field | Description | Example |
 |---|---|---|
-| Institution prefix | The 2 to 6 letter uppercase code used in BIDS subject IDs | `PENN`, `CHOP`, `HUP` |
-| Starting number | The three-digit starting number for the first subject in this batch | `001` |
+| Institution Prefix | 2 to 6 uppercase letters (required) | `PENN` |
+| Starting Number | A whole number of 1 or more | `1` |
 
-The tool generates BIDS subject IDs in the format `sub-<PREFIX><NNN>`. For example, an institution prefix of `PENN` with starting number `001` produces `sub-PENN001`, `sub-PENN002`, and so on. The mapping from the source subject group identifier to the generated BIDS ID is displayed in a table for review before proceeding.
+Subject IDs are `sub-<PREFIX><number padded to at least 3 digits>`. A prefix of `PENN` with starting number 1 gives `sub-PENN001`, `sub-PENN002`, and so on. The tab shows a Subject ID Preview. Subjects are numbered in the order they were detected.
 
-The mapping from BIDS ID back to the real patient identifier is not entered into the tool and is never exported. That mapping must be maintained separately in a secure, access-controlled system at the originating institution per GOV-001 Section 2.3.
+The link from a BIDS ID back to the real patient is not entered into the tool and is never exported. It must be kept in a secure, access-controlled system at the originating institution per GOV-001 Section 2.3.
 
-### 9.2 Subject Metadata
+### 9.2 Subject Sessions
 
-For each detected subject, enter the following:
-
-| Field | Required | Description |
-|---|---|---|
-| Age | Yes | Age at time of the first session, in whole years |
-| Sex | Yes | Male, Female, or Other |
-| Sessions present | Auto-filled | Which sessions have data for this subject. Displayed for confirmation. |
-
-Age must be entered as a whole number in years. Do not enter dates of birth. Entering a date of birth introduces PHI risk that is difficult to catch after export.
-
-Sites that need to track additional clinical fields (diagnosis, staging, localization) should maintain that data in their own local clinical records system. The tool intentionally does not accept these fields to keep the export minimal and to reduce the surface area for PHI leaks.
+A read-only list of each subject's session labels. Nothing is entered here. No demographics (age, sex, handedness) are collected anywhere in the tool. Demographics are optional; a site that needs them adds them to `participants.tsv` after export (SOP-BIDS-001 Section 10.2).
 
 ### 9.3 Dataset Description
 
-These fields populate the BIDS-required `dataset_description.json` file at the root of the export.
+These fields populate `dataset_description.json`.
 
 | Field | Required | Description |
 |---|---|---|
-| Dataset name | Yes | A human-readable name for the dataset |
-| Authors | Yes | At least one author, typically the PI and data submitter. Multiple authors can be added. |
-| Acknowledgements | No | Free-text acknowledgements such as funding statements |
-| Funding | No | Grant numbers or funding source identifiers |
-| BIDS version | Auto-filled | Set to the version of the BIDS specification the tool implements |
-| Dataset type | Auto-filled | Set to `raw` |
-| GeneratedBy | Auto-filled | Records that NeuroGate produced the dataset, with the tool version |
+| Study name | Yes | A human-readable name for the dataset |
+| Authors | Yes | At least one author |
+| Dataset type | Read-only | `raw`, unless a dropped `dataset_description.json` supplies a value |
+| BIDS version | Read-only | `1.8.0`, unless a dropped `dataset_description.json` supplies a value |
+
+`GeneratedBy` (NeuroGate, the app version and the structure used) is added automatically on export.
 
 ### 9.4 Defacing Attestation
 
-Structural MRI files (T1w, T2w, FLAIR, PDw, T2starw) must be defaced before submission. The tool cannot verify this was performed correctly and requires an explicit attestation.
+When any T1w, T2w, FLAIR, PDw or T2*w image is present (a guessed T1w counts), one checkbox is required:
 
-The attestation is a checkbox with the following text:
+> I confirm that all structural MRI files in this dataset have been defaced or de-identified using an approved defacing tool before being included in this dataset.
 
-> I confirm that all structural MRI files (T1w, T2w, FLAIR, PDw, T2starw) in this dataset have been defaced using an approved defacing tool. I understand that facial features reconstructable from these scans would constitute protected health information under HIPAA.
+When the box is ticked, the screen shows the time it was confirmed. When you leave Metadata with the box ticked, the audit log gets a "Defacing attestation confirmed" entry. That entry does not contain the attestation text, and unticking the box is not logged.
 
-Ticking the box records a timestamped audit entry with the attestation text, the user's session identifier, and the tool version. The exported audit log includes this entry as the site's compliance record.
+If no structural MRI is present, the tab says the attestation is not required.
 
-If defacing has not been completed for one or more files, the attestation must not be ticked. Return to the source data, run the appropriate defacing tool (pydeface or equivalent), and re-import.
+If defacing has not been done for one or more files, do not tick the box. Deface the source data (Pre-Processing page), then start again.
 
-### 9.5 Proceeding to Step 5
+### 9.5 Auto-Fill
 
-Click Continue to Validation once all required fields are populated and the defacing attestation is confirmed. The tool re-runs its automatic checks against the completed metadata before advancing.
+- The study name and authors are filled from a dropped `dataset_description.json`.
+- Session dates are taken from a dropped `sessions.tsv`, or from a sidecar's `AcquisitionDateTime` when the file sits in a `ses-<label>` folder. These dates are not shown on screen. They are used by the date-order check (Section 10.4) and exported, date-shifted, in `sessions.tsv`.
+
+### 9.6 Proceeding to Step 5
+
+Click **Continue to Validation**. If anything required is missing, the tool lists it under "Please complete the following before continuing" and does not continue. Required items are a valid prefix, the study name, at least one author, and the attestation when structural MRI is present.
 
 ---
 
-## 10. Step 5: Validation
+## 10. Step 5: Validate
 
-Validation runs automated compliance checks against the BIDS specification and the rules defined in GOV-001. Each check is displayed with its status and, where applicable, the affected files.
+The Validate step runs the tool's checks and shows the results. Under SOP-BIDS-001, a dataset must pass these checks with no errors (Section 10.2) before export.
 
-### 10.1 Validation Categories
+### 10.1 The Validation Screen
 
-Checks are grouped by category and severity:
+- A banner reads **Validation Passed** or **Validation Failed**, with counts of errors, warnings and info (and dismissed issues, if any).
+- Category cards appear for each category that has issues: BIDS Structure, PHI / Privacy, Required Files, Cross-Session, File Format, Metadata, Defacing. Clicking a card filters the list to that category.
+- A severity filter shows **All**, **Error**, **Warning** and **Info**, with counts.
+- Clicking an issue expands it. Issues that allow it show **Dismiss this issue**.
+- **Re-run Checks** runs the checks again and clears all dismissals.
 
-| Category | Description |
+| Severity | Effect on export |
 |---|---|
-| Structure | Folder hierarchy and filename patterns match the BIDS specification for each modality |
-| Metadata | Required JSON sidecar fields are populated for each imaging file |
-| Required files | For Implant sessions, the required files listed in SOP-BIDS-001 Section 6 are present. For Custom timepoints, whatever modalities are present have complete file sets. |
-| PHI | Filenames, folder paths, and JSON sidecar free-text fields do not contain PHI patterns |
-| Cross-file consistency | Channel names in `channels.tsv` match electrode names in `electrodes.tsv`; sessions listed in `sessions.tsv` match the folders present |
-| Content sanity | NIfTI headers parse cleanly and dimensions are within expected ranges |
-| iEEG-specific | Minimum recording duration and format pairing rules (for example, Persyst `.dat` and `.lay` are present as a pair) |
+| Error | Blocks export unless dismissed. Most errors cannot be dismissed. |
+| Warning | Does not block export |
+| Info | Does not block export |
 
-Each check produces one of four outcomes:
+### 10.2 What Blocks Export
 
-| Outcome | Meaning | Effect on Export |
+Any error that has not been dismissed blocks export. The button then reads **Fix N Errors to Continue** instead of **Continue to Export**. The only errors that can be dismissed are the Implant sessions required-file errors.
+
+Dismissals are not written to the audit log. They are cleared by Re-run Checks and by returning from Export with Back to Validation.
+
+### 10.3 Resolving Errors
+
+Most errors must be fixed in an earlier step or in the source data:
+
+- **No session assigned / subject has no BIDS ID:** go back to Mapping and assign the session. Going back to Mapping resets Metadata (Section 5.1).
+- **PHI error in a file or folder name:** rename the file or folder outside the tool, then start again with the corrected folder. The tool does not modify source files.
+- **Implant required file missing:** add the file and start again, or, if the file genuinely does not exist, dismiss the error and record the omission in the site's records.
+- **Sessions out of chronological order (Implant, auto-filled dates):** check the session assignments in Mapping against the site's records.
+- **Duplicate subject ID:** check the Subject column in Mapping.
+
+### 10.4 The Checks
+
+**BIDS structure**
+
+- Errors (cannot be dismissed): no session assigned; subject has no BIDS ID
+- Warnings: unclassified file (not exported); orphaned JSON sidecar (not exported); duplicate sidecar; unmatched `.bval`/`.bvec`
+- Info: special characters in a name; same series present twice
+- Guessed and duplicate-copy files get no validation message. They are flagged only in Mapping.
+
+**PHI in file and folder names**
+
+- Errors (cannot be dismissed): Social Security number; medical record number (an MRN or MR# prefix with 5 to 10 digits); a date-of-birth marker followed by digits; `patient`, `pt`, `subj` or `subject` followed by a first and last name; a subject group that looks like a person's name
+- Warnings: phone number; email address; MM/DD/YYYY or MM-DD-YYYY dates; "Last, First"; the first match of these keywords (underscore variants included): firstname, lastname, fullname, patientname, ssn, social_security, address, street, zipcode, insurance, policy_number, accession, acc_num
+- Sidecar content: every string field of a JSON sidecar that is not already de-identified, including nested fields, is scanned with the same patterns, plus a warning for two capitalized words that could be a name.
+- Not scanned: the contents of electrodes, channels, events and other TSV files. An EDF header that looks identifying is shown only as a warning in the Mapping table's detection reasons.
+
+**Required files (Implant sessions only)**
+
+Checked for each session in which the subject has files. Presence is judged by modality, so a guessed file counts.
+
+| Session | Errors | Warnings |
 |---|---|---|
-| Pass (green) | The check completed with no issues | None |
-| Info (blue) | The tool applied automatic handling; the user should be aware of it | None |
-| Warning (yellow) | An issue was detected that does not violate BIDS or governance requirements | Does not block export |
-| Fail (red) | An issue was detected that violates BIDS or governance requirements | Blocks export until resolved |
+| `ses-preimplant` | T1w | T2w |
+| `ses-postimplant` | CT, iEEG, electrodes.tsv, channels.tsv | events.tsv |
+| `ses-postsurgery` | T1w | T2w |
 
-### 10.2 Resolving Failures
+A subject with fewer than 4 imaging, EEG or table files gets these as warnings instead. Every required-file issue can be dismissed. Also: "Subject has no sessions" (error) and "Session has only sidecar/metadata files" (warning).
 
-Failures block export. Click any failing check to see the list of affected files and a description of the issue. Each failure includes a suggested resolution.
+**Cross-session**
 
-Common failure categories and their resolutions:
+- Implant sessions, when dates were auto-filled: sessions out of chronological order (error)
+- Duplicate subject ID (error)
+- Same file name in several sessions (warning)
+- iEEG without electrodes.tsv in that session (warning)
+- Single-session subject (info)
 
-**Missing required metadata field.** A JSON sidecar is missing a field required by GOV-001 Section 3 for its modality. Return to the source data, add the field to the sidecar, and re-import. Alternatively, if the field is available from the DICOM headers, re-run the DICOM to NIfTI conversion with the appropriate dcm2niix flags to populate the sidecar automatically.
+**PET:** a warning, which can be dismissed, when a PET image has no sidecar or its sidecar lacks any of the PET fields required by SOP-BIDS-001 (Section 6.1.7). It never blocks export.
 
-**PHI detected in filename or sidecar.** A pattern matching a full name, date, medical record number, or Social Security number was detected. Rename the affected file or edit the offending sidecar field outside the tool, then re-import.
+**Metadata:** missing dataset name, authors, prefix or defacing attestation are errors, but the Metadata step already prevents them. Also: sparse dataset (warning) and empty dataset (error).
 
-**Missing required file for session.** Under the Implant sessions preset, a required file for a session is not present (for example, T1w is required for `ses-preimplant`). Either add the missing file to the source data and re-import, or if the file is genuinely unavailable, document the omission in the site's records and mark the subject for follow-up.
+**Not checked:** per-modality required JSON fields (other than PET); channel names against electrodes; NIfTI headers or dimensions; iEEG minimum duration; Persyst `.dat`/`.lay` pairing; `sessions.tsv` against the folders; scanner or site consistency.
 
-**Cross-file consistency failure.** A channel name in `channels.tsv` does not have a matching entry in `electrodes.tsv`. Correct the discrepancy in the source files and re-import.
+### 10.5 Proceeding to Step 6
 
-### 10.3 Resolving Warnings
-
-Warnings do not block export but should be reviewed. Common warnings and their meanings:
-
-**Diffusion gradient table not matched to an image.** A `.bval` or `.bvec` file was found but the tool could not confidently match it to a specific diffusion image. This occurs when multiple diffusion series share the same b-value in the source data and the gradient table's filename does not identify which series it belongs to. The unmatched table is excluded from the export to prevent it from being paired incorrectly (which would attach the wrong gradient directions to a scan). To resolve, rename the source gradient table to match its intended acquisition, then re-import.
-
-**Same series present twice.** Informational. The tool identified two copies of the same acquisition in the same folder and exported one copy. This is described in Section 8.4 under the Duplicate badge.
-
-**Same filename in multiple sessions.** Informational. A file with the same name appears in more than one session for the same subject. This is expected in longitudinal studies. The tool has assigned run entities to keep filenames unique in the export.
-
-**Subject has no session assigned.** The subject is held back from export. See Section 10.5.
-
-### 10.4 PHI Scanning Details
-
-The PHI scanner runs two complementary checks:
-
-**Filenames and folder paths** are scanned for full names (sequences of capitalized words not matching known modality or session terms), medical record number patterns (numeric sequences of six or more digits), date patterns in common formats (`MM/DD/YYYY`, `YYYY-MM-DD`, `YYYYMMDD`), and Social Security Number patterns.
-
-**JSON sidecar free-text fields** are scanned for the same patterns and for keyword matches against a list of common PHI-suggestive terms. The scanner focuses on the `SeriesDescription` and `ProtocolName` fields, which carry scan-descriptive information that the automatic sidecar de-identification (Section 11.1) does not touch. If a scanner operator typed a patient name or MRN into one of these fields, this check catches it.
-
-If PHI is detected, the affected file must be corrected outside the tool and re-imported. The tool does not modify source files.
-
-### 10.5 Held-Back Subjects
-
-Individual subjects may be held back from export while the rest of the dataset proceeds. This happens when a subject has one or more blocking errors specific to that subject, most commonly no session assigned.
-
-The Validation screen displays held-back subjects in a separate panel with the reason each was excluded and the number of files affected. The rest of the dataset can still be exported. The held-back subjects remain visible on the Export screen so the user can act on them later.
-
-To include a held-back subject, return to Step 3 (Mapping Table) and resolve the issue named in the reason. The most common resolution is assigning sessions manually, as described in Section 8.6.
-
-### 10.6 Proceeding to Step 6
-
-Click Continue to Export once all failures are resolved. Warnings do not need to be resolved to proceed, but should be reviewed. The Validation screen remains available from the stepper at the top of the window if the user wishes to return to it after export.
+Click **Continue to Export** once no undismissed errors remain. Review warnings before continuing, even though they do not block. Continuing adds a "validation passed" entry to the audit log.
 
 ---
 
 ## 11. Step 6: Export
 
-The Export step generates the BIDS folder and writes it to a location the user selects.
+The Export screen shows the output folder tree, the number of subjects and files, the total size, and the list of metadata files NeuroGate generates (`dataset_description.json`, `participants.tsv`, and a `sessions.tsv` per subject unless the structure is Single session).
 
-### 11.1 Automatic Finalization During Export
+### 11.1 De-identification Applied on Export
 
-During export the tool applies several automatic transformations. These run on every export regardless of whether specific warnings were raised in Validation.
+The following is applied to the exported copies on every export. Source files are not modified.
 
-**Uncompressed NIfTI files are compressed to `.nii.gz`.** Source files with the `.nii` extension are written to the export as `.nii.gz`. No user action is required.
+**Date shift.** Each subject gets one random shift between −365 and +365 days (0 is possible), applied to EDF/BDF headers, JSON sidecars and `sessions.tsv` `acq_time`. The shift value is deliberately not recorded anywhere, including the audit log, so the true dates cannot be recovered.
 
-**JSON sidecars are renamed to match their data files and placed alongside them.** The tool preserves the sidecar-to-data linkage that BIDS requires.
+**EDF/BDF headers:**
 
-**EDF and BrainVision headers are de-identified.** The patient name, patient ID, birthdate, and sex fields in the recording header are blanked or replaced with the BIDS subject ID. The recording start date is shifted by a random per-subject offset (not zeroed) so relative timing between a subject's recordings is preserved while the absolute calendar date is removed. The offset is recorded in the audit log.
+- Patient field: becomes `<sub-ID> X X X` if it has EDF+ structure (four or more parts), otherwise `X X X X`
+- Recording field: in EDF+ "Startdate" form, the date is shifted and the administration and technician codes become X. Otherwise only `dd-MMM-yyyy` dates in it are shifted and other text is kept.
+- Start date: shifted. The start time is not changed.
+- Not changed: dates that cannot be parsed, signal headers, and annotations. Files under 256 bytes are copied as-is.
 
-**JSON sidecar identifying fields are cleared.** DICOM-to-NIfTI conversion can carry identifying DICOM header fields into the JSON sidecar depending on conversion settings. Fields including patient name, patient ID, birthdate, institution name and address, referring and performing physician, scanner operator, station name, and device serial number are blanked in every sidecar. Acquisition and study date fields (`AcquisitionDate`, `AcquisitionDateTime`, `StudyDate`, `SeriesDate`) are shifted by that subject's same offset. Scan-descriptive fields that BIDS tooling requires (`SeriesDescription`, `ProtocolName`, `EchoTime`, `RepetitionTime`, and so on) are left intact.
+**JSON sidecars:**
 
-**Run entities are assigned to distinguish repeated acquisitions.** When a session contains more than one acquisition of the same modality, each is given a `run-` entity (`run-1`, `run-2`, and so on) so that every filename in the export is unique. A scan's companion files (JSON sidecar, `.bval`, `.bvec`) share the same run number as the imaging file.
+- Set to "X" when present with any value: PatientName, PatientID, PatientBirthDate, PatientAddress, PatientTelephoneNumbers, OtherPatientIDs, OtherPatientNames, InstitutionName, InstitutionAddress, InstitutionalDepartmentName, ReferringPhysicianName, PerformingPhysicianName, RequestingPhysician, OperatorsName, StationName, DeviceSerialNumber
+- Date-shifted: AcquisitionDateTime, AcquisitionDate, StudyDate, SeriesDate, ContentDate, InstanceCreationDate, ScanDate, RadiopharmaceuticalStartDateTime. A date in an unrecognized format is blanked.
+- Only top-level keys are processed. A sidecar that is not valid JSON is copied unchanged.
 
-**Field-map images are named with their standard BIDS suffixes.** The tool reads the dcm2niix echo and phase markers in filenames (`_e1`, `_e2`, `_ph`) and assigns `magnitude1`, `magnitude2`, and `phasediff` suffixes to the corresponding files.
+**`sessions.tsv` `acq_time`:** shifted and written as ISO 8601. A value that cannot be shifted becomes `n/a`.
 
-**Magnitude and phase pairs share a run entity with `part-` distinction.** When an SWI or T2*-weighted sequence produces a magnitude image and a phase image from a single acquisition, both are given the same run number and distinguished by the `part-mag` and `part-phase` entities. This is required by BIDS to indicate that both files come from one acquisition rather than two.
+**Not de-identified:**
 
-**Motion-corrected functional runs use the `rec-moco` entity.** When a scanner produces both a raw functional run and a motion-corrected reconstruction of it, both are given the same run number and the reconstructed version is marked with `rec-moco`.
+- NWB files, Persyst `.dat`/`.lay` files, and NIfTI header text
+- The contents of electrodes, channels, events and other TSV files
+- Free-text sidecar fields (these are PHI-scanned in Validate, Section 10.4, but not changed)
+- Image pixels. Defacing must be done before NeuroGate and is attested in Metadata.
 
-**Single-band reference images use the `sbref` suffix.** Multiband diffusion or functional sequences produce a single-band reference volume that is exported alongside the main acquisition with the `sbref` suffix and the same run number.
+Review these file types yourself before the dataset leaves the site.
 
-**Duplicate copies of the same acquisition are excluded.** As described in Section 8.4.
+### 11.2 Naming Applied on Export
 
-**Scanner-computed derivatives are written to `derivatives/scanner/`.** As described in Section 11.3.
+- Entity order: `sub_ses_task_trc_rec_run_desc_part_suffix`
+- Repeated acquisitions get `run-N`
+- Siemens MoCoSeries get `rec-moco`
+- Magnitude and phase pairs get `part-mag` and `part-phase`
+- Single-band references get the `_sbref` suffix
+- Field maps get `_magnitude1`/`_magnitude2`, `_phasediff`, or `_phase1`/`_phase2`
+- Functional MRI is always `task-rest`. Scalp EEG and iEEG are always `task-monitor`. Task labels cannot be changed.
+- electrodes, channels and events tables go beside their recording: `eeg/` for scalp EEG, `ieeg/` for iEEG. A table is matched to an EEG or iEEG recording in the same source folder first, then in the same subject and session; otherwise, or when both kinds are present, it goes in `ieeg/`. Check the BIDS path under each table's name in Mapping. channels and events get `task-monitor`; electrodes gets no task.
+- A name collision that survives all of the above is renamed `…_dup-N`
+- `IntendedFor` is not filled in
 
-**Localizer and scout scans are excluded from the export.** These are acquisition aids rather than analyzable data.
+Not exported: localizer and scout scans, PET attenuation CT and mu-maps, unclassified files, guessed files, and redundant duplicate copies.
 
-### 11.2 Export Folder Structure
-
-The exported folder follows the BIDS specification. A typical export looks like this:
+### 11.3 Output Layout
 
 ```
-<dataset-name>/
-    dataset_description.json
-    participants.tsv
-    participants.json
-    README
-    CHANGES
+bids_output/
+    dataset_description.json      Name, BIDSVersion, DatasetType, Authors,
+                                  GeneratedBy (NeuroGate, version, structure)
+    participants.tsv              participant_id only (every detected subject)
     primary/
         sub-PENN001/
-            sub-PENN001_sessions.tsv
+            sub-PENN001_sessions.tsv          session_id, acq_time
             ses-preimplant/
                 anat/
                     sub-PENN001_ses-preimplant_T1w.nii.gz
                     sub-PENN001_ses-preimplant_T1w.json
-                    sub-PENN001_ses-preimplant_run-1_T2w.nii.gz
-                    sub-PENN001_ses-preimplant_run-1_T2w.json
-                    sub-PENN001_ses-preimplant_run-2_T2w.nii.gz
-                    sub-PENN001_ses-preimplant_run-2_T2w.json
                 dwi/
                     sub-PENN001_ses-preimplant_dwi.nii.gz
                     sub-PENN001_ses-preimplant_dwi.json
                     sub-PENN001_ses-preimplant_dwi.bval
                     sub-PENN001_ses-preimplant_dwi.bvec
-                fmap/
-                    sub-PENN001_ses-preimplant_magnitude1.nii.gz
-                    sub-PENN001_ses-preimplant_magnitude2.nii.gz
-                    sub-PENN001_ses-preimplant_phasediff.nii.gz
-                    sub-PENN001_ses-preimplant_phasediff.json
             ses-postimplant/
                 ct/
                     sub-PENN001_ses-postimplant_ct.nii.gz
                     sub-PENN001_ses-postimplant_ct.json
                 ieeg/
-                    sub-PENN001_ses-postimplant_task-rest_ieeg.edf
-                    sub-PENN001_ses-postimplant_task-rest_ieeg.json
-                    sub-PENN001_ses-postimplant_task-rest_channels.tsv
+                    sub-PENN001_ses-postimplant_task-monitor_ieeg.edf
+                    sub-PENN001_ses-postimplant_task-monitor_channels.tsv
                     sub-PENN001_ses-postimplant_electrodes.tsv
             ses-postsurgery/
                 anat/
                     sub-PENN001_ses-postsurgery_T1w.nii.gz
-                    sub-PENN001_ses-postsurgery_T1w.json
         sub-PENN002/
             ...
     derivatives/
-        scanner/
+        scanner/                  only when scanner-derived maps exist
             sub-PENN001/
                 ses-preimplant/
                     dwi/
-                        sub-PENN001_ses-preimplant_run-1_desc-ADC_dwi.nii.gz
-                        sub-PENN001_ses-preimplant_run-1_desc-FA_dwi.nii.gz
-                        sub-PENN001_ses-preimplant_run-1_desc-TRACEW_dwi.nii.gz
+                        sub-PENN001_ses-preimplant_desc-ADC_dwi.nii.gz
+                        sub-PENN001_ses-preimplant_desc-FA_dwi.nii.gz
 ```
 
-The `primary/` folder contains raw acquisitions. The `derivatives/scanner/` folder contains scanner-computed maps produced by the acquisition console, kept separate from the raw data per BIDS conventions.
+- For Single session there is no `ses-` folder level and no `sessions.tsv`.
+- `derivatives/scanner/` has no `dataset_description.json` of its own.
+- No `participants.json`, `README` or `CHANGES` file is generated. The site writes them if a recipient needs them.
+- Additional folders under `derivatives/` for site analysis pipelines are managed by the site outside this tool.
 
-The tool populates `primary/` and `derivatives/scanner/`. Additional folders under `derivatives/` for site-specific analysis pipelines are managed by the site outside this tool.
+### 11.4 Exporting from the Desktop App
 
-### 11.3 What Ends Up in `derivatives/scanner/`
+1. Click **Export to Folder**. A folder picker opens.
+2. Choose a location and click **Export Here**.
+3. The tool creates `<PREFIX>_bids_export_<YYYY-MM-DD>` in that location (adding `-2`, `-3`, … if the name already exists). Inside it are `bids_output/` and `audit_log_<YYYY-MM-DDTHH-MM-SS>.json`.
+4. Files are streamed to disk, with no size limit. Progress is shown as "Writing file N of M…".
+5. When done, the screen shows the folder path and a **Show Folder** button. The export button then reads **Export Again**.
 
-The tool routes files identified as scanner-computed derivatives to `derivatives/scanner/` rather than `primary/`. The following file types are handled this way:
+If a file could not be read (for example, a cloud-only OneDrive file), a "File not locally available" warning names it. In Windows Explorer, right-click the file, choose "Always keep on this device", then add the folder again.
 
-| Derivative | Source | BIDS Location |
-|---|---|---|
-| ADC map | Scanner-computed diffusion parameter map | `derivatives/scanner/.../dwi/*_desc-ADC_dwi.nii.gz` |
-| FA map | Scanner-computed diffusion parameter map | `derivatives/scanner/.../dwi/*_desc-FA_dwi.nii.gz` |
-| TRACEW map | Scanner-computed diffusion parameter map | `derivatives/scanner/.../dwi/*_desc-TRACEW_dwi.nii.gz` |
-| Minimum-intensity projection (mIP) | Scanner-computed SWI projection | `derivatives/scanner/.../anat/*_desc-mIP_T2starw.nii.gz` |
+### 11.5 Exporting from a Web Browser
 
-These files are real data that were computed by the scanner rather than acquired. Keeping them separate from raw acquisitions is required by BIDS and prevents downstream analysis tools from mistaking a computed derivative for a raw scan.
+There is no hosted NeuroGate website. If NeuroGate is run in a web browser instead of the desktop app (for example, by a developer running it from source), the Export step works differently:
 
-### 11.4 Held-Back Subjects at Export
-
-If any subjects were held back at the Validation step, the Export screen displays a summary before the download begins:
-
-```
-2 subjects will not be exported and need attention:
-
-    sub-PENN003
-        No session assigned (11 files): This subject has 1 visit folder
-        but the study defines 2 timepoints (ses-2wk, ses-6mo), most likely
-        a missed or not-yet-acquired visit. Which timepoint this is cannot
-        be determined from the folder structure alone, so assign it manually.
-
-    sub-PENN005
-        No session assigned (30 files): Same as above.
-
-3 of 5 subjects will be exported. The held-back subjects can be resolved
-by returning to Step 3.
-```
-
-The user has two options at this point:
-
-1. **Proceed with a partial export.** Click Export Anyway. The included subjects are exported normally. The held-back subjects remain in the current session so the user can resolve them and re-export without starting over.
-2. **Return to Step 3.** Click Back to Mapping. Assign sessions to the held-back subjects, then return to Export.
-
-### 11.5 Downloading the Export
-
-1. Click Choose Export Location and select the folder where the BIDS output should be written
-2. Click Export BIDS Dataset. The tool writes the folder to the chosen location.
-3. When the export completes, two items are written:
-    - The BIDS folder (named after the dataset name entered in Step 4)
-    - The audit log, as `audit_log_<timestamp>.json`, in the same parent directory
-4. A summary screen displays the counts of exported subjects, files, and derivatives, along with the location on disk
+- **Download** builds `<PREFIX>_bids_export_<date>.zip` (uncompressed, with `bids_output/` inside). A second click on **Download** saves it. The audit log downloads as a separate file.
+- Files over 500 MB are left out of the ZIP and listed as not included. Use the desktop app or the CLI for these.
 
 ### 11.6 After Export
 
-After exporting, the following steps are recommended:
-
-1. **Verify the folder structure.** Open the export in a file browser and confirm the folder hierarchy matches expectations.
-2. **Run the official BIDS validator (optional).** For additional assurance, run `npx bids-validator ./<dataset-name>/` in a terminal. The tool's internal checks are aligned with BIDS but the official validator provides an independent verification.
-3. **Archive the audit log.** Store the audit JSON with the site's study records for compliance documentation. The audit log is the ALCOA+ evidence of every classification and correction that produced the export.
-4. **Upload to the chosen data infrastructure.** Follow the site's own procedure for the platform it uses. Upload itself is out of scope for this SOP.
-
-If any subjects were held back, resolve them by returning to Step 3, then re-export. A subsequent export includes whichever subjects the user has resolved, so the site can either merge the two exports into a single BIDS folder or upload them separately depending on the destination platform's conventions.
+1. **Verify the folder structure.** Open the export folder and confirm the hierarchy matches expectations.
+2. **Review what is not de-identified** (Section 11.1), especially TSV tables, NWB and Persyst files.
+3. **Keep the audit log at the site.** It contains original file and folder names (Section 12.4). Remove it from the export folder before the dataset is shared, and store it with the site's study records.
+4. **Add site files if needed.** Demographic columns in `participants.tsv`, and `participants.json`, `README` or `CHANGES`, are added by the site after export if a recipient needs them (SOP-BIDS-001 Section 10).
+5. **Record who ran the session** in the site's records. The audit log records only "user".
+6. **Upload to the chosen data infrastructure.** Follow the site's own procedure. Upload is out of scope for this SOP.
 
 ---
 
 ## 12. Audit Trail
 
-The audit log is the ALCOA+ evidence produced by NeuroGate for every session. It records every automatic decision the tool made and every correction the user applied, with timestamps and enough context to reconstruct what happened after the fact.
+The audit log records what happened during an app session, with timestamps. It is not a complete record of every decision; Section 12.3 lists what is left out.
 
 ### 12.1 Accessing the Audit Log During Use
 
-An Audit Log button in the top-right of the header opens a panel showing the running log for the current session. The panel can be opened at any time without interrupting the workflow.
+The **Audit Log** button in the tool header shows the number of entries. It opens a panel listing the log, with **Export JSON** and **Export CSV** buttons, available at any time.
+
+The log lasts for the whole app session, including across Back to Drop Zone and additional datasets. Reloading or closing the app loses it. The desktop export also writes the JSON log into the export folder automatically (Section 11.4).
 
 ### 12.2 Contents of the Audit Log
 
-Each entry in the audit log records the following fields:
+The file has a header with the session start time, tool version, export time, exported-by (recorded as "user" in the app), the total number of entries, and counts per action.
+
+Each entry records:
 
 | Field | Description |
 |---|---|
-| Timestamp | ISO 8601 date and time with millisecond precision |
-| Event type | The category of event (see below) |
-| Description | Human-readable description of what occurred |
-| Details | Structured data specific to the event (file counts, old and new values, reasons for the tool's classification) |
-| Actor | `system` for automated actions or `user` for manual corrections |
-| Session ID | A UUID grouping all entries from a single tool session |
+| id | Entry number |
+| timestamp | ISO 8601 date and time |
+| actor | `user` or `system` |
+| action | The event type |
+| summary | Human-readable description |
+| details | Structured data for the event |
 
-Event types recorded include:
+Events recorded:
 
-- Session started (tool version, host operating system)
-- Files scanned (file count, total size, source path)
-- Structure preset selected
-- Detection completed (per-file: detected session, modality, subject, confidence, reasons)
-- Session corrected (per file: old session, new session, actor)
-- Modality corrected (per file: old modality, new modality, actor)
-- Subject group corrected (per file: old subject, new subject, actor)
-- Metadata entered (per field: value, source `user` or `auto-filled` or `DICOM tag`)
-- Defacing attested (timestamp, attestation text, tool version)
-- De-identification offset applied (per subject: random date-shift value, in days)
-- Validation run (per check: category, severity, outcome, affected files)
-- Held-back subject (subject ID, reasons)
-- Export started (destination path)
-- Export completed (subject count, file count, total bytes, output paths)
-- Error encountered (error details, context)
+- **Setup:** structure selected; files scanned; session restored
+- **Detection:** detection completed (counts)
+- **Mapping:** session, modality and subject corrections (old value and new value); bulk applies (count of files)
+- **Metadata** (written when you leave Metadata): institution configured; subject sessions; dataset description; defacing attested (only if the box is ticked)
+- **Validation:** validation passed (on Continue to Export)
+- **Export:** export completed; de-identification summary (fields stripped or shifted, and whether EDF PHI was found, without shift values); audit exported. The "audit exported" entry is written after the file is saved, so it is not in that file.
 
-### 12.3 ALCOA+ Compliance
+### 12.3 What Is Not Logged
 
-The audit log satisfies each ALCOA+ requirement as follows:
+- Dismissing a validation issue, and unticking the defacing attestation
+- Per-file detection reasons (they are shown in the Mapping table only)
+- Export started, and errors
+- The identity of the person using the tool. The log records only "user" or "system"; sites record the operator's identity themselves.
+- A restore from saved progress does not re-log files scanned or detection completed
+- Date-shift values
 
-| Principle | How the Audit Log Satisfies It |
-|---|---|
-| Attributable | Each entry identifies whether the action was performed by the system or by a user, and includes the tool session identifier |
-| Legible | The log is written as JSON with human-readable descriptions and CSV export for spreadsheet review |
-| Contemporaneous | Timestamps are generated at the time of the action, not backfilled |
-| Original | The log is append-only during the session. No entry is modified after it is written. |
-| Accurate | Corrections record both the old and the new value so the change is unambiguous |
-| Complete | Every file scan, detection decision, correction, validation check, and export operation is logged. No detection decision is silent. |
-| Consistent | Every entry uses a standardized event-type vocabulary and field structure across all sites and versions of the tool |
-| Enduring | The log is exported as a persistent file for long-term storage alongside the dataset |
-| Available | The log is downloadable at any time during the session and is automatically written alongside the exported BIDS folder |
+### 12.4 Warning: The Audit Log Contains Identifying Names
 
-### 12.4 Storing the Audit Log
+The audit log contains original file and folder names (in corrections and subject names, including every keystroke of a subject edit) and the study name. Those can identify patients. **The audit log stays at the site and is never shared with the dataset.** In a desktop export the log is written next to `bids_output/`, not inside it, so share only `bids_output/`.
 
-The audit log is written as a single JSON file next to the exported BIDS folder. The file is named `audit_log_<timestamp>.json` where the timestamp identifies the tool session.
+### 12.5 ALCOA+ Considerations
 
-Sites should store the audit log with their own study records according to their records-management policy. Some sites include the audit log inside the BIDS folder as part of the dataset; others store it separately in a compliance archive. Either is acceptable. The audit log is a compliance artifact rather than a BIDS artifact, so it is not required to remain with the dataset itself.
+| Principle | What the audit log provides | Limits |
+|---|---|---|
+| Attributable | Each entry is marked `user` or `system` | The person is not identified. Sites must record who ran the session separately. |
+| Legible | JSON, with human-readable summaries, and CSV export | None |
+| Contemporaneous | Each entry is timestamped when it is written | Metadata entries, including the attestation, are written when leaving the Metadata step, not when each field was entered |
+| Original | Entries are only added during a session, never edited | The log is lost if the app is reloaded or closed before saving |
+| Accurate | Corrections record both the old and the new value | None |
+| Complete | Setup, detection counts, corrections, metadata, validation pass and export | See Section 12.3 for what is not logged |
+| Consistent | A fixed set of action types and a fixed entry structure | None |
+| Enduring | Saved as a file on export, or at any time from the panel | Storage is the site's responsibility |
+| Available | Viewable and exportable at any time during the session | Not after a reload |
 
 ---
 
-## 13. Longitudinal Study Handling
+## 13. Multi-Session and Longitudinal Data
 
-Datasets organized around repeated visits (Custom timepoints preset) require attention to a few specific behaviors that differ from datasets under the Implant sessions preset. This section describes those behaviors so users can anticipate them.
+### 13.1 How Sessions Are Detected Under Custom Timepoints
 
-### 13.1 Visit Folder Recognition
+A session is assigned directly when the path or file name matches one of the labels defined in Step 1:
 
-The tool recognizes a range of common conventions for naming visit folders. Any of the following will be recognized as a timepoint if it matches one of the labels defined in Step 1:
+- An exact label in the path or file name (for example, `ses-2mo`)
+- A number-and-unit folder name that converts to a defined label, in forms such as `2weeks`, `2_weeks`, `2 weeks`, `02weeks`, `week2`, `week_02`, `wk2`, `W2`, `M6`, `Y1`, `6mo` or `1year`
 
-- Number-and-unit forms: `2weeks`, `2wk`, `2 weeks`, `2_weeks`, `02weeks`
-- Unit-first forms: `week2`, `week_02`, `wk2`, `W2`
-- Word labels: `baseline`, `followup`, `screening`, `endpoint`
-- Sequence labels: `visit1`, `V1`, `TP1`, `timepoint2`
-- ISO dates: `20180510`, `2018-05-10`
+Word and sequence folder names (`baseline`, `screening`, `followup`, `endpoint`, `visit1`, `V1`, `TP1`, `timepoint2`) and date folders (`20180510`, `2018-05-10`) are recognized as visit folders, so they are not mistaken for subjects. Their sessions come from the date-cluster and folder-cluster signals. Check these assignments in the Mapping table.
 
-Recognition is literal and only against the labels defined for the dataset. A folder named `week2` is recognized as `ses-2wk` only if the site defined a 2-week timepoint in Step 1.
+Units are not converted: a folder named `14days` does not become `ses-2wk`. `T0`/`T1`/`T2` (which read as modality names), `S1`/`S2` and bare numbers such as `01` (which read as subject IDs) are not treated as visit folders.
 
-Some conventions are intentionally not recognized:
+### 13.2 Subjects With Fewer Visits Than the Study Defines
 
-- Single-letter session identifiers such as `T0`, `T1`, `T2` are not treated as visits. These overwhelmingly appear as modality names in imaging data (T1w, T2w), and treating them as sessions would misclassify structural scans.
-- Single-letter subject identifiers such as `S1`, `S2` are not treated as visits. These overwhelmingly appear as patient IDs.
-- Bare numeric folders such as `01`, `02` are not treated as visits. These overwhelmingly appear as subject folders.
-- Unit conversions between different measures. A folder named `14days` is not recognized as `ses-2wk`, because a study may legitimately define both a 14-day and a 2-week visit as distinct timepoints.
+When a subject has fewer visit folders than the study's timepoints, the tool may not be able to tell which timepoint each visit is, and those files are left with no session. Assign them in the Mapping table using the site's clinical records. Do not guess: a wrong session puts a scan under the wrong timepoint.
 
-### 13.2 Nested Folder Structures
+In the desktop app, every file with no session must be resolved before export; the "no session assigned" error cannot be dismissed. Holding back individual subjects and exporting the rest is available only in the CLI (Section 15).
 
-The tool handles nested folder hierarchies at any depth. A common Flywheel-exported layout looks like this:
+### 13.3 Repeated Scan Names Across Visits
 
-```
-sub-01/
-    scitran/
-        study_name/
-            cohort/
-                sub-01/
-                    2weeks/
-                        <scan folders>/
-                            <files>.nii.gz
-                    6months/
-                        <scan folders>/
-                            <files>.nii.gz
-```
-
-The tool searches for the folder level that partitions the subject's files into the correct number of timepoints. In this example, the `2weeks/` and `6months/` level is identified as the session level and the subject is grouped correctly.
-
-Datasets with different depths across subjects (some flat, some Flywheel-nested) are handled in the same pass. The tool determines the correct level per subject independently.
-
-### 13.3 Missed and Not-Yet-Acquired Visits
-
-When a subject has fewer visit folders than the study defines, the tool holds the subject back rather than guessing which timepoint the visit represents.
-
-For example, if the study defines `ses-2wk` and `ses-6mo` but a subject has only a single visit folder, the tool cannot determine whether that visit is the baseline or the follow-up. The subject is held back with a message describing the situation:
-
-> This subject has 1 visit folder but the study defines 2 timepoints (`ses-2wk`, `ses-6mo`), most likely a missed or not-yet-acquired visit. Which timepoint this is cannot be determined from the folder structure alone, so assign it manually.
-
-Missed visits are routine in longitudinal work. The tool treats them as a first-class case rather than an error. To resolve, return to the Mapping Table (Step 3), use the Session dropdown to assign each of the subject's files to the correct timepoint, and continue to Export. The subject can also be exported separately by re-running the workflow with a Single session preset (a variant of Custom timepoints with only one timepoint defined) if the site's records confirm the visit is the only one that will ever be acquired for that subject.
-
-### 13.4 Repeated Scan Names Across Visits
-
-Longitudinal studies routinely acquire the same scan protocol at every visit, which produces files with identical names in each visit folder. For example, a subject with two visits both containing an `MPRAGE.nii.gz` file will produce two files with the same base name.
-
-The tool handles this automatically. The full folder path is used to distinguish the files during grouping, so both are correctly assigned to their respective visits. In the export, run entities are assigned to keep filenames unique within each session as needed.
-
-An informational warning is displayed in Validation ("Same filename in multiple sessions") to make this transparent, but no action is required.
-
-### 13.5 Cohort Presets Across Subjects
-
-When different subjects in a study have different session structures (for example, one subject has both visits and another is a single-visit case), run those subjects together. The tool determines the appropriate session assignment per subject rather than assuming all subjects follow the same structure. Held-back subjects can be exported separately as described in Section 13.3.
+The same protocol run at every visit produces files with identical names in each visit folder. The full folder path keeps them apart, and Validate shows a "same filename in several sessions" warning. No action is needed if the sessions are correct.
 
 ---
 
-## 14. Troubleshooting
+## 14. PET Data
 
-The following table lists common issues and their resolutions.
+**Detection:**
+
+- From the sidecar: `Modality: "PT"`, or PET-only fields such as TracerName, TracerRadionuclide, InjectedRadioactivity and RadionuclideHalfLife
+- From names: PET, PETCT, PETMR, `trc-`, amyloid, tau-pet, and the tracers FDG, PiB, florbetapir/AV45/Amyvid, florbetaben/FBB/Neuraceq, flutemetamol/Vizamyl, flortaucipir/AV1451/Tauvid, MK6240, PI2620, RO948, UCB-J, flumazenil/FMZ, FDOPA and raclopride
+- Tracer names such as AV45 or MK6240 are never read as subject IDs
+
+**Naming:** PET images go to `pet/` with the `_pet` suffix.
+
+- `trc-<tracer>` comes from the sidecar TracerName or from the name. An unrecognized TracerName is kept (letters and digits only, up to 24 characters). The entity is left out when no tracer is found.
+- `rec-acstat`, `rec-nacstat`, `rec-acdyn` and `rec-nacdyn` are used only when a session has both attenuation-corrected and uncorrected ("NAC") images. Dynamic means more than one frame. `rec-ac`/`rec-nac` are used when the framing is unknown, and an image that does not say is treated as corrected.
+
+**Attenuation CT:** a CT named CTAC, AC_CT or mu-map, or any CT inside a PET study folder, is treated as the attenuation CT and is not exported. To export it as a CT, change its modality to CT in the Mapping table.
+
+**Validation:** a dismissible warning when a PET image has no sidecar or its sidecar lacks any of the PET fields required by SOP-BIDS-001 (Section 6.1.7). It never blocks export. To fill those fields, convert PET with PET2BIDS (`dcm2niix4pet`); the Pre-Processing page gives the commands.
+
+**Defacing:** PET is exempt from defacing and is not covered by the defacing attestation.
+
+**Not supported:** ECAT (`.v`, `.v.gz`; convert to NIfTI first) and PET blood data (`_blood.tsv`).
+
+---
+
+## 15. Command-Line Interface
+
+The `neurogate` command is bundled in every desktop build and installed with Install CLI (Section 4.6). Run `neurogate <folder>`. It asks, in order:
+
+1. The source folder, if it was not given. Quotes around a pasted path are removed.
+2. The structure: Implant (default), Custom, or Single. For Custom it asks for the number of timepoints, then each number and unit. It does not check for duplicates or ranges.
+3. The prefix (asked again until valid) and the starting number
+4. The study name
+5. The authors (asked again until at least one is given)
+6. Defacing, yes or no, required, asked only when structural MRI is present
+7. The output folder. The default is `<PREFIX>_bids_export` next to the source folder, and it is not made unique.
+
+It writes `<out>/bids_output/` and `<out>/audit_log.json`, streaming every file with no size limit. Symbolic links are skipped. De-identification is the same as the desktop app (Section 11.1).
+
+Differences from the desktop app:
+
+- **Held-back subjects (CLI only):** a subject with errors is held back and the rest are exported. Errors not tied to a subject (missing metadata or attestation, PHI errors, an empty dataset) stop the whole export with exit code 1.
+- Warnings do not stop the CLI. It exports, then lists each warning.
+- No per-file corrections are possible.
+- `sessions.tsv` lists every session of the chosen structure, including ones with no data.
+- Subjects are numbered in alphabetical order of their groups.
+- The audit log's actor is the operating-system username.
+
+---
+
+## 16. Troubleshooting
 
 | Issue | Likely Cause | Resolution |
 |---|---|---|
-| Files do not appear after being dropped | The file extension is not recognized, or files are in DICOM format | Confirm the extensions match the accepted list in Section 7.2. Convert any DICOM files to NIfTI using dcm2niix before importing. |
-| Most files are marked low confidence | Source data lacks descriptive names and is not organized into per-subject or per-session folders | Organize files into subject or session folders before importing, or use bulk correction in the Mapping Table to assign sessions and modalities in batch |
-| Many files show the Guessed badge | Modality tokens in filenames are unfamiliar to the tool | Review each guessed file in the Mapping Table and either confirm the guess or select the correct modality. If a common vendor sequence name is not being recognized, report it to the project lead for inclusion in the next release. |
-| A subject is held back with "No session assigned" | The subject has fewer visit folders than timepoints defined for the dataset | Return to Step 3, use the Session dropdown to assign each file to the correct timepoint per the site's clinical records |
-| PHI detected in a filename | The source filename contains a patient identifier | Rename the file outside the tool to remove the PHI, then re-import. The tool does not modify source files. |
-| PHI detected in a sidecar description | A patient name or MRN was typed into a `SeriesDescription` or `ProtocolName` field at the scanner console | Edit the sidecar outside the tool to remove the PHI, then re-import |
-| Cannot proceed past validation | One or more failing checks are blocking export | Click each failing check to see the affected files and the recommended resolution. Return to the appropriate step and correct the issue. |
-| Cannot proceed past mapping table | Files remain with the "No session assigned" or "Guessed" badge | Use the Needs Your Decision filter to see remaining files and resolve each one |
-| Duplicate diffusion gradient tables warning | Multiple diffusion series share the same b-value and the gradient table's filename does not identify which one it belongs to | Rename the source gradient table to match its intended acquisition (for example, `DTI_b1000_series7.bval`), then re-import. If the correct pairing is unknown, consult the acquisition records. |
-| Export produces empty derivatives folder | No scanner-computed derivative maps were present in the source data | Expected. The derivatives folder is created only when ADC, FA, TRACEW, or mIP files are present. |
-| A file is unexpectedly in derivatives instead of primary | The tool identified the file as a scanner-computed derivative | Review the Modality dropdown in the Mapping Table. If the file is a raw acquisition rather than a derivative, override the classification. See Section 11.3 for the full list of files routed to derivatives. |
-| Unsure what a status badge in the Mapping Table means | Guessed, Duplicate, Derived, or No session assigned badge appears on a file | See Section 8.4 for a description of each badge and the action required (if any) |
-| Application does not launch on macOS | The application has not been granted permission to run | Right-click the application, select Open, and confirm the security dialog. This is required only on the first launch. |
-| Application launches then closes immediately | Common causes include insufficient permissions on the export destination folder, or a corrupted download | Try selecting a different export location. If the problem persists, redownload the installer from the project website. |
+| macOS says NeuroGate can't be opened | The app is not signed with an Apple Developer ID | System Settings → Privacy & Security → Open Anyway |
+| No macOS download for an Intel Mac | Only Apple Silicon is built | Use a Windows or Linux computer, or an Apple Silicon Mac |
+| Windows shows "Windows protected your PC" | The installer is not code-signed | Click More info, then Run anyway |
+| Linux AppImage does nothing when opened | The file is not executable | Run `chmod +x NeuroGate-<version>.AppImage` |
+| No update prompt appears | The check failed silently (for example, offline), or you have the latest version | Compare the footer version with the Releases page and download manually if needed |
+| Install CLI button is missing | You are on the tool page, or the window is narrow | Go to the Home page and widen the window |
+| `neurogate` not found after Install CLI | The `bin` folder is not on PATH, or the terminal was already open | On Windows, open a new terminal. On macOS and Linux, add the folder shown in the panel to PATH. |
+| A file does not appear or is Other / Unknown | The extension is not recognized, or the file is DICOM or ECAT | Check Section 7.2. Convert DICOM and ECAT to NIfTI first. |
+| Most files are Low or Needs Review | Source names and folders carry little information | Organize files into subject and session folders, or use bulk edits in Mapping |
+| A file shows "Guessed — pick a modality to export" | No signal identified the scan | Choose the correct modality. Guessed files are not exported otherwise. |
+| A file you expected is missing from the export | It was guessed, unclassified, a duplicate copy, a localizer, an attenuation CT, or (browser only) over 500 MB | Check its badge and modality in Mapping |
+| "Fix N Errors to Continue" on Validate | Undismissed errors remain | Expand each error. Most must be fixed in Mapping or in the source data (Section 10.3). |
+| Validate shows "no session assigned" | Mapping let you continue with files that have no session | Back to Metadata, Back to Mapping, assign sessions, then re-enter Metadata |
+| Metadata won't continue | A required field or the attestation is missing | Read the "Please complete the following" list and visit each incomplete tab |
+| Metadata entries disappeared | You went back to Mapping or back from Validate | Re-enter them (Section 5.1) |
+| Dismissed issues came back | Re-run Checks, or Back to Validation from Export | Dismiss them again |
+| Wrong structure chosen | The structure cannot be changed on screen | Save the audit log, click Back to Drop Zone, reload the app, and start again |
+| PHI error in a file or folder name | The source name contains an identifier | Rename it outside the tool, then start again |
+| PHI warning in a sidecar | A name or number was typed into a sidecar field at the scanner | Edit the sidecar outside the tool, then start again |
+| "File not locally available" on Export | A cloud-only file (for example, OneDrive) | Right-click it in Windows Explorer, choose "Always keep on this device", then add the folder again |
+| A file is in `derivatives/scanner/` | It was detected as a scanner-computed map (Derived badge) | Expected. It cannot be moved to `primary/` in the tool. |
+| No `derivatives/` folder in the export | No scanner-computed maps were present | Expected |
+| Audit log is empty or missing entries | The app was reloaded, or the event is not logged (Section 12.3) | Save the log before reloading |
 
-### 14.1 Reporting Issues
+### 16.1 Reporting Issues
 
-If an issue is not resolved by the guidance in this section, contact the project lead with the following information:
+If an issue is not resolved by this section, contact the project lead with:
 
-- Tool version (displayed in the lower right of the application window)
-- Operating system and version
-- A description of the workflow step where the issue occurred
-- Any error messages displayed by the tool
-- The audit log for the affected session, if available. The audit log contains detailed context on what the tool did and does not contain PHI (the tool never handles PHI in the first place).
+- The NeuroGate version (footer of the Home, Documentation, Pre-Processing or About page)
+- The operating system and version
+- The workflow step where the issue occurred
+- Any error messages shown
+
+Do not send the audit log or screenshots of the Mapping table outside the site without checking them first. Both show original file and folder names, which can identify patients.
 
 ---
 
-## 15. Revision History
+## 17. Revision History
 
 | Version | Date | Author | Changes |
 |---|---|---|---|
@@ -859,3 +792,4 @@ If an issue is not resolved by the guidance in this section, contact the project
 | 1.5 | May 2026 | Brandon Bach | Added JSON sidecar de-identification and EDF header cleaning behavior; expanded modality coverage to include fMRI, ASL, MR angiography, and field maps |
 | 1.9 | August 2026 | Brandon Bach | Added the Custom timepoints preset and Step 1 (Choose Your Structure); revised the mapping table to show both session preset options; clarified that upload is out of scope |
 | 2.0 | August 31, 2026 | Brandon Bach | Substantive rewrite. Reframed the tool from browser-based to a desktop application (Section 4 installation, Section 5 tool overview). Expanded modality coverage to include PDw, T2starw, MoCoSeries functional, single-band references, and magnitude/phase pairs (Section 8.2). Added the mapping table status badges (Section 8.4) documenting the guessed-modality quarantine gate, duplicate resolution, and derivative separation behaviors introduced in the 2026-08-17 detection engine improvements. Added the Needs Your Decision filter (Section 8.5). Added the derivatives export path documentation (Section 11.3). Added the held-back subject behavior (Sections 10.5 and 11.4) allowing partial export when individual subjects cannot be resolved automatically. Added a dedicated Longitudinal Study Handling section (Section 13) covering visit folder recognition, nested layouts, and missed visits. Expanded troubleshooting to cover the new behaviors. |
+| 3.0 | September 30, 2026 | Brandon Bach | Rewritten to describe only what the tool does, verified against the capability inventory and the code. Distribution: desktop app and CLI via GitHub Releases with actual file names, Apple Silicon only on macOS, and first-launch steps (macOS Open Anyway, Windows SmartScreen, Linux `chmod +x`) (Section 4.4); auto-update behavior per platform (Section 4.5); Install CLI (Section 4.6); version shown in the page footer (Section 4.7). Workflow: real step labels and button names throughout; "going back loses work" limitations (Section 5.1); the Step-0 question and the Single session preset, and that the structure cannot be changed on screen (Section 6); saved progress (Section 7.4); the Mapping table's actual columns, filters, badges and bulk edits, and that Continue to Metadata is always enabled (Section 8); Metadata's four tabs, auto-fill and blocking behavior (Section 9); Validation's dismissal rules, what blocks export, and the actual list of checks and non-checks (Section 10); desktop folder export with no size limit versus browser ZIP (Sections 11.4 and 11.5); the de-identification actually applied and what is not de-identified (Section 11.1); corrected output layout (Section 11.3). Audit log: what is and is not logged, and the warning that it contains original file and folder names and must stay at the site (Section 12). Added PET (Section 14) and a CLI summary including CLI-only held-back subjects (Section 15). Removed features that do not exist: subject demographics (age, sex), Acknowledgements and Funding fields, BrainVision support, held-back subjects in the desktop app, unimplemented checks (per-modality sidecar fields, channel/electrode matching, NIfTI header checks, iEEG duration, Persyst pairing, sessions.tsv matching), per-check Pass results, participants.json/README/CHANGES generation, recorded date-shift values, the project website and Downloads page, the version display in the lower right corner, clickable stepper, editable Subject/Session/Modality cells with detected-value markers, the Implant fallback session, and the Mapping gate on unresolved files. Troubleshooting rewritten to match. Also: the Structure step's text now reads "This can't be changed after you add files without starting over", and the note that the screen text was inaccurate is removed (Section 6.4); electrode, channel and event tables are placed beside their recording (`eeg/` for scalp EEG, `ieeg/` for iEEG, `ieeg/` as the fallback) rather than always in `ieeg/` (Section 11.2); the dataset is described as NeuroGate's BIDS-based structure and the Validate step no longer refers to the official bids-validator (Sections 1, 10); the Pre-Processing page's PET2BIDS (`dcm2niix4pet`) commands are referenced (Sections 3, 14); PET sidecar fields are those required by SOP-BIDS-001 and PET is exempt from defacing (Sections 4.2, 10.4, 14); demographics are optional and added by the site after export, and `participants.json`, `README` and `CHANGES` are written by the site if a recipient needs them (Sections 9.2, 11.3, 11.6); the date shift is deliberately not recorded, so true dates cannot be recovered (Section 11.1); the audit log stays at the site and is never shared, and sites record the operator's identity themselves (Sections 11.6, 12.3, 12.4); Section 13.1 no longer says sessions are assigned only by label match (clustering also assigns them) and lists the `M6`/`Y1` forms. |

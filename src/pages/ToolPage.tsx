@@ -395,7 +395,7 @@ function ToolPage() {
               </h2>
               <p className="mt-3 max-w-lg mx-auto text-base leading-relaxed text-gray-500">
                 Drop your patient data folder to auto-detect sessions and modalities,
-                validate BIDS compliance, and export a ready-to-share dataset.
+                validate it, and export a ready-to-share BIDS-based dataset.
               </p>
             </div>
 
