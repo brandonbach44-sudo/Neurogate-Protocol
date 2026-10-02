@@ -39,7 +39,8 @@ The update check is skipped in dev builds (it only runs in a packaged app).
 ```bash
 npm run regression       # regression.ts, regression_deidentify.ts, regression_flywheel.ts,
                          # regression_generalization.ts, regression_pet.ts,
-                         # regression_edf_annotations.ts, regression_docs.ts;
+                         # regression_edf_annotations.ts, regression_nifti.ts,
+                         # regression_docs.ts;
                          # CI and the release workflow run this
 npm run verify:export    # streaming export writer and EDF de-identifier
 npm run verify:cli       # CLI pipeline end to end on demo data
@@ -49,6 +50,10 @@ npm run verify:cli-bundle  # the esbuild CLI bundle builds and still exports cor
 npm run desktop:bundle
 npx tsx verify_desktop_export.ts           # desktop folder export, against the bundled file
 npx tsx verify_desktop_export.ts --large   # with a 600 MB EDF
+
+npx vite --port 5199 &                     # then, with Google Chrome installed:
+npx tsx verify_ui_flow.ts                  # drives the tool page in headless Chrome: Metadata kept
+                                           # on Back, no repeated audit entries, Change structure
 ```
 
 After an intended change to detection, validation or de-identification output, run `npm run regression:update` (it rewrites the `regression.ts`, `regression_deidentify.ts` and `regression_flywheel.ts` snapshots) and review the snapshot diff before committing it.

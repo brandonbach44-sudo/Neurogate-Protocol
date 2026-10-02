@@ -78,7 +78,9 @@ A plain browser never loads the preload script, so the React app checks for `win
 - React 19 + React Router + Tailwind, built by Vite into `dist/`.
 - Pages: Home, Documentation (renders `public/docs/*.md` with react-markdown), Pre-Processing, About, and the 6-step tool (`src/pages/ToolPage.tsx`: Structure · Drop Files · Mapping · Metadata · Validate · Export).
 - **State** is React state in `ToolPage` plus an audit-log context (`src/lib/audit/AuditContext.tsx`). No external state library.
-- **Saved progress** (`src/lib/session/toolSession.ts`): file signatures (name, size, relative path) and detection results go to `sessionStorage` for 12 hours. Dropping the exact same file set again restores the mapping. File contents and Metadata entries are never saved.
+  - Metadata entries survive going back: `MetadataStep` hands its draft to `ToolPage` on Back and is seeded from it on return. `ToolPage` remembers what it last logged, so re-entering Metadata only logs values that changed.
+  - "Change structure" (Drop Files and Mapping) clears files, results, Metadata and saved progress, returns to the Structure step with the current structure preselected, and logs `structure-changed`. The audit log is kept.
+- **Saved progress** (`src/lib/session/toolSession.ts`): file signatures (name, size, relative path) and detection results go to `sessionStorage` for 12 hours. Dropping the exact same file set again restores the mapping. File contents and Metadata entries are never saved there (Metadata is kept only in memory).
 - **File contents in memory:** in the desktop app only file locations are kept; in a browser, files up to 500 MB are cached (`src/lib/fileCache.ts`).
 
 ## Shared libraries (`src/lib/`)
@@ -87,7 +89,7 @@ Used unchanged by the GUI, the CLI and the desktop export bundle.
 
 | Folder | Role |
 |---|---|
-| `detection/` | Extension classification, sidecar and EDF header reading (both keyed by folder + base name via `sidecarKey()`, so subjects with same-named files don't get each other's metadata), filename/folder/neighbour inference, subject grouping, custom-timepoint date and folder clustering, PET vocabulary. `engine.ts` combines the signals. |
+| `detection/` | Extension classification, sidecar, EDF header and NIfTI header reading (`niftiHeaderReader.ts`: NIfTI-1/NIfTI-2 header bytes only, a small decompressed prefix for `.nii.gz`; keyed by relative path) (both keyed by folder + base name via `sidecarKey()`, so subjects with same-named files don't get each other's metadata), filename/folder/neighbour inference, subject grouping, custom-timepoint date and folder clustering, PET vocabulary. `engine.ts` combines the signals; the NIfTI volume count blocks the blind T1w fallback for a 4D series, flags names that contradict the dimensions, and sets PET framing when there's no sidecar. |
 | `validation/` | `bidsValidator.ts` (NeuroGate's own structure checks for its BIDS-based layout; the official bids-validator isn't used, since the layout deliberately differs from the official spec), `phiScanner.ts`, `requiredFilesChecker.ts`, `crossSessionChecker.ts`, `petChecker.ts`, and metadata/defacing checks in `engine.ts`. |
 | `bids/` | `bidsNaming.ts` (entities, runs, collisions, and `tableFolder`, which puts electrodes/channels/events tables in `eeg/` or `ieeg/` beside their recording) and `exporter.ts` (`buildFileEntries()` produces the export file list; `generateZip()` is the browser ZIP path). |
 | `deidentify/` | `edfDeidentifier.ts` (256-byte header transform, per-subject date shifts, whole-buffer path); `edfStructure.ts` (pure EDF/BDF layout parsing for any signal count, EDF+/BDF+ annotation redaction in place at the same byte length, and the per-signal transducer/prefiltering check, shared by the whole-buffer and streaming paths); `persystLayDeidentifier.ts` (Persyst `.lay`: `File=` pointed at the renamed `.dat`, `[Patient]` reduced to Sex/Hand/TestTime with TestDate shifted, `[Comments]` redacted with the annotation rules); `jsonSidecarDeidentifier.ts` (identifying fields blanked and dates shifted at any depth; returns not-ok for anything that isn't a JSON object, so it's never exported). |
@@ -104,6 +106,8 @@ Used unchanged by the GUI, the CLI and the desktop export bundle.
 - `isFileLike()` replaces `instanceof File` checks, which would fail for the adapter.
 
 `verify_adapter.ts` checks that scanning through `NodeFileAdapter` produces the same detection and validation output as the browser `File` path.
+
+`verify_ui_flow.ts` drives the tool page in headless Chrome over the DevTools protocol (no extra dependencies; it needs a running dev server). It checks that Metadata entries survive Back, that going back doesn't repeat audit entries, and the Change structure flow. It isn't part of CI.
 
 ### Validation model (`src/types/validation.ts`)
 
@@ -159,7 +163,7 @@ Document versions are separate: `src/docVersions.ts` lists each `public/docs/*.m
 
 ## Release pipeline
 
-- `.github/workflows/release.yml` runs on a `v*.*.*` tag push (or manually). It checks the tag against `package.json`, then on Windows, macOS and Linux runners (Node 20): `npm ci` → `npm run regression` (all seven suites, including `regression_pet.ts`, `regression_edf_annotations.ts` and `regression_docs.ts`) → `npm run build` → `npm run cli:sea` → `npm run desktop:bundle` → `electron-builder --publish always` into a draft release. A final job adds download notes and publishes the release (a manual run leaves it as a draft). electron-updater ignores drafts, so nobody is offered a release that's missing a platform.
+- `.github/workflows/release.yml` runs on a `v*.*.*` tag push (or manually). It checks the tag against `package.json`, then on Windows, macOS and Linux runners (Node 20): `npm ci` → `npm run regression` (all eight suites, including `regression_pet.ts`, `regression_edf_annotations.ts`, `regression_nifti.ts` and `regression_docs.ts`) → `npm run build` → `npm run cli:sea` → `npm run desktop:bundle` → `electron-builder --publish always` into a draft release. A final job adds download notes and publishes the release (a manual run leaves it as a draft). electron-updater ignores drafts, so nobody is offered a release that's missing a platform.
 - electron-builder targets: NSIS `.exe` (Windows), `.dmg` + `.zip` (macOS, arm64), `.AppImage` (Linux). `"identity": null` disables macOS signing; the `afterPack` hook `scripts/adhoc-sign-mac.cjs` ad-hoc signs the whole `.app` so Gatekeeper shows the ordinary "unidentified developer" block (cleared with Open Anyway) instead of "damaged".
 - `.github/workflows/ci.yml` runs on every push (any branch) and pull request, on Ubuntu with Node 20: `npm ci` → `npm run lint` → `npm run build` → `npm run regression` → `verify:export`, `verify:cli`, `verify:adapter` → `npm run desktop:bundle` and `verify_desktop_export.ts`. It doesn't build installers or publish anything.
 - `.github/workflows/deploy.yml` (an old AWS website deploy) still exists but is disabled in GitHub's settings. The website is hosted on Vercel instead (`vercel.json`), through Vercel's GitHub integration: every push to `main` builds and deploys https://epilepsy-gui.vercel.app, with no workflow in this repo and without waiting for CI. That build sets no `VITE_API_URL`, so the browser version never uploads files.
