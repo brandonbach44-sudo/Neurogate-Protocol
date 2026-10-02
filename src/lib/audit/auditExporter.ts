@@ -98,8 +98,10 @@ export function downloadFile(content: string, filename: string, mimeType: string
  * Export and download audit log as JSON.
  */
 export function downloadAuditJson(logger: AuditLogger, exportedBy: string) {
+  const through = logger.lastId();
   const { name, text } = auditJsonFile(logger, exportedBy);
   downloadFile(text, name, 'application/json');
+  logger.markSaved(through);
 }
 
 /**
@@ -117,28 +119,32 @@ export function auditJsonFile(logger: AuditLogger, exportedBy: string): { name: 
 /**
  * Both audit files written at export: the full log (keep at the site) and
  * the shareable copy (safe to send with the dataset). Same timestamp, so
- * the pair is easy to match.
+ * the pair is easy to match. `throughId` is the last entry in them: once
+ * the caller has saved the files, it passes it to logger.markSaved().
  */
 export function auditJsonFiles(
   logger: AuditLogger,
   exportedBy: string,
   redact: RedactionPairs,
-): { full: { name: string; text: string }; shareable: { name: string; text: string } } {
+): { full: { name: string; text: string }; shareable: { name: string; text: string }; throughId: number } {
+  const throughId = logger.lastId();
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
   const full = { name: `audit_log_${timestamp}.json`, text: exportAsJson(logger, exportedBy) };
   const shareable = { name: `audit_log_${timestamp}_shareable.json`, text: exportAsJson(logger, exportedBy, redact) };
   logger.logAuditExported('JSON');
-  return { full, shareable };
+  return { full, shareable, throughId };
 }
 
 /**
  * Export and download audit log as CSV.
  */
 export function downloadAuditCsv(logger: AuditLogger, exportedBy: string) {
+  const through = logger.lastId();
   const csv = exportAsCsv(logger, exportedBy);
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
   downloadFile(csv, `audit_log_${timestamp}.csv`, 'text/csv');
   logger.logAuditExported('CSV');
+  logger.markSaved(through);
 }
 
 // ── Utility ─────────────────────────────────────────────────────

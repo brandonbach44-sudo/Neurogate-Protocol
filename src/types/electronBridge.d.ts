@@ -47,6 +47,8 @@ export interface NeuroGateDesktopBridge {
   writeExportFile: (outputDir: string, name: string, text: string) => Promise<string>;
   revealExportFolder: (outputDir: string) => Promise<void>;
   onExportProgress: (callback: (progress: ExportProgress) => void) => () => void;
+  /** Tells the main process whether closing the window would lose unsaved audit entries. Optional: older builds lack it. */
+  setAuditUnsaved?: (unsaved: boolean) => void;
 }
 
 declare global {

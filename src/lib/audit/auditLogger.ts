@@ -16,6 +16,9 @@ import type { ValidationIssue } from '../../types/validation';
 
 let nextId = 1;
 
+/** Entries that don't by themselves make the log worth saving (see hasUnsavedWork). */
+const NOT_WORK = new Set<AuditAction>(['structure-selected', 'audit-log-restored', 'audit-log-exported']);
+
 /**
  * Create a new audit logger instance.
  * Returns an object with methods to log entries and access the log.
@@ -289,14 +292,39 @@ export function createAuditLogger() {
   function reset() {
     log.entries = [];
     log.sessionStarted = new Date().toISOString();
+    log.savedThroughId = undefined;
     nextId = 1;
     notify();
+  }
+
+  /**
+   * Record that a copy of the log up to `throughId` (default: every entry
+   * so far) has been saved, so closing the app needn't warn.
+   */
+  function markSaved(throughId: number = lastId()) {
+    log.savedThroughId = Math.max(log.savedThroughId ?? 0, throughId);
+    notify();
+  }
+
+  function lastId(): number {
+    return log.entries.reduce((m, e) => Math.max(m, e.id), 0);
+  }
+
+  /**
+   * True when something worth keeping happened since the last saved copy.
+   * Choosing a structure, a restored log, and the "audit exported" entry
+   * itself (written just after a save) don't count.
+   */
+  function hasUnsavedWork(): boolean {
+    const through = log.savedThroughId ?? 0;
+    return log.entries.some(e => e.id > through && !NOT_WORK.has(e.action));
   }
 
   /** Replace the log with a saved one (same session, before a reload). */
   function restore(saved: AuditLog) {
     log.sessionStarted = saved.sessionStarted;
     log.toolVersion = saved.toolVersion;
+    log.savedThroughId = saved.savedThroughId;
     log.entries = [...saved.entries];
     nextId = log.entries.reduce((m, e) => Math.max(m, e.id), 0) + 1;
     notify();
@@ -340,6 +368,9 @@ export function createAuditLogger() {
     reset,
     restore,
     subscribe,
+    markSaved,
+    lastId,
+    hasUnsavedWork,
   };
 }
 
