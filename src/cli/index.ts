@@ -152,11 +152,11 @@ async function main(): Promise<void> {
 
   // Quick detection pass just to know whether to ask about defacing.
   const { scanDirectory } = await import('../lib/adapters/scanDirectory');
-  const { runDetection, readJsonSidecars, readEdfHeaders } = await import('../lib/detection');
+  const { runDetection, readJsonSidecars, readEdfHeaders, readNiftiHeaders } = await import('../lib/detection');
   const scanned = await scanDirectory(sourceFolder);
   const sidecarMap = await readJsonSidecars(scanned);
   const edfHeaderMap = await readEdfHeaders(scanned);
-  const preDetection = runDetection(scanned, sidecarMap, edfHeaderMap, structure);
+  const preDetection = runDetection(scanned, sidecarMap, edfHeaderMap, structure, await readNiftiHeaders(scanned));
   const hasStructuralMri = preDetection.some(requiresDefacing);
 
   let defacingConfirmed = false;

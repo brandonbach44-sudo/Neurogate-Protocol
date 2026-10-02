@@ -13,7 +13,7 @@ import type { MetadataOutput } from '../components/MetadataStep';
 import type { ScannedFile } from '../types/files';
 import type { DetectionResult, DetectionSummary, Session, Modality } from '../types/detection';
 import { getEffectiveSession, getEffectiveModality } from '../types/detection';
-import { runDetection, generateSummary, readJsonSidecars, readEdfHeaders } from '../lib/detection';
+import { runDetection, generateSummary, readJsonSidecars, readEdfHeaders, readNiftiHeaders } from '../lib/detection';
 import { computeBidsNames } from '../lib/bids/bidsNaming';
 import { useAudit, auditJsonFiles, buildAuditRedactionPairs, downloadFile } from '../lib/audit';
 import type { DatasetStructure } from '../types/sessionStructure';
@@ -110,14 +110,16 @@ function ToolPage() {
 
     // Run detection engine (small delay so the UI shows the scanning state)
     setTimeout(async () => {
-      // Read JSON sidecars and EDF headers in parallel before running
-      // the detection engine, so both sources of in-file metadata are
-      // available to resolve ambiguous filenames (e.g. "HUP282.edf").
-      const [sidecarMap, edfHeaderMap] = await Promise.all([
+      // Read JSON sidecars, EDF headers and NIfTI headers in parallel
+      // before running the detection engine, so every source of in-file
+      // metadata is available to resolve ambiguous filenames (e.g.
+      // "HUP282.edf", "series_7.nii.gz").
+      const [sidecarMap, edfHeaderMap, niftiHeaderMap] = await Promise.all([
         readJsonSidecars(files),
         readEdfHeaders(files),
+        readNiftiHeaders(files),
       ]);
-      const results = runDetection(files, sidecarMap, edfHeaderMap, datasetStructure);
+      const results = runDetection(files, sidecarMap, edfHeaderMap, datasetStructure, niftiHeaderMap);
       const sum = generateSummary(results, datasetStructure);
       setDetectionResults(results);
       setSummary(sum);

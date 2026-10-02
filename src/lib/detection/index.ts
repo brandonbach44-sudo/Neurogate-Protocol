@@ -14,6 +14,7 @@ export { detectFromFolderPath } from './folderDetector';
 export { inferFromNeighbors } from './neighborInference';
 export { groupIntoSubject } from './subjectGrouping';
 export { readJsonSidecars, getSidecarBaseName, sidecarKey } from './sidecarReader';
+export { readNiftiHeaders } from './niftiHeaderReader';
 export type { SidecarInfo } from './sidecarReader';
 export { readEdfHeaders } from './edfHeaderReader';
 export type { EdfHeaderInfo } from './edfHeaderReader';
