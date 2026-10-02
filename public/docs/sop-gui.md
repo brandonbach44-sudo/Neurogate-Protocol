@@ -3,12 +3,12 @@
 | Field | Value |
 |---|---|
 | **Document ID** | SOP-GUI-001 |
-| **Version** | 3.1 |
+| **Version** | 3.2 |
 | **Effective Date** | 2026-10-02 |
 | **Author** | Brandon Bach |
 | **Status** | Draft, Pending Advisor Review |
-| **Parent Framework** | GOV-001 Regulatory and Governance Framework v2.2 |
-| **Related Documents** | SOP-BIDS-001 v3.2 |
+| **Parent Framework** | GOV-001 Regulatory and Governance Framework v2.3 |
+| **Related Documents** | SOP-BIDS-001 v3.3 |
 
 ---
 
@@ -28,7 +28,7 @@ This SOP supports the following requirements from GOV-001:
 |---|---|---|
 | 2.1 FAIR Principles | Data must be structured in machine-readable, interoperable formats | The tool places each file in a BIDS folder with a BIDS name, carries over existing JSON sidecars next to their data files, and generates `dataset_description.json`, `participants.tsv` and per-subject `sessions.tsv` files (Section 11) |
 | 2.2 ALCOA+ Data Integrity | Data transformations must be attributable and contemporaneous | The audit log records timestamped setup, detection, correction, metadata, validation and export events. Its limits are listed in Section 12. |
-| 2.3 HIPAA/PHI Protection | PHI must be removed before data leaves the originating site | The tool scans file names, folder names, sidecar text and TSV table contents for PHI patterns (Section 10.4) and on export de-identifies EDF/BDF headers and annotations, Persyst `.lay` files, selected JSON sidecar fields and `sessions.tsv` dates (Section 11.1). It does not de-identify everything; see Section 11.1 for what is not changed. |
+| 2.3 HIPAA/PHI Protection | PHI must be removed before data leaves the originating site | The tool scans file names, folder names, sidecar text, TSV table contents and NIfTI header text for PHI patterns (Section 10.4) and on export de-identifies EDF/BDF headers and annotations, Persyst `.lay` files, selected JSON sidecar fields and `sessions.tsv` dates (Section 11.1). It does not de-identify everything; see Section 11.1 for what is not changed. |
 | 2.5 QMS Documentation | SOPs must include step-by-step procedures | Sections 6 through 11 give the workflow in order |
 | 5 Audit Traceability | Corrections and detection decisions must be documented | Every Mapping correction is logged with its old and new value. Detection is logged as summary counts; per-file detection reasons are shown in the Mapping table but are not written to the log (Section 12.3). |
 
@@ -91,11 +91,13 @@ The detection engine combines several signals, strongest first:
 4. Keywords in the sidecar scan name (`SeriesDescription`, `ProtocolName` and similar fields)
 5. Keywords in the file name
 6. Folder names
-7. Neighbouring files
+7. Neighbouring files (and, for NIfTI images, the image dimensions read from the NIfTI header, see below)
 8. Subject grouping
 9. For Custom timepoints only: clusters of dates and folders
 
-**Fallback:** a `.nii.gz` file that no signal identifies is set to T1w, marked as a guess, and is not exported until the user picks a modality (Section 8.3). An unidentified `.nii` file stays Other / Unknown.
+**NIfTI header:** the tool reads the header of every `.nii` and `.nii.gz` file (NIfTI-1 and NIfTI-2; only the header, never the image data). The dimensions and number of volumes are listed in the file's detection reasons. A name that contradicts them gets a WARNING reason: an anatomical name (such as T1w) on an image with more than one volume, or a functional or diffusion name on a single 3D volume. For PET without a sidecar, more than one volume means a dynamic scan.
+
+**Fallback:** a `.nii.gz` file that no signal identifies is set to T1w, marked as a guess, and is not exported until the user picks a modality (Section 8.3). If its header shows more than one volume, it is not set to T1w: it stays Other / Unknown with the reason "Not defaulted to T1w", since a series is fMRI, diffusion or dynamic PET. An unidentified `.nii` file stays Other / Unknown.
 
 ### 4.4 Installation
 
@@ -194,18 +196,19 @@ Step 6: Export
 
 The stepper only shows progress; it cannot be clicked. Use the buttons at the bottom of each step to move forward or back.
 
-### 5.1 Going Back Loses Work
+### 5.1 Going Back
 
-Some Back buttons discard what was entered. Plan the workflow so that you do not need them:
-
-| Action | What is lost |
+| Action | What is kept and what is cleared |
 |---|---|
-| **Back to Drop Zone** (on Mapping) | The dropped files, every Mapping correction, and the saved progress. The chosen structure and the audit log are kept. |
-| **Back to Mapping** (on Metadata), then returning to Metadata | Every Metadata entry: prefix, starting number, study name, authors, attestation |
-| **Back to Metadata** (on Validate) | Every Metadata entry, as above |
+| **Back to Mapping** (on Metadata), then returning to Metadata | Every Metadata entry is kept: prefix, starting number, study name, authors and attestation. The attestation is kept only if the set of images that need defacing has not changed; otherwise tick it again. |
+| **Back to Metadata** (on Validate) | Every Metadata entry is kept, as above |
+| **Back to Drop Zone** (on Mapping) | Clears the dropped files, every Mapping correction, the Metadata entries and the saved progress. The chosen structure and the audit log are kept. |
+| **Change structure** (on Drop Files or Mapping) | Returns to Step 1 (Section 6.5). Clears the same things as Back to Drop Zone; the audit log is kept. |
 | **Back to Validation** (on Export) | Validation is re-run, which clears every dismissed issue |
 
-The audit log lasts for the whole app session, including across Back to Drop Zone and additional datasets. Reloading or closing the app loses it, so save it first (Section 12.1).
+Going back and forth does not repeat audit entries: when you leave Metadata again, only values that changed are logged.
+
+The audit log lasts for the whole app session, including across Back to Drop Zone, Change structure and additional datasets. Reloading or closing the app loses it, so save it first (Section 12.1).
 
 Section-by-section instructions for each step begin in Section 6.
 
@@ -250,7 +253,15 @@ The choice depends on the study design rather than the modalities present.
 4. For Custom timepoints, use the **Define timepoints** panel: enter a number and choose a unit for each visit, click **+ Add timepoint** for more, and **Remove** to delete one. Check the generated labels and the **Session order** preview.
 5. Click **Continue** to go to Drop Files. **Back** returns to the first question.
 
-**The structure can't be changed after you add files without starting over,** as the Structure screen says. To change it, click Back to Drop Zone on the Mapping step and then reload the app. Reloading also clears the audit log, so save the log first if you need it.
+### 6.5 Changing the Structure Later
+
+The structure can be changed from the Drop Files step (the **Change structure** link next to the structure in use) or the Mapping step (the **Change structure** button).
+
+1. Click **Change structure**. If files have been added, the tool asks "Change the structure?" and explains that the files and corrections will be cleared. Click **Change structure and clear files**, or **Keep working** to stay where you are.
+2. The Structure screen opens with the current structure selected. Choose the new structure and click **Continue**, or click **Cancel, keep the current structure** to go back without changing anything.
+3. Add the folder again on the Drop Files step.
+
+The files, Mapping corrections, Metadata entries and saved progress are cleared. The audit log is kept, and gets a "Structure changed" entry with the old and new structure.
 
 ---
 
@@ -260,6 +271,8 @@ The choice depends on the study design rather than the modalities present.
 
 1. Drag a folder or files onto the drop zone, or use the "browse folder" or "select files" links. Any folder layout is accepted, and the folder hierarchy is used as evidence during detection.
 2. The tool scans the files and moves to the Mapping step when detection is complete.
+
+The structure in use is shown below the drop zone, with a **Change structure** link (Section 6.5).
 
 **Memory use:** the desktop app records only the location of each file, not its contents, so files of any size work. (When NeuroGate runs in a web browser instead of the desktop app, files up to 500 MB are held in memory.)
 
@@ -289,7 +302,7 @@ Operating-system files never appear in the Mapping table and are never exported:
 The tool saves the Mapping state in the app's tab storage for 12 hours. When saved progress exists, a "Saved progress from … ago" banner appears with a **Discard** button.
 
 - Adding exactly the same folder again (same names, sizes and paths) restores the mapping automatically. Anything different discards it.
-- Metadata is never saved and must be re-entered.
+- Metadata is not saved here. It is kept while you move between steps (Section 5.1), but is lost on a reload and must be re-entered.
 
 ---
 
@@ -308,7 +321,7 @@ The Mapping table shows every file with its automatic classification and lets yo
 | Modality | Dropdown of modalities |
 | Confidence | High (green), Medium (yellow), Low (orange), or Needs Review (red) |
 
-Clicking a row shows its **Detection Reasons** and **File Info**.
+Clicking a row shows its **Detection Reasons** and **File Info**. For a NIfTI image the reasons include its dimensions, and any WARNING reason (for example, a "T1w" with 200 volumes) means the name and the image disagree; check the modality.
 
 ### 8.2 Filters
 
@@ -318,7 +331,7 @@ The filter bar shows a count for each filter: **All**, **High**, **Medium**, **L
 
 ### 8.3 Badges Under the File Name
 
-**Guessed: pick a modality to export (orange).** No signal identified the scan, so the modality shown is the T1w fallback. The file is not exported until you choose a modality in the Modality dropdown, even if T1w is correct. Choosing any modality clears the badge. A guessed file gets no message in the Validate step, so this badge is the only warning. A guessed T1w still counts as structural MRI for the defacing attestation.
+**Guessed: pick a modality to export (orange).** No signal identified the scan, so the modality shown is the T1w fallback. The file is not exported until you choose a modality in the Modality dropdown, even if T1w is correct. Choosing any modality clears the badge. Validate also lists guessed files, in one warning per subject (Section 8.5). A guessed T1w still counts as structural MRI for the defacing attestation.
 
 **Duplicate of `<filename>` (yellow).** The same series was converted twice (a bare name plus dcm2niix's decorated `_<name>_<digits>_<n>` copy in the same folder). The decorated copy, which carries the scanner sidecar, is exported and this copy is not. Setting a modality on this row exports it as well.
 
@@ -340,7 +353,7 @@ The filter bar shows a count for each filter: **All**, **High**, **Medium**, **L
 
 ### 8.5 Proceeding to Step 4
 
-**Continue to Metadata** is always enabled. The Mapping step does not stop you from continuing with unresolved files:
+**Continue to Metadata** is always enabled. **Back to Drop Zone** and **Change structure** (Section 6.5) are next to it. The Mapping step does not stop you from continuing with unresolved files:
 
 - Files with no session produce an error in Validate that cannot be dismissed and blocks export.
 - Guessed files are not exported. Validate lists them in one warning per subject.
@@ -387,7 +400,7 @@ When any T1w, T2w, FLAIR, PDw or T2*w image is present (a guessed T1w counts), o
 
 > I confirm that all structural MRI files in this dataset have been defaced or de-identified using an approved defacing tool before being included in this dataset.
 
-When the box is ticked, the screen shows the time it was confirmed. When you leave Metadata with the box ticked, the audit log gets a "Defacing attestation confirmed" entry. That entry does not contain the attestation text, and unticking the box is not logged.
+When the box is ticked, the screen shows the time it was confirmed. When you leave Metadata with the box ticked, the audit log gets a "Defacing attestation confirmed" entry (once; going back and returning does not add another unless the attestation changed). That entry does not contain the attestation text, and unticking the box is not logged.
 
 If no structural MRI is present, the tab says the attestation is not required.
 
@@ -432,7 +445,7 @@ Dismissals are not written to the audit log. They are cleared by Re-run Checks a
 
 Most errors must be fixed in an earlier step or in the source data:
 
-- **No session assigned / subject has no BIDS ID:** go back to Mapping and assign the session. Going back to Mapping resets Metadata (Section 5.1).
+- **No session assigned / subject has no BIDS ID:** go back to Mapping and assign the session. Metadata entries are kept (Section 5.1).
 - **PHI error in a file or folder name:** rename the file or folder outside the tool, then start again with the corrected folder. The tool does not modify source files.
 - **Implant required file missing:** add the file and start again, or, if the file genuinely does not exist, dismiss the error and record the omission in the site's records.
 - **Sessions out of chronological order (Implant, auto-filled dates):** check the session assignments in Mapping against the site's records.
@@ -455,6 +468,7 @@ Most errors must be fixed in an earlier step or in the source data:
 - Warnings: phone number; email address; MM/DD/YYYY or MM-DD-YYYY dates; "Last, First"; the first match of these keywords (underscore variants included): firstname, lastname, fullname, patientname, ssn, social_security, address, street, zipcode, insurance, policy_number, accession, acc_num
 - Sidecar content: every string field of a JSON sidecar that is not already de-identified, including nested fields, is scanned with the same patterns, plus a warning for two capitalized words that could be a name.
 - Table contents: every cell of each exported TSV file (electrodes, channels, events and others) is scanned with the same patterns and keywords. Purely numeric cells are skipped, and so is the two-capitalized-words check, which would flag event labels such as "Seizure Onset". Tables are exported unchanged, so fix a finding in the source file.
+- NIfTI header text: the free-text `descrip` and `aux_file` fields of each exported NIfTI image are scanned with the same patterns, plus the two-capitalized-words check. dcm2niix's own `key=value` entries (such as `TE=96;Time=101502.425`) are ignored. The header is exported unchanged, so fix a finding in the source file (for example, by re-converting).
 - Not scanned: an EDF header that looks identifying is shown only as a warning in the Mapping table's detection reasons. The header itself is always de-identified on export (Section 11.1).
 
 **Required files (Implant sessions only)**
@@ -481,7 +495,7 @@ A subject with fewer than 4 imaging, EEG or table files gets these as warnings i
 
 **Metadata:** missing dataset name, authors, prefix or defacing attestation are errors, but the Metadata step already prevents them. Also: sparse dataset (warning) and empty dataset (error).
 
-**Not checked:** per-modality required JSON fields (other than PET); channel names against electrodes; NIfTI headers or dimensions; iEEG minimum duration; Persyst `.dat`/`.lay` pairing; `sessions.tsv` against the folders; scanner or site consistency.
+**Not checked:** per-modality required JSON fields (other than PET); channel names against electrodes; NIfTI dimensions (they are only shown, with warnings, in Mapping); iEEG minimum duration; Persyst `.dat`/`.lay` pairing; `sessions.tsv` against the folders; scanner or site consistency.
 
 ### 10.5 Proceeding to Step 6
 
@@ -530,7 +544,7 @@ The following is applied to the exported copies on every export. Source files ar
 
 **Not de-identified:**
 
-- NWB files, Persyst `.dat` files, and NIfTI header text
+- NWB files, Persyst `.dat` files, and NIfTI header text (the NIfTI text is PHI-scanned in Validate, Section 10.4)
 - The contents of electrodes, channels, events and other TSV files (these are PHI-scanned in Validate, Section 10.4, but exported unchanged)
 - Free-text sidecar fields (these are PHI-scanned in Validate, Section 10.4, but not changed)
 - Image pixels. Defacing must be done before NeuroGate and is attested in Metadata.
@@ -635,7 +649,7 @@ The audit log records what happened during an app session, with timestamps. It i
 
 The **Audit Log** button in the tool header shows the number of entries. It opens a panel listing the log, with **Export JSON** and **Export CSV** buttons, available at any time.
 
-The log lasts for the whole app session, including across Back to Drop Zone and additional datasets. Reloading or closing the app loses it. The desktop export also writes the JSON log into the export folder automatically, together with a shareable copy (Section 11.4). The panel's Export JSON and Export CSV buttons always save the full log.
+The log lasts for the whole app session, including across Back to Drop Zone, Change structure and additional datasets. Reloading or closing the app loses it. The desktop export also writes the JSON log into the export folder automatically, together with a shareable copy (Section 11.4). The panel's Export JSON and Export CSV buttons always save the full log.
 
 ### 12.2 Contents of the Audit Log
 
@@ -654,10 +668,10 @@ Each entry records:
 
 Events recorded:
 
-- **Setup:** structure selected; files scanned; session restored
+- **Setup:** structure selected; structure changed (old and new structure); files scanned; session restored
 - **Detection:** detection completed (counts)
 - **Mapping:** session, modality and subject corrections (old value and new value); bulk applies (count of files)
-- **Metadata** (written when you leave Metadata): institution configured; subject sessions; dataset description; defacing attested (only if the box is ticked)
+- **Metadata** (written when you leave Metadata; after going back, only values that changed are written again): institution configured; subject sessions; dataset description; defacing attested (only if the box is ticked)
 - **Validation:** validation passed (on Continue to Export)
 - **Export:** export completed; de-identification summary (fields stripped or shifted, whether EDF PHI was found, and how many annotation and `.lay` redactions were made, without shift values or redacted text); audit exported. The "audit exported" entry is written after the file is saved, so it is not in that file.
 
@@ -785,11 +799,11 @@ Differences from the desktop app:
 | PHI warning in a TSV table | A name, date or number in an electrodes, channels or events table | Edit the table outside the tool, then start again. Tables are exported unchanged. |
 | `XXXX` in EDF annotations or `.lay` comments | Identifying text was redacted on export | Expected. Event text and timestamps are kept. |
 | "Fix N Errors to Continue" on Validate | Undismissed errors remain | Expand each error. Most must be fixed in Mapping or in the source data (Section 10.3). |
-| Validate shows "no session assigned" | Mapping let you continue with files that have no session | Back to Metadata, Back to Mapping, assign sessions, then re-enter Metadata |
+| Validate shows "no session assigned" | Mapping let you continue with files that have no session | Back to Metadata, Back to Mapping, assign sessions, then continue (Metadata entries are kept) |
 | Metadata won't continue | A required field or the attestation is missing | Read the "Please complete the following" list and visit each incomplete tab |
-| Metadata entries disappeared | You went back to Mapping or back from Validate | Re-enter them (Section 5.1) |
+| Metadata entries disappeared | You clicked Back to Drop Zone or Change structure, or reloaded the app | Re-enter them (Section 5.1) |
 | Dismissed issues came back | Re-run Checks, or Back to Validation from Export | Dismiss them again |
-| Wrong structure chosen | The structure cannot be changed on screen | Save the audit log, click Back to Drop Zone, reload the app, and start again |
+| Wrong structure chosen | Chosen in Step 1 | Click Change structure on Drop Files or Mapping (Section 6.5) |
 | PHI error in a file or folder name | The source name contains an identifier | Rename it outside the tool, then start again |
 | PHI warning in a sidecar | A name or number was typed into a sidecar field at the scanner | Edit the sidecar outside the tool, then start again |
 | "File not locally available" on Export | A cloud-only file (for example, OneDrive) | Right-click it in Windows Explorer, choose "Always keep on this device", then add the folder again |
@@ -820,3 +834,4 @@ Do not send the full audit log or screenshots of the Mapping table outside the s
 | 2.0 | August 31, 2026 | Brandon Bach | Substantive rewrite. Reframed the tool from browser-based to a desktop application (Section 4 installation, Section 5 tool overview). Expanded modality coverage to include PDw, T2starw, MoCoSeries functional, single-band references, and magnitude/phase pairs (Section 8.2). Added the mapping table status badges (Section 8.4) documenting the guessed-modality quarantine gate, duplicate resolution, and derivative separation behaviors introduced in the 2026-08-17 detection engine improvements. Added the Needs Your Decision filter (Section 8.5). Added the derivatives export path documentation (Section 11.3). Added the held-back subject behavior (Sections 10.5 and 11.4) allowing partial export when individual subjects cannot be resolved automatically. Added a dedicated Longitudinal Study Handling section (Section 13) covering visit folder recognition, nested layouts, and missed visits. Expanded troubleshooting to cover the new behaviors. |
 | 3.0 | September 30, 2026 | Brandon Bach | Rewritten to describe only what the tool does, verified against the capability inventory and the code. Distribution: desktop app and CLI via GitHub Releases with actual file names, Apple Silicon only on macOS, and first-launch steps (macOS Open Anyway, Windows SmartScreen, Linux `chmod +x`) (Section 4.4); auto-update behavior per platform (Section 4.5); Install CLI (Section 4.6); version shown in the page footer (Section 4.7). Workflow: real step labels and button names throughout; "going back loses work" limitations (Section 5.1); the Step-0 question and the Single session preset, and that the structure cannot be changed on screen (Section 6); saved progress (Section 7.4); the Mapping table's actual columns, filters, badges and bulk edits, and that Continue to Metadata is always enabled (Section 8); Metadata's four tabs, auto-fill and blocking behavior (Section 9); Validation's dismissal rules, what blocks export, and the actual list of checks and non-checks (Section 10); desktop folder export with no size limit versus browser ZIP (Sections 11.4 and 11.5); the de-identification actually applied and what is not de-identified (Section 11.1); corrected output layout (Section 11.3). Audit log: what is and is not logged, and the warning that it contains original file and folder names and must stay at the site (Section 12). Added PET (Section 14) and a CLI summary including CLI-only held-back subjects (Section 15). Removed features that do not exist: subject demographics (age, sex), Acknowledgements and Funding fields, BrainVision support, held-back subjects in the desktop app, unimplemented checks (per-modality sidecar fields, channel/electrode matching, NIfTI header checks, iEEG duration, Persyst pairing, sessions.tsv matching), per-check Pass results, participants.json/README/CHANGES generation, recorded date-shift values, the project website and Downloads page, the version display in the lower right corner, clickable stepper, editable Subject/Session/Modality cells with detected-value markers, the Implant fallback session, and the Mapping gate on unresolved files. Troubleshooting rewritten to match. Also: the Structure step's text now reads "This can't be changed after you add files without starting over", and the note that the screen text was inaccurate is removed (Section 6.4); electrode, channel and event tables are placed beside their recording (`eeg/` for scalp EEG, `ieeg/` for iEEG, `ieeg/` as the fallback) rather than always in `ieeg/` (Section 11.2); the dataset is described as NeuroGate's BIDS-based structure and the Validate step no longer refers to the official bids-validator (Sections 1, 10); the Pre-Processing page's PET2BIDS (`dcm2niix4pet`) commands are referenced (Sections 3, 14); PET sidecar fields are those required by SOP-BIDS-001 and PET is exempt from defacing (Sections 4.2, 10.4, 14); demographics are optional and added by the site after export, and `participants.json`, `README` and `CHANGES` are written by the site if a recipient needs them (Sections 9.2, 11.3, 11.6); the date shift is deliberately not recorded, so true dates cannot be recovered (Section 11.1); the audit log stays at the site and is never shared, and sites record the operator's identity themselves (Sections 11.6, 12.3, 12.4); Section 13.1 no longer says sessions are assigned only by label match (clustering also assigns them) and lists the `M6`/`Y1` forms. |
 | 3.1 | October 2, 2026 | Brandon Bach | Updated for NeuroGate 1.2.0. Section 2: PHI row covers table scanning, EDF annotations and Persyst `.lay`. Section 7.2: sidecars pair by base name in the same folder; `.lay` files are rewritten on export. Section 8.5: guessed files now get a Validate warning. Section 10: added the duplicate-name and invalid-sidecar errors and how to resolve them, the per-subject guessed-files warning, the TSV table content scan, and that only exported files satisfy required-file checks. Section 11.1: date shift covers the `.lay` test date; added EDF+/BDF+ annotation redaction and signal-header checks, Persyst `.lay` handling, sidecar fields at any depth, and that a sidecar that is not a JSON object blocks export; removed Persyst `.lay`, annotations and the top-level-only limit from what is not de-identified. Sections 11.2, 11.3: `_dup-N` is a Validate error; participants.tsv and sessions.tsv list only subjects and sessions with exported data. Sections 11.4 to 11.6 and 12: every export writes a full audit log (stays at the site) and a shareable copy (original names replaced by BIDS paths and `sub-` IDs, operator shown as "site") that can be sent with the dataset; the de-identification summary includes redaction counts. Section 15: CLI custom timepoints are checked (1 to 24 timepoints, whole numbers 0 to 99, no duplicate labels); the CLI writes the shareable copy; its sessions.tsv no longer lists sessions without data. Section 16: new troubleshooting rows for these behaviors. Header updates the parent to GOV-001 v2.2 and the related document to SOP-BIDS-001 v3.2. |
+| 3.2 | October 2, 2026 | Brandon Bach | Updated for NeuroGate 1.3.0. Section 4.3: the NIfTI header is read (dimensions, warnings when a name contradicts them, a 4D series is not defaulted to T1w, PET framing). Section 5.1 rewritten as "Going Back": Metadata entries are now kept on Back, and audit entries are not repeated. New Section 6.5 Changing the Structure Later (Change structure on Drop Files and Mapping, with confirmation and cancel; logged as "Structure changed"). Sections 7, 8 and 9: Change structure link and button, NIfTI reasons in Mapping, guessed files listed in Validate. Section 10.4: NIfTI header text is PHI-scanned. Sections 12 and 16 updated to match. |

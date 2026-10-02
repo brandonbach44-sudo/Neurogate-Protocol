@@ -2,7 +2,7 @@
 
 **This file is the single source of truth for what NeuroGate does.** Every user-facing document (GOV-001, SOP-BIDS-001, SOP-GUI-001, README) and every page in the app describes only what's listed here. When a feature is added or changed, update this file first, then the documents.
 
-It was verified line by line against the code on 2026-09-30 (version 1.0.1 plus that day's changes). File references are relative to the repo root.
+It was verified line by line against the code on 2026-09-30 (version 1.0.1 plus that day's changes) and updated for each release since; this revision is for 1.3.0 (2026-10-02). File references are relative to the repo root.
 
 ---
 
@@ -36,9 +36,9 @@ It was verified line by line against the code on 2026-09-30 (version 1.0.1 plus 
 
 The stepper labels are **Structure · Drop Files · Mapping · Metadata · Validate · Export** (`src/pages/ToolPage.tsx`). The stepper only shows progress and can't be clicked; the buttons at the bottom of each step move between steps.
 
-**Going back loses work:**
-- **Mapping → "Back to Drop Zone"** clears the files, the mapping and the saved progress. The chosen structure and the audit log are kept.
-- **Back to Metadata** (from Mapping or from Validate) resets every Metadata entry: prefix, name, authors, attestation.
+**Going back:**
+- **Metadata entries are kept** when you go back to Mapping or come back from Validate: prefix, starting number, study name, authors and the attestation. The attestation is kept only if the set of images that need defacing hasn't changed; otherwise it has to be ticked again. Coming back doesn't repeat audit entries: only values that changed are logged again.
+- **Mapping → "Back to Drop Zone"** clears the files, the mapping, the Metadata entries and the saved progress. The chosen structure and the audit log are kept.
 - **Export → Back to Validation** re-runs validation, which clears any dismissals.
 
 ### Step 1: Structure (`src/components/StructureSetupStep.tsx`, `src/types/sessionStructure.ts`)
@@ -49,8 +49,11 @@ The stepper labels are **Structure · Drop Files · Mapping · Metadata · Valid
     - **Custom timepoints:** 1–24 timepoints. Each is a number 0–99 plus a unit: days, weeks, months, years, or "sessions (no time interval)".
       - Labels come out as `ses-2wk`, `ses-6mo`, `ses-1d`, `ses-1yr`, or `ses-1` for the "sessions" unit. 0 is shown as "(baseline)".
       - Timepoints are sorted by elapsed time (a month counts as 30 days, a year as 365), and duplicates are blocked.
-- **The structure can't be changed on screen once you continue.** To change it, click "Back to Drop Zone" on Mapping, then reload the app.
-  - The page says: "This can't be changed after you add files without starting over."
+- **Changing the structure later:** a **Change structure** link on Drop Files and a **Change structure** button on Mapping return to this step with the current structure selected.
+  - If files have been added, it first asks "Change the structure?" (**Change structure and clear files** / **Keep working**). Changing clears the files, corrections, Metadata entries and saved progress; the audit log is kept.
+  - **Cancel, keep the current structure** goes back without changing anything.
+  - The change is logged as "Structure changed" (§10).
+  - The page says: "You can change it later from the Drop Files or Mapping step; the files you've added are then cleared."
 
 ### Step 2: Drop Files (`src/components/FileDropZone.tsx`)
 - Drag in a folder or files, or use the "browse folder" / "select files" links. Any folder layout works.
@@ -60,18 +63,19 @@ The stepper labels are **Structure · Drop Files · Mapping · Metadata · Valid
   - **Browser:** files up to 500 MB are cached in memory.
 - **Saved progress** (browser tab storage, kept 12 hours): a "Saved progress from … ago" banner appears with **Discard**.
   - Adding the exact same folder again (same names, sizes and paths) restores the mapping automatically. Anything different discards it.
-  - Metadata isn't saved.
+  - Metadata isn't saved across a reload.
 
 ### Step 3: Mapping (`src/components/MappingTable.tsx`)
 - **Columns:** checkbox, Original File (BIDS path shown under it), Subject (free text), Session (dropdown; hidden for Single session), Modality (dropdown), Confidence.
 - **Confidence badges:** High (green), Medium (yellow), Low (orange), Needs Review (red).
+- **NIfTI header:** each image's dimensions are listed in its Detection Reasons, and a name that contradicts them (a 4D "T1w", a 3D "BOLD" or diffusion image) gets a WARNING reason there (§6).
 - **Badges under the file name:** "Guessed: pick a modality to export" (orange), "Duplicate of …" (yellow), "Derived: …" (blue).
 - **Row detail:** clicking a row shows its Detection Reasons and File Info.
 - **Filters, with counts:** All, High, Medium, Low, Needs Review, Needs your decision.
 - **Bulk edits:** "Set session…" / "Set modality…" with **Apply**, and **Clear selection**.
   - With Custom timepoints and 2 or more rows ticked, **Assign in order to timepoints** assigns them in the order they were ticked.
 - **Audit log:** corrections are logged, and subject edits are logged per keystroke. Bulk edits are logged as a count.
-- "Continue to Metadata" is always enabled.
+- **Buttons:** "Back to Drop Zone", "Change structure" (Step 1) and "Continue to Metadata", which is always enabled.
 
 ### Step 4: Metadata (`src/components/MetadataStep.tsx`)
 Four tabs, each marked complete or incomplete ("N of 4 sections complete"):
@@ -175,10 +179,11 @@ No per-file corrections are possible in the CLI.
 5. Filename keywords.
 6. Folder names.
 7. Neighbouring files.
+   - The NIfTI header (`src/lib/detection/niftiHeaderReader.ts`) doesn't pick a modality by itself, but it's read for every `.nii` / `.nii.gz` (NIfTI-1 and NIfTI-2, header bytes only, never the image data). It gives the dimensions and number of volumes, used for the warnings in Mapping, the T1w fallback and PET framing below.
 8. Subject grouping.
 9. For Custom timepoints: date clusters and folder clusters.
 
-**Fallback:** an unidentified `.nii.gz` defaults to T1w, marked as a guess and not exported until the user picks a modality. An unidentified `.nii` stays Other / Unknown.
+**Fallback:** an unidentified `.nii.gz` defaults to T1w, marked as a guess and not exported until the user picks a modality. It isn't defaulted when its header shows more than one volume (a series such as fMRI, diffusion or dynamic PET); it stays Other / Unknown with the reason "Not defaulted to T1w". An unidentified `.nii` stays Other / Unknown.
 
 **Naming details:**
 - **Entity order:** `sub_ses_task_trc_rec_run_desc_part_suffix`.
@@ -196,7 +201,7 @@ No per-file corrections are possible in the CLI.
   - From the sidecar: `Modality: "PT"` or PET-only fields (TracerName, TracerRadionuclide, InjectedRadioactivity, RadionuclideHalfLife, …).
   - From names: PET, PETCT, PETMR, `trc-`, amyloid, tau-pet, and tracers FDG, PiB, florbetapir/AV45/Amyvid, florbetaben/FBB/Neuraceq, flutemetamol/Vizamyl, flortaucipir/AV1451/Tauvid, MK6240, PI2620, RO948, UCB-J, flumazenil/FMZ, FDOPA, raclopride.
 - **`trc-<tracer>`** comes from the sidecar TracerName, or from the name. An unrecognized TracerName is kept (letters and digits only, up to 24 characters). It's left out when no tracer is found.
-- **`rec-acstat` / `rec-nacstat` / `rec-acdyn` / `rec-nacdyn`:** used only when a session has both attenuation-corrected and uncorrected ("NAC") images. Dynamic means more than one frame; `rec-ac` / `rec-nac` are used when the framing is unknown, and an image that doesn't say is treated as corrected.
+- **`rec-acstat` / `rec-nacstat` / `rec-acdyn` / `rec-nacdyn`:** used only when a session has both attenuation-corrected and uncorrected ("NAC") images. Dynamic means more than one frame (from the sidecar, or, without one, more than one volume in the NIfTI header); `rec-ac` / `rec-nac` are used when the framing is unknown, and an image that doesn't say is treated as corrected.
 - **Attenuation CT:** a CT named CTAC / AC_CT / mu-map, or any CT inside a PET study folder, is the attenuation CT and isn't exported. The user can change it to CT.
 - **Tracer names aren't subjects:** names like AV45 or MK6240 are never read as subject IDs.
 - **Defacing:** PET isn't covered by the defacing requirement.
@@ -215,6 +220,7 @@ No per-file corrections are possible in the CLI.
   - The first match of these keywords: firstname, lastname, fullname, patientname, ssn, social_security, address, street, zipcode, insurance, policy_number, accession, acc_num (underscore variants included).
 - **Sidecar content:** every string field that isn't already de-identified (nested objects included) is scanned with the same patterns, plus a two-capitalised-words name check (warning).
 - **Table contents:** every cell of each exported TSV (electrodes, channels, events and others) is scanned with the same patterns and keywords. Purely numeric cells are skipped, and so is the two-capitalised-words name check, which would flag event labels such as "Seizure Onset". Tables are exported unchanged, so a finding has to be fixed in the source file.
+- **NIfTI header text:** the free-text `descrip` (80 bytes) and `aux_file` (24 bytes) fields of each exported image are scanned with the same patterns plus the name check. dcm2niix's own `key=value` entries (such as `TE=96;Time=101502.425`) are ignored. The header is exported unchanged, so a finding has to be fixed in the source file.
 - **Not checked for PHI:** an EDF header that looks identifying is shown only as a warning in Mapping's detection reasons (the header itself is always de-identified on export, §8).
 
 **Required files (Implant sessions only):**
@@ -239,7 +245,7 @@ No per-file corrections are possible in the CLI.
 **Not checked:**
 - Per-modality required JSON fields (other than PET).
 - Matching channel names against electrodes.
-- NIfTI headers or dimensions.
+- NIfTI dimensions beyond the warnings in Mapping (nothing in Validate checks them).
 - iEEG minimum duration.
 - Persyst `.dat`/`.lay` pairing.
 - sessions.tsv against the folders.
@@ -270,7 +276,7 @@ No per-file corrections are possible in the CLI.
   - A sidecar that isn't a JSON object (invalid JSON, null, an array) can't be de-identified: validation blocks it (§7) and export refuses to copy it.
 - **`sessions.tsv` `acq_time`:** shifted and written as ISO 8601. A value that can't be shifted becomes `n/a`.
 - **Not de-identified:**
-  - NWB, Persyst `.dat` and NIfTI header text.
+  - NWB, Persyst `.dat` and NIfTI header text (the NIfTI text is PHI-scanned, §7).
   - The contents of electrodes, channels, events and other TSVs (these are PHI-scanned, §7).
   - Free-text sidecar fields (these are PHI-scanned, §7).
   - Image pixels. Defacing is done before NeuroGate and attested.
@@ -302,9 +308,9 @@ No `participants.json`, `README` or `CHANGES` is generated.
   - **Entries:** `{id, timestamp, actor, action, summary, details}`. The actor is "user" or "system" in the GUI, and the OS username in the CLI.
 - **Where it lives:**
   - **Audit Log button (tool header, with an entry count):** opens a panel with **Export JSON** and **Export CSV**, available at any time.
-  - The log lasts for the whole app session, including across Back to Drop Zone and additional datasets. A reload loses it.
+  - The log lasts for the whole app session, including across Back to Drop Zone, Change structure and additional datasets. A reload loses it.
 - **What's logged:**
-  - **Setup:** structure selected, files scanned, session restored.
+  - **Setup:** structure selected, structure changed (from → to), files scanned, session restored.
   - **Detection:** detection completed (counts).
   - **Mapping:** session, modality and subject corrections (old → new); bulk applies (count).
   - **Metadata:** institution configured, subject sessions, dataset description, defacing attested (when leaving Metadata with the box ticked).

@@ -415,10 +415,11 @@ export default function HomePage() {
               </div>
               <h3 className="text-base font-semibold text-gray-900 mb-2">PHI protection</h3>
               <p className="text-sm text-gray-500 leading-relaxed">
-                Validation scans file names, folder names and sidecar text for patient names, MRNs,
-                dates and SSN patterns. On export, EDF/BDF headers, JSON sidecars and session dates
-                are de-identified automatically: identifying fields are blanked and dates are
-                shifted by a random per-subject offset, so relative timing is preserved.
+                Validation scans file and folder names, sidecar text, tables and NIfTI header text
+                for patient names, MRNs, dates and SSN patterns. On export, EDF/BDF headers and
+                annotations, Persyst .lay files, JSON sidecars and session dates are de-identified
+                automatically: identifying text is replaced with X and dates are shifted by a
+                random per-subject offset, so relative timing is preserved.
               </p>
               <div className="mt-5 rounded-lg p-3 text-xs" style={{ backgroundColor: 'rgba(239,68,68,0.05)', color: '#991b1b' }}>
                 <span className="font-semibold">Example flag:</span> filename contains

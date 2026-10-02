@@ -3,13 +3,13 @@
 | Field | Value |
 |---|---|
 | **Document ID** | SOP-BIDS-001 |
-| **Version** | 3.2 |
+| **Version** | 3.3 |
 | **Effective Date** | 2026-10-02 |
 | **Author** | Brandon Bach |
 | **Advisor** | Nishant Sinha |
 | **Status** | Draft, Pending Advisor Review |
-| **Parent Document** | GOV-001 Regulatory and Governance Framework v2.2 |
-| **Related Documents** | SOP-GUI-001 v3.1 |
+| **Parent Document** | GOV-001 Regulatory and Governance Framework v2.3 |
+| **Related Documents** | SOP-GUI-001 v3.2 |
 
 ---
 
@@ -237,7 +237,7 @@ Every dataset is organized under one of three session-structure presets. The cho
 
 **Single session** is for datasets with one session per subject. There is no `ses-` level in folders or filenames and no `sessions.tsv`.
 
-A dataset uses exactly one preset. The structure cannot be changed on screen once the user continues past Step 1. To change it, the user returns to the drop zone ("Back to Drop Zone" on the Mapping step, which clears the files and mapping) and reloads the application.
+A dataset uses exactly one preset. It can be changed later with **Change structure** on the Drop Files or Mapping step, which returns to Step 1 with the current structure selected, clears the added files, corrections and metadata entries, and records a "Structure changed" entry in the audit log (SOP-GUI-001 Section 6.5). The files are then added again under the new structure.
 
 ---
 
@@ -435,7 +435,7 @@ PET images are placed in `pet/` with the `_pet` suffix. PET is not tied to a par
 
 **`trc-` entity.** The tracer label comes from the sidecar `TracerName`, or from the file or folder name. Recognized tracers resolve to one label (for example `18F-FDG` and `Fluorodeoxyglucose` both become `trc-FDG`). An unrecognized sidecar `TracerName` is kept, reduced to letters and digits and at most 24 characters. When no tracer is found, the `trc-` entity is left out. PET images with different tracers in one session are numbered separately, so an FDG scan and an amyloid scan do not become `run-1` and `run-2`.
 
-**`rec-` entity.** The tool adds a `rec-` label only when a session holds both attenuation-corrected and non-attenuation-corrected ("NAC", "noAC") images of the same tracer. It uses `rec-acstat`, `rec-nacstat`, `rec-acdyn`, or `rec-nacdyn`, where dynamic means the sidecar lists more than one frame; when the framing is unknown the label is `rec-ac` or `rec-nac`. An image that does not state its correction is treated as corrected. For example:
+**`rec-` entity.** The tool adds a `rec-` label only when a session holds both attenuation-corrected and non-attenuation-corrected ("NAC", "noAC") images of the same tracer. It uses `rec-acstat`, `rec-nacstat`, `rec-acdyn`, or `rec-nacdyn`, where dynamic means the sidecar lists more than one frame (or, with no sidecar, the NIfTI header shows more than one volume); when the framing is unknown the label is `rec-ac` or `rec-nac`. An image that does not state its correction is treated as corrected. For example:
 
 ```
 pet/
@@ -849,7 +849,7 @@ The tool performs the following automatically on every export, under every struc
 
 **Not de-identified by the tool:**
 
-- NWB files, Persyst `.dat` files, and NIfTI header text
+- NWB files, Persyst `.dat` files, and NIfTI header text (the NIfTI text is PHI-scanned, Section 11.3, and exported unchanged)
 - The contents of electrodes, channels, events, and other TSV tables (these are PHI-scanned, Section 11.3, and exported unchanged)
 - Free-text sidecar fields such as `SeriesDescription` and `ProtocolName` (these are PHI-scanned, Section 11.3)
 - Image pixels (defacing is done before import and attested, Section 11.2)
@@ -864,13 +864,13 @@ The following are the site's responsibility and cannot be performed by the tool.
 
 Facial defacing is required for the anatomical folders of `ses-preimplant` and `ses-postsurgery` under the Implant sessions preset, and for any anatomical folder under Custom timepoints or Single session. CT scans do not require facial defacing per current standard practice, though sites may choose to deface them as an additional precaution. PET is exempt from defacing and is not covered by the attestation.
 
-**Other recording formats and tables.** Remove identifiers from NWB files, Persyst `.dat` files, NIfTI header text, and all TSV tables (electrodes, channels, events) before import. The tool does not modify any of these. It PHI-scans TSV tables during validation (Section 11.3), but a finding has to be fixed in the source file. Also review EDF+ annotations and Persyst `.lay` comments: the tool redacts the identifiers it recognizes (Section 11.1), but free text it does not recognize is kept.
+**Other recording formats and tables.** Remove identifiers from NWB files, Persyst `.dat` files, NIfTI header text, and all TSV tables (electrodes, channels, events) before import. The tool does not modify any of these. It PHI-scans TSV tables and NIfTI header text during validation (Section 11.3), but a finding has to be fixed in the source file. Also review EDF+ annotations and Persyst `.lay` comments: the tool redacts the identifiers it recognizes (Section 11.1), but free text it does not recognize is kept.
 
 **Manual review of free-text fields.** Free-text sidecar fields such as `SeriesDescription` and `ProtocolName` are left intact by the automatic de-identification because downstream BIDS tooling uses them. If a scanner operator typed a patient name or medical record number into one of these fields at acquisition time, that PHI will remain in the export unless corrected. The tool's PHI scanner checks these fields and flags suspicious values during validation (Section 11.3), but the correction is manual: edit the source sidecar to remove the PHI, then add the files to the tool again.
 
 ### 11.3 PHI Scanning During Validation
 
-The tool runs three complementary PHI scans during validation. Neither modifies source files.
+The tool runs four complementary PHI scans during validation. None of them modifies source files.
 
 **File and folder names** are scanned for:
 
@@ -880,6 +880,8 @@ The tool runs three complementary PHI scans during validation. Neither modifies 
 **JSON sidecar content.** Every string field in every sidecar that is not already de-identified (nested objects included) is scanned with the same patterns and keywords, at the same severities, plus a check for two capitalised words that may be a name (warning).
 
 **TSV table contents.** Every cell of each exported TSV table (electrodes, channels, events, and others) is scanned with the same patterns and keywords. Purely numeric cells are skipped, and so is the two-capitalised-words name check, which would flag event labels such as "Seizure Onset". Tables are exported unchanged, so a finding has to be fixed in the source file.
+
+**NIfTI header text.** The free-text `descrip` (80 bytes) and `aux_file` (24 bytes) fields in the header of each exported NIfTI image are scanned with the same patterns and keywords, plus the two-capitalised-words name check. dcm2niix's own `key=value` entries (such as `TE=96;Time=101502.425`) are ignored. The header is exported unchanged, so a finding has to be fixed at the source, for example by converting again.
 
 **Not scanned:** an EDF header that looks identifying is shown only as a warning in the mapping table's detection reasons. The header itself is always de-identified on export (Section 11.1).
 
@@ -943,7 +945,7 @@ The following are listed in the mapping table but are not exported:
 - Localizer and scout scans (acquisition aids, not analyzable data)
 - PET attenuation-correction CT and mu-map images (Section 6.1.7)
 - The redundant copy of a series converted twice (see Section 12.5)
-- Files whose modality the tool has only guessed. An unidentified `.nii.gz` defaults to T1w, marked "Guessed: pick a modality to export", and is not exported until the user picks a modality. An unidentified `.nii` stays Other / Unknown. Validation lists a subject's guessed files in one warning (Section 13.1).
+- Files whose modality the tool has only guessed. An unidentified `.nii.gz` defaults to T1w, marked "Guessed: pick a modality to export", and is not exported until the user picks a modality. One whose NIfTI header shows more than one volume (a series such as fMRI, diffusion or dynamic PET) is not defaulted to T1w and stays Other / Unknown. An unidentified `.nii` stays Other / Unknown. Validation lists a subject's guessed files in one warning (Section 13.1).
 - Files with an unrecognized extension, or that could not be classified (a "Unclassified file" warning)
 - JSON sidecars with no data file of the same base name (an "Orphaned JSON sidecar" warning), and diffusion gradient tables that could not be paired (Section 6.1.2)
 - DICOM files (`.dcm`, `.dicom`, `.ima`) and ECAT PET files (`.v`, `.v.gz`), each with a warning to convert to NIfTI first
@@ -1038,7 +1040,7 @@ The tool does not issue a validation message when it routes scanner-computed der
 
 - Per-modality required JSON sidecar fields (other than PET, which is a warning)
 - Channel names in `channels.tsv` against `electrodes.tsv`
-- NIfTI headers, image dimensions, or image quality (blurry images export successfully; image quality is a site QC concern)
+- Image dimensions in validation (the NIfTI header is read during detection, and a name that contradicts the dimensions gets a warning in the mapping table, but validation does not check them), or image quality (blurry images export successfully; image quality is a site QC concern)
 - iEEG minimum recording duration (the 48-hour site rule, Section 6.2.2)
 - Persyst `.dat`/`.lay` pairing
 - `sessions.tsv` against the session folders
@@ -1061,12 +1063,13 @@ The tool does not issue a validation message when it routes scanner-computed der
 | 3.0 | August 31, 2026 | Brandon Bach | Substantive rewrite. Added proton-density weighted (PDw) and T2*-weighted (T2starw) as first-class modalities with their own required-fields tables (Section 6.1.1). Documented the `part-mag` / `part-phase` entities for magnitude/phase pairs (Sections 5.3.2, 6.1.1). Documented the `rec-moco` entity for motion-corrected reconstructions of functional runs (Sections 5.3.3, 6.1.3). Documented the `sbref` suffix for multiband single-band reference volumes (Sections 5.3.4, 6.1.2, 6.1.3). Added the `derivatives/scanner/` folder as a first-class part of the dataset structure (Sections 5.1, 9). Added the `desc-` entity for derivative-map identification (Sections 5.3, 9.3). Expanded the diffusion section with gradient-table pairing rules (Section 6.1.2). Expanded the field-map section with per-series run assignment and dcm2niix collision-suffix handling (Section 6.1.5). Expanded the Custom timepoints section with recognized visit-folder conventions and nested-folder handling (Sections 8.2, 8.5). Added a duplicate-series handling section (Section 12.5). Expanded the validation pipeline to cover held-back subjects, informational notes, and derivatives folder structural checks (Section 13). |
 | 3.1 | September 30, 2026 | Brandon Bach | Accuracy revision: every statement about NeuroGate now matches the verified capability inventory, and site obligations are separated from tool behavior. Added PET (Section 6.1.7): `pet/` folder, `_pet` suffix, `trc-` and `rec-` rules, attenuation-CT exclusion, the BIDS-required PET sidecar fields, PET2BIDS (`pypet2bids`, `dcm2niix4pet`), non-blocking PET warnings, ECAT conversion, and no blood-data support; added PET to modality lists and trees. Added the Single session preset and the "sessions" timepoint unit (Sections 5.4, 8.1). Section 5.1 now shows the real export layout (`bids_output/`, participant_id-only `participants.tsv`, per-subject `sessions.tsv`, audit log) and states that `participants.json`, `README`, and `CHANGES` are not generated and are added by the site (Sections 10.2, 10.6, 10.7). Documented the entity order and the fixed `task-rest` / `task-monitor` labels, and corrected the `rec-moco`, `sbref`, `part-`, and derivative naming examples (run numbering is per group). Post-surgery T1w is now required (error) and T2w recommended under the Implant preset (Section 6.3). Rewrote de-identification (Section 11) with the exact EDF and sidecar field lists, `sessions.tsv` `acq_time` shifting, and the date shift not being recorded; removed the claims that NWB headers are de-identified and that the shift is in the audit log. Rewrote PHI scanning and validation (Sections 11.3, 13) to the actual checks and severities; removed the claimed channels/electrodes cross-check, 48-hour iEEG minimum check (the 48-hour minimum is kept as a site rule the tool does not check, Section 6.2.2), Persyst pair check, NIfTI sanity checks, per-modality sidecar field checks, bids-validator run, and GUI held-back subjects (held-back subjects are CLI-only). Section 8 now describes the custom-timepoint detection layers (exact labels, number-and-unit folder names, date clustering, folder clustering, neighbor propagation) in place of the "literal only" claim. Corrected install-script paths to `tools/install_mac.sh`, `tools/install_linux.sh`, `tools/install_windows.ps1` and changed the dcm2niix example to a `%p_%s` template. Documented that electrode, channel, and event tables are placed beside their recording (`eeg/` for scalp EEG, `ieeg/` for iEEG, matched by source folder then subject and session, with `ieeg/` as the fallback; Sections 6.1.6, 10.4, 10.5), that `IntendedFor` and `_coordsystem.json` are not produced, that reverse-polarity EPI field maps are not given `_epi` names, and that BrainVision is not supported. Removed the future derivative-labels statement and added `desc-COLFA` / `desc-EXADC`. Section 5 now states that the export layout is NeuroGate's own BIDS-based structure: names, entities, datatype folders and sidecars follow BIDS conventions, but the root layout (`primary/`, `derivatives/scanner/`) intentionally differs from the official BIDS specification, so the official BIDS validator does not apply to it as a whole; conformance means following this SOP's structure and passing NeuroGate's own validation with no errors (Section 13). Removed statements that a dataset will not pass, or that sites run, the official BIDS validator, and replaced "BIDS-compliant" with "BIDS-based" wording. PET sidecar fields are required by this SOP (Section 6.1.7); PET is exempt from defacing. Demographics are optional and added by the site after export; `participants.json`, `README` and `CHANGES` are written by the site if a recipient needs them (Sections 5.1, 10.2, 10.6, 10.7). The date shift is deliberately not recorded, so true dates cannot be recovered (Section 11.1). The audit log stays at the site and is never shared, and sites record the operator's identity themselves (Section 11.4). Persyst `.dat`/`.lay` remain accepted (Section 6.2.2). Section 4.2 references the Pre-Processing page's dcm2niix, PET2BIDS (`dcm2niix4pet`) and pydeface commands and adds `ecatpet2bids`. |
 | 3.2 | October 2, 2026 | Brandon Bach | Updated for NeuroGate 1.2.0. Section 5.1: the export folder holds a full audit log and a shareable copy (CLI: `audit_log.json` and `audit_log_shareable.json`); participants.tsv lists subjects with exported data. Section 5.3: a leftover `_dup-N` collision is now a blocking validation error. Section 6.2: Persyst `.lay` files are de-identified and their `File=` line points at the renamed `.dat`; EDF+/BDF+ annotations are de-identified; NWB and the Persyst `.dat` remain a site step. Section 7: the CLI's sessions.tsv no longer lists sessions with no data. Section 10: participants.tsv and sessions.tsv list only subjects and sessions with exported data (desktop and CLI); electrodes and channels tables are PHI-scanned but exported unchanged; JSON pairing is by base name in the same folder. Section 11.1: date shift covers the `.lay` test date; added EDF+/BDF+ annotation redaction (same byte length, event text and timestamps kept), signal-header transducer and prefiltering checks, and Persyst `.lay` handling; sidecar fields are handled at any depth, and a sidecar that is not a JSON object blocks validation and is not exported (replacing the top-level-only and copy-unchanged limits). Section 11.2: manual de-identification now covers NWB, the Persyst `.dat`, NIfTI header text and TSV tables, with review of annotations and `.lay` comments. Section 11.3: added the TSV table content scan. Section 11.4: described the shareable audit log. Section 12: updated the automation list, workflow table and guessed-file note. Section 13.1: added the duplicate-name and invalid-sidecar errors and the per-subject guessed-files warning. Section 13.2: only exported files satisfy required-file checks. Section 13.6: table contents are scanned. Header updates the parent to GOV-001 v2.2 and the related document to SOP-GUI-001 v3.1. |
+| 3.3 | October 2, 2026 | Brandon Bach | Updated for NeuroGate 1.3.0. Section 5.4: the structure can be changed later with Change structure (files cleared, change audit-logged). Section 6.1.7: with no sidecar, PET framing comes from the NIfTI volume count. Sections 11.1 to 11.3: NIfTI header text (`descrip`, `aux_file`) is PHI-scanned in a fourth scan, and exported unchanged. Section 13: a 4D NIfTI is not defaulted to T1w; the not-checked list now reflects that headers are read during detection. |
 
 ---
 
 **Source documents:**
 
-- `docs/capabilities.md` (NeuroGate capability inventory, updated for release 1.2.0)
+- `docs/capabilities.md` (NeuroGate capability inventory, updated for release 1.3.0)
 - `public/docs/gov-001.md` (GOV-001, currently v2.2)
 - `public/docs/sop-gui.md` (SOP-GUI-001, currently v3.1)
 - BIDS Specification: https://bids-specification.readthedocs.io

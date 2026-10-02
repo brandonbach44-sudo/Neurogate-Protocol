@@ -14,11 +14,11 @@ Anyone at a site can organize a folder of patient data on their own computer, wi
 
 The desktop app walks through six steps:
 
-1. **Structure:** choose one of three session-structure presets: **Single session** (no `ses-` level), **Implant sessions** (`ses-preimplant`, `ses-postimplant`, `ses-postsurgery`), or **Custom timepoints** (1–24 timepoints such as `ses-2wk`, `ses-6mo`).
+1. **Structure:** choose one of three session-structure presets: **Single session** (no `ses-` level), **Implant sessions** (`ses-preimplant`, `ses-postimplant`, `ses-postsurgery`), or **Custom timepoints** (1–24 timepoints such as `ses-2wk`, `ses-6mo`). It can be changed later from Drop Files or Mapping, which clears the added files.
 2. **Drop Files:** drag in a folder in any layout. Files are scanned in place.
-3. **Mapping:** NeuroGate detects each file's subject, session and modality (T1w, T2w, FLAIR, PDw, T2*w, MR angiography, CT, PET, diffusion, perfusion/ASL, functional MRI, field maps, scalp EEG, iEEG, and electrodes/channels/events tables) and proposes a BIDS name. You can correct any of it inline.
-4. **Metadata:** institution prefix (for `sub-<PREFIX>001` IDs), study name, authors, and a defacing attestation when structural MRI is present.
-5. **Validate:** checks BIDS structure, PHI in file and folder names, sidecar text and TSV table contents, required files (Implant sessions), cross-session consistency, PET sidecars and metadata completeness. Errors block export.
+3. **Mapping:** NeuroGate detects each file's subject, session and modality (T1w, T2w, FLAIR, PDw, T2*w, MR angiography, CT, PET, diffusion, perfusion/ASL, functional MRI, field maps, scalp EEG, iEEG, and electrodes/channels/events tables) and proposes a BIDS name, using sidecars, EDF headers and NIfTI headers (dimensions) as well as names. You can correct any of it inline.
+4. **Metadata:** institution prefix (for `sub-<PREFIX>001` IDs), study name, authors, and a defacing attestation when structural MRI is present. Entries are kept when you go back a step.
+5. **Validate:** checks BIDS structure, PHI in file and folder names, sidecar text, TSV table contents and NIfTI header text, required files (Implant sessions), cross-session consistency, PET sidecars and metadata completeness. Errors block export.
 6. **Export:** writes a `bids_output/` folder plus two JSON audit logs (the full log and a shareable copy) to a folder you choose. Files are streamed, so there's no size limit.
 
 The export layout is NeuroGate's own BIDS-based structure: files follow BIDS naming conventions, but the root layout (`primary/sub-*`, `derivatives/scanner/`) deliberately differs from the official BIDS specification, so the official bids-validator doesn't apply to the dataset as a whole. NeuroGate's own Validate step is the check that must pass.
@@ -99,7 +99,8 @@ Tests (all run on synthetic fixtures in `demo-data/` or on in-memory data):
 ```bash
 npm run regression       # regression.ts, regression_deidentify.ts, regression_flywheel.ts,
                          # regression_generalization.ts, regression_pet.ts,
-                         # regression_edf_annotations.ts, regression_docs.ts
+                         # regression_edf_annotations.ts, regression_nifti.ts,
+                         # regression_docs.ts
 npm run verify:export    # streaming export writer and EDF de-identifier
 npm run verify:cli       # CLI pipeline end to end
 npm run verify:adapter   # NodeFileAdapter scans identically to the browser File path
@@ -107,6 +108,9 @@ npm run verify:adapter   # NodeFileAdapter scans identically to the browser File
 npm run desktop:bundle
 npx tsx verify_desktop_export.ts           # desktop folder export, against the bundled file
 npx tsx verify_desktop_export.ts --large   # same, with a 600 MB EDF
+
+npx vite --port 5199 &                     # then, with Google Chrome installed:
+npx tsx verify_ui_flow.ts                  # the tool page's step flow in headless Chrome
 ```
 
 `regression_docs.ts` checks that each version in `src/docVersions.ts` matches the `| **Version** |` row of its `public/docs/*.md` file. `npm run regression:update` rewrites the golden snapshots (detection, de-identification, Flywheel suites) after an intended behavior change.
