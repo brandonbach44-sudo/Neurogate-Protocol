@@ -107,7 +107,11 @@ Used unchanged by the GUI, the CLI and the desktop export bundle.
 
 `verify_adapter.ts` checks that scanning through `NodeFileAdapter` produces the same detection and validation output as the browser `File` path.
 
-`verify_ui_flow.ts` drives the tool page in headless Chrome over the DevTools protocol (no extra dependencies; it needs a running dev server). It checks that Metadata entries survive Back, that going back doesn't repeat audit entries, and the Change structure flow. It isn't part of CI.
+`verify_ui_flow.ts` drives the tool page in headless Chrome over the DevTools protocol (no extra dependencies; it needs a running dev server and Node 22+). It checks that Metadata entries survive Back, that going back doesn't repeat audit entries, dismissal and attestation logging, the Change structure flow, that a reload keeps the audit log, and the leave-page prompt.
+
+`verify_desktop_close.ts` drives the real Electron app the same way and reads the main process's log: with unsaved audit entries, quitting reaches the prompt and the app stays open; with nothing to save it quits without one; and a new launch starts with an empty log.
+
+Unsaved-log guard: `AuditProvider` reports `hasUnsavedWork()` through the preload bridge (`setAuditUnsaved`, IPC `audit-unsaved`); the main window's `close` handler shows the prompt and remembers whether a quit was under way, so **Close Without Saving** resumes it. The local server is stopped in `will-quit`, after the close can no longer be cancelled.
 
 ### Validation model (`src/types/validation.ts`)
 
@@ -165,7 +169,7 @@ Document versions are separate: `src/docVersions.ts` lists each `public/docs/*.m
 
 - `.github/workflows/release.yml` runs on a `v*.*.*` tag push (or manually). It checks the tag against `package.json`, then on Windows, macOS and Linux runners (Node 20): `npm ci` → `npm run regression` (all eight suites, including `regression_pet.ts`, `regression_edf_annotations.ts`, `regression_nifti.ts` and `regression_docs.ts`) → `npm run build` → `npm run cli:sea` → `npm run desktop:bundle` → `electron-builder --publish always` into a draft release. A final job adds download notes and publishes the release (a manual run leaves it as a draft). electron-updater ignores drafts, so nobody is offered a release that's missing a platform.
 - electron-builder targets: NSIS `.exe` (Windows), `.dmg` + `.zip` (macOS, arm64), `.AppImage` (Linux). `"identity": null` disables macOS signing; the `afterPack` hook `scripts/adhoc-sign-mac.cjs` ad-hoc signs the whole `.app` so Gatekeeper shows the ordinary "unidentified developer" block (cleared with Open Anyway) instead of "damaged".
-- `.github/workflows/ci.yml` runs on every push (any branch) and pull request, on Ubuntu with Node 20: `npm ci` → `npm run lint` → `npm run build` → `npm run regression` → `verify:export`, `verify:cli`, `verify:adapter` → `npm run desktop:bundle` and `verify_desktop_export.ts`. It doesn't build installers or publish anything.
+- `.github/workflows/ci.yml` runs on every push (any branch) and pull request, on Ubuntu with Node 20: `npm ci` → `npm run lint` → `npm run build` → `npm run regression` → `verify:export`, `verify:cli`, `verify:adapter` → `npm run desktop:bundle` and `verify_desktop_export.ts`. A second job, `ui`, on Node 22, runs `verify_ui_flow.ts` in the runner's Chrome against a Vite dev server and `verify_desktop_close.ts` under `xvfb-run`, with the Chromium sandbox off (Ubuntu 24.04 blocks it). CI doesn't build installers or publish anything.
 - The website is hosted on Vercel (`vercel.json`), through Vercel's GitHub integration: every push to `main` builds and deploys https://epilepsy-gui.vercel.app, with no workflow in this repo and without waiting for CI.
 
 See [`../neurogate_deployment_workflow.md`](../neurogate_deployment_workflow.md) for the release reference and open questions.

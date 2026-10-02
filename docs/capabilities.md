@@ -2,7 +2,7 @@
 
 **This file is the single source of truth for what NeuroGate does.** Every user-facing document (GOV-001, SOP-BIDS-001, SOP-GUI-001, README) and every page in the app describes only what's listed here. When a feature is added or changed, update this file first, then the documents.
 
-It was verified line by line against the code on 2026-09-30 (version 1.0.1 plus that day's changes) and updated for each release since; this revision is for 1.5.0 (2026-10-02). File references are relative to the repo root.
+It was verified line by line against the code on 2026-09-30 (version 1.0.1 plus that day's changes) and updated for each release since; this revision is for 1.6.0 (2026-10-02). File references are relative to the repo root.
 
 ---
 
@@ -89,7 +89,7 @@ Four tabs, each marked complete or incomplete ("N of 4 sections complete"):
 
 **Auto-fill:**
 - The study name and authors come from a dropped `dataset_description.json`.
-- Session dates come from a dropped `sessions.tsv`, or from a sidecar's `AcquisitionDateTime` when the file sits in a `ses-<label>` folder. Auto-filled dates aren't shown, but they're used by the date-order check and exported, shifted, in `sessions.tsv`.
+- Session dates come from a dropped `sessions.tsv`, or from a sidecar's `AcquisitionDateTime` when the file sits in a `ses-<label>` folder. Session labels are matched against the chosen structure: its exact labels, with or without `ses-` (`ses-2wk`, `2wk`), and for Implant also keywords such as preop, monitoring or postop. Auto-filled dates aren't shown, but they're used by the date-order check and exported, shifted, in `sessions.tsv`.
 
 **No demographics** (age, sex, handedness) are collected.
 
@@ -239,17 +239,19 @@ No per-file corrections are possible in the CLI.
 
 **PET:** a warning, which can be dismissed, when a PET image has no sidecar or its sidecar lacks BIDS-required PET fields. It never blocks export.
 
+**Consistency** (`src/lib/validation/consistencyChecker.ts`; all can be dismissed):
+- **channels.tsv against electrodes.tsv** (in the same exported folder): an electrode channel with no contact of the same name in the electrodes table is a warning, listing the names (up to 12) and pointing out names that differ only in letter case. Electrode channels are those of type SEEG, ECOG or DBS in `ieeg/` and EEG in `eeg/`; without a `type` column, every channel except ECG, EMG, EOG, trigger, status and similar names is checked. A bipolar channel (`LA1-LA2`) passes when both contacts are listed. An electrodes table without a `name` column is a warning.
+- **Persyst pairs:** an exported `.dat` with no `.lay` of the same name in the same folder, or the reverse (warning).
+- **A dropped sessions.tsv** (Implant and Custom timepoints): rows whose session matches none of the structure's sessions (warning: their dates aren't used); sessions listed with no exported files (info); sessions with files that the table doesn't list (info).
+
 **Metadata:**
 - Missing dataset name, authors or prefix, and a missing defacing attestation, are errors. In the GUI the Metadata step already prevents them.
 - **Other checks:** sparse dataset (warning); empty dataset (error).
 
 **Not checked:**
 - Per-modality required JSON fields (other than PET).
-- Matching channel names against electrodes.
 - NIfTI dimensions beyond the warnings in Mapping (nothing in Validate checks them).
 - iEEG minimum duration.
-- Persyst `.dat`/`.lay` pairing.
-- sessions.tsv against the folders.
 - Scanner or site consistency.
 - The official bids-validator isn't run.
 
@@ -310,6 +312,7 @@ No `participants.json`, `README` or `CHANGES` is generated.
 - **Where it lives:**
   - **Audit Log button (tool header, with an entry count):** opens a panel with **Export JSON** and **Export CSV**, available at any time.
   - The log lasts for the whole app session, including across Back to Drop Zone, Change structure and additional datasets.
+  - **Closing with an unsaved log asks first:** when the log has entries that no saved copy includes (an export, or Export JSON / CSV; choosing a structure alone doesn't count), closing the desktop app's window or quitting shows "This session's audit log hasn't been saved" with **Keep Open** / **Close Without Saving**. A browser tab shows the browser's own leave-page prompt (which also appears on a reload).
   - **Kept across a reload** (`src/lib/audit/auditPersistence.ts`): the log is saved to tab storage after every change and restored when the page reloads, with a "Page reloaded; audit log restored" entry; numbering continues. Closing the tab or quitting the app clears it, so export it before closing. If tab storage is unavailable or full, it isn't saved.
 - **What's logged:**
   - **Setup:** structure selected, structure changed (from → to), files scanned, session restored.

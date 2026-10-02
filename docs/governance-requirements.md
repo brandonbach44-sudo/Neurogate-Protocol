@@ -2,7 +2,7 @@
 
 > Internal developer notes. This file extracts the enforceable rules in GOV-001 and SOP-BIDS-001 (`public/docs/gov-001.md`, `public/docs/sop-bids.md`) and records, for each one, whether the tool implements it or whether it is a site responsibility the tool does not enforce. What the tool actually does is defined by `docs/capabilities.md`; if this file and capabilities.md disagree, capabilities.md wins and this file is wrong. Update this file whenever either governance document or capabilities.md changes.
 
-**Last sync:** 2026-10-02, against GOV-001 v2.4, SOP-BIDS-001 v3.4, `docs/capabilities.md` (updated for release 1.5.0) and the owner's policy decisions in §0. Where GOV-001 or SOP-BIDS-001 text still says otherwise, §0 governs and the document is due for revision.
+**Last sync:** 2026-10-02, against GOV-001 v2.5, SOP-BIDS-001 v3.5, `docs/capabilities.md` (updated for release 1.6.0) and the owner's policy decisions in §0. Where GOV-001 or SOP-BIDS-001 text still says otherwise, §0 governs and the document is due for revision.
 
 **How to read this file.** Every rule is tagged:
 
@@ -146,7 +146,7 @@ All **[SITE]** (the tool doesn't check these columns; it only PHI-scans table ce
 
 - **electrodes.tsv:** `name`, `x`, `y`, `z` required; `size` recommended.
 - **channels.tsv:** `name`, `type`, `units`, `sampling_frequency` required; `status` recommended.
-- **Cross-validation:** every channel name in channels.tsv exists in electrodes.tsv for the same subject/session. Not checked.
+- **Cross-validation [TOOL, partial]:** electrode channels (SEEG/ECOG/DBS, or EEG in `eeg/`) in channels.tsv with no matching name in the electrodes.tsv beside them are a dismissable warning (`consistencyChecker.ts`). Unused contacts in electrodes.tsv aren't reported.
 - **Per-modality JSON sidecar fields** (GOV-001 Section 3 "Key Metadata"). Not checked, except PET below.
 
 **[TOOL, partial]** PET: a dismissable warning when a PET image has no sidecar or its sidecar lacks any BIDS-required PET field (`src/lib/validation/petChecker.ts`, field list `PET_REQUIRED_SIDECAR_FIELDS` in `src/lib/detection/petVocabulary.ts`). Never blocks export. Conditionally required PET fields are not checked.
@@ -222,7 +222,7 @@ Not implemented (remove from any doc that claims it): site-configurable MRN patt
 - **Also logged:** each dismissed validation issue (title, severity, category, affected files; not the description), Re-run Checks that clears dismissals, and the dismissed issues at Validation passed.
 - **Not logged:** per-file detection reasons, export started, errors, per-check validation results, per-field metadata values and their source, file sizes/byte totals, identity beyond the actor above. A restore doesn't re-log files scanned or detection completed.
 - **[SITE]** Operator identity (who ran the export) is recorded by the site in its own records (§0.8).
-- Lasts for the app session and survives a reload (saved to tab storage); closing the tab or app clears it.
+- Lasts for the app session and survives a reload (saved to tab storage); closing the tab or app clears it, and closing with unsaved entries asks first.
 
 **[SITE]** The full audit log contains original file and folder names and the study name, which can identify patients. It stays in local site records and is never shared or uploaded with the dataset. Only the shareable copy may accompany a dataset (§0.1; GOV-001 Sections 2.3, 5, 6.1).
 
@@ -237,6 +237,7 @@ What the tool runs (`src/lib/validation/`), see capabilities.md §7 for full det
 3. **[TOOL]** PHI in names, sidecar text, TSV table cells and NIfTI header text (`phiScanner.ts`, §9).
 4. **[TOOL]** Cross-session (`crossSessionChecker.ts`): chronological order error for Implant when dates were auto-filled; single-session subject (info); same filename in several sessions (warning); duplicate subject ID (error); iEEG without electrodes.tsv in that session (warning).
 5. **[TOOL, partial]** PET sidecar required fields, warning only (`petChecker.ts`).
+5b. **[TOOL]** Consistency, warnings and info (`consistencyChecker.ts`): channels.tsv vs electrodes.tsv names, Persyst `.dat`/`.lay` pairs, a dropped sessions.tsv vs the sessions with files.
 6. **[TOOL]** Metadata completeness (`engine.ts`, §7).
 
 **Pass requirement (§0.9):** NeuroGate's own validation must pass with no errors. GUI: any undismissed error blocks Export. CLI: a subject with errors is held back and the rest exported; errors not tied to a subject exit with code 1; warnings don't stop it (`src/cli/pipeline.ts`, `src/cli/index.ts`).
@@ -246,11 +247,8 @@ The official bids-validator isn't run and isn't required (§0.9).
 **Not implemented, all [SITE]:**
 
 - Per-modality required JSON fields (other than PET).
-- channels.tsv ↔ electrodes.tsv name matching.
 - NIfTI dimension checks in Validate. Headers are read during detection (dimensions shown in Mapping, with a warning when a name contradicts them), but Validate doesn't check them.
 - iEEG minimum recording duration (the 48-hour minimum is a site rule, §0.7).
-- Persyst `.dat` + `.lay` pairing.
-- sessions.tsv against session folders.
 - Scanner/site consistency.
 
 ---
@@ -267,6 +265,6 @@ The official bids-validator isn't run and isn't required (§0.9).
 **Source documents:**
 - `public/docs/gov-001.md` (GOV-001 v2.3)
 - `public/docs/sop-bids.md` (SOP-BIDS-001 v3.3)
-- `docs/capabilities.md` (tool capability inventory, updated for release 1.5.0)
+- `docs/capabilities.md` (tool capability inventory, updated for release 1.6.0)
 - BIDS Specification: https://bids-specification.readthedocs.io
 - iEEG-BIDS Extension: https://bids-specification.readthedocs.io/en/stable/modality-specific-files/intracranial-electroencephalography.html
