@@ -38,6 +38,7 @@ export interface DesktopExportEntry {
   edfDeidentify?: FileEntry['edfDeidentify'];
   jsonDeidentify?: FileEntry['jsonDeidentify'];
   layDeidentify?: FileEntry['layDeidentify'];
+  csvToTsv?: boolean;
   subjectGroup?: string;
 }
 
@@ -86,6 +87,7 @@ export async function runDesktopExport(
       edfDeidentify: item.edfDeidentify,
       jsonDeidentify: item.jsonDeidentify,
       layDeidentify: item.layDeidentify,
+      csvToTsv: item.csvToTsv,
       subjectGroup: item.subjectGroup,
     });
   }

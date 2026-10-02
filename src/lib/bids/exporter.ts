@@ -48,6 +48,7 @@ import type { DetectionResult } from '../../types/detection';
 import { getEffectiveSubjectGroup } from '../../types/detection';
 import { computeBidsNames, isExportedPath } from './bidsNaming';
 import { computeIntendedFor } from './intendedFor';
+import { csvToTsv } from './delimitedText';
 import { deidentifyEdf } from '../deidentify/edfDeidentifier';
 import { deidentifyJsonSidecar, isJsonSidecarFile, shiftDateString } from '../deidentify/jsonSidecarDeidentifier';
 import { deidentifyPersystLay, type LayDeidentifyOptions } from '../deidentify/persystLayDeidentifier';
@@ -187,6 +188,8 @@ export interface FileEntry {
    * redacted. See lib/deidentify/persystLayDeidentifier.ts.
    */
   layDeidentify?: LayDeidentifyOptions;
+  /** A .csv table: converted to TSV (lib/bids/delimitedText.ts), exported under its .tsv name. */
+  csvToTsv?: boolean;
   /** True when the file exceeds LARGE_FILE_THRESHOLD_BYTES and must be copied manually. */
   tooLarge?: boolean;
   /**
@@ -397,6 +400,7 @@ export function buildFileEntries(
       layDeidentify: isPersystLayFile(result.fileName)
         ? { dateShiftDays, datFileName: exportedDatName.get(persystPairKey(result.relativePath)) }
         : undefined,
+      csvToTsv: /\.csv$/i.test(result.fileName) || undefined,
       tooLarge: result.file.size > largeFileThresholdBytes,
       subjectGroup,
     });
@@ -538,6 +542,14 @@ export async function generateZip(
           if (err instanceof SidecarNotJsonError) throw err;
           throw new Error(`Cannot read "${entry.content.name}". Make sure the file is stored locally (not cloud-only) and add the folder again. (${(err as Error).message})`);
         }
+      } else if (entry.csvToTsv) {
+        let text: string;
+        try {
+          text = await entry.content.text();
+        } catch (err) {
+          throw new Error(`Cannot read "${entry.content.name}". Make sure the file is stored locally (not cloud-only) and add the folder again. (${(err as Error).message})`);
+        }
+        zip.file(`bids_output/${entry.path}`, csvToTsv(text));
       } else if (entry.layDeidentify) {
         // Persyst layout -- small text file: point File= at the renamed
         // .dat, clean [Patient], redact [Comments].

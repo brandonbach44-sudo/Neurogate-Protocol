@@ -22,6 +22,7 @@ import type { DatasetStructure } from '../../types/sessionStructure';
 import { createDefaultDatasetStructure, resolveSessionIds } from '../../types/sessionStructure';
 import { isExportedPath } from '../bids/bidsNaming';
 import { resolveSessionLabel, SESSION_ID_COLUMNS } from '../metadata/tsvReader';
+import { readTableRows } from '../bids/delimitedText';
 
 let counter = 0;
 const nextId = () => `cons-${++counter}`;
@@ -43,13 +44,9 @@ async function readTable(result: DetectionResult): Promise<Table | null> {
   } catch {
     return null;
   }
-  const sep = /\.csv$/i.test(result.fileName) ? ',' : '\t';
-  const lines = text.replace(/^\uFEFF/, '').split(/\r?\n/).filter(l => l.trim().length > 0);
-  if (lines.length === 0) return null;
-  return {
-    header: lines[0].split(sep).map(h => h.trim().toLowerCase()),
-    rows: lines.slice(1).map(l => l.split(sep).map(c => c.trim())),
-  };
+  const rows = readTableRows(text, result.fileName);
+  if (rows.length === 0) return null;
+  return { header: rows[0].map(h => h.toLowerCase()), rows: rows.slice(1) };
 }
 
 function column(table: Table, ...names: string[]): number {

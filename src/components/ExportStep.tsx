@@ -124,6 +124,7 @@ export default function ExportStep({
           edfDeidentify: entry.edfDeidentify,
           jsonDeidentify: entry.jsonDeidentify,
           layDeidentify: entry.layDeidentify,
+          csvToTsv: entry.csvToTsv,
           subjectGroup: entry.subjectGroup,
         };
         if (!isFileLike(entry.content)) return { ...base, text: entry.content };
