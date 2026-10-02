@@ -18,7 +18,11 @@ It was verified line by line against the code on 2026-09-30 (version 1.0.1 plus 
 - **CLI:** `neurogate <folder>`, bundled in every desktop build.
   - The **Install CLI** button is in the top navigation bar of the Home, Documentation, Pre-Processing and About pages. It isn't on the tool page, and it's hidden in narrow windows.
   - It copies the CLI into the app-data `bin` folder. On Windows it also adds that folder to the user PATH; on macOS and Linux it shows the folder to add.
-- **No hosted website.** The AWS deploy workflow is disabled in GitHub's settings.
+- **Project website:** <https://epilepsy-gui.vercel.app>, hosted on Vercel and redeployed automatically on every push to `main`. It serves the same pages and documents as the desktop app, and runs the same tool in the browser.
+  - The browser version also processes everything on the visitor's computer: no server address is set in its build, so nothing is uploaded.
+  - **Browser limits:** export is a ZIP download, files over 500 MB are left out (use the desktop app or CLI for those), files are held in memory, and there's no Install CLI button.
+  - The website has no download link for the desktop app; downloads are on GitHub Releases.
+  - The old AWS deploy workflow (`deploy.yml`) is disabled in GitHub's settings and unused.
 - **The version** appears in the footer of the Home, Documentation, Pre-Processing and About pages.
 
 ## 2. Where processing happens
@@ -97,7 +101,7 @@ Four tabs, each marked complete or incomplete ("N of 4 sections complete"):
   - **Export to Folder** opens a folder picker ("Export Here").
   - It creates `<PREFIX>_bids_export_<YYYY-MM-DD>` there (adding `-2`, `-3`, … if that name exists), containing `bids_output/` and `audit_log_<YYYY-MM-DDTHH-MM-SS>.json`.
   - Files are streamed, with no size limit. It shows "Writing file N of M…", then the folder path with **Show Folder**. The button then reads **Export Again**.
-- **Browser build:**
+- **Browser (project website):**
   - "Download" builds `<PREFIX>_bids_export_<date>.zip` (uncompressed, with `bids_output/` inside). A second "Download" saves it, and the audit log downloads separately.
   - Files over 500 MB are **left out** and listed as not included.
 - **Warning:** a file that couldn't be read (e.g. a cloud-only OneDrive file) triggers a "File not locally available" warning.

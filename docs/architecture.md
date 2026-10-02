@@ -159,7 +159,7 @@ Document versions are separate: `src/docVersions.ts` lists each `public/docs/*.m
 
 - `.github/workflows/release.yml` runs on a `v*.*.*` tag push (or manually). It checks the tag against `package.json`, then on Windows, macOS and Linux runners (Node 20): `npm ci` → `npm run regression` (all six suites, including `regression_pet.ts` and `regression_docs.ts`) → `npm run build` → `npm run cli:sea` → `npm run desktop:bundle` → `electron-builder --publish always` into a draft release. A final job adds download notes and publishes the release (a manual run leaves it as a draft). electron-updater ignores drafts, so nobody is offered a release that's missing a platform.
 - electron-builder targets: NSIS `.exe` (Windows), `.dmg` + `.zip` (macOS, arm64), `.AppImage` (Linux). `"identity": null` disables macOS signing; the `afterPack` hook `scripts/adhoc-sign-mac.cjs` ad-hoc signs the whole `.app` so Gatekeeper shows the ordinary "unidentified developer" block (cleared with Open Anyway) instead of "damaged".
-- There's no CI on pull requests or pushes. `.github/workflows/deploy.yml` (an AWS website deploy) still exists but is disabled in GitHub's settings; there's no hosted website.
+- There's no CI on pull requests or pushes. `.github/workflows/deploy.yml` (an old AWS website deploy) still exists but is disabled in GitHub's settings. The website is hosted on Vercel instead (`vercel.json`), through Vercel's GitHub integration: every push to `main` builds and deploys https://epilepsy-gui.vercel.app, with no workflow in this repo. That build sets no `VITE_API_URL`, so the browser version never uploads files.
 
 See [`../neurogate_deployment_workflow.md`](../neurogate_deployment_workflow.md) for the release reference and open questions.
 
