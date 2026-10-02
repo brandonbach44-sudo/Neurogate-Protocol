@@ -3,5 +3,6 @@
  */
 export { createAuditLogger } from './auditLogger';
 export type { AuditLogger } from './auditLogger';
-export { AuditProvider, useAudit } from './AuditContext';
+export { AuditProvider } from './AuditContext';
+export { useAudit } from './auditContextValue';
 export { downloadAuditJson, downloadAuditCsv, auditJsonFile } from './auditExporter';

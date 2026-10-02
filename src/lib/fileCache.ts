@@ -54,3 +54,18 @@ export async function readFileBuffer(file: FileLike): Promise<ArrayBuffer> {
     URL.revokeObjectURL(url);
   }
 }
+
+/**
+ * Files that couldn't be read when they were added (e.g. a cloud-only
+ * OneDrive file that isn't downloaded locally). Recorded so the Export
+ * step can warn about them up front instead of failing mid-export.
+ */
+const unreadable = new WeakSet<object>();
+
+export function markUnreadable(file: object): void {
+  unreadable.add(file);
+}
+
+export function isUnreadable(file: object): boolean {
+  return unreadable.has(file);
+}

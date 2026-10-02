@@ -30,8 +30,15 @@ import {
 type AppStep = 'structure' | 'drop' | 'scanning' | 'mapping' | 'metadata' | 'validation' | 'export';
 
 function ToolPage() {
-  const [step, setStep] = useState<AppStep>('structure');
-  const [datasetStructure, setDatasetStructure] = useState<DatasetStructure>(createDefaultDatasetStructure());
+  // A session saved in this tab (sessionStorage) is read once, before the
+  // first render: it implies a structure was already chosen, so the tool
+  // starts at the drop zone (where the restore banner lives) instead of
+  // asking again.
+  const [initialSaved] = useState<PersistedSession | null>(() => loadToolSession());
+  const [step, setStep] = useState<AppStep>(initialSaved ? 'drop' : 'structure');
+  const [datasetStructure, setDatasetStructure] = useState<DatasetStructure>(
+    () => initialSaved?.structure ?? createDefaultDatasetStructure(),
+  );
   // Phase 2 addition (August 2026): datasetStructure always holds a real
   // value (defaults to the Implant preset via createDefaultDatasetStructure
   // above), even before the user has actually chosen anything on the
@@ -41,31 +48,15 @@ function ToolPage() {
   // would make the gate think a real choice (Implant) was already made
   // and skip straight past the Yes/No question on every first visit.
   // structureChosen tracks the former explicitly.
-  const [structureChosen, setStructureChosen] = useState(false);
+  const [structureChosen, setStructureChosen] = useState(Boolean(initialSaved?.structure));
   const [scannedFiles, setScannedFiles] = useState<ScannedFile[]>([]);
   const [detectionResults, setDetectionResults] = useState<DetectionResult[]>([]);
   const [summary, setSummary] = useState<DetectionSummary | null>(null);
   const [metadataOutput, setMetadataOutput] = useState<MetadataOutput | null>(null);
   const [auditPanelOpen, setAuditPanelOpen] = useState(false);
-  const [savedSession, setSavedSession] = useState<PersistedSession | null>(null);
+  const [savedSession, setSavedSession] = useState<PersistedSession | null>(initialSaved);
 
   const audit = useAudit();
-
-  // ── Save/resume: on mount, check for a sessionStorage-saved session ──
-  useEffect(() => {
-    const saved = loadToolSession();
-    if (saved) {
-      setSavedSession(saved);
-      // A saved session implies a structure choice was already made; skip
-      // straight to the drop zone (where the restore banner lives) instead
-      // of asking again.
-      if (saved.structure) {
-        setDatasetStructure(saved.structure);
-        setStructureChosen(true);
-      }
-      setStep('drop');
-    }
-  }, []);
 
   // ── Save/resume: persist on every detection-state change ──────────────
   // Only file mappings and detection results are persisted, never metadata

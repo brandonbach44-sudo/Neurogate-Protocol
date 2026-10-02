@@ -69,7 +69,7 @@ const PHI_PATTERNS: PhiPattern[] = [
   // Full dates that might be DOB (MM/DD/YYYY or MM-DD-YYYY)
   {
     name: 'date (PHI risk)',
-    pattern: /\b(?:0[1-9]|1[0-2])[\/\-](?:0[1-9]|[12]\d|3[01])[\/\-](?:19|20)\d{2}\b/,
+    pattern: /\b(?:0[1-9]|1[0-2])[/-](?:0[1-9]|[12]\d|3[01])[/-](?:19|20)\d{2}\b/,
     severity: 'warning',
     description: 'This contains a date in MM/DD/YYYY format. If this is a patient date of birth or admission date, it constitutes PHI.',
   },
