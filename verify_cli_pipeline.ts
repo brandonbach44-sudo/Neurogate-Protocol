@@ -78,9 +78,30 @@ async function verifySuccessfulExport(): Promise<boolean> {
     console.log(`  audit_log.json entries: ${auditJson.entries?.length ?? 0}`);
   }
 
+  // Shareable audit copy: no original folder (subject group) or file name
+  // may appear in it. Names that already equal their BIDS name are fine.
+  const shareablePath = join(outDir, 'audit_log_shareable.json');
+  let shareableClean = false;
+  if (existsSync(shareablePath)) {
+    const text = readFileSync(shareablePath, 'utf-8');
+    const originals = [
+      ...result.subjects.map(s => s.subjectGroup),
+      ...(result.scanned ?? []).map(f => f.name).filter(n => !n.startsWith('sub-')),
+    ];
+    // Same word-boundary rule as the redaction: a group named "001" is
+    // part of the assigned ID "sub-VRFY001", which is correct, not a leak.
+    const esc = (x: string) => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const leaked = originals.filter(o => o && new RegExp(`(?<![A-Za-z0-9])${esc(o)}(?![A-Za-z0-9])`).test(text));
+    shareableClean = leaked.length === 0;
+    console.log(`  audit_log_shareable.json: ${shareableClean ? 'no original names' : `LEAKS ${leaked.slice(0, 5).join(', ')}`}`);
+  } else {
+    console.log('  audit_log_shareable.json: missing');
+  }
+
   rmSync(outDir, { recursive: true, force: true });
 
   const pass =
+    shareableClean &&
     result.status === 'exported' &&
     (result.filesWritten ?? 0) > 0 &&
     hasDatasetDesc &&

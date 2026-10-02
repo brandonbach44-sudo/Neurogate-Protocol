@@ -264,7 +264,8 @@ async function main(): Promise<void> {
       log(`assign the missing values per file.`);
     }
 
-    log(`\nAudit log: ${result.auditPath}`);
+    log(`\nAudit log: ${result.auditPath} (keep at your site; it records original file names)`);
+    log(`Shareable audit log: ${result.auditPath?.replace(/audit_log\.json$/, 'audit_log_shareable.json')}`);
     log(heldBack.length > 0
       ? `\nDone: ${result.subjects.length - heldBack.length} of ${result.subjects.length} subjects exported.`
       : '\nDone.');

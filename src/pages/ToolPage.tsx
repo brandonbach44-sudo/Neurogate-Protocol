@@ -15,7 +15,7 @@ import type { DetectionResult, DetectionSummary, Session, Modality } from '../ty
 import { getEffectiveSession, getEffectiveModality } from '../types/detection';
 import { runDetection, generateSummary, readJsonSidecars, readEdfHeaders } from '../lib/detection';
 import { computeBidsNames } from '../lib/bids/bidsNaming';
-import { useAudit, downloadAuditJson, auditJsonFile } from '../lib/audit';
+import { useAudit, auditJsonFiles, buildAuditRedactionPairs, downloadFile } from '../lib/audit';
 import type { DatasetStructure } from '../types/sessionStructure';
 import { createDefaultDatasetStructure, resolveSessionIds } from '../types/sessionStructure';
 import {
@@ -555,14 +555,20 @@ function ToolPage() {
                 },
                 'system',
               );
-              // Desktop folder export: the audit log goes into the export
-              // folder next to bids_output/, like the CLI. Browser ZIP: it
-              // downloads as a separate file.
+              // Two audit files: the full log (original names, keep at the
+              // site) and a shareable copy with names replaced by their
+              // exported BIDS names. Desktop folder export: both go into
+              // the export folder next to bids_output/, like the CLI.
+              // Browser ZIP: both download as separate files.
+              const idMap = new Map(metadataOutput!.subjects.map(s => [s.subjectGroup, s.bidsSubjectId]));
+              const named = computeBidsNames(detectionResults, idMap, datasetStructure);
+              const { full, shareable } = auditJsonFiles(audit, 'user', buildAuditRedactionPairs(named, metadataOutput!.subjects));
               if (destination && window.neurogateDesktop) {
-                const { name, text } = auditJsonFile(audit, 'user');
-                await window.neurogateDesktop.writeExportFile(destination.outputDir, name, text);
+                await window.neurogateDesktop.writeExportFile(destination.outputDir, full.name, full.text);
+                await window.neurogateDesktop.writeExportFile(destination.outputDir, shareable.name, shareable.text);
               } else {
-                downloadAuditJson(audit, 'user');
+                downloadFile(full.text, full.name, 'application/json');
+                downloadFile(shareable.text, shareable.name, 'application/json');
               }
             }}
           />

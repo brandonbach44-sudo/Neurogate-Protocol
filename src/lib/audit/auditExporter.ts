@@ -10,16 +10,23 @@
  */
 
 import type { AuditLogger } from './auditLogger';
+import { redactAuditValue, type RedactionPairs } from './auditRedaction';
 
 // ── JSON Export ─────────────────────────────────────────────────
 
-export function exportAsJson(logger: AuditLogger, exportedBy: string): string {
-  const header = logger.getExportHeader(exportedBy);
+/**
+ * The audit log as JSON. With `redact`, the shareable copy: original file
+ * names, paths and subject-group names replaced (see auditRedaction.ts),
+ * and the operator shown only as "site".
+ */
+export function exportAsJson(logger: AuditLogger, exportedBy: string, redact?: RedactionPairs): string {
+  const header = logger.getExportHeader(redact ? 'site' : exportedBy);
   const log = logger.getLog();
 
   const output = {
     _format: 'ALCOA+ Audit Log',
     _version: '1.0',
+    ...(redact ? { _copy: 'Shareable copy: original file, folder and subject names are replaced with their exported BIDS names. The full log stays at the site.' } : {}),
     header,
     entries: log.entries.map(entry => ({
       id: entry.id,
@@ -31,7 +38,7 @@ export function exportAsJson(logger: AuditLogger, exportedBy: string): string {
     })),
   };
 
-  return JSON.stringify(output, null, 2);
+  return JSON.stringify(redact ? redactAuditValue(output, redact) : output, null, 2);
 }
 
 // ── CSV Export ───────────────────────────────────────────────────
@@ -105,6 +112,23 @@ export function auditJsonFile(logger: AuditLogger, exportedBy: string): { name: 
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
   logger.logAuditExported('JSON');
   return { name: `audit_log_${timestamp}.json`, text };
+}
+
+/**
+ * Both audit files written at export: the full log (keep at the site) and
+ * the shareable copy (safe to send with the dataset). Same timestamp, so
+ * the pair is easy to match.
+ */
+export function auditJsonFiles(
+  logger: AuditLogger,
+  exportedBy: string,
+  redact: RedactionPairs,
+): { full: { name: string; text: string }; shareable: { name: string; text: string } } {
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+  const full = { name: `audit_log_${timestamp}.json`, text: exportAsJson(logger, exportedBy) };
+  const shareable = { name: `audit_log_${timestamp}_shareable.json`, text: exportAsJson(logger, exportedBy, redact) };
+  logger.logAuditExported('JSON');
+  return { full, shareable };
 }
 
 /**
