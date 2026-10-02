@@ -257,7 +257,7 @@ function checkEmptyDataset(input: ValidationInput): ValidationIssue[] {
       category: 'required-files',
       severity: 'error',
       title: 'No files added',
-      description: 'This dataset has no files at all. Go back to the file drop step and verify your folder selection -- there is nothing here to export.',
+      description: 'This dataset has no files at all. Go back to the file drop step and verify your folder selection; there is nothing here to export.',
       affectedFiles: [],
       dismissable: false,
     });

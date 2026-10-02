@@ -433,7 +433,7 @@ ipcMain.handle('install-cli', async () => {
   if (!fs.existsSync(source)) {
     throw new Error(
       app.isPackaged
-        ? `CLI binary is missing from this build (expected at ${source}). This build was packaged without it -- rebuild with the CLI step included.`
+        ? `CLI binary is missing from this build (expected at ${source}). This build was packaged without it; rebuild with the CLI step included.`
         : `CLI binary not found at ${source}. Run "npm run cli:sea" first, then try again.`
     );
   }

@@ -87,7 +87,7 @@ export async function writeFileEntriesToDisk(
       // scanDirectory()). A browser File reaching here would mean a
       // caller wired the web export path into this function by mistake.
       throw new Error(
-        `writeFileEntriesToDisk expected a NodeFileAdapter for "${entry.path}" but got a browser File/other FileLike. This writer is Node/CLI-only -- use generateZip() from lib/bids/exporter.ts for the web export path.`,
+        `writeFileEntriesToDisk expected a NodeFileAdapter for "${entry.path}" but got a browser File/other FileLike. This writer is Node/CLI-only. Use generateZip() from lib/bids/exporter.ts for the web export path.`,
       );
     }
     const source = entry.content;

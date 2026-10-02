@@ -34,10 +34,13 @@ import {
   SESSION_PRESETS,
   buildCustomSessionLabel,
   TIMEPOINT_UNITS,
+  MAX_CUSTOM_TIMEPOINTS,
+  MAX_TIMEPOINT_NUMBER,
+  validateCustomTimepoints,
 } from '../types/sessionStructure';
 import type { DatasetStructure, CustomTimepoint, TimepointUnit, PresetId } from '../types/sessionStructure';
 import { requiresDefacing, DEFACING_MODALITY_LABELS } from '../types/detection';
-import { askText, askYesNoRequired, askNumber, askChoice, askList, closePrompts } from './prompts';
+import { askText, askYesNoRequired, askNumber, askInteger, askChoice, askList, closePrompts } from './prompts';
 
 function log(msg = ''): void {
   console.log(msg);
@@ -88,19 +91,24 @@ async function chooseStructure(): Promise<DatasetStructure> {
     return { presetId } as DatasetStructure;
   }
 
-  const count = await askNumber('How many timepoints does this study have?', 2);
-  const timepoints: CustomTimepoint[] = [];
   const unitChoices = TIMEPOINT_UNITS.map(u => ({ value: u.value, label: u.label }));
-
-  for (let i = 0; i < count; i++) {
-    log(`\nTimepoint ${i + 1} of ${count}:`);
-    const number = await askNumber('  Number (0 = baseline)', i);
-    const unit = await askChoice<TimepointUnit>('  Unit', unitChoices, 2 /* month */);
-    timepoints.push({ number, unit });
-    log(`  -> ${buildCustomSessionLabel({ number, unit })}`);
+  // Same rules as the Structure step in the app: 1 to 24 timepoints, each
+  // a whole number from 0 to 99, no two resolving to the same label.
+  while (true) {
+    const count = await askInteger(`How many timepoints does this study have? (1-${MAX_CUSTOM_TIMEPOINTS})`, 1, MAX_CUSTOM_TIMEPOINTS, 2);
+    const timepoints: CustomTimepoint[] = [];
+    for (let i = 0; i < count; i++) {
+      log(`\nTimepoint ${i + 1} of ${count}:`);
+      const number = await askInteger(`  Number (0 = baseline, up to ${MAX_TIMEPOINT_NUMBER})`, 0, MAX_TIMEPOINT_NUMBER, i);
+      const unit = await askChoice<TimepointUnit>('  Unit', unitChoices, 2 /* month */);
+      timepoints.push({ number, unit });
+      log(`  -> ${buildCustomSessionLabel({ number, unit })}`);
+    }
+    const check = validateCustomTimepoints(timepoints);
+    if (check.valid) return { presetId: 'custom-timepoints', timepoints };
+    for (const e of check.errors) log(`\n${e}`);
+    log('Let\'s enter the timepoints again.');
   }
-
-  return { presetId: 'custom-timepoints', timepoints };
 }
 
 async function configureInstitution(): Promise<InstitutionConfig> {
@@ -276,11 +284,11 @@ async function main(): Promise<void> {
 
 function printSummary(result: Awaited<ReturnType<typeof runNeuroGatePipeline>>): void {
   if (result.status === 'no-files') {
-    log('\nNothing to organize -- the folder is empty.');
+    log('\nNothing to organize: the folder is empty.');
     return;
   }
   if (result.status === 'no-subjects') {
-    log('\nNo subjects were detected -- nothing to export. Check the folder structure and try again.');
+    log('\nNo subjects were detected: nothing to export. Check the folder structure and try again.');
     return;
   }
 

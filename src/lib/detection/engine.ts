@@ -624,7 +624,7 @@ export function runDetection(
           // misleading reason. Found via adversarial testing 2026-08-02.
           reasons.push({
             layer: 'sidecar',
-            message: `Sidecar "${sidecar.sidecarName}" was found but its content ("${sidecar.scanText}") is incompatible with this file's type -- likely an unrelated file sharing the same base name, ignored.`,
+            message: `Sidecar "${sidecar.sidecarName}" was found but its content ("${sidecar.scanText}") is incompatible with this file's type, likely an unrelated file sharing the same base name, ignored.`,
             weight: 0,
           });
         }
@@ -660,7 +660,7 @@ export function runDetection(
         if (edfInfo.phiLikely) {
           reasons.push({
             layer: 'sidecar',
-            message: `WARNING: EDF header patient ID field appears to contain non-anonymized data: "${edfInfo.patientId.slice(0, 40)}" -- review before sharing`,
+            message: `WARNING: EDF header patient ID field appears to contain non-anonymized data: "${edfInfo.patientId.slice(0, 40)}". Review before sharing`,
             weight: 0,
           });
         }

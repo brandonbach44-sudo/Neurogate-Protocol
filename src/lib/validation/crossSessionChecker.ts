@@ -65,7 +65,7 @@ function checkChronologicalOrder(subjects: SubjectMetadata[]): ValidationIssue[]
           category: 'cross-session',
           severity: 'error',
           title: 'Session dates out of chronological order',
-          description: `${subject.bidsSubjectId}: "${dated[i - 1].sessionId}" is dated ${dated[i - 1].acqTime}, but "${dated[i].sessionId}" (which should come later in the clinical sequence) is dated ${dated[i].acqTime} -- earlier than the session before it. This usually indicates a typo in one of the acquisition dates. Verify both dates in the Metadata step.`,
+          description: `${subject.bidsSubjectId}: "${dated[i - 1].sessionId}" is dated ${dated[i - 1].acqTime}, but "${dated[i].sessionId}" (which should come later in the clinical sequence) is dated ${dated[i].acqTime}: earlier than the session before it. This usually indicates a typo in one of the acquisition dates. Verify both dates in the Metadata step.`,
           affectedFiles: [],
           subjectGroup: subject.subjectGroup,
           dismissable: false,

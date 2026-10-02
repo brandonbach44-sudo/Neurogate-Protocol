@@ -73,6 +73,15 @@ export async function askNumber(question: string, defaultValue?: number): Promis
   }
 }
 
+/** Ask for a whole number in [min, max], re-prompting until one is given. */
+export async function askInteger(question: string, min: number, max: number, defaultValue?: number): Promise<number> {
+  while (true) {
+    const n = await askNumber(question, defaultValue);
+    if (Number.isInteger(n) && n >= min && n <= max) return n;
+    stdout.write(`  Please enter a whole number from ${min} to ${max}.\n`);
+  }
+}
+
 /** Present a numbered list of choices, re-prompting until a valid index is chosen. Returns the chosen option's value. */
 export async function askChoice<T extends string>(
   question: string,
@@ -82,7 +91,7 @@ export async function askChoice<T extends string>(
   stdout.write(`${question}\n`);
   choices.forEach((c, i) => {
     const marker = i === defaultIndex ? '*' : ' ';
-    stdout.write(`  ${marker} ${i + 1}) ${c.label}${c.description ? ` -- ${c.description}` : ''}\n`);
+    stdout.write(`  ${marker} ${i + 1}) ${c.label}${c.description ? `: ${c.description}` : ''}\n`);
   });
   while (true) {
     const answer = (await rl.question(`Choose 1-${choices.length} [${defaultIndex + 1}]: `)).trim();
