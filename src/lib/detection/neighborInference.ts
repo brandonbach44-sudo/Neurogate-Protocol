@@ -84,7 +84,7 @@ export function inferFromNeighbors(
   const neighbors = allFiles.filter(f => getFolderPath(f.relativePath) === folder && f !== file);
   const neighborNames = neighbors.map(n => n.name.toLowerCase());
   const neighborModalities = neighbors
-    .map(n => knownModalities.get(n.name))
+    .map(n => knownModalities.get(n.relativePath))
     .filter((m): m is Modality => m !== undefined);
 
   // ── Rule: JSON sidecar inherits modality from matching file ──
@@ -94,7 +94,7 @@ export function inferFromNeighbors(
       return nBasename === basename && !n.name.toLowerCase().endsWith('.json');
     });
     if (matchingFile) {
-      const matchedModality = knownModalities.get(matchingFile.name);
+      const matchedModality = knownModalities.get(matchingFile.relativePath);
       if (matchedModality) {
         modality = matchedModality;
         reasons.push({
@@ -140,7 +140,7 @@ export function inferFromNeighbors(
   // ── Rule: CT + iEEG in same subject group → ses-postimplant ──
   // This is the only session that has both CT and intracranial EEG.
   const hasCT = neighborModalities.includes('ct') ||
-    (knownModalities.get(file.name) === 'ct');
+    (knownModalities.get(file.relativePath) === 'ct');
   const hasIEEG = neighborModalities.includes('ieeg') ||
     neighborNames.some(n => n.endsWith('.nwb') || n.endsWith('.dat') || n.endsWith('.lay'));
 
@@ -150,14 +150,14 @@ export function inferFromNeighbors(
     ? allFiles.filter(f => getFolderPath(f.relativePath).startsWith(parentFolder))
     : [];
   const siblingModalities = siblingFiles
-    .map(f => knownModalities.get(f.name))
+    .map(f => knownModalities.get(f.relativePath))
     .filter((m): m is Modality => m !== undefined);
 
   const ctInGroup = hasCT || siblingModalities.includes('ct');
   const ieegInGroup = hasIEEG || siblingModalities.includes('ieeg');
 
   if (ctInGroup && ieegInGroup) {
-    const currentModality = knownModalities.get(file.name);
+    const currentModality = knownModalities.get(file.relativePath);
     if (currentModality === 'ct' || currentModality === 'ieeg' ||
         fileName.endsWith('.dat') || fileName.endsWith('.lay') ||
         fileName.endsWith('.nwb')) {
@@ -202,7 +202,7 @@ export function inferFromNeighbors(
 
   // ── Rule: Standalone T1w with no iEEG/CT neighbors → preimplant ──
   if (!session) {
-    const currentModality = modality || knownModalities.get(file.name);
+    const currentModality = modality || knownModalities.get(file.relativePath);
     if (currentModality === 'anat-T1w' || currentModality === 'anat-T2w' || currentModality === 'anat-FLAIR') {
       if (!ieegInGroup && !ctInGroup) {
         session = 'ses-preimplant';

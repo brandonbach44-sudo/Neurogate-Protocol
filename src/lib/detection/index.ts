@@ -13,7 +13,7 @@ export { detectFromFilename, detectFromSidecarText } from './filenameDetector';
 export { detectFromFolderPath } from './folderDetector';
 export { inferFromNeighbors } from './neighborInference';
 export { groupIntoSubject } from './subjectGrouping';
-export { readJsonSidecars, getSidecarBaseName } from './sidecarReader';
+export { readJsonSidecars, getSidecarBaseName, sidecarKey } from './sidecarReader';
 export type { SidecarInfo } from './sidecarReader';
 export { readEdfHeaders } from './edfHeaderReader';
 export type { EdfHeaderInfo } from './edfHeaderReader';

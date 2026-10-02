@@ -32,7 +32,7 @@ import { detectFromFolderPath } from './folderDetector';
 import { inferFromNeighbors, getFolderPath } from './neighborInference';
 import { groupIntoSubject } from './subjectGrouping';
 import { buildFolderSessionMap, neighborPropagationReason } from './customSessionNeighborPropagation';
-import { getSidecarBaseName } from './sidecarReader';
+import { sidecarKey } from './sidecarReader';
 import { PET_PATTERN, PET_ONLY_SIDECAR_FIELDS, isPetContextPath, tracerLabel, reconstructionFromName } from './petVocabulary';
 import type { SidecarInfo } from './sidecarReader';
 import { computeBidsNames } from '../bids/bidsNaming';
@@ -291,9 +291,9 @@ export function runDetection(
 
       let date: Date | null = null;
       if (isEdfFile && edfHeaderMap) {
-        date = edfHeaderMap.get(file.name)?.acquisitionDate ?? null;
+        date = edfHeaderMap.get(file.relativePath)?.acquisitionDate ?? null;
       } else if (!isJsonFile && sidecarMap) {
-        date = sidecarMap.get(getSidecarBaseName(file.name))?.acquisitionDate ?? null;
+        date = sidecarMap.get(sidecarKey(file.relativePath))?.acquisitionDate ?? null;
       }
 
       if (date) {
@@ -466,7 +466,7 @@ export function runDetection(
     // use its scan-name text as a high-signal modality/session clue.
     const isJsonFile = file.name.toLowerCase().endsWith('.json');
     if (sidecarMap && !isJsonFile) {
-      const sidecar = sidecarMap.get(getSidecarBaseName(file.name));
+      const sidecar = sidecarMap.get(sidecarKey(file.relativePath));
       if (sidecar) {
         // ── DICOM ImageType: authoritative, checked before keywords ──
         // ImageType is the scanner's structured statement about the image,
@@ -638,7 +638,7 @@ export function runDetection(
     // the filename and folder contain no keywords (e.g. "HUP282.edf").
     const isEdfFile = file.name.toLowerCase().endsWith('.edf') || file.name.toLowerCase().endsWith('.bdf');
     if (edfHeaderMap && isEdfFile) {
-      const edfInfo = edfHeaderMap.get(file.name);
+      const edfInfo = edfHeaderMap.get(file.relativePath);
       if (edfInfo) {
         if (edfInfo.modalityHint) {
           // Only override if we're still ambiguous (eeg/ieeg both possible)
@@ -823,7 +823,7 @@ export function runDetection(
       });
     }
 
-    const pet = petInfoFor(file, sidecarMap?.get(getSidecarBaseName(file.name)), modality);
+    const pet = petInfoFor(file, sidecarMap?.get(sidecarKey(file.relativePath)), modality);
     intermediateResults.push({ file, modality, session, reasons, possibleModalities, modalityLocked, derivedLabel, ambiguousSessionCandidate, pet });
   }
 
@@ -831,7 +831,9 @@ export function runDetection(
   const knownModalities = new Map<string, Modality>();
   for (const result of intermediateResults) {
     if (result.modality !== 'other') {
-      knownModalities.set(result.file.name, result.modality);
+      // Keyed by path, like the sidecar and EDF maps: same-named files in
+      // different subjects' folders must not share a modality.
+      knownModalities.set(result.file.relativePath, result.modality);
     }
   }
 
