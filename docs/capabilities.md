@@ -2,7 +2,7 @@
 
 **This file is the single source of truth for what NeuroGate does.** Every user-facing document (GOV-001, SOP-BIDS-001, SOP-GUI-001, README) and every page in the app describes only what's listed here. When a feature is added or changed, update this file first, then the documents.
 
-It was verified line by line against the code on 2026-09-30 (version 1.0.1 plus that day's changes) and updated for each release since; this revision is for 1.6.0 (2026-10-02). File references are relative to the repo root.
+It was verified line by line against the code on 2026-09-30 (version 1.0.1 plus that day's changes) and updated for each release since; this revision is for 1.7.0 (2026-10-02). File references are relative to the repo root.
 
 ---
 
@@ -62,7 +62,7 @@ The stepper labels are **Structure · Drop Files · Mapping · Metadata · Valid
   - **Browser:** files up to 500 MB are cached in memory.
 - **Saved progress** (browser tab storage, kept 12 hours): a "Saved progress from … ago" banner appears with **Discard**.
   - Adding the exact same folder again (same names, sizes and paths) restores the mapping automatically. Anything different discards it.
-  - Metadata isn't saved across a reload.
+  - The Metadata entries (prefix, starting number, study name, authors, attestation) are saved with it as they're typed and restored with the mapping.
 
 ### Step 3: Mapping (`src/components/MappingTable.tsx`)
 - **Columns:** checkbox, Original File (BIDS path shown under it), Subject (free text), Session (dropdown; hidden for Single session), Modality (dropdown), Confidence.
@@ -71,9 +71,10 @@ The stepper labels are **Structure · Drop Files · Mapping · Metadata · Valid
 - **Badges under the file name:** "Guessed: pick a modality to export" (orange), "Duplicate of …" (yellow), "Derived: …" (blue).
 - **Row detail:** clicking a row shows its Detection Reasons and File Info.
 - **Filters, with counts:** All, High, Medium, Low, Needs Review, Needs your decision.
-- **Bulk edits:** "Set session…" / "Set modality…" with **Apply**, and **Clear selection**.
+- **Bulk edits:** "Set session…" / "Set modality…" with **Apply**, "Set task…" (when the selection includes files that carry a task), and **Clear selection**.
+- **Task labels:** functional MRI and EEG / iEEG rows have a `task-` field under the modality (letters and digits only; anything else is dropped as you type; empty means the default, `rest` for functional MRI and `monitor` for EEG / iEEG). The change applies when the field loses focus or on Enter. A channels or events table follows its recording's task when the recordings in its source folder (then its subject + session) all have the same one, or takes a label set on the table itself; otherwise it keeps `monitor`. Runs are numbered per task. A functional run whose task isn't `rest` gets the same label as `TaskName` in its exported sidecar.
   - With Custom timepoints and 2 or more rows ticked, **Assign in order to timepoints** assigns them in the order they were ticked.
-- **Audit log:** corrections are logged, and subject edits are logged per keystroke. Bulk edits are logged as a count.
+- **Audit log:** corrections are logged (task changes once per change), and subject edits are logged per keystroke. Bulk edits are logged as a count.
 - **Buttons:** "Back to Drop Zone", "Change structure" (Step 1) and "Continue to Metadata", which is always enabled.
 
 ### Step 4: Metadata (`src/components/MetadataStep.tsx`)
@@ -142,7 +143,7 @@ No per-file corrections are possible in the CLI.
 | `.nwb`, `.dat`, `.lay` | iEEG. Every `.dat` counts as Persyst. A `.lay` is rewritten on export (§8). |
 | `.bval`, `.bvec` | Diffusion gradient tables |
 | `.tsv` | electrodes / channels / events tables. Other `.tsv` files export only alongside a data file of the same base name. |
-| `.csv` | Warning: BIDS needs `.tsv`. It exports only alongside a data file of the same base name, renamed (not converted) to `.tsv`. |
+| `.csv` | electrodes / channels / events tables saved as CSV are recognized like their `.tsv` versions. Any other `.csv` gets a warning and exports only alongside a data file of the same base name. Exported CSVs are **converted** to tab-separated `.tsv` (`src/lib/bids/delimitedText.ts`): quoted cells, semicolon CSVs, a byte order mark and CRLF line endings are handled; tabs and line breaks inside a cell become spaces. |
 | `.dcm`, `.dicom`, `.ima` | Warning: convert DICOM to NIfTI first. Not exported. |
 | `.v`, `.v.gz` (ECAT PET) | Warning: convert to NIfTI first (PET2BIDS). Not exported. |
 | anything else | Other / Unknown. Not exported. |
@@ -160,10 +161,10 @@ No per-file corrections are possible in the CLI.
 | **PET** | `pet/` `_pet` |
 | Diffusion | `dwi/` `_dwi`, plus `.bval`/`.bvec` |
 | Perfusion / ASL | `perf/` `_asl` |
-| Functional MRI | `func/` `_bold`, always `task-rest` |
+| Functional MRI | `func/` `_bold`, `task-rest` unless changed in Mapping |
 | Field maps | `fmap/` `_magnitude1/2`, `_phasediff`, `_phase1/2` |
-| Scalp EEG, iEEG | `eeg/`, `ieeg/`, always `task-monitor` |
-| electrodes / channels / events tables | Beside their recording: `eeg/` for scalp EEG, `ieeg/` for iEEG. Tables are matched to an EEG/iEEG recording in the same source folder first, then in the same subject + session; otherwise, or when both kinds are present, they go to `ieeg/`. channels and events get `task-monitor`; electrodes gets no task. |
+| Scalp EEG, iEEG | `eeg/`, `ieeg/`, `task-monitor` unless changed in Mapping |
+| electrodes / channels / events tables | Beside their recording: `eeg/` for scalp EEG, `ieeg/` for iEEG. Tables are matched to an EEG/iEEG recording in the same source folder first, then in the same subject + session; otherwise, or when both kinds are present, they go to `ieeg/`. channels and events take their recording's task (§3); electrodes gets no task. |
 
 **Recognized but never exported:**
 - Localizer / scout scans.
@@ -195,7 +196,6 @@ No per-file corrections are possible in the CLI.
 - **Leftover collision:** a name collision that survives all of this is renamed `…_dup-N` and reported in Validate as an error (§7), so it must be resolved before export.
 - **`IntendedFor`** (`src/lib/bids/intendedFor.ts`): each exported field-map sidecar lists every EPI image exported in the same session (the images in `func/`, `dwi/` and `perf/`, single-band references included), as paths relative to the subject folder. An `IntendedFor` already in a source sidecar is replaced; on any other sidecar it's removed, since it names the original files.
   - It isn't matched by phase-encoding direction or by scan; a field map meant for only some of a session's scans has to be edited after export.
-- **Not set:** task labels can't be changed.
 
 **PET specifics** (`src/lib/detection/petVocabulary.ts`):
 - **Detection:**
@@ -317,7 +317,7 @@ No `participants.json`, `README` or `CHANGES` is generated.
 - **What's logged:**
   - **Setup:** structure selected, structure changed (from → to), files scanned, session restored.
   - **Detection:** detection completed (counts).
-  - **Mapping:** session, modality and subject corrections (old → new); bulk applies (count).
+  - **Mapping:** session, modality, subject and task corrections (old → new); bulk applies (count).
   - **Metadata:** institution configured, subject sessions, dataset description (when leaving Metadata; after going back, only what changed).
   - **Defacing attestation** (when it changes): ticked (with the number of structural MRI files it covers), unticked, or cleared on return because the structural MRI files changed.
   - **Validation:** each dismissed issue (severity, category, title and affected files; never the description, which can quote the matched text); Re-run Checks when it brings dismissed issues back (count); validation passed (on Continue to Export, GUI, with the issues dismissed at that point); validation run (CLI).
