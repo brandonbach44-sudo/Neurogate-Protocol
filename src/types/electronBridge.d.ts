@@ -25,6 +25,7 @@ export interface DesktopExportEntry {
   edfDeidentify?: FileEntry['edfDeidentify'];
   jsonDeidentify?: FileEntry['jsonDeidentify'];
   layDeidentify?: FileEntry['layDeidentify'];
+  csvToTsv?: boolean;
   subjectGroup?: string;
 }
 

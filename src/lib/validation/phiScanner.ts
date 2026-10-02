@@ -16,6 +16,7 @@
  * It cannot guarantee detection of all PHI, but catches common patterns.
  */
 
+import { readTableRows } from '../bids/delimitedText';
 import type { DetectionResult } from '../../types/detection';
 import type { SubjectMetadata } from '../../types/metadata';
 import type { ValidationIssue } from '../../types/validation';
@@ -464,14 +465,13 @@ export async function scanTsvContentForPhi(results: DetectionResult[]): Promise<
     } catch {
       continue;
     }
-    const sep = /\.csv$/i.test(result.fileName) ? ',' : '\t';
-    const rows = text.split(/\r?\n/).filter(line => line.trim().length > 0);
+    const rows = readTableRows(text, result.fileName);
     if (rows.length === 0) continue;
-    const header = rows[0].split(sep).map(h => h.trim());
+    const header = rows[0];
     const strings: { path: string; value: string }[] = [];
     rows.slice(1).forEach((row, r) => {
-      row.split(sep).forEach((cell, c) => {
-        const value = cell.trim();
+      row.forEach((cell, c) => {
+        const value = cell;
         if (!value || value === 'n/a' || !Number.isNaN(Number(value))) return;
         strings.push({ path: `row ${r + 2}, column "${header[c] ?? c + 1}"`, value });
       });

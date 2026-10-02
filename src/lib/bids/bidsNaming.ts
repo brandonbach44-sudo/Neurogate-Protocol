@@ -83,13 +83,15 @@ function taskEntity(modality: Modality): string | null {
 
 /**
  * The export extension for a file. Uncompressed NIfTI (.nii) becomes
- * .nii.gz because the exporter gzips it. Everything else keeps its
- * original extension.
+ * .nii.gz because the exporter gzips it, and a .csv table becomes .tsv
+ * because the exporter converts it. Everything else keeps its original
+ * extension.
  */
 function exportExtension(fileName: string): string {
   const lower = fileName.toLowerCase();
   if (lower.endsWith('.nii.gz')) return '.nii.gz';
   if (lower.endsWith('.nii')) return '.nii.gz';
+  if (lower.endsWith('.csv')) return '.tsv';
   const dot = fileName.lastIndexOf('.');
   return dot >= 0 ? fileName.substring(dot) : '';
 }

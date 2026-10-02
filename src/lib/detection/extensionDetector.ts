@@ -255,13 +255,33 @@ export function detectFromExtension(fileName: string, _relativePath: string): Ex
   }
 
   // ── CSV — wrong format, should be TSV ───────────────────────
+  // electrodes / channels / events tables saved from a spreadsheet are
+  // recognized like their .tsv versions and converted to TSV on export
+  // (lib/bids/delimitedText.ts).
   if (lower.endsWith('.csv')) {
+    for (const [word, modality, what] of [
+      ['electrode', 'electrodes', 'electrode position'],
+      ['channel', 'channels', 'channel description'],
+      ['event', 'events', 'event timing'],
+    ] as const) {
+      if (lower.includes(word)) {
+        return {
+          possibleModalities: [modality],
+          bestGuess: modality,
+          reason: {
+            layer: 'extension',
+            message: `CSV file with "${word}" in name: ${what} metadata, converted to TSV on export`,
+            weight: 0.9,
+          },
+        };
+      }
+    }
     return {
       possibleModalities: ['sidecar-tsv'],
       bestGuess: 'sidecar-tsv',
       reason: {
         layer: 'extension',
-        message: 'WARNING: CSV file detected: BIDS requires TSV format, not CSV',
+        message: 'WARNING: CSV file detected: BIDS requires TSV. It is converted to TSV on export if it pairs with a data file of the same name; otherwise it is not exported',
         weight: 0.3,
       },
     };

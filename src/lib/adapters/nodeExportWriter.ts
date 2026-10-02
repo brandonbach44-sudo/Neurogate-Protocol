@@ -41,6 +41,7 @@ import { NodeFileAdapter } from './nodeFileAdapter';
 import { deidentifyEdfStream } from './nodeEdfDeidentifyStream';
 import { deidentifyJsonSidecar } from '../deidentify/jsonSidecarDeidentifier';
 import { deidentifyPersystLay } from '../deidentify/persystLayDeidentifier';
+import { csvToTsv } from '../bids/delimitedText';
 
 export type WriteProgressCallback = (progress: {
   current: number;
@@ -117,6 +118,8 @@ export async function writeFileEntriesToDisk(
           unparseableDateFields: result.unparseableDateFields,
         });
       }
+    } else if (entry.csvToTsv) {
+      await writeFile(destPath, csvToTsv(await source.text()), 'utf-8');
     } else if (entry.layDeidentify) {
       // Persyst layout: small text file (see persystLayDeidentifier.ts).
       const result = deidentifyPersystLay(await source.text(), entry.layDeidentify);
