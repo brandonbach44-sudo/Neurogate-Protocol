@@ -45,7 +45,7 @@ import { readFileBuffer } from '../fileCache';
 import type { FileLike } from '../../types/fileLike';
 import { isFileLike } from '../../types/fileLike';
 import type { DetectionResult } from '../../types/detection';
-import { getEffectiveSubjectGroup } from '../../types/detection';
+import { getEffectiveSubjectGroup, taskInBidsName } from '../../types/detection';
 import { computeBidsNames, isExportedPath } from './bidsNaming';
 import { computeIntendedFor } from './intendedFor';
 import { csvToTsv } from './delimitedText';
@@ -181,6 +181,8 @@ export interface FileEntry {
     dateShiftDays: number;
     /** Field maps: what IntendedFor is set to (lib/bids/intendedFor.ts). Other sidecars: [] removes a stale one. */
     intendedFor?: string[];
+    /** Functional run sidecar with a task other than the default: written as TaskName. */
+    taskName?: string;
   };
   /**
    * When set, this is a Persyst .lay layout: File= is pointed at the
@@ -395,7 +397,7 @@ export function buildFileEntries(
         ? { dateShiftDays, anonymousSubjectId: subjectId }
         : undefined,
       jsonDeidentify: isJsonSidecarFile(result.fileName)
-        ? { dateShiftDays, intendedFor: intendedFor.get(result.bidsPath) ?? [] }
+        ? { dateShiftDays, intendedFor: intendedFor.get(result.bidsPath) ?? [], taskName: changedFuncTask(result.bidsPath) }
         : undefined,
       layDeidentify: isPersystLayFile(result.fileName)
         ? { dateShiftDays, datFileName: exportedDatName.get(persystPairKey(result.relativePath)) }
@@ -407,6 +409,16 @@ export function buildFileEntries(
   }
 
   return entries;
+}
+
+/**
+ * The task of a functional run's sidecar (…/func/…_bold.json or _sbref.json)
+ * when it isn't the default "rest", i.e. the user set it.
+ */
+function changedFuncTask(bidsPath: string): string | undefined {
+  if (!/\/func\/[^/]*_(bold|sbref)\.json$/.test(bidsPath)) return undefined;
+  const task = taskInBidsName(bidsPath.slice(bidsPath.lastIndexOf('/') + 1));
+  return task && task !== 'rest' ? task : undefined;
 }
 
 // ── Build tree structure for preview ──────────────────────────────

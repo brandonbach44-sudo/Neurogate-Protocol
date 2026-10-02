@@ -533,8 +533,8 @@ function ToolPage() {
                   <p className="text-xs text-gray-600 mt-1 leading-relaxed">
                     You had {savedSession.fileSignatures.length}{' '}
                     {savedSession.fileSignatures.length === 1 ? 'file' : 'files'} mapped.
-                    Re-drop the same folder to pick up where you left off, or click Discard to
-                    start fresh. Subject metadata is not saved and will need to be re-entered.
+                    Add the same folder again to pick up where you left off, with your corrections
+                    and Metadata entries, or click Discard to start fresh.
                   </p>
                 </div>
                 <button

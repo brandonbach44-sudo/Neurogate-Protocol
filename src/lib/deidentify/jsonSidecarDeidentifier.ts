@@ -80,6 +80,8 @@ export interface JsonSidecarDeidentifyOptions {
    * empty. Left unset, an existing IntendedFor is kept as is.
    */
   intendedFor?: string[];
+  /** A functional run whose task label was changed: TaskName is set to it (BIDS requires the two to match). */
+  taskName?: string;
 }
 
 export interface JsonSidecarDeidentifyResult {
@@ -240,6 +242,8 @@ export function deidentifyJsonSidecar(
     }
   };
   walk(parsed, '');
+
+  if (options.taskName) parsed.TaskName = options.taskName;
 
   if (options.intendedFor) {
     if (options.intendedFor.length > 0) parsed.IntendedFor = options.intendedFor;

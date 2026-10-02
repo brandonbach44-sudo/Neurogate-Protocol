@@ -11,6 +11,10 @@ import { computeBidsNames } from './src/lib/bids/bidsNaming';
 import { sanitizeTaskLabel, taskInBidsName } from './src/types/detection';
 import type { DetectionResult } from './src/types/detection';
 import type { ScannedFile } from './src/types/files';
+import JSZip from 'jszip';
+import { buildFileEntries, generateZip } from './src/lib/bids/exporter';
+import { createDefaultDatasetDescription } from './src/types/metadata';
+import type { SubjectMetadata } from './src/types/metadata';
 
 let failures = 0;
 function check(ok: boolean, detail: string) {
@@ -89,6 +93,24 @@ async function main() {
     const n = name(r, { 'S/Session_implant/ieeg/a_ieeg.edf': 'sleep', 'S/Session_implant/ieeg/b_ieeg.edf': 'stim' });
     check(/_task-monitor_channels\.tsv$/.test(n.get('S/Session_implant/ieeg/shared_channels.tsv')!), `ambiguous table should keep the default: ${n.get('S/Session_implant/ieeg/shared_channels.tsv')}`);
     check(/task-sleep_ieeg/.test(n.get('S/Session_implant/ieeg/a_ieeg.edf')!) && /task-stim_ieeg/.test(n.get('S/Session_implant/ieeg/b_ieeg.edf')!) && !/run-/.test(n.get('S/Session_implant/ieeg/a_ieeg.edf')!), 'two tasks in one session should each be unnumbered');
+  }
+
+  console.log('TaskName follows the task');
+  {
+    const r = await detect([
+      mk('S/Session_preimplant/func/fingertap_bold.nii.gz', new Uint8Array(8)),
+      mk('S/Session_preimplant/func/fingertap_bold.json', JSON.stringify({ SeriesDescription: 'ep2d_bold_task', TaskName: 'rest' })),
+      mk('S/Session_preimplant/func/rest_bold.nii.gz', new Uint8Array(8)),
+      mk('S/Session_preimplant/func/rest_bold.json', JSON.stringify({ SeriesDescription: 'ep2d_bold_rest', TaskName: 'Resting State' })),
+    ]);
+    const edited = r.map(x => (x.relativePath.endsWith('fingertap_bold.nii.gz') ? { ...x, userTask: 'motor' } : x));
+    const group = r[0].subjectGroup;
+    const subjects = [{ subjectGroup: group, bidsSubjectId: 'sub-T001', sessions: [{ sessionId: 'ses-preimplant', acqTime: '', age: '' }] }] as SubjectMetadata[];
+    const entries = buildFileEntries(edited, subjects, createDefaultDatasetDescription(), new Map([[group, 0]]));
+    const zip = await JSZip.loadAsync(await (await generateZip(entries)).blob.arrayBuffer());
+    const read = async (p: string) => JSON.parse(await zip.file(`bids_output/primary/sub-T001/ses-preimplant/func/${p}`)!.async('string'));
+    check((await read('sub-T001_ses-preimplant_task-motor_bold.json')).TaskName === 'motor', 'TaskName not set to the new task');
+    check((await read('sub-T001_ses-preimplant_task-rest_bold.json')).TaskName === 'Resting State', 'TaskName changed on a run whose task was left at the default');
   }
 
   if (failures > 0) {
