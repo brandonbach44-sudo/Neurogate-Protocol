@@ -107,6 +107,22 @@ function baseName(fileName: string): string {
   return dot >= 0 ? fileName.substring(0, dot) : fileName;
 }
 
+/** The folder part of a relative path ("" at the top level). */
+function folderOf(relativePath: string): string {
+  const slash = relativePath.lastIndexOf('/');
+  return slash === -1 ? '' : relativePath.slice(0, slash);
+}
+
+/**
+ * Same folder and same base name: how a sidecar or gradient table belongs
+ * to its image (dcm2niix writes them side by side). Matching the base
+ * name alone would pair files across sessions or subjects that happen to
+ * share names, e.g. two patients' rest_bold.json.
+ */
+function sameAcquisitionFiles(a: DetectionResult, b: DetectionResult): boolean {
+  return folderOf(a.relativePath) === folderOf(b.relativePath) && baseName(a.fileName) === baseName(b.fileName);
+}
+
 /** Strip a data-file extension from an already-built BIDS filename. */
 function stripExtension(name: string): string {
   const lower = name.toLowerCase();
@@ -236,11 +252,10 @@ function diffusionAcquisitionKey(fileName: string): string | null {
  * is needed.
  */
 function gradientMatchesByBaseName(results: DetectionResult[], grad: DetectionResult): boolean {
-  const gBase = baseName(grad.fileName);
   return results.some(r =>
     r !== grad &&
     /\.nii(\.gz)?$/i.test(r.fileName) &&
-    baseName(r.fileName) === gBase &&
+    sameAcquisitionFiles(r, grad) &&
     !r.duplicateOf,
   );
 }
@@ -267,8 +282,7 @@ function pairGradientTables(results: DetectionResult[]): Map<number, number> {
   results.forEach((g, gi) => {
     if (!isGradientTable(g.fileName)) return;
     // Already paired the normal way: same base name as an image.
-    const gBase = baseName(g.fileName);
-    if (candidates.some(({ r }) => baseName(r.fileName) === gBase)) return;
+    if (candidates.some(({ r }) => sameAcquisitionFiles(r, g))) return;
 
     const key = diffusionAcquisitionKey(g.fileName);
     if (!key) return;
@@ -651,7 +665,7 @@ function findSidecarPartner(
   results: DetectionResult[],
   sidecarIndex: number,
 ): DetectionResult | null {
-  const base = baseName(results[sidecarIndex].fileName);
+  const sidecar = results[sidecarIndex];
   // We accept partners whose own path is excluded (for example a
   // localizer). The caller checks the partner's path before deciding
   // whether to mirror it; either way the sidecar inherits the
@@ -661,7 +675,7 @@ function findSidecarPartner(
     if (di === sidecarIndex) return false;
     const m = getEffectiveModality(d);
     if (m === 'sidecar-json' || m === 'sidecar-tsv') return false;
-    return baseName(d.fileName) === base;
+    return sameAcquisitionFiles(d, sidecar);
   });
   if (candidates.length === 0) return null;
 

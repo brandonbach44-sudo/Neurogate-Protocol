@@ -274,6 +274,16 @@ console.log('same-named files in different subjects');
   ] as const) {
     report('safety', modalityOf(path) === expected, `${path}: ${modalityOf(path)}, expected ${expected} (decided by another subject's file?)`);
   }
+  // Each sidecar is exported beside its own subject's image. Export
+  // naming paired sidecars by base name alone, so Patient_B/scan.json was
+  // placed beside Patient_A's scan (found 2026-10-02).
+  const groups = [...new Set(results.map(r => r.subjectGroup))].sort();
+  const named = computeBidsNames(results, new Map(groups.map((g, i) => [g, `sub-S00${i + 1}`])));
+  for (const p of ['Patient_A', 'Patient_B']) {
+    const image = named.find(r => r.relativePath === `${p}/scan.nii.gz`)!;
+    const sidecar = named.find(r => r.relativePath === `${p}/scan.json`)!;
+    report('safety', sidecar.bidsPath === image.bidsPath.replace(/\.nii\.gz$/, '.json'), `${p}/scan.json exported as ${sidecar.bidsPath}, its image as ${image.bidsPath}`);
+  }
 }
 
 // ── 7d. SAFETY: a sidecar that isn't valid JSON is never exported ──

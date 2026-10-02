@@ -662,12 +662,12 @@
       {
         "relativePath": "sub_flat/6months/ep2d_diff_sms3_b1000_te94_d64_ADC/_ep2d_diff_sms3_b1000_te94_d64_20180510_18.json",
         "detectedModality": "sidecar-json",
-        "detectedSession": "ses-2wk",
+        "detectedSession": "ses-6mo",
         "confidence": "high",
         "modalityIsGuess": false,
         "duplicateOf": null,
         "derivedLabel": null,
-        "bidsPath": "derivatives/scanner/sub-sub_flat/ses-2wk/dwi/sub-sub_flat_ses-2wk_desc-ADC_dwi_dup-2.json"
+        "bidsPath": "derivatives/scanner/sub-sub_flat/ses-6mo/dwi/sub-sub_flat_ses-6mo_desc-ADC_dwi.json"
       },
       {
         "relativePath": "sub_flat/6months/ep2d_diff_sms3_b1000_te94_d64_ADC/_ep2d_diff_sms3_b1000_te94_d64_20180510_18.nii.gz",
@@ -702,12 +702,12 @@
       {
         "relativePath": "sub_flat/6months/ep2d_diff_sms3_b1000_te94_d64_TW/_ep2d_diff_sms3_b1000_te94_d64_TW_20180510_19.json",
         "detectedModality": "sidecar-json",
-        "detectedSession": "ses-2wk",
+        "detectedSession": "ses-6mo",
         "confidence": "high",
         "modalityIsGuess": false,
         "duplicateOf": null,
         "derivedLabel": null,
-        "bidsPath": "primary/sub-sub_flat/ses-2wk/dwi/sub-sub_flat_ses-2wk_run-2_dwi_dup-2.json"
+        "bidsPath": "primary/sub-sub_flat/ses-6mo/dwi/sub-sub_flat_ses-6mo_run-2_dwi.json"
       },
       {
         "relativePath": "sub_flat/6months/ep2d_diff_sms3_b1000_te94_d64_TW/_ep2d_diff_sms3_b1000_te94_d64_TW_20180510_19.nii.gz",
@@ -732,12 +732,12 @@
       {
         "relativePath": "sub_flat/6months/ep2d_diff_sms3_b3000_te122_d64/_ep2d_diff_sms3_b3000_te122_d64_20180510_7.json",
         "detectedModality": "sidecar-json",
-        "detectedSession": "ses-2wk",
+        "detectedSession": "ses-6mo",
         "confidence": "high",
         "modalityIsGuess": false,
         "duplicateOf": null,
         "derivedLabel": null,
-        "bidsPath": "primary/sub-sub_flat/ses-2wk/dwi/sub-sub_flat_ses-2wk_run-3_dwi_dup-2.json"
+        "bidsPath": "primary/sub-sub_flat/ses-6mo/dwi/sub-sub_flat_ses-6mo_run-3_dwi.json"
       },
       {
         "relativePath": "sub_flat/6months/ep2d_diff_sms3_b3000_te122_d64/_ep2d_diff_sms3_b3000_te122_d64_20180510_7.nii.gz",
