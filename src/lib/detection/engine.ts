@@ -25,6 +25,7 @@ import type {
   Confidence,
   DetectionReason,
   PetInfo,
+  NiftiHeaderInfo,
 } from '../../types/detection';
 import { detectFromExtension, isOsJunkFile } from './extensionDetector';
 import { detectFromFilename, detectFromSidecarText, derivedDiffusionKind, derivedProjectionKind, normalizeForKeywords } from './filenameDetector';
@@ -100,7 +101,7 @@ function overruleModalityReasons(reasons: DetectionReason[], why: string): void 
  * evidence (sidecar or name), so ordinary MRI results don't carry it.
  * See DetectionResult.pet.
  */
-function petInfoFor(file: ScannedFile, sidecar: SidecarInfo | undefined, modality: Modality): PetInfo | undefined {
+function petInfoFor(file: ScannedFile, sidecar: SidecarInfo | undefined, modality: Modality, nifti?: NiftiHeaderInfo): PetInfo | undefined {
   if (!/\.nii(\.gz)?$/i.test(file.name)) return undefined;
   const normalizedName = normalizeForKeywords(file.name.replace(/\.nii(\.gz)?$/i, ''));
   const hasPetEvidence =
@@ -120,7 +121,11 @@ function petInfoFor(file: ScannedFile, sidecar: SidecarInfo | undefined, modalit
       tracerLabel(normalizedName, false) ??
       tracerLabel(sidecarText, false),
     attenuationCorrected: fromName.attenuationCorrected ?? fromSidecarText.attenuationCorrected,
-    dynamic: frameCount !== null ? frameCount > 1 : (fromName.dynamic ?? fromSidecarText.dynamic),
+    // Framing: sidecar frame list first, then the image's own volume count,
+    // then what the name says.
+    dynamic: frameCount !== null
+      ? frameCount > 1
+      : nifti ? nifti.volumes > 1 : (fromName.dynamic ?? fromSidecarText.dynamic),
     sidecarFields: sidecar ? sidecar.fieldNames : null,
   };
 }
@@ -246,6 +251,13 @@ export function runDetection(
    * identical behavior to before Phase 1.
    */
   structure: DatasetStructure = createDefaultDatasetStructure(),
+  /**
+   * Optional map of relative path -> NIfTI header, produced by
+   * readNiftiHeaders(). Gives each image's dimensions: a 4D series is
+   * never defaulted to T1w, and names that contradict the dimensions get
+   * a warning. Last so existing callers are unaffected.
+   */
+  niftiHeaderMap?: Map<string, NiftiHeaderInfo>,
 ): DetectionResult[] {
   const isCustomStructure = structure.presetId === 'custom-timepoints';
   // Phase 2 addition (August 2026): Single session datasets have no
@@ -374,6 +386,7 @@ export function runDetection(
      */
     ambiguousSessionCandidate: Session | null;
     pet?: PetInfo;
+    nifti?: NiftiHeaderInfo;
   }[] = [];
 
   for (const file of files) {
@@ -810,9 +823,49 @@ export function runDetection(
       }
     }
 
+    // ── NIfTI header: dimensions ────────────────────────────────
+    // What the image itself says. Used to keep the blind T1w default off
+    // 4D series and to flag names that contradict the dimensions. Only a
+    // warning, never an override: multi-echo anatomicals can be 4D, and a
+    // single-volume functional reference is 3D.
+    const nifti = niftiHeaderMap?.get(file.relativePath);
+    const isSeries = nifti ? nifti.volumes > 1 : false;
+    if (nifti) {
+      const size = nifti.dims.slice(0, 3).join('×');
+      const mm = nifti.voxelSize.map(v => Number(v.toFixed(2))).join('×');
+      reasons.push({
+        layer: 'sidecar',
+        message: isSeries
+          ? `NIfTI header: ${size} voxels (${mm} mm), ${nifti.volumes} volumes`
+          : `NIfTI header: ${size} voxels (${mm} mm), a single 3D volume`,
+        weight: 0,
+      });
+      if (isSeries && modality.startsWith('anat-')) {
+        reasons.push({
+          layer: 'sidecar',
+          message: `WARNING: the name says ${modality.replace('anat-', '')}, but the image has ${nifti.volumes} volumes; anatomical scans usually have one. Check the modality.`,
+          weight: 0,
+        });
+      } else if (!isSeries && (modality === 'func' || modality === 'dwi') && !derivedLabel) {
+        reasons.push({
+          layer: 'sidecar',
+          message: `WARNING: the name says ${modality === 'func' ? 'functional MRI' : 'diffusion'}, but the image is a single 3D volume; these are usually series. Check the modality.`,
+          weight: 0,
+        });
+      }
+    }
+
     // If we still have an ambiguous .nii.gz with no modality clues,
-    // default to anat-T1w (most common type)
-    if (modality === 'other' && !modalityLocked && possibleModalities.length > 1 &&
+    // default to anat-T1w (most common type). Never for a 4D series: that
+    // is fMRI, diffusion or dynamic PET, not an anatomical scan, so it is
+    // left unclassified for the user (or neighbor inference) to decide.
+    if (modality === 'other' && !modalityLocked && possibleModalities.length > 1 && isSeries) {
+      reasons.push({
+        layer: 'extension',
+        message: `Not defaulted to T1w: the NIfTI header shows ${nifti!.volumes} volumes, so this is a series (fMRI, diffusion or dynamic PET). Pick the modality.`,
+        weight: 0,
+      });
+    } else if (modality === 'other' && !modalityLocked && possibleModalities.length > 1 &&
         file.name.toLowerCase().endsWith('.nii.gz')) {
       modality = 'anat-T1w';
       reasons.push({
@@ -823,8 +876,8 @@ export function runDetection(
       });
     }
 
-    const pet = petInfoFor(file, sidecarMap?.get(sidecarKey(file.relativePath)), modality);
-    intermediateResults.push({ file, modality, session, reasons, possibleModalities, modalityLocked, derivedLabel, ambiguousSessionCandidate, pet });
+    const pet = petInfoFor(file, sidecarMap?.get(sidecarKey(file.relativePath)), modality, nifti);
+    intermediateResults.push({ file, modality, session, reasons, possibleModalities, modalityLocked, derivedLabel, ambiguousSessionCandidate, pet, nifti });
   }
 
   // ── Build known modalities map for neighbor inference ────────
@@ -1071,6 +1124,7 @@ export function runDetection(
       duplicateOf,
       derivedLabel: intermediate.derivedLabel,
       pet: intermediate.pet,
+      niftiHeader: intermediate.nifti,
       reasons,
       userSession: null,
       userModality: null,

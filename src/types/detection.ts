@@ -260,6 +260,23 @@ export interface DetectionResult {
    * non-BIDS file name.
    */
   nameCollisionWith?: string;
+
+  /** The file's NIfTI header, when it could be read. See NiftiHeaderInfo. */
+  niftiHeader?: NiftiHeaderInfo;
+}
+
+/** What a NIfTI file's own header says (lib/detection/niftiHeaderReader.ts). */
+export interface NiftiHeaderInfo {
+  version: 1 | 2;
+  /** dim[1..n]: e.g. [256, 256, 176] for a 3D scan, [64, 64, 36, 200] for a 200-volume series. */
+  dims: number[];
+  /** Number of volumes (product of dimensions 4 and up; 1 for a 3D image). */
+  volumes: number;
+  /** Voxel size in mm for the first three dimensions. */
+  voxelSize: number[];
+  /** Free-text header fields, PHI-scanned in validation. */
+  descrip: string;
+  auxFile: string;
 }
 
 export interface PetInfo {

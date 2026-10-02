@@ -340,12 +340,14 @@ function collectStringValues(
 function scanStrings(
   strings: { path: string; value: string }[],
   result: DetectionResult,
-  { where, bareNames: bareNamesEnabled }: { where: 'sidecar JSON' | 'table'; bareNames: boolean },
+  { where, bareNames: bareNamesEnabled }: { where: 'sidecar JSON' | 'table' | 'NIfTI header'; bareNames: boolean },
 ): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
   const untouched = where === 'table'
     ? 'Table contents are exported as is: NeuroGate does not edit them.'
-    : 'This free-text field is not changed by automatic de-identification.';
+    : where === 'NIfTI header'
+      ? 'NIfTI headers are exported as is: NeuroGate does not edit image files.'
+      : 'This free-text field is not changed by automatic de-identification.';
   const fieldLabel = (path: string) => (where === 'table' ? path : `field "${path}"`);
   for (const { path, value } of strings) {
     const normalizedValue = normalizeForPhiMatching(value);
@@ -475,6 +477,29 @@ export async function scanTsvContentForPhi(results: DetectionResult[]): Promise<
       });
     });
     issues.push(...scanStrings(strings, result, { where: 'table', bareNames: false }));
+  }
+  return issues;
+}
+
+/**
+ * Scan the free-text fields of each exported NIfTI header (descrip,
+ * aux_file) for PHI. NeuroGate doesn't modify image files, so text a
+ * converter or a person put there ships as is. dcm2niix writes numeric
+ * settings into descrip ("TE=30;Time=101502.425;phase=1"); those
+ * key=number pairs are removed first, since a time like 101502.425 would
+ * otherwise look like a phone number.
+ */
+export function scanNiftiHeadersForPhi(results: DetectionResult[]): ValidationIssue[] {
+  const issues: ValidationIssue[] = [];
+  for (const result of results) {
+    const h = result.niftiHeader;
+    if (!h || !isExportedPath(result.bidsPath)) continue;
+    const strings: { path: string; value: string }[] = [];
+    for (const [path, raw] of [['descrip', h.descrip], ['aux_file', h.auxFile]] as const) {
+      const value = raw.replace(/\b[A-Za-z_]+\s*=\s*[-+]?[\d.]+(?:e[-+]?\d+)?\s*;?/gi, ' ').trim();
+      if (value) strings.push({ path, value });
+    }
+    issues.push(...scanStrings(strings, result, { where: 'NIfTI header', bareNames: true }));
   }
   return issues;
 }

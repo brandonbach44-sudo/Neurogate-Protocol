@@ -20,7 +20,7 @@ import { getEffectiveModality, requiresDefacing, DEFACING_MODALITY_LABELS } from
 import type { DatasetStructure } from '../../types/sessionStructure';
 
 import { validateBidsStructure } from './bidsValidator';
-import { scanForPhi, scanSidecarContentForPhi, scanTsvContentForPhi } from './phiScanner';
+import { scanForPhi, scanSidecarContentForPhi, scanTsvContentForPhi, scanNiftiHeadersForPhi } from './phiScanner';
 import { checkRequiredFiles } from './requiredFilesChecker';
 import { checkCrossSessionConsistency } from './crossSessionChecker';
 import { checkPetSidecars } from './petChecker';
@@ -66,6 +66,9 @@ export async function runValidation(input: ValidationInput): Promise<ValidationR
 
   // ── 2c. PHI scanning of exported TSV tables (cell contents) ──
   allIssues.push(...await scanTsvContentForPhi(input.detectionResults));
+
+  // ── 2d. PHI scanning of NIfTI header text (descrip, aux_file) ──
+  allIssues.push(...scanNiftiHeadersForPhi(input.detectionResults));
 
   // ── 3. Required Files ─────────────────────────────────────
   const requiredIssues = checkRequiredFiles(input.detectionResults, input.subjects, input.structure);

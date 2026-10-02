@@ -30,7 +30,7 @@ import { resolve } from 'node:path';
 import { scanDirectory } from '../lib/adapters/scanDirectory';
 import { writeFileEntriesToDisk } from '../lib/adapters/nodeExportWriter';
 import { buildFileEntries, type DeidentificationSummary } from '../lib/bids/exporter';
-import { runDetection, generateSummary, readJsonSidecars, readEdfHeaders } from '../lib/detection';
+import { runDetection, generateSummary, readJsonSidecars, readEdfHeaders, readNiftiHeaders } from '../lib/detection';
 import { runValidation } from '../lib/validation';
 import { createEmptyReport, type ValidationReport } from '../types/validation';
 import { generateSubjectDateShifts } from '../lib/deidentify/edfDeidentifier';
@@ -124,7 +124,8 @@ export async function runNeuroGatePipeline(
   log('Running detection...');
   const sidecarMap = await readJsonSidecars(scanned);
   const edfHeaderMap = await readEdfHeaders(scanned);
-  const detectionResults = runDetection(scanned, sidecarMap, edfHeaderMap, options.structure);
+  const niftiHeaderMap = await readNiftiHeaders(scanned);
+  const detectionResults = runDetection(scanned, sidecarMap, edfHeaderMap, options.structure, niftiHeaderMap);
   const summary = generateSummary(detectionResults, options.structure);
 
   audit.logDetectionCompleted(
