@@ -28,6 +28,7 @@ Download page: <https://github.com/brandonbach44-sudo/Neurogate-Protocol/release
 
 | Component | Status | Where |
 |---|---|---|
+| CI (lint, build, regression, verify scripts, desktop export check) | Runs on every push and pull request | `.github/workflows/ci.yml` |
 | Release workflow | Working | `.github/workflows/release.yml` |
 | Installers for Windows, macOS (Apple Silicon), Linux | Built on every release | electron-builder config in `package.json` (`"build"`) |
 | CLI binary bundled in each installer | Working | `scripts/build-cli-bundle.mjs`, `scripts/build-cli-sea.mjs`; `extraResources` in `package.json` |
@@ -53,7 +54,7 @@ Download page: <https://github.com/brandonbach44-sudo/Neurogate-Protocol/release
    - **build** (matrix: `windows-latest`, `macos-latest`, `ubuntu-latest`, Node 20):
      1. Fail if the tag isn't `v` + `package.json` version (electron-builder names the release from `package.json`, not the tag).
      2. `npm ci`
-     3. `npm run regression` (must pass, or nothing ships): `regression.ts`, `regression_deidentify.ts`, `regression_flywheel.ts`, `regression_generalization.ts`, `regression_pet.ts`, `regression_docs.ts`. The last one fails if a version in `src/docVersions.ts` doesn't match its `public/docs/*.md` document's `| **Version** |` row, so a document version bump must update `src/docVersions.ts` too.
+     3. `npm run regression` (must pass, or nothing ships): `regression.ts`, `regression_deidentify.ts`, `regression_flywheel.ts`, `regression_generalization.ts`, `regression_pet.ts`, `regression_edf_annotations.ts`, `regression_docs.ts`. The last one fails if a version in `src/docVersions.ts` doesn't match its `public/docs/*.md` document's `| **Version** |` row, so a document version bump must update `src/docVersions.ts` too.
      4. `npm run build` (frontend)
      5. `npm run cli:sea` (standalone CLI binary for that OS)
      6. `npm run desktop:bundle` (`electron/desktop-export.cjs`)
@@ -63,7 +64,11 @@ Download page: <https://github.com/brandonbach44-sudo/Neurogate-Protocol/release
 
 Because electron-updater ignores drafts, installed apps are never offered a release that's missing a platform.
 
-There's no CI on pull requests or on pushes to `main`; `npm run regression` runs only inside the release workflow. Run the tests locally before tagging (see the README's Development section).
+---
+
+## CI
+
+`.github/workflows/ci.yml` runs on every push (any branch) and every pull request, on `ubuntu-latest` with Node 20: `npm ci`, `npm run lint`, `npm run build`, `npm run regression`, then `npm run verify:export`, `verify:cli` and `verify:adapter`, then `npm run desktop:bundle` and `npx tsx verify_desktop_export.ts`. It builds no installers and publishes nothing. Vercel deploys `main` to the website without waiting for it, so a red CI run on `main` means the website may already be serving the broken commit. Check that CI is green before tagging a release.
 
 ---
 

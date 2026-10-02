@@ -5,9 +5,9 @@
  * document itself, so bump both together.
  */
 export const DOCUMENTS = [
-  { id: 'GOV-001', slug: 'gov-001', version: '2.1' },
-  { id: 'SOP-BIDS-001', slug: 'sop-bids', version: '3.1' },
-  { id: 'SOP-GUI-001', slug: 'sop-gui', version: '3.0' },
+  { id: 'GOV-001', slug: 'gov-001', version: '2.2' },
+  { id: 'SOP-BIDS-001', slug: 'sop-bids', version: '3.2' },
+  { id: 'SOP-GUI-001', slug: 'sop-gui', version: '3.1' },
 ] as const;
 
 export function documentVersion(id: (typeof DOCUMENTS)[number]['id']): string {

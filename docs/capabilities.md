@@ -99,10 +99,10 @@ Four tabs, each marked complete or incomplete ("N of 4 sections complete"):
 - The screen shows the output tree, subject/file counts and total size, plus a list of the metadata files NeuroGate generates.
 - **Desktop app:**
   - **Export to Folder** opens a folder picker ("Export Here").
-  - It creates `<PREFIX>_bids_export_<YYYY-MM-DD>` there (adding `-2`, `-3`, … if that name exists), containing `bids_output/` and `audit_log_<YYYY-MM-DDTHH-MM-SS>.json`.
+  - It creates `<PREFIX>_bids_export_<YYYY-MM-DD>` there (adding `-2`, `-3`, … if that name exists), containing `bids_output/`, `audit_log_<YYYY-MM-DDTHH-MM-SS>.json` (full log, keep at the site) and `audit_log_<YYYY-MM-DDTHH-MM-SS>_shareable.json` (see §10).
   - Files are streamed, with no size limit. It shows "Writing file N of M…", then the folder path with **Show Folder**. The button then reads **Export Again**.
 - **Browser (project website):**
-  - "Download" builds `<PREFIX>_bids_export_<date>.zip` (uncompressed, with `bids_output/` inside). A second "Download" saves it, and the audit log downloads separately.
+  - "Download" builds `<PREFIX>_bids_export_<date>.zip` (uncompressed, with `bids_output/` inside). A second "Download" saves it, and the two audit logs (full and shareable) download separately.
   - Files over 500 MB are **left out** and listed as not included.
 - **Warning:** a file that couldn't be read (e.g. a cloud-only OneDrive file) triggers a "File not locally available" warning.
 
@@ -110,15 +110,15 @@ Four tabs, each marked complete or incomplete ("N of 4 sections complete"):
 
 **Prompts, in order:**
 1. The source folder, if it wasn't given as an argument. Quotes around a pasted path are removed.
-2. Structure: Implant (default), Custom, or Single. For Custom it asks for the number of timepoints, then each number and unit. There's no duplicate or range check.
+2. Structure: Implant (default), Custom, or Single. For Custom it asks for the number of timepoints (1 to 24), then each number (a whole number from 0 to 99) and unit, asking again on invalid answers and if two timepoints resolve to the same label.
 3. Prefix (asked again until valid) and starting number.
 4. Study name.
 5. Authors (asked again until at least one is given).
 6. Defacing y/n, required, asked only when structural MRI is present.
 7. Output folder. The default is `<PREFIX>_bids_export` next to the source folder. It isn't made unique.
 
-**Output:** it writes `<out>/bids_output/` and `<out>/audit_log.json`, streaming every file with no size limit. Symlinks are skipped.
-- `sessions.tsv` lists every session of the chosen structure, including ones with no data.
+**Output:** it writes `<out>/bids_output/`, `<out>/audit_log.json` (full) and `<out>/audit_log_shareable.json`, streaming every file with no size limit. Symlinks are skipped.
+- `participants.tsv` and `sessions.tsv` list only subjects and sessions with exported data, as in the GUI.
 - Subjects are numbered in alphabetical order of their groups.
 
 **Held-back subjects (CLI only):**
@@ -136,7 +136,7 @@ No per-file corrections are possible in the CLI.
 | `.nii.gz`, `.nii` | Imaging. `.nii` is gzipped to `.nii.gz` on export. |
 | `.json` | Sidecar, paired with the data file of the same base name. |
 | `.edf`, `.bdf` | Scalp EEG or iEEG, told apart by the channel labels in the EDF header. |
-| `.nwb`, `.dat`, `.lay` | iEEG. Every `.dat` counts as Persyst. |
+| `.nwb`, `.dat`, `.lay` | iEEG. Every `.dat` counts as Persyst. A `.lay` is rewritten on export (§8). |
 | `.bval`, `.bvec` | Diffusion gradient tables |
 | `.tsv` | electrodes / channels / events tables. Other `.tsv` files export only alongside a data file of the same base name. |
 | `.csv` | Warning: BIDS needs `.tsv`. It exports only alongside a data file of the same base name, renamed (not converted) to `.tsv`. |
@@ -188,7 +188,7 @@ No per-file corrections are possible in the CLI.
 - **Single-band references:** `_sbref`.
 - **Scanner-derived maps** (ADC, FA, TRACEW, mIP): placed under `derivatives/scanner/` with `desc-<map>`.
 - **Series converted twice** (a bare name plus dcm2niix's decorated `_<name>_<digits>_<n>` in the same folder): the decorated copy is kept and the bare copy isn't exported.
-- **Leftover collision:** a name collision that survives all of this is renamed `…_dup-N`.
+- **Leftover collision:** a name collision that survives all of this is renamed `…_dup-N` and reported in Validate as an error (§7), so it must be resolved before export.
 - **Not set:** `IntendedFor` isn't filled in, and task labels can't be changed.
 
 **PET specifics** (`src/lib/detection/petVocabulary.ts`):
@@ -204,10 +204,9 @@ No per-file corrections are possible in the CLI.
 ## 7. Validation checks (`src/lib/validation/`)
 
 **BIDS structure:**
-- **Errors (can't be dismissed):** no session assigned; subject has no BIDS ID.
-- **Warnings:** unclassified file (not exported); orphaned JSON sidecar (not exported); duplicate sidecar; unmatched `.bval`/`.bvec`.
+- **Errors (can't be dismissed):** no session assigned; subject has no BIDS ID; two files would get the same name (one was renamed `_dup-N`); a sidecar that would be exported isn't valid JSON, so it can't be de-identified.
+- **Warnings:** files whose modality is only a guess and won't be exported (one per subject, listing them); unclassified file (not exported); orphaned JSON sidecar (not exported); duplicate sidecar; unmatched `.bval`/`.bvec`.
 - **Info:** special characters in a name; same series present twice.
-- Guessed and redundant-copy files get no validation message. They're flagged only in Mapping.
 
 **PHI in file and folder names:**
 - **Errors (can't be dismissed):** SSN; MRN (with an MRN/MR# prefix, 5–10 digits); a date-of-birth marker followed by digits; `patient|pt|subj|subject` followed by First Last; a subject group that looks like a person's name.
@@ -215,10 +214,11 @@ No per-file corrections are possible in the CLI.
   - Phone number, email, MM/DD/YYYY or MM-DD-YYYY dates, "Last, First".
   - The first match of these keywords: firstname, lastname, fullname, patientname, ssn, social_security, address, street, zipcode, insurance, policy_number, accession, acc_num (underscore variants included).
 - **Sidecar content:** every string field that isn't already de-identified (nested objects included) is scanned with the same patterns, plus a two-capitalised-words name check (warning).
-- **Not checked for PHI:** the contents of electrodes, channels, events and other TSVs. An EDF header that looks identifying is shown only as a warning in Mapping's detection reasons.
+- **Table contents:** every cell of each exported TSV (electrodes, channels, events and others) is scanned with the same patterns and keywords. Purely numeric cells are skipped, and so is the two-capitalised-words name check, which would flag event labels such as "Seizure Onset". Tables are exported unchanged, so a finding has to be fixed in the source file.
+- **Not checked for PHI:** an EDF header that looks identifying is shown only as a warning in Mapping's detection reasons (the header itself is always de-identified on export, §8).
 
 **Required files (Implant sessions only):**
-- Checked for each session where the subject has files. Presence is judged by modality, so a guessed file counts.
+- Checked for each session where the subject has files. Only files that will be exported count, so a guessed or redundant file doesn't satisfy a requirement.
 - **Pre-implant:** T1w (error), T2w (warning).
 - **Post-implant:** CT, iEEG, electrodes.tsv, channels.tsv (errors); events.tsv (warning).
 - **Post-surgery:** T1w (error), T2w (warning).
@@ -253,15 +253,25 @@ No per-file corrections are possible in the CLI.
   - **Patient field:** becomes `<sub-ID> X X X` if it has EDF+ structure (4+ parts), otherwise `X X X X`.
   - **Recording field:** in EDF+ "Startdate" form, the date is shifted and admin/technician codes become X. Otherwise only `dd-MMM-yyyy` dates in it are shifted and other text is kept.
   - **Start date:** shifted. The start time is unchanged.
-  - **Not changed:** dates that can't be parsed, signal headers and annotations. Files under 256 bytes are copied as-is.
+  - **Not changed:** dates that can't be parsed. Files under 256 bytes are copied as-is.
+- **EDF+/BDF+ annotations** (the "EDF Annotations" / "BDF Annotations" signal, `src/lib/deidentify/edfStructure.ts`):
+  - Identifying text is replaced with X in place, at the same byte length: the patient's code, name parts and birth date and the recording's admin/technician codes (taken from the original header), plus SSNs, MRNs, dates, phone numbers and email addresses.
+  - Event text such as "Seizure onset", every timestamp, the time-keeping entries, signal samples and the file size are unchanged.
+  - The per-signal transducer and prefiltering fields are checked for the patient's name and ID only.
+  - Both export paths (browser and streaming) give byte-identical results. The number of redactions is in the de-identification summary; the text itself is never recorded.
+- **Persyst `.lay`** (`src/lib/deidentify/persystLayDeidentifier.ts`):
+  - `File=` is pointed at the paired `.dat`'s exported name, so the renamed pair stays linked.
+  - `[Patient]` keeps only Sex, Hand and TestTime; TestDate is shifted; every other key (name, ID, birth date, physician, ...) is removed.
+  - `[Comments]` event text is redacted with the annotation rules above; times and durations are unchanged.
 - **JSON sidecars:**
   - **Set to "X"** (any non-empty value): PatientName, PatientID, PatientBirthDate, PatientAddress, PatientTelephoneNumbers, OtherPatientIDs, OtherPatientNames, InstitutionName, InstitutionAddress, InstitutionalDepartmentName, ReferringPhysicianName, PerformingPhysicianName, RequestingPhysician, OperatorsName, StationName, DeviceSerialNumber.
   - **Date-shifted:** AcquisitionDateTime, AcquisitionDate, StudyDate, SeriesDate, ContentDate, InstanceCreationDate, ScanDate, RadiopharmaceuticalStartDateTime. A date in an unrecognized format is blanked.
-  - **Limits:** only top-level keys are processed, and a sidecar that isn't valid JSON is copied unchanged.
+  - These fields are handled at any depth: nested objects and arrays are walked too.
+  - A sidecar that isn't a JSON object (invalid JSON, null, an array) can't be de-identified: validation blocks it (§7) and export refuses to copy it.
 - **`sessions.tsv` `acq_time`:** shifted and written as ISO 8601. A value that can't be shifted becomes `n/a`.
 - **Not de-identified:**
-  - NWB, Persyst `.dat`/`.lay` and NIfTI header text.
-  - The contents of electrodes, channels, events and other TSVs.
+  - NWB, Persyst `.dat` and NIfTI header text.
+  - The contents of electrodes, channels, events and other TSVs (these are PHI-scanned, §7).
   - Free-text sidecar fields (these are PHI-scanned, §7).
   - Image pixels. Defacing is done before NeuroGate and attested.
 
@@ -271,10 +281,11 @@ No per-file corrections are possible in the CLI.
 bids_output/
   dataset_description.json   Name, BIDSVersion, DatasetType, Authors,
                              GeneratedBy (NeuroGate, app version, structure used)
-  participants.tsv           participant_id only (every detected subject)
+  participants.tsv           participant_id only (subjects with exported data)
   primary/
     sub-<ID>/
-      sub-<ID>_sessions.tsv  session_id, acq_time (not for Single session)
+      sub-<ID>_sessions.tsv  session_id, acq_time for sessions with exported data
+                             (not for Single session)
       ses-<label>/<datatype>/...
   derivatives/scanner/       only when scanner-derived maps exist
                              (no dataset_description.json of its own)
@@ -298,14 +309,15 @@ No `participants.json`, `README` or `CHANGES` is generated.
   - **Mapping:** session, modality and subject corrections (old → new); bulk applies (count).
   - **Metadata:** institution configured, subject sessions, dataset description, defacing attested (when leaving Metadata with the box ticked).
   - **Validation:** validation passed (on Continue to Export, GUI); validation run (CLI).
-  - **Export:** export completed (GUI); de-identification summary (fields stripped or shifted, whether EDF PHI was found; no shift values); audit exported. The "audit exported" entry is written after the file, so it isn't in the file.
+  - **Export:** export completed (GUI); de-identification summary (fields stripped or shifted, whether EDF PHI was found, annotation and `.lay` redaction counts; no shift values or redacted text); audit exported. The "audit exported" entry is written after the file, so it isn't in the file.
 - **Not logged:**
   - Dismissing a validation issue, or unticking the attestation.
   - Per-file detection reasons.
   - Export started, and errors.
   - User identity beyond the above.
   - A restore doesn't re-log files scanned or detection completed.
-- **⚠ The audit log contains original file and folder names** (in corrections and subject names) and the study name. Those can identify patients. Keep it at the site; don't share it with the dataset.
+- **⚠ The full audit log contains original file and folder names** (in corrections and subject names) and the study name. Those can identify patients. Keep it at the site; don't share it with the dataset.
+- **Shareable copy** (`src/lib/audit/auditRedaction.ts`), written with every export: each original file name and path is replaced by its exported BIDS path (or `file-N` if it wasn't exported), each subject group by its assigned `sub-` ID (or `subject-N`), and the operator by "site". Matching is word-bounded. Everything else is the same as the full log. This is the copy to send with a dataset. The audit panel's Export JSON / CSV buttons still save the full log.
 
 ## 11. Pre-processing guidance (in-app Pre-Processing page)
 

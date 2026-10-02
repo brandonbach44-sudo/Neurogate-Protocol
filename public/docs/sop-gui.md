@@ -3,12 +3,12 @@
 | Field | Value |
 |---|---|
 | **Document ID** | SOP-GUI-001 |
-| **Version** | 3.0 |
-| **Effective Date** | 2026-09-30 |
+| **Version** | 3.1 |
+| **Effective Date** | 2026-10-02 |
 | **Author** | Brandon Bach |
 | **Status** | Draft, Pending Advisor Review |
-| **Parent Framework** | GOV-001 Regulatory and Governance Framework v2.1 |
-| **Related Documents** | SOP-BIDS-001 v3.1 |
+| **Parent Framework** | GOV-001 Regulatory and Governance Framework v2.2 |
+| **Related Documents** | SOP-BIDS-001 v3.2 |
 
 ---
 
@@ -28,7 +28,7 @@ This SOP supports the following requirements from GOV-001:
 |---|---|---|
 | 2.1 FAIR Principles | Data must be structured in machine-readable, interoperable formats | The tool places each file in a BIDS folder with a BIDS name, carries over existing JSON sidecars next to their data files, and generates `dataset_description.json`, `participants.tsv` and per-subject `sessions.tsv` files (Section 11) |
 | 2.2 ALCOA+ Data Integrity | Data transformations must be attributable and contemporaneous | The audit log records timestamped setup, detection, correction, metadata, validation and export events. Its limits are listed in Section 12. |
-| 2.3 HIPAA/PHI Protection | PHI must be removed before data leaves the originating site | The tool scans file names, folder names and sidecar text for PHI patterns (Section 10.4) and on export de-identifies EDF/BDF headers, selected JSON sidecar fields and `sessions.tsv` dates (Section 11.1). It does not de-identify everything; see Section 11.1 for what is not changed. |
+| 2.3 HIPAA/PHI Protection | PHI must be removed before data leaves the originating site | The tool scans file names, folder names, sidecar text and TSV table contents for PHI patterns (Section 10.4) and on export de-identifies EDF/BDF headers and annotations, Persyst `.lay` files, selected JSON sidecar fields and `sessions.tsv` dates (Section 11.1). It does not de-identify everything; see Section 11.1 for what is not changed. |
 | 2.5 QMS Documentation | SOPs must include step-by-step procedures | Sections 6 through 11 give the workflow in order |
 | 5 Audit Traceability | Corrections and detection decisions must be documented | Every Mapping correction is logged with its old and new value. Detection is logged as summary counts; per-file detection reasons are shown in the Mapping table but are not written to the log (Section 12.3). |
 
@@ -44,7 +44,7 @@ This SOP applies to anyone preparing neural data files for sharing, whether at a
 - Reviewing and correcting the tool's automatic classifications
 - Entering dataset-level metadata and the defacing attestation
 - Running the tool's checks before export
-- Exporting a BIDS folder together with the audit log
+- Exporting a BIDS folder together with the audit log (a full log for the site and a shareable copy)
 
 **Out of scope:**
 
@@ -268,9 +268,9 @@ The choice depends on the study design rather than the modalities present.
 | Extension | How it is handled |
 |---|---|
 | `.nii.gz`, `.nii` | Imaging. `.nii` is gzipped to `.nii.gz` on export. |
-| `.json` | Sidecar, paired with the data file of the same base name |
+| `.json` | Sidecar, paired with the data file of the same base name in the same folder |
 | `.edf`, `.bdf` | Scalp EEG or iEEG, told apart by the channel labels in the EDF header |
-| `.nwb`, `.dat`, `.lay` | iEEG. Every `.dat` file is treated as Persyst. |
+| `.nwb`, `.dat`, `.lay` | iEEG. Every `.dat` file is treated as Persyst. A `.lay` file is rewritten on export (Section 11.1). |
 | `.bval`, `.bvec` | Diffusion gradient tables |
 | `.tsv` | electrodes, channels and events tables. Other `.tsv` files export only alongside a data file of the same base name. |
 | `.csv` | Warning: BIDS needs `.tsv`. Exported only alongside a data file of the same base name, renamed (not converted) to `.tsv`. |
@@ -343,7 +343,7 @@ The filter bar shows a count for each filter: **All**, **High**, **Medium**, **L
 **Continue to Metadata** is always enabled. The Mapping step does not stop you from continuing with unresolved files:
 
 - Files with no session produce an error in Validate that cannot be dismissed and blocks export.
-- Guessed files are simply not exported, with no further warning.
+- Guessed files are not exported. Validate lists them in one warning per subject.
 
 Clear the **Needs your decision** filter before continuing.
 
@@ -437,26 +437,29 @@ Most errors must be fixed in an earlier step or in the source data:
 - **Implant required file missing:** add the file and start again, or, if the file genuinely does not exist, dismiss the error and record the omission in the site's records.
 - **Sessions out of chronological order (Implant, auto-filled dates):** check the session assignments in Mapping against the site's records.
 - **Duplicate subject ID:** check the Subject column in Mapping.
+- **Two files would get the same name:** the tool renamed one of them `…_dup-N`. Usually the two files are the same scan, or one is in the wrong session or has the wrong modality. Fix the session or modality in Mapping, or remove the extra file from the source folder and start again.
+- **Sidecar is not valid JSON:** the file cannot be de-identified, so it cannot be exported. Fix or remove the `.json` file in the source folder, then start again.
 
 ### 10.4 The Checks
 
 **BIDS structure**
 
-- Errors (cannot be dismissed): no session assigned; subject has no BIDS ID
-- Warnings: unclassified file (not exported); orphaned JSON sidecar (not exported); duplicate sidecar; unmatched `.bval`/`.bvec`
+- Errors (cannot be dismissed): no session assigned; subject has no BIDS ID; two files would get the same name (one was renamed `_dup-N`); a sidecar that would be exported is not valid JSON, so it cannot be de-identified
+- Warnings: files whose modality is only a guess and will not be exported (one warning per subject, listing the files); unclassified file (not exported); orphaned JSON sidecar (not exported); duplicate sidecar; unmatched `.bval`/`.bvec`
 - Info: special characters in a name; same series present twice
-- Guessed and duplicate-copy files get no validation message. They are flagged only in Mapping.
+- Duplicate-copy files get no message of their own. They are flagged in Mapping.
 
 **PHI in file and folder names**
 
 - Errors (cannot be dismissed): Social Security number; medical record number (an MRN or MR# prefix with 5 to 10 digits); a date-of-birth marker followed by digits; `patient`, `pt`, `subj` or `subject` followed by a first and last name; a subject group that looks like a person's name
 - Warnings: phone number; email address; MM/DD/YYYY or MM-DD-YYYY dates; "Last, First"; the first match of these keywords (underscore variants included): firstname, lastname, fullname, patientname, ssn, social_security, address, street, zipcode, insurance, policy_number, accession, acc_num
 - Sidecar content: every string field of a JSON sidecar that is not already de-identified, including nested fields, is scanned with the same patterns, plus a warning for two capitalized words that could be a name.
-- Not scanned: the contents of electrodes, channels, events and other TSV files. An EDF header that looks identifying is shown only as a warning in the Mapping table's detection reasons.
+- Table contents: every cell of each exported TSV file (electrodes, channels, events and others) is scanned with the same patterns and keywords. Purely numeric cells are skipped, and so is the two-capitalized-words check, which would flag event labels such as "Seizure Onset". Tables are exported unchanged, so fix a finding in the source file.
+- Not scanned: an EDF header that looks identifying is shown only as a warning in the Mapping table's detection reasons. The header itself is always de-identified on export (Section 11.1).
 
 **Required files (Implant sessions only)**
 
-Checked for each session in which the subject has files. Presence is judged by modality, so a guessed file counts.
+Checked for each session in which the subject has files. Only files that will be exported count, so a guessed file or a duplicate copy does not satisfy a requirement.
 
 | Session | Errors | Warnings |
 |---|---|---|
@@ -494,31 +497,45 @@ The Export screen shows the output folder tree, the number of subjects and files
 
 The following is applied to the exported copies on every export. Source files are not modified.
 
-**Date shift.** Each subject gets one random shift between −365 and +365 days (0 is possible), applied to EDF/BDF headers, JSON sidecars and `sessions.tsv` `acq_time`. The shift value is deliberately not recorded anywhere, including the audit log, so the true dates cannot be recovered.
+**Date shift.** Each subject gets one random shift between −365 and +365 days (0 is possible), applied to EDF/BDF headers, JSON sidecars, the Persyst `.lay` test date and `sessions.tsv` `acq_time`. The shift value is deliberately not recorded anywhere, including the audit log, so the true dates cannot be recovered.
 
 **EDF/BDF headers:**
 
 - Patient field: becomes `<sub-ID> X X X` if it has EDF+ structure (four or more parts), otherwise `X X X X`
 - Recording field: in EDF+ "Startdate" form, the date is shifted and the administration and technician codes become X. Otherwise only `dd-MMM-yyyy` dates in it are shifted and other text is kept.
 - Start date: shifted. The start time is not changed.
-- Not changed: dates that cannot be parsed, signal headers, and annotations. Files under 256 bytes are copied as-is.
+- Not changed: dates that cannot be parsed. Files under 256 bytes are copied as-is.
+- Signal headers: the transducer and prefiltering fields are checked for the patient's name and ID only.
+
+**EDF+/BDF+ annotations:**
+
+- Identifying text is replaced with X in place, at the same byte length: the patient's code, name and birth date and the recording's administration and technician codes (taken from the original header), plus Social Security numbers, medical record numbers, dates, phone numbers and email addresses.
+- Event text such as "Seizure onset", every timestamp, the signal data and the file size are not changed.
+- The audit log records how many redactions were made, never the text itself.
+
+**Persyst `.lay` files:**
+
+- `File=` is pointed at the renamed `.dat`, so the pair stays linked.
+- In `[Patient]`, only Sex, Hand and TestTime are kept. TestDate is shifted. Every other key (name, ID, birth date, physician and so on) is removed.
+- `[Comments]` text is redacted the same way as EDF annotations. Times and durations are not changed.
 
 **JSON sidecars:**
 
 - Set to "X" when present with any value: PatientName, PatientID, PatientBirthDate, PatientAddress, PatientTelephoneNumbers, OtherPatientIDs, OtherPatientNames, InstitutionName, InstitutionAddress, InstitutionalDepartmentName, ReferringPhysicianName, PerformingPhysicianName, RequestingPhysician, OperatorsName, StationName, DeviceSerialNumber
 - Date-shifted: AcquisitionDateTime, AcquisitionDate, StudyDate, SeriesDate, ContentDate, InstanceCreationDate, ScanDate, RadiopharmaceuticalStartDateTime. A date in an unrecognized format is blanked.
-- Only top-level keys are processed. A sidecar that is not valid JSON is copied unchanged.
+- These fields are handled at any depth, including inside nested objects and arrays.
+- A sidecar that is not a JSON object (invalid JSON, null, or an array) cannot be de-identified. Validate shows it as an error that blocks export (Section 10.4), and it is never copied.
 
 **`sessions.tsv` `acq_time`:** shifted and written as ISO 8601. A value that cannot be shifted becomes `n/a`.
 
 **Not de-identified:**
 
-- NWB files, Persyst `.dat`/`.lay` files, and NIfTI header text
-- The contents of electrodes, channels, events and other TSV files
+- NWB files, Persyst `.dat` files, and NIfTI header text
+- The contents of electrodes, channels, events and other TSV files (these are PHI-scanned in Validate, Section 10.4, but exported unchanged)
 - Free-text sidecar fields (these are PHI-scanned in Validate, Section 10.4, but not changed)
 - Image pixels. Defacing must be done before NeuroGate and is attested in Metadata.
 
-Review these file types yourself before the dataset leaves the site.
+Review these file types yourself before the dataset leaves the site. Also skim EDF annotations and `.lay` comments: the tool removes the identifiers it recognizes, but not, for example, a relative's name typed into an event.
 
 ### 11.2 Naming Applied on Export
 
@@ -530,7 +547,7 @@ Review these file types yourself before the dataset leaves the site.
 - Field maps get `_magnitude1`/`_magnitude2`, `_phasediff`, or `_phase1`/`_phase2`
 - Functional MRI is always `task-rest`. Scalp EEG and iEEG are always `task-monitor`. Task labels cannot be changed.
 - electrodes, channels and events tables go beside their recording: `eeg/` for scalp EEG, `ieeg/` for iEEG. A table is matched to an EEG or iEEG recording in the same source folder first, then in the same subject and session; otherwise, or when both kinds are present, it goes in `ieeg/`. Check the BIDS path under each table's name in Mapping. channels and events get `task-monitor`; electrodes gets no task.
-- A name collision that survives all of the above is renamed `…_dup-N`
+- A name collision that survives all of the above is renamed `…_dup-N`, and Validate shows it as an error that must be fixed before export (Section 10.3)
 - `IntendedFor` is not filled in
 
 Not exported: localizer and scout scans, PET attenuation CT and mu-maps, unclassified files, guessed files, and redundant duplicate copies.
@@ -541,10 +558,10 @@ Not exported: localizer and scout scans, PET attenuation CT and mu-maps, unclass
 bids_output/
     dataset_description.json      Name, BIDSVersion, DatasetType, Authors,
                                   GeneratedBy (NeuroGate, version, structure)
-    participants.tsv              participant_id only (every detected subject)
+    participants.tsv              participant_id only (subjects with exported data)
     primary/
         sub-PENN001/
-            sub-PENN001_sessions.tsv          session_id, acq_time
+            sub-PENN001_sessions.tsv          session_id, acq_time (sessions with data)
             ses-preimplant/
                 anat/
                     sub-PENN001_ses-preimplant_T1w.nii.gz
@@ -577,6 +594,7 @@ bids_output/
 ```
 
 - For Single session there is no `ses-` folder level and no `sessions.tsv`.
+- `participants.tsv` lists only subjects that have exported data, and each `sessions.tsv` lists only the sessions in which that subject has exported data.
 - `derivatives/scanner/` has no `dataset_description.json` of its own.
 - No `participants.json`, `README` or `CHANGES` file is generated. The site writes them if a recipient needs them.
 - Additional folders under `derivatives/` for site analysis pipelines are managed by the site outside this tool.
@@ -585,7 +603,7 @@ bids_output/
 
 1. Click **Export to Folder**. A folder picker opens.
 2. Choose a location and click **Export Here**.
-3. The tool creates `<PREFIX>_bids_export_<YYYY-MM-DD>` in that location (adding `-2`, `-3`, … if the name already exists). Inside it are `bids_output/` and `audit_log_<YYYY-MM-DDTHH-MM-SS>.json`.
+3. The tool creates `<PREFIX>_bids_export_<YYYY-MM-DD>` in that location (adding `-2`, `-3`, … if the name already exists). Inside it are `bids_output/`, `audit_log_<YYYY-MM-DDTHH-MM-SS>.json` (the full log, which stays at the site) and `audit_log_<YYYY-MM-DDTHH-MM-SS>_shareable.json` (the copy to send with the dataset, Section 12.4).
 4. Files are streamed to disk, with no size limit. Progress is shown as "Writing file N of M…".
 5. When done, the screen shows the folder path and a **Show Folder** button. The export button then reads **Export Again**.
 
@@ -595,16 +613,16 @@ If a file could not be read (for example, a cloud-only OneDrive file), a "File n
 
 The project website (https://epilepsy-gui.vercel.app) runs the same tool in a web browser. Processing still happens on your computer and nothing is uploaded, but the Export step works differently:
 
-- **Download** builds `<PREFIX>_bids_export_<date>.zip` (uncompressed, with `bids_output/` inside). A second click on **Download** saves it. The audit log downloads as a separate file.
+- **Download** builds `<PREFIX>_bids_export_<date>.zip` (uncompressed, with `bids_output/` inside). A second click on **Download** saves it. The two audit logs (full and shareable) download as separate files.
 - Files over 500 MB are left out of the ZIP and listed as not included. Use the desktop app or the CLI for these.
 
 ### 11.6 After Export
 
 1. **Verify the folder structure.** Open the export folder and confirm the hierarchy matches expectations.
-2. **Review what is not de-identified** (Section 11.1), especially TSV tables, NWB and Persyst files.
-3. **Keep the audit log at the site.** It contains original file and folder names (Section 12.4). Remove it from the export folder before the dataset is shared, and store it with the site's study records.
+2. **Review what is not de-identified** (Section 11.1), especially TSV tables, NWB and Persyst `.dat` files, and skim EDF annotations and `.lay` comments.
+3. **Keep the full audit log at the site.** It contains original file and folder names (Section 12.4). Remove it from the export folder before the dataset is shared, and store it with the site's study records. If the recipient wants an audit record, send the `_shareable.json` copy.
 4. **Add site files if needed.** Demographic columns in `participants.tsv`, and `participants.json`, `README` or `CHANGES`, are added by the site after export if a recipient needs them (SOP-BIDS-001 Section 10).
-5. **Record who ran the session** in the site's records. The audit log records only "user".
+5. **Record who ran the session** in the site's records. The audit log records only "user" (and the shareable copy shows the operator as "site").
 6. **Upload to the chosen data infrastructure.** Follow the site's own procedure. Upload is out of scope for this SOP.
 
 ---
@@ -617,7 +635,7 @@ The audit log records what happened during an app session, with timestamps. It i
 
 The **Audit Log** button in the tool header shows the number of entries. It opens a panel listing the log, with **Export JSON** and **Export CSV** buttons, available at any time.
 
-The log lasts for the whole app session, including across Back to Drop Zone and additional datasets. Reloading or closing the app loses it. The desktop export also writes the JSON log into the export folder automatically (Section 11.4).
+The log lasts for the whole app session, including across Back to Drop Zone and additional datasets. Reloading or closing the app loses it. The desktop export also writes the JSON log into the export folder automatically, together with a shareable copy (Section 11.4). The panel's Export JSON and Export CSV buttons always save the full log.
 
 ### 12.2 Contents of the Audit Log
 
@@ -641,7 +659,7 @@ Events recorded:
 - **Mapping:** session, modality and subject corrections (old value and new value); bulk applies (count of files)
 - **Metadata** (written when you leave Metadata): institution configured; subject sessions; dataset description; defacing attested (only if the box is ticked)
 - **Validation:** validation passed (on Continue to Export)
-- **Export:** export completed; de-identification summary (fields stripped or shifted, and whether EDF PHI was found, without shift values); audit exported. The "audit exported" entry is written after the file is saved, so it is not in that file.
+- **Export:** export completed; de-identification summary (fields stripped or shifted, whether EDF PHI was found, and how many annotation and `.lay` redactions were made, without shift values or redacted text); audit exported. The "audit exported" entry is written after the file is saved, so it is not in that file.
 
 ### 12.3 What Is Not Logged
 
@@ -654,7 +672,9 @@ Events recorded:
 
 ### 12.4 Warning: The Audit Log Contains Identifying Names
 
-The audit log contains original file and folder names (in corrections and subject names, including every keystroke of a subject edit) and the study name. Those can identify patients. **The audit log stays at the site and is never shared with the dataset.** In a desktop export the log is written next to `bids_output/`, not inside it, so share only `bids_output/`.
+The full audit log contains original file and folder names (in corrections and subject names, including every keystroke of a subject edit) and the study name. Those can identify patients. **The full audit log stays at the site and is never shared with the dataset.** In a desktop export the logs are written next to `bids_output/`, not inside it.
+
+Every export also writes a shareable copy (`audit_log_<timestamp>_shareable.json`, or `audit_log_shareable.json` from the CLI). In it, each original file name and path is replaced by its exported BIDS path (or `file-N` if the file was not exported), each subject group by its `sub-` ID (or `subject-N`), and the operator by "site". Everything else is the same as the full log. This is the copy to send with a dataset. Share `bids_output/` and, if wanted, the shareable copy, nothing else.
 
 ### 12.5 ALCOA+ Considerations
 
@@ -725,21 +745,20 @@ The same protocol run at every visit produces files with identical names in each
 The `neurogate` command is bundled in every desktop build and installed with Install CLI (Section 4.6). Run `neurogate <folder>`. It asks, in order:
 
 1. The source folder, if it was not given. Quotes around a pasted path are removed.
-2. The structure: Implant (default), Custom, or Single. For Custom it asks for the number of timepoints, then each number and unit. It does not check for duplicates or ranges.
+2. The structure: Implant (default), Custom, or Single. For Custom it asks for the number of timepoints (1 to 24), then each number (a whole number from 0 to 99) and unit. It asks again after an invalid answer, and when two timepoints would get the same label.
 3. The prefix (asked again until valid) and the starting number
 4. The study name
 5. The authors (asked again until at least one is given)
 6. Defacing, yes or no, required, asked only when structural MRI is present
 7. The output folder. The default is `<PREFIX>_bids_export` next to the source folder, and it is not made unique.
 
-It writes `<out>/bids_output/` and `<out>/audit_log.json`, streaming every file with no size limit. Symbolic links are skipped. De-identification is the same as the desktop app (Section 11.1).
+It writes `<out>/bids_output/`, `<out>/audit_log.json` (the full log) and `<out>/audit_log_shareable.json` (the shareable copy, Section 12.4), streaming every file with no size limit. Symbolic links are skipped. De-identification is the same as the desktop app (Section 11.1), and `participants.tsv` and `sessions.tsv` list only subjects and sessions with exported data, as in the app.
 
 Differences from the desktop app:
 
 - **Held-back subjects (CLI only):** a subject with errors is held back and the rest are exported. Errors not tied to a subject (missing metadata or attestation, PHI errors, an empty dataset) stop the whole export with exit code 1.
 - Warnings do not stop the CLI. It exports, then lists each warning.
 - No per-file corrections are possible.
-- `sessions.tsv` lists every session of the chosen structure, including ones with no data.
 - Subjects are numbered in alphabetical order of their groups.
 - The audit log's actor is the operating-system username.
 
@@ -759,7 +778,12 @@ Differences from the desktop app:
 | A file does not appear or is Other / Unknown | The extension is not recognized, or the file is DICOM or ECAT | Check Section 7.2. Convert DICOM and ECAT to NIfTI first. |
 | Most files are Low or Needs Review | Source names and folders carry little information | Organize files into subject and session folders, or use bulk edits in Mapping |
 | A file shows "Guessed: pick a modality to export" | No signal identified the scan | Choose the correct modality. Guessed files are not exported otherwise. |
-| A file you expected is missing from the export | It was guessed, unclassified, a duplicate copy, a localizer, an attenuation CT, or (browser only) over 500 MB | Check its badge and modality in Mapping |
+| A file you expected is missing from the export | It was guessed, unclassified, a duplicate copy, a localizer, an attenuation CT, or (browser only) over 500 MB | Check its badge and modality in Mapping, and the guessed-files warning in Validate |
+| A subject or session is missing from `participants.tsv` or `sessions.tsv` | None of its files were exported (for example, all guessed) | Pick modalities for its files in Mapping |
+| Validate says two files would get the same name | One file was renamed `_dup-N` | Fix the session or modality in Mapping, or remove the extra file (Section 10.3) |
+| Validate says a sidecar is not valid JSON | The `.json` file is damaged or is not a JSON object | Fix or remove it in the source folder, then start again |
+| PHI warning in a TSV table | A name, date or number in an electrodes, channels or events table | Edit the table outside the tool, then start again. Tables are exported unchanged. |
+| `XXXX` in EDF annotations or `.lay` comments | Identifying text was redacted on export | Expected. Event text and timestamps are kept. |
 | "Fix N Errors to Continue" on Validate | Undismissed errors remain | Expand each error. Most must be fixed in Mapping or in the source data (Section 10.3). |
 | Validate shows "no session assigned" | Mapping let you continue with files that have no session | Back to Metadata, Back to Mapping, assign sessions, then re-enter Metadata |
 | Metadata won't continue | A required field or the attestation is missing | Read the "Please complete the following" list and visit each incomplete tab |
@@ -782,7 +806,7 @@ If an issue is not resolved by this section, contact the project lead with:
 - The workflow step where the issue occurred
 - Any error messages shown
 
-Do not send the audit log or screenshots of the Mapping table outside the site without checking them first. Both show original file and folder names, which can identify patients.
+Do not send the full audit log or screenshots of the Mapping table outside the site without checking them first. Both show original file and folder names, which can identify patients. Send the shareable audit log copy instead.
 
 ---
 
@@ -795,3 +819,4 @@ Do not send the audit log or screenshots of the Mapping table outside the site w
 | 1.9 | August 2026 | Brandon Bach | Added the Custom timepoints preset and Step 1 (Choose Your Structure); revised the mapping table to show both session preset options; clarified that upload is out of scope |
 | 2.0 | August 31, 2026 | Brandon Bach | Substantive rewrite. Reframed the tool from browser-based to a desktop application (Section 4 installation, Section 5 tool overview). Expanded modality coverage to include PDw, T2starw, MoCoSeries functional, single-band references, and magnitude/phase pairs (Section 8.2). Added the mapping table status badges (Section 8.4) documenting the guessed-modality quarantine gate, duplicate resolution, and derivative separation behaviors introduced in the 2026-08-17 detection engine improvements. Added the Needs Your Decision filter (Section 8.5). Added the derivatives export path documentation (Section 11.3). Added the held-back subject behavior (Sections 10.5 and 11.4) allowing partial export when individual subjects cannot be resolved automatically. Added a dedicated Longitudinal Study Handling section (Section 13) covering visit folder recognition, nested layouts, and missed visits. Expanded troubleshooting to cover the new behaviors. |
 | 3.0 | September 30, 2026 | Brandon Bach | Rewritten to describe only what the tool does, verified against the capability inventory and the code. Distribution: desktop app and CLI via GitHub Releases with actual file names, Apple Silicon only on macOS, and first-launch steps (macOS Open Anyway, Windows SmartScreen, Linux `chmod +x`) (Section 4.4); auto-update behavior per platform (Section 4.5); Install CLI (Section 4.6); version shown in the page footer (Section 4.7). Workflow: real step labels and button names throughout; "going back loses work" limitations (Section 5.1); the Step-0 question and the Single session preset, and that the structure cannot be changed on screen (Section 6); saved progress (Section 7.4); the Mapping table's actual columns, filters, badges and bulk edits, and that Continue to Metadata is always enabled (Section 8); Metadata's four tabs, auto-fill and blocking behavior (Section 9); Validation's dismissal rules, what blocks export, and the actual list of checks and non-checks (Section 10); desktop folder export with no size limit versus browser ZIP (Sections 11.4 and 11.5); the de-identification actually applied and what is not de-identified (Section 11.1); corrected output layout (Section 11.3). Audit log: what is and is not logged, and the warning that it contains original file and folder names and must stay at the site (Section 12). Added PET (Section 14) and a CLI summary including CLI-only held-back subjects (Section 15). Removed features that do not exist: subject demographics (age, sex), Acknowledgements and Funding fields, BrainVision support, held-back subjects in the desktop app, unimplemented checks (per-modality sidecar fields, channel/electrode matching, NIfTI header checks, iEEG duration, Persyst pairing, sessions.tsv matching), per-check Pass results, participants.json/README/CHANGES generation, recorded date-shift values, the project website and Downloads page, the version display in the lower right corner, clickable stepper, editable Subject/Session/Modality cells with detected-value markers, the Implant fallback session, and the Mapping gate on unresolved files. Troubleshooting rewritten to match. Also: the Structure step's text now reads "This can't be changed after you add files without starting over", and the note that the screen text was inaccurate is removed (Section 6.4); electrode, channel and event tables are placed beside their recording (`eeg/` for scalp EEG, `ieeg/` for iEEG, `ieeg/` as the fallback) rather than always in `ieeg/` (Section 11.2); the dataset is described as NeuroGate's BIDS-based structure and the Validate step no longer refers to the official bids-validator (Sections 1, 10); the Pre-Processing page's PET2BIDS (`dcm2niix4pet`) commands are referenced (Sections 3, 14); PET sidecar fields are those required by SOP-BIDS-001 and PET is exempt from defacing (Sections 4.2, 10.4, 14); demographics are optional and added by the site after export, and `participants.json`, `README` and `CHANGES` are written by the site if a recipient needs them (Sections 9.2, 11.3, 11.6); the date shift is deliberately not recorded, so true dates cannot be recovered (Section 11.1); the audit log stays at the site and is never shared, and sites record the operator's identity themselves (Sections 11.6, 12.3, 12.4); Section 13.1 no longer says sessions are assigned only by label match (clustering also assigns them) and lists the `M6`/`Y1` forms. |
+| 3.1 | October 2, 2026 | Brandon Bach | Updated for NeuroGate 1.2.0. Section 2: PHI row covers table scanning, EDF annotations and Persyst `.lay`. Section 7.2: sidecars pair by base name in the same folder; `.lay` files are rewritten on export. Section 8.5: guessed files now get a Validate warning. Section 10: added the duplicate-name and invalid-sidecar errors and how to resolve them, the per-subject guessed-files warning, the TSV table content scan, and that only exported files satisfy required-file checks. Section 11.1: date shift covers the `.lay` test date; added EDF+/BDF+ annotation redaction and signal-header checks, Persyst `.lay` handling, sidecar fields at any depth, and that a sidecar that is not a JSON object blocks export; removed Persyst `.lay`, annotations and the top-level-only limit from what is not de-identified. Sections 11.2, 11.3: `_dup-N` is a Validate error; participants.tsv and sessions.tsv list only subjects and sessions with exported data. Sections 11.4 to 11.6 and 12: every export writes a full audit log (stays at the site) and a shareable copy (original names replaced by BIDS paths and `sub-` IDs, operator shown as "site") that can be sent with the dataset; the de-identification summary includes redaction counts. Section 15: CLI custom timepoints are checked (1 to 24 timepoints, whole numbers 0 to 99, no duplicate labels); the CLI writes the shareable copy; its sessions.tsv no longer lists sessions without data. Section 16: new troubleshooting rows for these behaviors. Header updates the parent to GOV-001 v2.2 and the related document to SOP-BIDS-001 v3.2. |

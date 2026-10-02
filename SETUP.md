@@ -38,8 +38,9 @@ The update check is skipped in dev builds (it only runs in a packaged app).
 
 ```bash
 npm run regression       # regression.ts, regression_deidentify.ts, regression_flywheel.ts,
-                         # regression_generalization.ts, regression_pet.ts, regression_docs.ts;
-                         # the release workflow runs this
+                         # regression_generalization.ts, regression_pet.ts,
+                         # regression_edf_annotations.ts, regression_docs.ts;
+                         # CI and the release workflow run this
 npm run verify:export    # streaming export writer and EDF de-identifier
 npm run verify:cli       # CLI pipeline end to end on demo data
 npm run verify:adapter   # NodeFileAdapter vs. the browser File path
@@ -66,8 +67,8 @@ All fixtures are synthetic (`demo-data/` or built in memory). Never commit real 
 | `src/lib/detection/` | Modality, subject and session detection. |
 | `src/lib/validation/` | Validation checks. |
 | `src/lib/bids/` | BIDS naming (`bidsNaming.ts`) and the export file list (`exporter.ts`), plus the browser ZIP. |
-| `src/lib/deidentify/` | EDF and JSON sidecar de-identification. |
-| `src/lib/audit/` | Audit log. |
+| `src/lib/deidentify/` | De-identification: EDF/BDF headers and annotations, Persyst `.lay` files, JSON sidecars. |
+| `src/lib/audit/` | Audit log, including the shareable copy written with every export. |
 | `src/lib/adapters/` | Node-only code: `NodeFileAdapter`, directory scan, streaming export writer, desktop export entry point. |
 | `src/cli/` | CLI (`index.ts` prompts, `pipeline.ts` does the work). |
 | `src/version.ts` | App version, read from `package.json` at build time; the single source for the footer, `dataset_description.json` and the audit log. |
@@ -77,6 +78,7 @@ All fixtures are synthetic (`demo-data/` or built in memory). Never commit real 
 | `scripts/` | Build scripts (CLI bundle and binary, desktop bundle, fast dev loop, macOS ad-hoc signing). |
 | `public/docs/` | GOV-001, SOP-BIDS-001, SOP-GUI-001 and the DICOM conversion helper script, shown in the app. |
 | `docs/` | Internal notes. `docs/capabilities.md` is the source of truth for behavior; update it first whenever behavior changes. |
+| `.github/workflows/ci.yml` | CI on every push and pull request: lint, build, regression, verify scripts, desktop export check. |
 | `.github/workflows/release.yml` | Release pipeline (see the README's Releasing section). |
 
 See [`docs/architecture.md`](./docs/architecture.md) for how these pieces fit together.
