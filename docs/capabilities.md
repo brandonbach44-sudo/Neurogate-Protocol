@@ -2,7 +2,7 @@
 
 **This file is the single source of truth for what NeuroGate does.** Every user-facing document (GOV-001, SOP-BIDS-001, SOP-GUI-001, README) and every page in the app describes only what's listed here. When a feature is added or changed, update this file first, then the documents.
 
-It was verified line by line against the code on 2026-09-30 (version 1.0.1 plus that day's changes) and updated for each release since; this revision is for 1.4.0 (2026-10-02). File references are relative to the repo root.
+It was verified line by line against the code on 2026-09-30 (version 1.0.1 plus that day's changes) and updated for each release since; this revision is for 1.5.0 (2026-10-02). File references are relative to the repo root.
 
 ---
 
@@ -137,7 +137,7 @@ No per-file corrections are possible in the CLI.
 | Extension | Meaning |
 |---|---|
 | `.nii.gz`, `.nii` | Imaging. `.nii` is gzipped to `.nii.gz` on export. |
-| `.json` | Sidecar, paired with the data file of the same base name. |
+| `.json` | Sidecar, paired with the data file of the same base name in the same folder. |
 | `.edf`, `.bdf` | Scalp EEG or iEEG, told apart by the channel labels in the EDF header. |
 | `.nwb`, `.dat`, `.lay` | iEEG. Every `.dat` counts as Persyst. A `.lay` is rewritten on export (§8). |
 | `.bval`, `.bvec` | Diffusion gradient tables |
@@ -193,7 +193,9 @@ No per-file corrections are possible in the CLI.
 - **Scanner-derived maps** (ADC, FA, TRACEW, mIP): placed under `derivatives/scanner/` with `desc-<map>`.
 - **Series converted twice** (a bare name plus dcm2niix's decorated `_<name>_<digits>_<n>` in the same folder): the decorated copy is kept and the bare copy isn't exported.
 - **Leftover collision:** a name collision that survives all of this is renamed `…_dup-N` and reported in Validate as an error (§7), so it must be resolved before export.
-- **Not set:** `IntendedFor` isn't filled in, and task labels can't be changed.
+- **`IntendedFor`** (`src/lib/bids/intendedFor.ts`): each exported field-map sidecar lists every EPI image exported in the same session (the images in `func/`, `dwi/` and `perf/`, single-band references included), as paths relative to the subject folder. An `IntendedFor` already in a source sidecar is replaced; on any other sidecar it's removed, since it names the original files.
+  - It isn't matched by phase-encoding direction or by scan; a field map meant for only some of a session's scans has to be edited after export.
+- **Not set:** task labels can't be changed.
 
 **PET specifics** (`src/lib/detection/petVocabulary.ts`):
 - **Detection:**
@@ -307,16 +309,17 @@ No `participants.json`, `README` or `CHANGES` is generated.
   - **Entries:** `{id, timestamp, actor, action, summary, details}`. The actor is "user" or "system" in the GUI, and the OS username in the CLI.
 - **Where it lives:**
   - **Audit Log button (tool header, with an entry count):** opens a panel with **Export JSON** and **Export CSV**, available at any time.
-  - The log lasts for the whole app session, including across Back to Drop Zone, Change structure and additional datasets. A reload loses it.
+  - The log lasts for the whole app session, including across Back to Drop Zone, Change structure and additional datasets.
+  - **Kept across a reload** (`src/lib/audit/auditPersistence.ts`): the log is saved to tab storage after every change and restored when the page reloads, with a "Page reloaded; audit log restored" entry; numbering continues. Closing the tab or quitting the app clears it, so export it before closing. If tab storage is unavailable or full, it isn't saved.
 - **What's logged:**
   - **Setup:** structure selected, structure changed (from → to), files scanned, session restored.
   - **Detection:** detection completed (counts).
   - **Mapping:** session, modality and subject corrections (old → new); bulk applies (count).
-  - **Metadata:** institution configured, subject sessions, dataset description, defacing attested (when leaving Metadata with the box ticked).
-  - **Validation:** validation passed (on Continue to Export, GUI); validation run (CLI).
+  - **Metadata:** institution configured, subject sessions, dataset description (when leaving Metadata; after going back, only what changed).
+  - **Defacing attestation** (when it changes): ticked (with the number of structural MRI files it covers), unticked, or cleared on return because the structural MRI files changed.
+  - **Validation:** each dismissed issue (severity, category, title and affected files; never the description, which can quote the matched text); Re-run Checks when it brings dismissed issues back (count); validation passed (on Continue to Export, GUI, with the issues dismissed at that point); validation run (CLI).
   - **Export:** export completed (GUI); de-identification summary (fields stripped or shifted, whether EDF PHI was found, annotation and `.lay` redaction counts; no shift values or redacted text); audit exported. The "audit exported" entry is written after the file, so it isn't in the file.
 - **Not logged:**
-  - Dismissing a validation issue, or unticking the attestation.
   - Per-file detection reasons.
   - Export started, and errors.
   - User identity beyond the above.

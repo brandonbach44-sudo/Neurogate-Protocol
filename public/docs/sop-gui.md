@@ -3,12 +3,12 @@
 | Field | Value |
 |---|---|
 | **Document ID** | SOP-GUI-001 |
-| **Version** | 3.2 |
+| **Version** | 3.3 |
 | **Effective Date** | 2026-10-02 |
 | **Author** | Brandon Bach |
 | **Status** | Draft, Pending Advisor Review |
-| **Parent Framework** | GOV-001 Regulatory and Governance Framework v2.3 |
-| **Related Documents** | SOP-BIDS-001 v3.3 |
+| **Parent Framework** | GOV-001 Regulatory and Governance Framework v2.4 |
+| **Related Documents** | SOP-BIDS-001 v3.4 |
 
 ---
 
@@ -208,7 +208,7 @@ The stepper only shows progress; it cannot be clicked. Use the buttons at the bo
 
 Going back and forth does not repeat audit entries: when you leave Metadata again, only values that changed are logged.
 
-The audit log lasts for the whole app session, including across Back to Drop Zone, Change structure and additional datasets. Reloading or closing the app loses it, so save it first (Section 12.1).
+The audit log lasts for the whole app session, including across Back to Drop Zone, Change structure and additional datasets, and it survives a reload. Closing the app clears it, so save it first (Section 12.1).
 
 Section-by-section instructions for each step begin in Section 6.
 
@@ -400,7 +400,7 @@ When any T1w, T2w, FLAIR, PDw or T2*w image is present (a guessed T1w counts), o
 
 > I confirm that all structural MRI files in this dataset have been defaced or de-identified using an approved defacing tool before being included in this dataset.
 
-When the box is ticked, the screen shows the time it was confirmed. When you leave Metadata with the box ticked, the audit log gets a "Defacing attestation confirmed" entry (once; going back and returning does not add another unless the attestation changed). That entry does not contain the attestation text, and unticking the box is not logged.
+When the box is ticked, the screen shows the time it was confirmed. When you tick the box, the audit log gets a "Defacing attestation confirmed" entry with the number of structural MRI files it covers. Unticking it adds "Defacing attestation was unticked". If you go back, change the mapping so a different set of files needs defacing, and return, the attestation is cleared and logged as cleared; tick it again. That entry does not contain the attestation text, and unticking the box is not logged.
 
 If no structural MRI is present, the tab says the attestation is not required.
 
@@ -439,7 +439,7 @@ The Validate step runs the tool's checks and shows the results. Under SOP-BIDS-0
 
 Any error that has not been dismissed blocks export. The button then reads **Fix N Errors to Continue** instead of **Continue to Export**. The only errors that can be dismissed are the Implant sessions required-file errors.
 
-Dismissals are not written to the audit log. They are cleared by Re-run Checks and by returning from Export with Back to Validation.
+Each dismissal is written to the audit log with the issue's title, severity, category and affected files. Dismissals are cleared by Re-run Checks (also logged) and by returning from Export with Back to Validation. The "Validation passed" entry lists the issues that were dismissed when you continued to Export.
 
 ### 10.3 Resolving Errors
 
@@ -562,7 +562,7 @@ Review these file types yourself before the dataset leaves the site. Also skim E
 - Functional MRI is always `task-rest`. Scalp EEG and iEEG are always `task-monitor`. Task labels cannot be changed.
 - electrodes, channels and events tables go beside their recording: `eeg/` for scalp EEG, `ieeg/` for iEEG. A table is matched to an EEG or iEEG recording in the same source folder first, then in the same subject and session; otherwise, or when both kinds are present, it goes in `ieeg/`. Check the BIDS path under each table's name in Mapping. channels and events get `task-monitor`; electrodes gets no task.
 - A name collision that survives all of the above is renamed `…_dup-N`, and Validate shows it as an error that must be fixed before export (Section 10.3)
-- `IntendedFor` is not filled in
+- Field-map sidecars get `IntendedFor`, listing every EPI image (func, dwi, perf) exported in the same session. A field map meant for only some of those scans has to be edited after export.
 
 Not exported: localizer and scout scans, PET attenuation CT and mu-maps, unclassified files, guessed files, and redundant duplicate copies.
 
@@ -649,7 +649,7 @@ The audit log records what happened during an app session, with timestamps. It i
 
 The **Audit Log** button in the tool header shows the number of entries. It opens a panel listing the log, with **Export JSON** and **Export CSV** buttons, available at any time.
 
-The log lasts for the whole app session, including across Back to Drop Zone, Change structure and additional datasets. Reloading or closing the app loses it. The desktop export also writes the JSON log into the export folder automatically, together with a shareable copy (Section 11.4). The panel's Export JSON and Export CSV buttons always save the full log.
+The log lasts for the whole app session, including across Back to Drop Zone, Change structure and additional datasets. A reload keeps it: the log is saved in the app's tab storage after every change and restored with a "Page reloaded; audit log restored" entry. Closing the app clears it. The desktop export also writes the JSON log into the export folder automatically, together with a shareable copy (Section 11.4). The panel's Export JSON and Export CSV buttons always save the full log.
 
 ### 12.2 Contents of the Audit Log
 
@@ -671,13 +671,13 @@ Events recorded:
 - **Setup:** structure selected; structure changed (old and new structure); files scanned; session restored
 - **Detection:** detection completed (counts)
 - **Mapping:** session, modality and subject corrections (old value and new value); bulk applies (count of files)
-- **Metadata** (written when you leave Metadata; after going back, only values that changed are written again): institution configured; subject sessions; dataset description; defacing attested (only if the box is ticked)
-- **Validation:** validation passed (on Continue to Export)
+- **Metadata** (written when you leave Metadata; after going back, only values that changed are written again): institution configured; subject sessions; dataset description
+- **Defacing attestation** (written when it changes): ticked, unticked, or cleared because the structural MRI files changed
+- **Validation:** each dismissed issue; Re-run Checks when it brings dismissed issues back; validation passed (on Continue to Export, with the issues dismissed at that point)
 - **Export:** export completed; de-identification summary (fields stripped or shifted, whether EDF PHI was found, and how many annotation and `.lay` redactions were made, without shift values or redacted text); audit exported. The "audit exported" entry is written after the file is saved, so it is not in that file.
 
 ### 12.3 What Is Not Logged
 
-- Dismissing a validation issue, and unticking the defacing attestation
 - Per-file detection reasons (they are shown in the Mapping table only)
 - Export started, and errors
 - The identity of the person using the tool. The log records only "user" or "system"; sites record the operator's identity themselves.
@@ -696,13 +696,13 @@ Every export also writes a shareable copy (`audit_log_<timestamp>_shareable.json
 |---|---|---|
 | Attributable | Each entry is marked `user` or `system` | The person is not identified. Sites must record who ran the session separately. |
 | Legible | JSON, with human-readable summaries, and CSV export | None |
-| Contemporaneous | Each entry is timestamped when it is written | Metadata entries, including the attestation, are written when leaving the Metadata step, not when each field was entered |
-| Original | Entries are only added during a session, never edited | The log is lost if the app is reloaded or closed before saving |
+| Contemporaneous | Each entry is timestamped when it is written | Metadata entries are written when leaving the Metadata step, not when each field was entered. The attestation and dismissals are written when they happen. |
+| Original | Entries are only added during a session, never edited | The log is lost if the app is closed before saving (a reload keeps it) |
 | Accurate | Corrections record both the old and the new value | None |
 | Complete | Setup, detection counts, corrections, metadata, validation pass and export | See Section 12.3 for what is not logged |
 | Consistent | A fixed set of action types and a fixed entry structure | None |
 | Enduring | Saved as a file on export, or at any time from the panel | Storage is the site's responsibility |
-| Available | Viewable and exportable at any time during the session | Not after a reload |
+| Available | Viewable and exportable at any time during the session, including after a reload | Not after the app is closed |
 
 ---
 
@@ -809,7 +809,7 @@ Differences from the desktop app:
 | "File not locally available" on Export | A cloud-only file (for example, OneDrive) | Right-click it in Windows Explorer, choose "Always keep on this device", then add the folder again |
 | A file is in `derivatives/scanner/` | It was detected as a scanner-computed map (Derived badge) | Expected. It cannot be moved to `primary/` in the tool. |
 | No `derivatives/` folder in the export | No scanner-computed maps were present | Expected |
-| Audit log is empty or missing entries | The app was reloaded, or the event is not logged (Section 12.3) | Save the log before reloading |
+| Audit log is empty or missing entries | The app was closed, or the event is not logged (Section 12.3) | Save the log before closing the app |
 
 ### 16.1 Reporting Issues
 
@@ -835,3 +835,4 @@ Do not send the full audit log or screenshots of the Mapping table outside the s
 | 3.0 | September 30, 2026 | Brandon Bach | Rewritten to describe only what the tool does, verified against the capability inventory and the code. Distribution: desktop app and CLI via GitHub Releases with actual file names, Apple Silicon only on macOS, and first-launch steps (macOS Open Anyway, Windows SmartScreen, Linux `chmod +x`) (Section 4.4); auto-update behavior per platform (Section 4.5); Install CLI (Section 4.6); version shown in the page footer (Section 4.7). Workflow: real step labels and button names throughout; "going back loses work" limitations (Section 5.1); the Step-0 question and the Single session preset, and that the structure cannot be changed on screen (Section 6); saved progress (Section 7.4); the Mapping table's actual columns, filters, badges and bulk edits, and that Continue to Metadata is always enabled (Section 8); Metadata's four tabs, auto-fill and blocking behavior (Section 9); Validation's dismissal rules, what blocks export, and the actual list of checks and non-checks (Section 10); desktop folder export with no size limit versus browser ZIP (Sections 11.4 and 11.5); the de-identification actually applied and what is not de-identified (Section 11.1); corrected output layout (Section 11.3). Audit log: what is and is not logged, and the warning that it contains original file and folder names and must stay at the site (Section 12). Added PET (Section 14) and a CLI summary including CLI-only held-back subjects (Section 15). Removed features that do not exist: subject demographics (age, sex), Acknowledgements and Funding fields, BrainVision support, held-back subjects in the desktop app, unimplemented checks (per-modality sidecar fields, channel/electrode matching, NIfTI header checks, iEEG duration, Persyst pairing, sessions.tsv matching), per-check Pass results, participants.json/README/CHANGES generation, recorded date-shift values, the project website and Downloads page, the version display in the lower right corner, clickable stepper, editable Subject/Session/Modality cells with detected-value markers, the Implant fallback session, and the Mapping gate on unresolved files. Troubleshooting rewritten to match. Also: the Structure step's text now reads "This can't be changed after you add files without starting over", and the note that the screen text was inaccurate is removed (Section 6.4); electrode, channel and event tables are placed beside their recording (`eeg/` for scalp EEG, `ieeg/` for iEEG, `ieeg/` as the fallback) rather than always in `ieeg/` (Section 11.2); the dataset is described as NeuroGate's BIDS-based structure and the Validate step no longer refers to the official bids-validator (Sections 1, 10); the Pre-Processing page's PET2BIDS (`dcm2niix4pet`) commands are referenced (Sections 3, 14); PET sidecar fields are those required by SOP-BIDS-001 and PET is exempt from defacing (Sections 4.2, 10.4, 14); demographics are optional and added by the site after export, and `participants.json`, `README` and `CHANGES` are written by the site if a recipient needs them (Sections 9.2, 11.3, 11.6); the date shift is deliberately not recorded, so true dates cannot be recovered (Section 11.1); the audit log stays at the site and is never shared, and sites record the operator's identity themselves (Sections 11.6, 12.3, 12.4); Section 13.1 no longer says sessions are assigned only by label match (clustering also assigns them) and lists the `M6`/`Y1` forms. |
 | 3.1 | October 2, 2026 | Brandon Bach | Updated for NeuroGate 1.2.0. Section 2: PHI row covers table scanning, EDF annotations and Persyst `.lay`. Section 7.2: sidecars pair by base name in the same folder; `.lay` files are rewritten on export. Section 8.5: guessed files now get a Validate warning. Section 10: added the duplicate-name and invalid-sidecar errors and how to resolve them, the per-subject guessed-files warning, the TSV table content scan, and that only exported files satisfy required-file checks. Section 11.1: date shift covers the `.lay` test date; added EDF+/BDF+ annotation redaction and signal-header checks, Persyst `.lay` handling, sidecar fields at any depth, and that a sidecar that is not a JSON object blocks export; removed Persyst `.lay`, annotations and the top-level-only limit from what is not de-identified. Sections 11.2, 11.3: `_dup-N` is a Validate error; participants.tsv and sessions.tsv list only subjects and sessions with exported data. Sections 11.4 to 11.6 and 12: every export writes a full audit log (stays at the site) and a shareable copy (original names replaced by BIDS paths and `sub-` IDs, operator shown as "site") that can be sent with the dataset; the de-identification summary includes redaction counts. Section 15: CLI custom timepoints are checked (1 to 24 timepoints, whole numbers 0 to 99, no duplicate labels); the CLI writes the shareable copy; its sessions.tsv no longer lists sessions without data. Section 16: new troubleshooting rows for these behaviors. Header updates the parent to GOV-001 v2.2 and the related document to SOP-BIDS-001 v3.2. |
 | 3.2 | October 2, 2026 | Brandon Bach | Updated for NeuroGate 1.3.0. Section 4.3: the NIfTI header is read (dimensions, warnings when a name contradicts them, a 4D series is not defaulted to T1w, PET framing). Section 5.1 rewritten as "Going Back": Metadata entries are now kept on Back, and audit entries are not repeated. New Section 6.5 Changing the Structure Later (Change structure on Drop Files and Mapping, with confirmation and cancel; logged as "Structure changed"). Sections 7, 8 and 9: Change structure link and button, NIfTI reasons in Mapping, guessed files listed in Validate. Section 10.4: NIfTI header text is PHI-scanned. Sections 12 and 16 updated to match. |
+| 3.3 | October 2, 2026 | Brandon Bach | Updated for NeuroGate 1.5.0. Sections 5.1 and 12: the audit log survives a reload. Section 9.4: the attestation is logged when ticked, unticked or cleared. Section 10.2: dismissals and re-runs are logged, and Validation passed lists dismissed issues. Section 11.2: field-map sidecars get `IntendedFor`. Sections 12.3, 12.5 and 16 updated to match. |
