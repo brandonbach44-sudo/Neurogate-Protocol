@@ -298,6 +298,30 @@ console.log('broken sidecars are blocked');
   report('safety', refused, 'export copied a sidecar it could not de-identify');
 }
 
+// ── 7e. Persyst pairs stay linked after renaming ──────────────────
+// The .lay names its .dat (File=). Both are renamed on export, so the
+// exported .lay must name the exported .dat, or the pair is broken.
+console.log('Persyst .lay points at the renamed .dat');
+{
+  const mk = (relativePath: string, content: string | Uint8Array): ScannedFile => {
+    const name = relativePath.split('/').pop()!;
+    const file = new File([content], name);
+    return { relativePath, name, size: file.size, file } as ScannedFile;
+  };
+  const files = [
+    mk('Patient_D/ieeg/HUP282_night1.dat', new Uint8Array(16)),
+    mk('Patient_D/ieeg/HUP282_night1.lay', '[FileInfo]\nFile=HUP282_night1.dat\n[Patient]\nFirst=John\nLast=Smith\n'),
+  ];
+  const results = runDetection(files, await readJsonSidecars(files), await readEdfHeaders(files));
+  const group = results[0].subjectGroup;
+  const subjects = [{ subjectGroup: group, bidsSubjectId: 'sub-T002', sessions: [{ sessionId: 'ses-postimplant', acqTime: '', age: '' }] }] as SubjectMetadata[];
+  const entries = buildFileEntries(results, subjects, createDefaultDatasetDescription(), new Map([[group, 3]]));
+  const dat = entries.find(e => e.path.endsWith('.dat'));
+  const lay = entries.find(e => e.path.endsWith('.lay'));
+  const datName = dat?.path.split('/').pop();
+  report('safety', Boolean(dat && lay && lay.layDeidentify?.datFileName === datName), `.lay File= target ${lay?.layDeidentify?.datFileName} vs exported .dat ${datName}`);
+}
+
 // ── 8. SAFETY: every face-bearing structural contrast needs defacing ──
 // GOV-001 requires defacing for all five. Before 2026-09-30 the check only
 // covered T1w/T2w/FLAIR, so a PDw- or T2*w-only dataset exported with no

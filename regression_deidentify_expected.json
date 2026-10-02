@@ -152,5 +152,21 @@
     "hasAllGroups": true,
     "allInRange": true
   },
-  "sessionsTsv": "session_id\tacq_time\nses-preimplant\t2024-03-13T09:30:00\nses-postimplant\t2024-04-20\nses-postsurgery\tn/a"
+  "sessionsTsv": "session_id\tacq_time\nses-preimplant\t2024-03-13T09:30:00\nses-postimplant\t2024-04-20\nses-postsurgery\tn/a",
+  "persystLay": {
+    "text": "[FileInfo]\r\nFile=sub-TEST001_ses-postimplant_task-monitor_ieeg.dat\r\nFileType=Interleaved\r\nSamplingRate=512\r\nHeaderLength=0\r\nCalibration=0.1\r\nWaveformCount=3\r\nDataType=0\r\n[ChannelMap]\r\nLA1=1\r\nLA2=2\r\nLA3=3\r\n[Patient]\r\nSex=M\r\nHand=R\r\nTestDate=03/13/2024\r\nTestTime=22:15:00\r\n[Comments]\r\n12.5,0,0,1,Seizure onset\r\n300.25,1.5,0,1,XXXXX awake, called XXXXXXXXXXXX\r\n",
+    "removedFields": [
+      "First",
+      "Middle",
+      "Last",
+      "ID",
+      "BirthDate",
+      "Physician"
+    ],
+    "shiftedFields": [
+      "TestDate"
+    ],
+    "commentRedactions": 2,
+    "crlfPreserved": true
+  }
 }

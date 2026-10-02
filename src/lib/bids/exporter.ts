@@ -49,6 +49,7 @@ import { getEffectiveSubjectGroup } from '../../types/detection';
 import { computeBidsNames, isExportedPath } from './bidsNaming';
 import { deidentifyEdf } from '../deidentify/edfDeidentifier';
 import { deidentifyJsonSidecar, isJsonSidecarFile, shiftDateString } from '../deidentify/jsonSidecarDeidentifier';
+import { deidentifyPersystLay, type LayDeidentifyOptions } from '../deidentify/persystLayDeidentifier';
 import type {
   SubjectMetadata,
   DatasetDescription,
@@ -177,6 +178,12 @@ export interface FileEntry {
   jsonDeidentify?: {
     dateShiftDays: number;
   };
+  /**
+   * When set, this is a Persyst .lay layout: File= is pointed at the
+   * paired .dat's exported name, [Patient] is cleaned and [Comments] text
+   * redacted. See lib/deidentify/persystLayDeidentifier.ts.
+   */
+  layDeidentify?: LayDeidentifyOptions;
   /** True when the file exceeds LARGE_FILE_THRESHOLD_BYTES and must be copied manually. */
   tooLarge?: boolean;
   /**
@@ -227,10 +234,18 @@ export interface DeidentificationSummary {
     shiftedFields: string[];
     unparseableDateFields: string[];
   }[];
+  /** Persyst .lay layouts rewritten on export. Field names and counts only, never values. */
+  layFiles?: {
+    bidsPath: string;
+    subjectGroup: string;
+    removedFields: string[];
+    shiftedFields: string[];
+    commentRedactions: number;
+  }[];
 }
 
 function emptyDeidentificationSummary(): DeidentificationSummary {
-  return { edfFiles: [], jsonSidecars: [] };
+  return { edfFiles: [], jsonSidecars: [], layFiles: [] };
 }
 
 /** Files excluded from the ZIP because they are too large for browser memory. */
@@ -244,6 +259,11 @@ export interface LargeFileEntry {
 function isUncompressedNifti(fileName: string): boolean {
   const lower = fileName.toLowerCase();
   return lower.endsWith('.nii') && !lower.endsWith('.nii.gz');
+}
+
+/** True for a Persyst .lay layout file. */
+function isPersystLayFile(fileName: string): boolean {
+  return fileName.toLowerCase().endsWith('.lay');
 }
 
 /** True for an EDF or BDF file that requires header de-identification. */
@@ -314,6 +334,17 @@ export function buildFileEntries(
   }
 
   const named = computeBidsNames(results, subjectIdMap, structure);
+
+  // Each exported Persyst .dat's new file name, by its original folder +
+  // base name, so the matching .lay's File= can be pointed at it.
+  const persystPairKey = (relativePath: string) => relativePath.replace(/\.(dat|lay)$/i, '').toLowerCase();
+  const exportedDatName = new Map<string, string>();
+  for (const r of named) {
+    if (/\.dat$/i.test(r.fileName) && isExportedPath(r.bidsPath)) {
+      exportedDatName.set(persystPairKey(r.relativePath), r.bidsFilename);
+    }
+  }
+
   for (const result of named) {
     // Export only files that belong to a configured subject and that
     // resolved to a real BIDS path -- primary/ for acquisitions, or the
@@ -336,6 +367,9 @@ export function buildFileEntries(
         : undefined,
       jsonDeidentify: isJsonSidecarFile(result.fileName)
         ? { dateShiftDays }
+        : undefined,
+      layDeidentify: isPersystLayFile(result.fileName)
+        ? { dateShiftDays, datFileName: exportedDatName.get(persystPairKey(result.relativePath)) }
         : undefined,
       tooLarge: result.file.size > largeFileThresholdBytes,
       subjectGroup,
@@ -478,6 +512,24 @@ export async function generateZip(
           if (err instanceof SidecarNotJsonError) throw err;
           throw new Error(`Cannot read "${entry.content.name}". Make sure the file is stored locally (not cloud-only) and add the folder again. (${(err as Error).message})`);
         }
+      } else if (entry.layDeidentify) {
+        // Persyst layout -- small text file: point File= at the renamed
+        // .dat, clean [Patient], redact [Comments].
+        let text: string;
+        try {
+          text = await entry.content.text();
+        } catch (err) {
+          throw new Error(`Cannot read "${entry.content.name}". Make sure the file is stored locally (not cloud-only) and add the folder again. (${(err as Error).message})`);
+        }
+        const result = deidentifyPersystLay(text, entry.layDeidentify);
+        zip.file(`bids_output/${entry.path}`, result.text);
+        summary.layFiles!.push({
+          bidsPath: entry.path,
+          subjectGroup: entry.subjectGroup ?? '',
+          removedFields: result.removedFields,
+          shiftedFields: result.shiftedFields,
+          commentRedactions: result.commentRedactions,
+        });
       } else {
         // Use cached buffer to avoid NotReadableError on stale File references.
         try {

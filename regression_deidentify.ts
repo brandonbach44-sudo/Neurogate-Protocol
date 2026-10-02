@@ -18,6 +18,7 @@ import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import { deidentifyJsonSidecar } from './src/lib/deidentify/jsonSidecarDeidentifier';
 import { deidentifyEdf, generateSubjectDateShifts } from './src/lib/deidentify/edfDeidentifier';
+import { deidentifyPersystLay } from './src/lib/deidentify/persystLayDeidentifier';
 import { buildFileEntries } from './src/lib/bids/exporter';
 import type { SubjectMetadata, DatasetDescription } from './src/types/metadata';
 
@@ -163,6 +164,17 @@ async function runEdfCases() {
   return results;
 }
 
+// ── Persyst .lay ───────────────────────────────────────────────────
+// File= points at the renamed .dat, [Patient] keeps only Sex/Hand/
+// TestTime (TestDate shifted), [Comments] text keeps its markers with the
+// patient's name and identifiers redacted. CRLF line endings preserved.
+
+function runLayCase() {
+  const lay = '[FileInfo]\r\nFile=HUP282_night1.dat\r\nFileType=Interleaved\r\nSamplingRate=512\r\nHeaderLength=0\r\nCalibration=0.1\r\nWaveformCount=3\r\nDataType=0\r\n[ChannelMap]\r\nLA1=1\r\nLA2=2\r\nLA3=3\r\n[Patient]\r\nFirst=John\r\nMiddle=Q\r\nLast=Smith\r\nSex=M\r\nHand=R\r\nID=MRN0234567\r\nBirthDate=05/02/51\r\nTestDate=03/03/2024\r\nTestTime=22:15:00\r\nPhysician=Dr Jones\r\n[Comments]\r\n12.5,0,0,1,Seizure onset\r\n300.25,1.5,0,1,Smith awake, called 215-555-1234\r\n';
+  const result = deidentifyPersystLay(lay, { dateShiftDays: 10, datFileName: 'sub-TEST001_ses-postimplant_task-monitor_ieeg.dat' });
+  return { ...result, crlfPreserved: !/[^\r]\n/.test(result.text) };
+}
+
 // ── sessions.tsv acq_time ───────────────────────────────────────────
 // acq_time is filled from real source dates, so the exported sessions.tsv
 // must carry the subject's shift -- and write n/a for anything it can't
@@ -220,6 +232,7 @@ async function main() {
     edf: await runEdfCases(),
     subjectShiftShape: checkSubjectShiftShape(),
     sessionsTsv: runSessionsTsvCase(),
+    persystLay: runLayCase(),
   };
 
   if (UPDATE_MODE || !existsSync(EXPECTED_PATH)) {

@@ -24,6 +24,7 @@ export interface DesktopExportEntry {
   needsGzip?: boolean;
   edfDeidentify?: FileEntry['edfDeidentify'];
   jsonDeidentify?: FileEntry['jsonDeidentify'];
+  layDeidentify?: FileEntry['layDeidentify'];
   subjectGroup?: string;
 }
 

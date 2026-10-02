@@ -37,6 +37,7 @@ export interface DesktopExportEntry {
   needsGzip?: boolean;
   edfDeidentify?: FileEntry['edfDeidentify'];
   jsonDeidentify?: FileEntry['jsonDeidentify'];
+  layDeidentify?: FileEntry['layDeidentify'];
   subjectGroup?: string;
 }
 
@@ -84,6 +85,7 @@ export async function runDesktopExport(
       needsGzip: item.needsGzip,
       edfDeidentify: item.edfDeidentify,
       jsonDeidentify: item.jsonDeidentify,
+      layDeidentify: item.layDeidentify,
       subjectGroup: item.subjectGroup,
     });
   }
