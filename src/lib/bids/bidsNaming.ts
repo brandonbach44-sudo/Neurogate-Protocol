@@ -27,6 +27,8 @@ import {
   getEffectiveSession,
   getEffectiveModality,
   getEffectiveSubjectGroup,
+  defaultTask,
+  sanitizeTaskLabel,
 } from '../../types/detection';
 import type { DatasetStructure } from '../../types/sessionStructure';
 
@@ -73,12 +75,46 @@ const SUFFIX: Record<string, string> = {
   'events': 'events',
 };
 
-/** The BIDS task entity used by recording and functional modalities. */
-function taskEntity(modality: Modality): string | null {
-  if (modality === 'func') return 'task-rest';
-  if (modality === 'eeg' || modality === 'ieeg') return 'task-monitor';
-  if (modality === 'channels' || modality === 'events') return 'task-monitor';
-  return null;
+/**
+ * The task label of every file whose name carries one. Functional MRI and
+ * EEG / iEEG recordings use the label the user set, or the default (rest,
+ * monitor). A channels or events table uses its own label if set;
+ * otherwise it follows the recordings in its source folder, then in its
+ * subject + session, when they all share one task, and falls back to the
+ * default.
+ */
+function assignTasks(results: DetectionResult[]): Map<number, string> {
+  const taskOf = new Map<number, string>();
+  const own = (r: DetectionResult) => sanitizeTaskLabel(r.userTask ?? '');
+  const recordingTasks = new Map<string, Set<string>>();
+  const note = (key: string, task: string) => {
+    const set = recordingTasks.get(key) ?? new Set<string>();
+    set.add(task);
+    recordingTasks.set(key, set);
+  };
+  const folder = (r: DetectionResult) => r.relativePath.slice(0, r.relativePath.lastIndexOf('/') + 1);
+  results.forEach((r, i) => {
+    const m = getEffectiveModality(r);
+    if (m !== 'func' && m !== 'eeg' && m !== 'ieeg') return;
+    const task = own(r) || defaultTask(m)!;
+    taskOf.set(i, task);
+    if (m === 'func') return;
+    note(`dir:${getEffectiveSubjectGroup(r)}|${folder(r)}`, task);
+    note(`ses:${getEffectiveSubjectGroup(r)}|${getEffectiveSession(r) ?? ''}`, task);
+  });
+  results.forEach((r, i) => {
+    const m = getEffectiveModality(r);
+    if (m !== 'channels' && m !== 'events') return;
+    let task = own(r);
+    if (!task) {
+      for (const key of [`dir:${getEffectiveSubjectGroup(r)}|${folder(r)}`, `ses:${getEffectiveSubjectGroup(r)}|${getEffectiveSession(r) ?? ''}`]) {
+        const set = recordingTasks.get(key);
+        if (set?.size === 1) { task = [...set][0]; break; }
+      }
+    }
+    taskOf.set(i, task || defaultTask(m)!);
+  });
+  return taskOf;
 }
 
 /**
@@ -626,10 +662,10 @@ function buildFilename(
   // order (after task, before run).
   tracer?: string | null,
   rec?: string,
+  task?: string,
 ): string {
   const parts: string[] = session ? [sub, session] : [sub];
-  const task = taskEntity(modality);
-  if (task) parts.push(task);
+  if (task) parts.push(`task-${task}`);
   if (modality === 'pet' && tracer) parts.push(`trc-${tracer}`);
   if (rec) parts.push(`rec-${rec}`);
   // BIDS rec-<label> marks a reconstruction of an acquisition. Siemens
@@ -751,6 +787,9 @@ export function computeBidsNames(
   // component to the key -- acquisitions are still grouped and numbered
   // (run-1, run-2, ...) by subject + modality alone, same as any other
   // preset, just without a session dimension.
+  // Runs are numbered per task: task-rest and task-motor BOLD in one
+  // session are each run-1, not run-1 and run-2.
+  const taskOf = assignTasks(out);
   const groups = new Map<string, number[]>();
   out.forEach((r, i) => {
     const modality = getEffectiveModality(r);
@@ -783,9 +822,10 @@ export function computeBidsNames(
       ? (sessionless
           ? `${getEffectiveSubjectGroup(r)} ${modality} derived:${r.derivedLabel}`
           : `${getEffectiveSubjectGroup(r)} ${session} ${modality} derived:${r.derivedLabel}`)
-      : sessionless
-      ? `${getEffectiveSubjectGroup(r)} ${modality}${petTracerKey(r, modality)}`
-      : `${getEffectiveSubjectGroup(r)} ${session} ${modality}${petTracerKey(r, modality)}`;
+      : (sessionless
+        ? `${getEffectiveSubjectGroup(r)} ${modality}${petTracerKey(r, modality)}`
+        : `${getEffectiveSubjectGroup(r)} ${session} ${modality}${petTracerKey(r, modality)}`)
+        + (taskOf.has(i) ? ` task:${taskOf.get(i)}` : '');
     const list = groups.get(key);
     if (list) list.push(i);
     else groups.set(key, [i]);
@@ -889,7 +929,7 @@ export function computeBidsNames(
     const filename = buildFilename(
       sub, session, modality, r.fileName,
       runOf.get(i), fmapSuffixOf.get(i), r.derivedLabel, partOf.get(i),
-      r.pet?.tracer, recOf.get(i),
+      r.pet?.tracer, recOf.get(i), taskOf.get(i),
     );
     const folder = modality === 'electrodes' || modality === 'channels' || modality === 'events'
       ? tableFolder(r)

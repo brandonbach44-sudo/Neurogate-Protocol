@@ -13,7 +13,7 @@ import StructureSetupStep from '../components/StructureSetupStep';
 import type { MetadataOutput, MetadataDraft } from '../components/MetadataStep';
 import type { ScannedFile } from '../types/files';
 import type { DetectionResult, DetectionSummary, Session, Modality } from '../types/detection';
-import { getEffectiveSession, getEffectiveModality } from '../types/detection';
+import { getEffectiveSession, getEffectiveModality, taskInBidsName } from '../types/detection';
 import { runDetection, generateSummary, readJsonSidecars, readEdfHeaders, readNiftiHeaders } from '../lib/detection';
 import { computeBidsNames } from '../lib/bids/bidsNaming';
 import { useAudit, auditJsonFiles, buildAuditRedactionPairs, downloadFile } from '../lib/audit';
@@ -164,9 +164,26 @@ function ToolPage() {
       // Recompute BIDS names so the preview, run- entities, and sidecar
       // pairing stay correct after the change.
       const renamed = computeBidsNames(next, undefined, datasetStructure);
+      if ('userTask' in updates) {
+        const from = taskInBidsName(old.bidsFilename);
+        const to = taskInBidsName(renamed[index].bidsFilename);
+        if (to && from !== to) audit.logTaskCorrected(old.fileName, from, to);
+      }
       setSummary(generateSummary(renamed, datasetStructure));
       return renamed;
     });
+  }, [audit, datasetStructure]);
+
+  // ── Bulk set the task label ──────────────────────────────────
+  const handleBulkUpdateTask = useCallback((indices: number[], task: string) => {
+    setDetectionResults(prev => {
+      const next = [...prev];
+      for (const i of indices) next[i] = { ...next[i], userTask: task };
+      const renamed = computeBidsNames(next, undefined, datasetStructure);
+      setSummary(generateSummary(renamed, datasetStructure));
+      return renamed;
+    });
+    audit.logBulkTaskApplied(indices.length, task);
   }, [audit, datasetStructure]);
 
   // ── Bulk update session for selected files ────────────────────
@@ -590,6 +607,7 @@ function ToolPage() {
             onUpdateResult={handleUpdateResult}
             onBulkUpdateSession={handleBulkUpdateSession}
             onBulkUpdateModality={handleBulkUpdateModality}
+            onBulkUpdateTask={handleBulkUpdateTask}
             onContinue={() => setStep('metadata')}
             onBack={handleStartOver}
             onChangeStructure={requestChangeStructure}

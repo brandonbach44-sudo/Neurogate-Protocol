@@ -10,6 +10,7 @@
  *   4. "Change structure" returns to the Structure step, keeps the audit
  *      log, and the new structure is used.
  *   5. A page reload keeps the audit log.
+ *   7. A task label set in Mapping renames the recording and its tables.
  *   6. Leaving the page asks first while the log has unsaved entries,
  *      and not after it's saved.
  *
@@ -136,6 +137,21 @@ async function main() {
     // has a dismissable warning (events.tsv missing in ses-postimplant).
     await addFiles(walk(join(process.cwd(), 'demo-data', 'EpilepsyStudy_Raw', 'Patient_001')).filter(f => !f.endsWith('events_001.tsv')));
     check(await waitFor(hasText('Continue to Metadata'), 'mapping', 15000), 'files added, mapping shown');
+
+    // ── 7. Task label ────────────────────────────────────────────────
+    const taskField = 'input[aria-label="Task for intracranial_001.edf"]';
+    check(await evaluate<boolean>(`Boolean(document.querySelector('${taskField}'))`), 'iEEG row has a task field');
+    await type(taskField, 'sleep');
+    await evaluate<void>(`document.querySelector('${taskField}').dispatchEvent(new FocusEvent('focusout', { bubbles: true }))`);
+    check(await waitFor(hasText('task-sleep_ieeg.edf'), 'renamed recording'), 'task label renames the recording');
+    // The folder also holds intracranial_001.nwb, so the shared channels
+    // table follows only once both recordings have the same task.
+    check(await evaluate<boolean>(hasText('task-monitor_channels.tsv')), 'channels table keeps the default while its recordings disagree');
+    const nwbField = 'input[aria-label="Task for intracranial_001.nwb"]';
+    await type(nwbField, 'sleep');
+    await evaluate<void>(`document.querySelector('${nwbField}').dispatchEvent(new FocusEvent('focusout', { bubbles: true }))`);
+    check(await waitFor(hasText('task-sleep_channels.tsv'), 'channels follow'), 'channels table follows once its recordings agree');
+    check(/Changed task for "intracranial_001.edf": monitor → sleep/.test(await openAuditPanel()), 'task change is logged');
 
     // ── 1. Metadata survives Back to Mapping ─────────────────────────
     await click('Continue to Metadata');

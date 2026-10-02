@@ -33,6 +33,8 @@ export type AuditAction =
   | 'subject-corrected'       // User changed a file's subject group
   | 'bulk-session-applied'    // User bulk-applied a session
   | 'bulk-modality-applied'   // User bulk-applied a modality
+  | 'task-corrected'          // User changed a file's task label
+  | 'bulk-task-applied'       // User bulk-applied a task label
   // Metadata
   | 'institution-configured'  // User set institution prefix/starting number
   | 'subject-metadata-entered' // User entered session dates/ages for a subject
