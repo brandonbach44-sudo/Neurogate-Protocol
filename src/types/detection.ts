@@ -251,6 +251,15 @@ export interface DetectionResult {
    * it correctly.
    */
   pet?: PetInfo;
+
+  /**
+   * Set when this file's BIDS name collided with another exported file's
+   * and had to be renamed with a "_dup-N" suffix (not a valid BIDS name),
+   * naming the other file's relative path. Validation reports it as an
+   * error so the user resolves the clash instead of exporting a
+   * non-BIDS file name.
+   */
+  nameCollisionWith?: string;
 }
 
 export interface PetInfo {

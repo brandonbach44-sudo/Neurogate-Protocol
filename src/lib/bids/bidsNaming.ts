@@ -682,11 +682,15 @@ function findSidecarPartner(
  */
 function dedupePaths(results: DetectionResult[]): void {
   const counts = new Map<string, number>();
+  const firstHolder = new Map<string, string>();
   for (const r of results) {
+    r.nameCollisionWith = undefined;
     if (!isExportedPath(r.bidsPath)) continue;
     const n = counts.get(r.bidsPath) ?? 0;
     counts.set(r.bidsPath, n + 1);
+    if (n === 0) firstHolder.set(r.bidsPath, r.relativePath);
     if (n > 0) {
+      r.nameCollisionWith = firstHolder.get(r.bidsPath);
       const slash = r.bidsPath.lastIndexOf('/');
       const dir = r.bidsPath.slice(0, slash + 1);
       const file = r.bidsPath.slice(slash + 1);

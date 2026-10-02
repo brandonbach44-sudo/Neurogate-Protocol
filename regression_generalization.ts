@@ -32,6 +32,9 @@ import { DEFACING_MODALITIES } from './src/types/detection';
 import { runDetection, readJsonSidecars, readEdfHeaders } from './src/lib/detection';
 import { scanSidecarContentForPhi, scanTsvContentForPhi } from './src/lib/validation/phiScanner';
 import { buildFileEntries, generateZip } from './src/lib/bids/exporter';
+import { computeBidsNames } from './src/lib/bids/bidsNaming';
+import { validateBidsStructure } from './src/lib/validation/bidsValidator';
+import { checkRequiredFiles } from './src/lib/validation/requiredFilesChecker';
 import { createDefaultDatasetDescription } from './src/types/metadata';
 import type { SubjectMetadata } from './src/types/metadata';
 import type { Modality } from './src/types/detection';
@@ -343,6 +346,39 @@ console.log('TSV tables are PHI-scanned');
   report('safety', eventsHits.some(i => i.severity === 'error' && /row 3/.test(i.description)), 'name/MRN typed into events.tsv was not flagged');
   report('over-reach', !issues.some(i => i.affectedFiles[0].endsWith('electrodes.tsv')), 'electrode coordinates were flagged as PHI');
   report('over-reach', !eventsHits.some(i => /row 2/.test(i.description)), '"Seizure Onset" event label was flagged as PHI');
+}
+
+// ── 7g. Validation reports what the export would silently drop or rename ──
+console.log('guessed files and name collisions are reported');
+{
+  const mk = (relativePath: string, content: string | Uint8Array): ScannedFile => {
+    const name = relativePath.split('/').pop()!;
+    const file = new File([content], name);
+    return { relativePath, name, size: file.size, file } as ScannedFile;
+  };
+  const files = [
+    mk('Patient_F/preop/scan.nii.gz', new Uint8Array([0])),
+    mk('Patient_F/preop/scan.json', JSON.stringify({ SeriesDescription: 'T1_MPRAGE' })),
+    mk('Patient_G/preop/scan.nii.gz', new Uint8Array([0])),
+    mk('Patient_G/preop/scan.json', JSON.stringify({ SeriesDescription: 'T1_MPRAGE' })),
+    mk('Patient_H/preop/series_7.nii.gz', new Uint8Array([0])),
+  ];
+  let results = runDetection(files, await readJsonSidecars(files), await readEdfHeaders(files));
+  // The user moves Patient_G's scan into Patient_F: both become F's T1w.
+  const groupF = results.find(r => r.relativePath === 'Patient_F/preop/scan.nii.gz')!.subjectGroup;
+  results = computeBidsNames(results.map(r => r.relativePath.startsWith('Patient_G/') ? { ...r, userSubjectGroup: groupF } : r));
+  const subjects = [...new Set(results.map(r => r.userSubjectGroup ?? r.subjectGroup))].map((g, i) => ({
+    subjectGroup: g, bidsSubjectId: `sub-T00${i + 1}`, sessions: [{ sessionId: 'ses-preimplant', acqTime: '', age: '' }],
+  })) as SubjectMetadata[];
+  const issues = validateBidsStructure(results, subjects);
+  const collision = issues.find(i => i.title === 'Two files would get the same name');
+  report('safety', Boolean(collision && collision.severity === 'error' && !collision.dismissable), 'a _dup-N rename was not reported as a blocking error');
+  const guessed = issues.find(i => /guessed modality will not be exported/.test(i.title));
+  report('safety', Boolean(guessed?.affectedFiles.includes('Patient_H/preop/series_7.nii.gz')), 'a guessed-modality file was not reported');
+  const required = checkRequiredFiles(results, subjects, { presetId: 'implant' } as DatasetStructure);
+  const groupH = results.find(r => r.relativePath === 'Patient_H/preop/series_7.nii.gz')!.subjectGroup;
+  const hMissingT1 = required.some(i => i.subjectGroup === groupH && /T1w/.test(i.title + i.description));
+  report('safety', hMissingT1, 'a guessed (unexported) T1w satisfied the "T1w present" requirement');
 }
 
 // ── 8. SAFETY: every face-bearing structural contrast needs defacing ──

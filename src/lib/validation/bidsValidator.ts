@@ -187,6 +187,45 @@ export function validateBidsStructure(
     }
   }
 
+  // ── Check: name collisions renamed to _dup-N ──────────────
+  // computeBidsNames renames a clash to "<name>_dup-N", which keeps both
+  // files but isn't a BIDS name, so it must be resolved before export.
+  for (const result of results) {
+    if (!result.nameCollisionWith) continue;
+    issues.push({
+      id: nextId(),
+      category: 'bids-structure',
+      severity: 'error',
+      title: 'Two files would get the same name',
+      description: `${result.fileName} and ${result.nameCollisionWith.split('/').pop()} would both be exported as the same BIDS file, so one was renamed "${result.bidsFilename}", which isn't a valid BIDS name. Change the subject, session or modality of one of them in the mapping table.`,
+      affectedFiles: [result.nameCollisionWith, result.relativePath],
+      dismissable: false,
+    });
+  }
+
+  // ── Check: files whose modality is only a guess ───────────
+  // They're routed to unclassified/ and left out of the export until the
+  // user picks a modality, which was easy to miss: only a badge in the
+  // mapping table said so.
+  const guessedByGroup = new Map<string, string[]>();
+  for (const result of results) {
+    if (!result.modalityIsGuess || result.userModality) continue;
+    const group = getEffectiveSubjectGroup(result);
+    guessedByGroup.set(group, [...(guessedByGroup.get(group) ?? []), result.relativePath]);
+  }
+  for (const [group, files] of guessedByGroup) {
+    issues.push({
+      id: nextId(),
+      category: 'bids-structure',
+      severity: 'warning',
+      title: `${files.length} file${files.length === 1 ? '' : 's'} with only a guessed modality will not be exported`,
+      description: `NeuroGate couldn't identify what kind of scan ${files.length === 1 ? 'this file is' : 'these files are'}, so ${files.length === 1 ? 'it is' : 'they are'} left out of the export. To include ${files.length === 1 ? 'it' : 'them'}, go back to the mapping table and pick the modality.`,
+      affectedFiles: files,
+      subjectGroup: group,
+      dismissable: true,
+    });
+  }
+
   // ── Check: JSON sidecars should pair with data files ───────
   const jsonSidecars = results.filter(r => getEffectiveModality(r) === 'sidecar-json');
   for (const sidecar of jsonSidecars) {

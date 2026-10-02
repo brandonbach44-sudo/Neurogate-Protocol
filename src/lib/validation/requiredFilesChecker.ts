@@ -26,6 +26,7 @@ import type { SubjectMetadata } from '../../types/metadata';
 import type { ValidationIssue } from '../../types/validation';
 import { isOsJunkFile } from '../detection/extensionDetector';
 import type { DatasetStructure } from '../../types/sessionStructure';
+import { isExportedPath } from '../bids/bidsNaming';
 
 interface RequiredFile {
   modality: string;
@@ -102,7 +103,11 @@ export function checkRequiredFiles(
     if (!sessionMap.has(session)) {
       sessionMap.set(session, new Set());
     }
-    sessionMap.get(session)!.add(modality);
+    // The session counts as present either way, but only a file that will
+    // actually be exported can satisfy a requirement: a guessed T1w (or a
+    // redundant copy) is left out of the export, so it must not count as
+    // "T1w present".
+    if (isExportedPath(result.bidsPath)) sessionMap.get(session)!.add(modality);
   }
 
   // ── Check each subject's sessions against requirements ────
