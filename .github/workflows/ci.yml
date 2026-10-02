@@ -45,3 +45,37 @@ jobs:
         run: |
           npm run desktop:bundle
           npx tsx verify_desktop_export.ts
+
+  # The app's step flow in a real browser, and the desktop app's close
+  # prompt in real Electron. Node 22 for its built-in WebSocket (the test
+  # scripts talk to the browser over the DevTools protocol); Chrome comes
+  # with the runner, and xvfb-run gives Electron a display.
+  ui:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build the web app and desktop export bundle
+        run: |
+          npm run build
+          npm run desktop:bundle
+
+      - name: Step flow in Chrome
+        run: |
+          npx vite --port 5199 --strictPort > vite.log 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://localhost:5199/tool > /dev/null && break; sleep 1; done
+          CHROME=$(command -v google-chrome) npx tsx verify_ui_flow.ts
+
+      - name: Desktop close prompt in Electron
+        run: xvfb-run -a npx tsx verify_desktop_close.ts

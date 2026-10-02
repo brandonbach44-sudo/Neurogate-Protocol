@@ -13,8 +13,9 @@
  *   6. Leaving the page asks first while the log has unsaved entries,
  *      and not after it's saved.
  *
- * Needs a dev server and Chrome:
+ * Needs a dev server, Chrome and Node 22+ (built-in WebSocket):
  *   npx vite --port 5199 &   then   npx tsx verify_ui_flow.ts
+ * CI runs it in the "ui" job (.github/workflows/ci.yml).
  * CHROME=/path/to/chrome overrides the browser; UI_URL the page.
  */
 import { spawn } from 'node:child_process';
@@ -100,7 +101,9 @@ async function openAuditPanel(): Promise<string> {
 
 async function main() {
   const profile = mkdtempSync(join(tmpdir(), 'ng-ui-'));
-  const chrome = spawn(CHROME, ['--headless=new', '--disable-gpu', `--remote-debugging-port=${PORT}`, `--user-data-dir=${profile}`, '--window-size=1400,1000', 'about:blank'], { stdio: 'ignore' });
+  // CI runners (Ubuntu 24.04) block Chrome's sandbox, so it's turned off there.
+  const ciFlags = process.env.CI ? ['--no-sandbox'] : [];
+  const chrome = spawn(CHROME, ['--headless=new', '--disable-gpu', ...ciFlags, `--remote-debugging-port=${PORT}`, `--user-data-dir=${profile}`, '--window-size=1400,1000', 'about:blank'], { stdio: 'ignore' });
   try {
     let target: { webSocketDebuggerUrl: string } | undefined;
     for (let i = 0; i < 40 && !target; i++) {
