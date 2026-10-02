@@ -30,7 +30,7 @@ import { isOsJunkFile } from './src/lib/detection/extensionDetector';
 import type { ScannedFile } from './src/types/files';
 import { DEFACING_MODALITIES } from './src/types/detection';
 import { runDetection, readJsonSidecars, readEdfHeaders } from './src/lib/detection';
-import { scanSidecarContentForPhi } from './src/lib/validation/phiScanner';
+import { scanSidecarContentForPhi, scanTsvContentForPhi } from './src/lib/validation/phiScanner';
 import { buildFileEntries, generateZip } from './src/lib/bids/exporter';
 import { createDefaultDatasetDescription } from './src/types/metadata';
 import type { SubjectMetadata } from './src/types/metadata';
@@ -320,6 +320,29 @@ console.log('Persyst .lay points at the renamed .dat');
   const lay = entries.find(e => e.path.endsWith('.lay'));
   const datName = dat?.path.split('/').pop();
   report('safety', Boolean(dat && lay && lay.layDeidentify?.datFileName === datName), `.lay File= target ${lay?.layDeidentify?.datFileName} vs exported .dat ${datName}`);
+}
+
+// ── 7f. TSV tables are PHI-scanned ─────────────────────────────────
+// Tables are exported unchanged, so identifiers typed into them must be
+// caught in Validate. Numeric cells and ordinary event labels are not.
+console.log('TSV tables are PHI-scanned');
+{
+  const mk = (relativePath: string, content: string | Uint8Array): ScannedFile => {
+    const name = relativePath.split('/').pop()!;
+    const file = new File([content], name);
+    return { relativePath, name, size: file.size, file } as ScannedFile;
+  };
+  const files = [
+    mk('Patient_E/ieeg/night_ieeg.edf', new Uint8Array(300)),
+    mk('Patient_E/ieeg/night_events.tsv', 'onset\tduration\ttrial_type\tvalue\n12.5\t0\tseizure\tSeizure Onset\n300\t1\tnote\tcalled patient_John_Smith MRN 1234567\n'),
+    mk('Patient_E/ieeg/night_electrodes.tsv', 'name\tx\ty\tz\tsize\nLA1\t-21.5\t3.2\t-10.1\t2.4\nLA2\t-22.0\t3.4\t-11.0\t2.4\n'),
+  ];
+  const results = runDetection(files, await readJsonSidecars(files), await readEdfHeaders(files));
+  const issues = await scanTsvContentForPhi(results);
+  const eventsHits = issues.filter(i => i.affectedFiles[0].endsWith('events.tsv'));
+  report('safety', eventsHits.some(i => i.severity === 'error' && /row 3/.test(i.description)), 'name/MRN typed into events.tsv was not flagged');
+  report('over-reach', !issues.some(i => i.affectedFiles[0].endsWith('electrodes.tsv')), 'electrode coordinates were flagged as PHI');
+  report('over-reach', !eventsHits.some(i => /row 2/.test(i.description)), '"Seizure Onset" event label was flagged as PHI');
 }
 
 // ── 8. SAFETY: every face-bearing structural contrast needs defacing ──

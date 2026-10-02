@@ -333,6 +333,70 @@ function collectStringValues(
 }
 
 /**
+ * Run the PHI patterns, keywords and (optionally) the bare-name heuristic
+ * over a set of strings from one file. Shared by the sidecar scan and the
+ * TSV table scan so both apply the same rules.
+ */
+function scanStrings(
+  strings: { path: string; value: string }[],
+  result: DetectionResult,
+  { where, bareNames: bareNamesEnabled }: { where: 'sidecar JSON' | 'table'; bareNames: boolean },
+): ValidationIssue[] {
+  const issues: ValidationIssue[] = [];
+  const untouched = where === 'table'
+    ? 'Table contents are exported as is: NeuroGate does not edit them.'
+    : 'This free-text field is not changed by automatic de-identification.';
+  const fieldLabel = (path: string) => (where === 'table' ? path : `field "${path}"`);
+  for (const { path, value } of strings) {
+    const normalizedValue = normalizeForPhiMatching(value);
+    for (const phiPattern of PHI_PATTERNS) {
+      if (phiPattern.pattern.test(normalizedValue)) {
+        issues.push({
+          id: nextId(),
+          category: 'phi-risk',
+          severity: phiPattern.severity,
+          title: `Potential ${phiPattern.name} in ${where}`,
+          description: `${phiPattern.description}\n\nFound in ${fieldLabel(path)} of ${result.fileName}. ${untouched} If this is patient data, correct it in the source file, then add the folder again.`,
+          affectedFiles: [result.relativePath],
+          dismissable: phiPattern.severity === 'warning',
+        });
+        break; // one flag per pattern per field is enough
+      }
+    }
+
+    const lowerValue = value.toLowerCase();
+    for (const keyword of PHI_KEYWORDS) {
+      if (lowerValue.includes(keyword)) {
+        issues.push({
+          id: nextId(),
+          category: 'phi-risk',
+          severity: 'warning',
+          title: `PHI keyword detected in ${where}: "${keyword}"`,
+          description: `The keyword "${keyword}" was found in ${fieldLabel(path)} of ${result.fileName}. ${untouched} Please verify no patient-identifying data is present.`,
+          affectedFiles: [result.relativePath],
+          dismissable: true,
+        });
+        break;
+      }
+    }
+
+    const bareNames = bareNamesEnabled ? findBareNameCandidates(value) : [];
+    for (const candidate of bareNames) {
+      issues.push({
+        id: nextId(),
+        category: 'phi-risk',
+        severity: 'warning',
+        title: 'Potential name in sidecar text (unconfirmed)',
+        description: `The phrase "${candidate}" in ${fieldLabel(path)} of ${result.fileName} looks like it could be a person's name. This is a low-confidence heuristic check (it also fires on uncommon scan-vocabulary phrases), so review before dismissing. ${untouched}`,
+        affectedFiles: [result.relativePath],
+        dismissable: true,
+      });
+    }
+  }
+  return issues;
+}
+
+/**
  * Scan sidecar JSON file content (not just filenames) for PHI patterns.
  * Complements scanForPhi(), which only looks at filenames/paths.
  */
@@ -374,53 +438,43 @@ export async function scanSidecarContentForPhi(
       });
       continue;
     }
-    for (const { path, value } of strings) {
-      const normalizedValue = normalizeForPhiMatching(value);
-      for (const phiPattern of PHI_PATTERNS) {
-        if (phiPattern.pattern.test(normalizedValue)) {
-          issues.push({
-            id: nextId(),
-            category: 'phi-risk',
-            severity: phiPattern.severity,
-            title: `Potential ${phiPattern.name} in sidecar JSON`,
-            description: `${phiPattern.description}\n\nFound in field "${path}" of ${result.fileName}. This field is a free-text descriptive field and is NOT touched by automatic de-identification -- if this is patient data, correct it in the source file, then add the folder again.`,
-            affectedFiles: [result.relativePath],
-            dismissable: phiPattern.severity === 'warning',
-          });
-          break; // one flag per pattern per field is enough
-        }
-      }
-
-      const lowerValue = value.toLowerCase();
-      for (const keyword of PHI_KEYWORDS) {
-        if (lowerValue.includes(keyword)) {
-          issues.push({
-            id: nextId(),
-            category: 'phi-risk',
-            severity: 'warning',
-            title: `PHI keyword detected in sidecar JSON: "${keyword}"`,
-            description: `The keyword "${keyword}" was found in field "${path}" of ${result.fileName}. This is a free-text field not covered by automatic de-identification. Please verify no patient-identifying data is present.`,
-            affectedFiles: [result.relativePath],
-            dismissable: true,
-          });
-          break;
-        }
-      }
-
-      const bareNames = findBareNameCandidates(value);
-      for (const candidate of bareNames) {
-        issues.push({
-          id: nextId(),
-          category: 'phi-risk',
-          severity: 'warning',
-          title: 'Potential name in sidecar text (unconfirmed)',
-          description: `The phrase "${candidate}" in field "${path}" of ${result.fileName} looks like it could be a person's name. This is a low-confidence heuristic check -- it also fires on uncommon scan-vocabulary phrases -- so review before dismissing. This field is not covered by automatic de-identification.`,
-          affectedFiles: [result.relativePath],
-          dismissable: true,
-        });
-      }
-    }
+    issues.push(...scanStrings(strings, result, { where: 'sidecar JSON', bareNames: true }));
   }
 
+  return issues;
+}
+
+/**
+ * Scan the cells of exported TSV tables (electrodes, channels, events and
+ * other tables) for PHI. Sites often fill these in by hand, and they are
+ * exported unchanged, so a name typed into an events "value" column would
+ * otherwise ship. Purely numeric cells (coordinates, onsets, impedances)
+ * are skipped, and so is the two-capitalized-words name guess, which
+ * would fire on ordinary event labels like "Seizure Onset".
+ */
+export async function scanTsvContentForPhi(results: DetectionResult[]): Promise<ValidationIssue[]> {
+  const tables = results.filter(r => /\.(tsv|csv)$/i.test(r.fileName) && isExportedPath(r.bidsPath));
+  const issues: ValidationIssue[] = [];
+  for (const result of tables) {
+    let text: string;
+    try {
+      text = await result.file.text();
+    } catch {
+      continue;
+    }
+    const sep = /\.csv$/i.test(result.fileName) ? ',' : '\t';
+    const rows = text.split(/\r?\n/).filter(line => line.trim().length > 0);
+    if (rows.length === 0) continue;
+    const header = rows[0].split(sep).map(h => h.trim());
+    const strings: { path: string; value: string }[] = [];
+    rows.slice(1).forEach((row, r) => {
+      row.split(sep).forEach((cell, c) => {
+        const value = cell.trim();
+        if (!value || value === 'n/a' || !Number.isNaN(Number(value))) return;
+        strings.push({ path: `row ${r + 2}, column "${header[c] ?? c + 1}"`, value });
+      });
+    });
+    issues.push(...scanStrings(strings, result, { where: 'table', bareNames: false }));
+  }
   return issues;
 }
