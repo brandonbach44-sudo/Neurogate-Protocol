@@ -8,13 +8,8 @@ import {
   generateZip,
   getExportStats,
 } from '../lib/bids/exporter';
-import type { TreeNode, LargeFileEntry, DeidentificationSummary } from '../lib/bids/exporter';
+import type { TreeNode, DeidentificationSummary } from '../lib/bids/exporter';
 import { generateSubjectDateShifts } from '../lib/deidentify/edfDeidentifier';
-import {
-  hasServerApi,
-  serverDeidentifyEdf,
-} from '../lib/api/exportApi';
-import { getEffectiveSubjectGroup } from '../types/detection';
 import type { DatasetStructure } from '../types/sessionStructure';
 import { isFileLike } from '../types/fileLike';
 import { isUnreadable } from '../lib/fileCache';
@@ -62,14 +57,6 @@ export default function ExportStep({
   const isDesktopExport = Boolean(desktop?.exportToFolder);
   const [desktopResult, setDesktopResult] = useState<{ outputDir: string; filesWritten: number } | null>(null);
 
-  // Server upload results — populated when hasServerApi and large files exist
-  interface ServerEdfResult {
-    originalName: string;
-    bidsPath: string;
-    downloadUrl: string;
-    shiftKey: { dateShiftDays: number; originalDate: string; shiftedDate: string };
-  }
-  const [serverEdfResults, setServerEdfResults] = useState<ServerEdfResult[]>([]);
   const [deidentifySummary, setDeidentifySummary] = useState<DeidentificationSummary | null>(null);
 
   // Warn up front if any file was unreadable at drop time (e.g. OneDrive cloud-only).
@@ -164,66 +151,15 @@ export default function ExportStep({
     }
   };
 
-  // Browser: build the ZIP (and optionally upload large files to the server).
+  // Browser: build the ZIP. Files over 500 MB are left out (see the warning below).
   const handleBuild = async () => {
     setIsExporting(true);
     setZipUrl(null);
     setExportError('');
     setExportProgress('Preparing files...');
-    setServerEdfResults([]);
 
     try {
-      // Filled by the server path below and merged into the summary
-      // directly: the serverEdfResults state set here isn't readable
-      // until the next render, so reading it in this same call used to
-      // leave these files out of the audit summary.
-      const newServerResults: ServerEdfResult[] = [];
-
-      // ── Server upload path for large EDF files ──────────────────
-      if (hasServerApi && stats.largeFiles.length > 0) {
-        const subjectIdMap = new Map<string, string>();
-        for (const s of subjects) subjectIdMap.set(s.subjectGroup, s.bidsSubjectId);
-
-
-
-        for (let i = 0; i < stats.largeFiles.length; i++) {
-          const lf = stats.largeFiles[i] as LargeFileEntry & { file?: File };
-
-          // Find the original DetectionResult to get the File + subject
-          const match = detectionResults.find(r => r.fileName === lf.originalName);
-          if (!match) continue;
-
-          const subjectGroup = getEffectiveSubjectGroup(match);
-          const subjectId = subjectIdMap.get(subjectGroup) ?? 'X';
-          const dateShiftDays = dateShifts.get(subjectGroup) ?? 0;
-
-          setExportProgress(`Uploading ${lf.originalName} to server (${i + 1}/${stats.largeFiles.length})...`);
-
-          const result = await serverDeidentifyEdf(
-            // Server upload is a web-only path (large files that exceed
-            // browser memory get streamed to the API instead) -- ExportStep
-            // only ever runs in the browser, so match.file is always a real
-            // File here, never the CLI's NodeFileAdapter.
-            match.file as File,
-            { subjectId, dateShiftDays },
-            (p) => setExportProgress(
-              `Uploading ${lf.originalName}: ${p.percent}% (${i + 1}/${stats.largeFiles.length})`
-            ),
-          );
-
-          newServerResults.push({
-            originalName: lf.originalName,
-            bidsPath: lf.bidsPath,
-            downloadUrl: result.downloadUrl,
-            shiftKey: result.shiftKey,
-          });
-        }
-
-        setServerEdfResults(newServerResults);
-      }
-
-      // ── Build the metadata ZIP (skips large files as before) ────
-      setExportProgress('Building metadata ZIP...');
+      setExportProgress('Building ZIP...');
       const { blob, summary } = await generateZip(fileEntries, (progress) => {
         if (progress.phase === 'building') {
           setExportProgress(`Adding file ${progress.current} of ${progress.total}...`);
@@ -232,31 +168,7 @@ export default function ExportStep({
         }
       });
 
-      // Merge in the server-upload path's large EDF files -- those were
-      // de-identified server-side (serverDeidentifyEdf above) and never
-      // went through generateZip's own de-identify calls, so they're not
-      // in `summary` yet. The server doesn't currently report back
-      // whether PHI was detected, so containedPhi is left unknown for
-      // these rather than guessed. subjectGroup isn't tracked in
-      // ServerEdfResult; look it up from detectionResults by filename.
-      const subjectIdMap = new Map<string, string>();
-      for (const s of subjects) subjectIdMap.set(s.subjectGroup, s.bidsSubjectId);
-      const mergedSummary: DeidentificationSummary = {
-        edfFiles: [
-          ...summary.edfFiles,
-          ...newServerResults.map(r => {
-            const match = detectionResults.find(d => d.fileName === r.originalName);
-            const subjectGroup = match ? getEffectiveSubjectGroup(match) : '';
-            return {
-              bidsPath: r.bidsPath,
-              subjectGroup,
-              dateShifted: r.shiftKey.dateShiftDays !== 0,
-            };
-          }),
-        ],
-        jsonSidecars: summary.jsonSidecars,
-      };
-      setDeidentifySummary(mergedSummary);
+      setDeidentifySummary(summary);
 
       const filename = `${exportBaseName()}.zip`;
 
@@ -356,51 +268,7 @@ export default function ExportStep({
       )}
 
       {stats.largeFiles.length > 0 && (
-        hasServerApi ? (
-          // Server mode — show download links for processed EDFs
-          serverEdfResults.length > 0 ? (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-              <p className="text-sm font-semibold text-green-800 mb-2">
-                Large files de-identified on the server. Download them below.
-              </p>
-              <p className="text-sm text-green-700 mb-3">
-                Place each file in the path shown after extracting the ZIP.
-              </p>
-              {serverEdfResults.map(r => (
-                <div key={r.bidsPath} className="bg-white border border-green-200 rounded p-3 mb-2 flex items-center justify-between gap-3">
-                  <div className="font-mono text-xs text-gray-700 min-w-0">
-                    <span className="font-semibold text-gray-900">{r.originalName}</span>
-                    <span className="text-green-600 mx-2">→</span>
-                    <span className="break-all">bids_output/{r.bidsPath}</span>
-                  </div>
-                  <a
-                    href={r.downloadUrl}
-                    download
-                    className="btn-cta shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded text-xs font-semibold bg-green-700 text-white hover:bg-green-800 transition-colors"
-                  >
-                    Download EDF
-                  </a>
-                </div>
-              ))}
-            </div>
-          ) : (
-            // Server configured but build not run yet — show info instead of amber warning
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <p className="text-sm font-semibold text-blue-800 mb-1">
-                Large files will be processed on the server
-              </p>
-              <p className="text-sm text-blue-700">
-                {stats.largeFiles.map(f => (
-                  <span key={f.bidsPath} className="block font-mono text-xs mt-1">
-                    {f.originalName} ({formatSize(f.sizeBytes)})
-                  </span>
-                ))}
-              </p>
-            </div>
-          )
-        ) : (
-          // Plain browser with no server: these files can't be packaged in
-          // memory. They are NOT exported -- copying them in by hand would
+          // A browser can't package these files in memory. They are NOT exported: copying them in by hand would
           // put raw, un-de-identified headers into the dataset. The
           // desktop app and CLI export them with no size limit.
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
@@ -418,7 +286,6 @@ export default function ExportStep({
               </div>
             ))}
           </div>
-        )
       )}
 
       {desktopResult && (

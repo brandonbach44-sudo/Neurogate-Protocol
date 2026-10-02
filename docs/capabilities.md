@@ -2,7 +2,7 @@
 
 **This file is the single source of truth for what NeuroGate does.** Every user-facing document (GOV-001, SOP-BIDS-001, SOP-GUI-001, README) and every page in the app describes only what's listed here. When a feature is added or changed, update this file first, then the documents.
 
-It was verified line by line against the code on 2026-09-30 (version 1.0.1 plus that day's changes) and updated for each release since; this revision is for 1.3.0 (2026-10-02). File references are relative to the repo root.
+It was verified line by line against the code on 2026-09-30 (version 1.0.1 plus that day's changes) and updated for each release since; this revision is for 1.4.0 (2026-10-02). File references are relative to the repo root.
 
 ---
 
@@ -19,10 +19,9 @@ It was verified line by line against the code on 2026-09-30 (version 1.0.1 plus 
   - The **Install CLI** button is in the top navigation bar of the Home, Documentation, Pre-Processing and About pages. It isn't on the tool page, and it's hidden in narrow windows.
   - It copies the CLI into the app-data `bin` folder. On Windows it also adds that folder to the user PATH; on macOS and Linux it shows the folder to add.
 - **Project website:** <https://epilepsy-gui.vercel.app>, hosted on Vercel and redeployed automatically on every push to `main`. It serves the same pages and documents as the desktop app, and runs the same tool in the browser.
-  - The browser version also processes everything on the visitor's computer: no server address is set in its build, so nothing is uploaded.
+  - The browser version also processes everything on the visitor's computer. It has no upload code, so nothing is uploaded.
   - **Browser limits:** export is a ZIP download, files over 500 MB are left out (use the desktop app or CLI for those), files are held in memory, and there's no Install CLI button.
   - **Download page** (`/download`, linked as "Download" in the top navigation and footer; both links are hidden inside the desktop app): reads the latest release from GitHub's public API and links straight to the installer files, so visitors never need to use GitHub. It shows the version, release date, each file's size and per-platform install steps, and puts the visitor's detected system first. If the lookup fails, the buttons open the GitHub release page instead. Inside the desktop app the page says it updates itself.
-  - The old AWS deploy workflow (`deploy.yml`) is disabled in GitHub's settings and unused.
 - **The version** appears in the footer of the Home, Documentation, Pre-Processing and About pages.
 
 ## 2. Where processing happens
@@ -30,7 +29,7 @@ It was verified line by line against the code on 2026-09-30 (version 1.0.1 plus 
 - **Everything runs on the user's computer.** No patient data is uploaded anywhere.
 - **Local server:** the desktop app runs an in-process web server on `127.0.0.1:3001`, reachable only from the same computer, to serve its own pages.
 - **The only network requests** are the update check (GitHub) and Google Fonts (`index.html`).
-- The upload/de-identification API in `server/` isn't mounted in the desktop app.
+- The local server (`server/index.js`) only serves the app's pages. NeuroGate has no upload or remote processing code.
 
 ## 3. Workflow (GUI): 6 steps
 

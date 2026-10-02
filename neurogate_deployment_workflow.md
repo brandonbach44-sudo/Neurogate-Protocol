@@ -95,10 +95,10 @@ On every launch of a packaged app, `initAutoUpdater()` checks the latest publish
 
 https://epilepsy-gui.vercel.app is hosted on Vercel, connected to this GitHub repo. Every push to `main` builds the web app (`npm run build`, routing in `vercel.json`) and deploys it to production within a minute or two; GitHub shows each one as a "Vercel" check on the commit. Nothing in this repo triggers it.
 
-- It serves the same pages and documents as the desktop app, plus a browser version of the tool. The build sets no `VITE_API_URL`, so the browser tool processes everything locally and never uploads files; files over 500 MB can't be exported there.
+- It serves the same pages and documents as the desktop app, plus a browser version of the tool. The browser tool processes everything locally and has no upload code; files over 500 MB can't be exported there.
 - So pushing to `main` updates the public website immediately, before any release; a release only updates the desktop app.
 - Its Download page (`/download`, `src/pages/DownloadPage.tsx`) reads the latest release from GitHub's API and links directly to the installers, so a new release appears there automatically with no website change.
-- The older AWS S3 + CloudFront plan was dropped. `.github/workflows/deploy.yml` still exists but is disabled in GitHub's settings.
+- The older AWS S3 + CloudFront plan was dropped, and its workflow and server upload code were removed in 1.4.0.
 
 ---
 
