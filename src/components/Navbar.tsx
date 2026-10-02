@@ -69,6 +69,8 @@ export default function Navbar() {
     { to: '/docs', label: 'Documentation' },
     { to: '/tools', label: 'Pre-Processing' },
     { to: '/about', label: 'About' },
+    // The website's way to get the desktop app; pointless inside the app itself.
+    ...(isDesktop ? [] : [{ to: '/download', label: 'Download' }]),
   ];
 
   const closeMenu = () => setMenuOpen(false);

@@ -7,6 +7,7 @@ import DocsPage from './pages/DocsPage';
 import DocViewerPage from './pages/DocViewerPage';
 import PreProcessingPage from './pages/PreProcessingPage';
 import AboutPage from './pages/AboutPage';
+import DownloadPage from './pages/DownloadPage';
 import NotFoundPage from './pages/NotFoundPage';
 import ContactButton from './components/ContactButton';
 
@@ -30,6 +31,7 @@ function App() {
           <Route path="/docs/:docId" element={<DocViewerPage />} />
           <Route path="/tools" element={<PreProcessingPage />} />
           <Route path="/about" element={<AboutPage />} />
+          <Route path="/download" element={<DownloadPage />} />
           {/* Catch-all 404 inside Layout so it gets the navbar */}
           <Route path="*" element={<NotFoundPage />} />
         </Route>

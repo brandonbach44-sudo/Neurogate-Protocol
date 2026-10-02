@@ -114,7 +114,7 @@ export async function serverDeidentifyEdf(
       }
     };
 
-    xhr.onerror = () => reject(new Error('Network error — could not reach the NeuroGate API server'));
+    xhr.onerror = () => reject(new Error('Network error: could not reach the NeuroGate API server'));
     xhr.ontimeout = () => reject(new Error('Upload timed out'));
 
     xhr.send(form);

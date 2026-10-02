@@ -8,6 +8,7 @@ const EMAIL = 'brandon.bach44@gmail.com';
 
 export default function Footer() {
   const year = new Date().getFullYear();
+  const isDesktop = typeof window !== 'undefined' && Boolean(window.neurogateDesktop);
   const [copied, setCopied] = useState(false);
 
   const handleCopyEmail = async () => {
@@ -60,6 +61,7 @@ export default function Footer() {
                 { to: '/docs', label: 'Documentation' },
                 { to: '/tools', label: 'Pre-Processing' },
                 { to: '/about', label: 'About' },
+                ...(isDesktop ? [] : [{ to: '/download', label: 'Download' }]),
                 { to: '/tool', label: 'Open Tool' },
               ].map((link) => (
                 <li key={link.to}>

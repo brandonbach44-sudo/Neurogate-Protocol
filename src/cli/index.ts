@@ -266,7 +266,7 @@ async function main(): Promise<void> {
 
     log(`\nAudit log: ${result.auditPath}`);
     log(heldBack.length > 0
-      ? `\nDone — ${result.subjects.length - heldBack.length} of ${result.subjects.length} subjects exported.`
+      ? `\nDone: ${result.subjects.length - heldBack.length} of ${result.subjects.length} subjects exported.`
       : '\nDone.');
   }
 

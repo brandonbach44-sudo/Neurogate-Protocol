@@ -510,7 +510,7 @@ export function runDetection(
           modalityLocked = true;
           reasons.push({
             layer: 'sidecar',
-            message: `DICOM ImageType is [${sidecar.imageType.join(', ')}] — scanner-derived ${derivedKind} map, not raw diffusion data. Exported under derivatives/ as desc-${derivedKind}.`,
+            message: `DICOM ImageType is [${sidecar.imageType.join(', ')}]: scanner-derived ${derivedKind} map, not raw diffusion data. Exported under derivatives/ as desc-${derivedKind}.`,
             weight: 0,
           });
         }
@@ -694,7 +694,7 @@ export function runDetection(
         modalityLocked = true;
         reasons.push({
           layer: 'filename',
-          message: `Scanner-derived ${diffusionKind} map (from the scan name; no JSON sidecar to confirm) — exported under derivatives/ as desc-${diffusionKind}.`,
+          message: `Scanner-derived ${diffusionKind} map (from the scan name; no JSON sidecar to confirm): exported under derivatives/ as desc-${diffusionKind}.`,
           weight: 0.4,
           supports: 'modality',
         });
@@ -709,7 +709,7 @@ export function runDetection(
         modalityLocked = true;
         reasons.push({
           layer: 'filename',
-          message: `Scanner-computed ${projectionKind} projection, not an acquisition — exported under derivatives/ as desc-${projectionKind}.`,
+          message: `Scanner-computed ${projectionKind} projection, not an acquisition: exported under derivatives/ as desc-${projectionKind}.`,
           weight: 0.4,
           supports: 'modality',
         });

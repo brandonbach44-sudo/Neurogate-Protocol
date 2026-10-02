@@ -31,7 +31,7 @@ See [`docs/capabilities.md`](./docs/capabilities.md) for the full, exact list of
 
 ## Download
 
-Get the latest release from GitHub: <https://github.com/brandonbach44-sudo/Neurogate-Protocol/releases/latest>
+Download it from the website's Download page, <https://epilepsy-gui.vercel.app/download>, which always offers the latest release with install steps for each system. The same files are on GitHub: <https://github.com/brandonbach44-sudo/Neurogate-Protocol/releases/latest>
 
 | Platform | File |
 |---|---|

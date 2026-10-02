@@ -21,7 +21,7 @@ It was verified line by line against the code on 2026-09-30 (version 1.0.1 plus 
 - **Project website:** <https://epilepsy-gui.vercel.app>, hosted on Vercel and redeployed automatically on every push to `main`. It serves the same pages and documents as the desktop app, and runs the same tool in the browser.
   - The browser version also processes everything on the visitor's computer: no server address is set in its build, so nothing is uploaded.
   - **Browser limits:** export is a ZIP download, files over 500 MB are left out (use the desktop app or CLI for those), files are held in memory, and there's no Install CLI button.
-  - The website has no download link for the desktop app; downloads are on GitHub Releases.
+  - **Download page** (`/download`, linked as "Download" in the top navigation and footer; both links are hidden inside the desktop app): reads the latest release from GitHub's public API and links straight to the installer files, so visitors never need to use GitHub. It shows the version, release date, each file's size and per-platform install steps, and puts the visitor's detected system first. If the lookup fails, the buttons open the GitHub release page instead. Inside the desktop app the page says it updates itself.
   - The old AWS deploy workflow (`deploy.yml`) is disabled in GitHub's settings and unused.
 - **The version** appears in the footer of the Home, Documentation, Pre-Processing and About pages.
 
@@ -65,7 +65,7 @@ The stepper labels are **Structure · Drop Files · Mapping · Metadata · Valid
 ### Step 3: Mapping (`src/components/MappingTable.tsx`)
 - **Columns:** checkbox, Original File (BIDS path shown under it), Subject (free text), Session (dropdown; hidden for Single session), Modality (dropdown), Confidence.
 - **Confidence badges:** High (green), Medium (yellow), Low (orange), Needs Review (red).
-- **Badges under the file name:** "Guessed — pick a modality to export" (orange), "Duplicate of …" (yellow), "Derived: …" (blue).
+- **Badges under the file name:** "Guessed: pick a modality to export" (orange), "Duplicate of …" (yellow), "Derived: …" (blue).
 - **Row detail:** clicking a row shows its Detection Reasons and File Info.
 - **Filters, with counts:** All, High, Medium, Low, Needs Review, Needs your decision.
 - **Bulk edits:** "Set session…" / "Set modality…" with **Apply**, and **Clear selection**.
