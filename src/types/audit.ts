@@ -24,6 +24,7 @@ export type AuditAction =
   // File scanning
   | 'files-scanned'           // User dropped files, scanning completed
   | 'session-restored'        // Tool restored a saved session from sessionStorage
+  | 'audit-log-restored'      // The page was reloaded and the log was restored from tab storage
   // Detection
   | 'detection-completed'     // Auto-detection engine finished
   // User corrections in mapping table
@@ -37,14 +38,11 @@ export type AuditAction =
   | 'subject-metadata-entered' // User entered session dates/ages for a subject
   | 'dataset-description-entered' // User filled in dataset description
   | 'defacing-attested'       // User confirmed defacing attestation
-  | 'defacing-revoked'        // User unchecked defacing attestation
+  | 'defacing-revoked'        // Attestation unticked, or cleared because the structural MRI files changed
   // Validation
   | 'validation-run'          // Validation engine executed
-  | 'validation-issue-dismissed' // User dismissed a warning/info issue
-  // Upload (future)
-  | 'upload-started'          // Upload process initiated
-  | 'upload-completed'        // Upload finished successfully
-  | 'upload-failed'           // Upload failed
+  | 'validation-issue-dismissed' // User dismissed an issue
+  | 'validation-dismissals-cleared' // Re-run Checks brought dismissed issues back
   // Export
   | 'validation-passed'       // Validation passed, moving to export
   | 'export-completed'        // BIDS dataset exported as ZIP

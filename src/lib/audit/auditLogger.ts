@@ -1,9 +1,9 @@
 /**
  * Audit Log Collector
  *
- * Accumulates audit entries throughout the wizard session.
- * This is a simple in-memory store — entries are collected as the
- * user progresses through the wizard and exported at the end.
+ * Accumulates audit entries throughout the app session. Entries are
+ * kept in memory; subscribe() lets the GUI save them to tab storage on
+ * every change so a reload doesn't lose them (auditPersistence.ts).
  *
  * The logger is designed to be used via React context so any
  * component can log actions without prop drilling.
@@ -12,6 +12,7 @@
 import type { AuditEntry, AuditLog, AuditAction, AuditExportHeader } from '../../types/audit';
 import { createAuditLog } from '../../types/audit';
 import type { DeidentificationSummary } from '../bids/exporter';
+import type { ValidationIssue } from '../../types/validation';
 
 let nextId = 1;
 
@@ -22,6 +23,8 @@ let nextId = 1;
 export function createAuditLogger() {
   const log: AuditLog = createAuditLog();
   nextId = 1;
+  const listeners = new Set<() => void>();
+  const notify = () => { for (const l of listeners) l(); };
 
   function addEntry(
     action: AuditAction,
@@ -38,6 +41,7 @@ export function createAuditLogger() {
       details,
     };
     log.entries.push(entry);
+    notify();
     return entry;
   }
 
@@ -146,12 +150,29 @@ export function createAuditLogger() {
     );
   }
 
-  function logDefacingAttested() {
-    addEntry('defacing-attested', 'Defacing attestation confirmed', {});
+  /** fileCount: how many structural MRI files the attestation covers (GUI). */
+  function logDefacingAttested(fileCount?: number) {
+    addEntry('defacing-attested',
+      fileCount === undefined
+        ? 'Defacing attestation confirmed'
+        : `Defacing attestation confirmed (covers ${fileCount} structural MRI file${fileCount !== 1 ? 's' : ''})`,
+      fileCount === undefined ? {} : { fileCount },
+    );
   }
 
-  function logDefacingRevoked() {
-    addEntry('defacing-revoked', 'Defacing attestation was unchecked', {});
+  /**
+   * 'unticked': the user cleared the box. 'files-changed': an earlier
+   * attestation no longer applies because the mapping now gives a
+   * different set of structural MRI files.
+   */
+  function logDefacingRevoked(reason: 'unticked' | 'files-changed') {
+    addEntry('defacing-revoked',
+      reason === 'unticked'
+        ? 'Defacing attestation was unticked'
+        : 'Defacing attestation cleared: the structural MRI files changed since it was given',
+      { reason },
+      reason === 'unticked' ? 'user' : 'system',
+    );
   }
 
   function logValidationRun(errorCount: number, warningCount: number, infoCount: number, passed: boolean) {
@@ -162,10 +183,40 @@ export function createAuditLogger() {
     );
   }
 
-  function logIssueDismissed(issueId: string, issueTitle: string) {
+  /**
+   * Records the issue's title, never its description: a description can
+   * quote the matched text (e.g. a suspected name). Titles name only the
+   * rule, and affected files are original paths, which the shareable
+   * copy replaces like every other file name.
+   */
+  function logIssueDismissed(issue: ValidationIssue) {
+    const n = issue.affectedFiles.length;
     addEntry('validation-issue-dismissed',
-      `Dismissed validation issue: "${issueTitle}"`,
-      { issueId, issueTitle },
+      `Dismissed ${issue.severity} "${issue.title}"` + (n ? ` (${n} file${n !== 1 ? 's' : ''})` : ''),
+      {
+        severity: issue.severity,
+        category: issue.category,
+        title: issue.title,
+        affectedFiles: issue.affectedFiles,
+        ...(issue.subjectGroup ? { subjectGroup: issue.subjectGroup } : {}),
+        ...(issue.session ? { session: issue.session } : {}),
+      },
+    );
+  }
+
+  function logDismissalsCleared(count: number) {
+    addEntry('validation-dismissals-cleared',
+      `Checks re-run; ${count} dismissed issue${count !== 1 ? 's' : ''} shown again`,
+      { count },
+    );
+  }
+
+  /** The page was reloaded and the earlier entries came back from tab storage. */
+  function logAuditLogRestored(restoredEntries: number) {
+    addEntry('audit-log-restored',
+      `Page reloaded; audit log restored with ${restoredEntries} earlier entr${restoredEntries !== 1 ? 'ies' : 'y'}`,
+      { restoredEntries },
+      'system',
     );
   }
 
@@ -239,6 +290,22 @@ export function createAuditLogger() {
     log.entries = [];
     log.sessionStarted = new Date().toISOString();
     nextId = 1;
+    notify();
+  }
+
+  /** Replace the log with a saved one (same session, before a reload). */
+  function restore(saved: AuditLog) {
+    log.sessionStarted = saved.sessionStarted;
+    log.toolVersion = saved.toolVersion;
+    log.entries = [...saved.entries];
+    nextId = log.entries.reduce((m, e) => Math.max(m, e.id), 0) + 1;
+    notify();
+  }
+
+  /** Called after every change. Returns an unsubscribe function. */
+  function subscribe(listener: () => void): () => void {
+    listeners.add(listener);
+    return () => { listeners.delete(listener); };
   }
 
   return {
@@ -261,6 +328,8 @@ export function createAuditLogger() {
     logDefacingRevoked,
     logValidationRun,
     logIssueDismissed,
+    logDismissalsCleared,
+    logAuditLogRestored,
     logDeidentificationSummary,
     logAuditExported,
     // Accessors
@@ -269,6 +338,8 @@ export function createAuditLogger() {
     getEntryCount,
     getExportHeader,
     reset,
+    restore,
+    subscribe,
   };
 }
 

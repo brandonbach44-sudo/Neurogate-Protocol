@@ -71,8 +71,8 @@ export default class ErrorBoundary extends Component<Props, State> {
 
           {/* Description */}
           <p className="text-sm text-gray-500 leading-relaxed mb-8">
-            An unexpected error happened in the app. Reloading usually fixes it, but clears any
-            metadata you entered and the audit log for this session. If the issue keeps happening,
+            An unexpected error happened in the app. Reloading usually fixes it. The audit log is
+            kept, but any metadata you entered is cleared. If the issue keeps happening,
             let me know at{' '}
             <a
               href="mailto:brandon.bach44@gmail.com"

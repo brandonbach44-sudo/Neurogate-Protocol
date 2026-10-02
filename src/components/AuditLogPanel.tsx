@@ -4,8 +4,11 @@ import { downloadAuditJson, downloadAuditCsv } from '../lib/audit';
 import type { AuditEntry } from '../types/audit';
 
 const ACTION_LABELS: Record<string, string> = {
+  'structure-selected': 'Structure Selected',
   'structure-changed': 'Structure Changed',
   'files-scanned': 'Files Scanned',
+  'session-restored': 'Progress Restored',
+  'audit-log-restored': 'Log Restored',
   'detection-completed': 'Detection Complete',
   'session-corrected': 'Session Corrected',
   'modality-corrected': 'Modality Corrected',
@@ -16,12 +19,13 @@ const ACTION_LABELS: Record<string, string> = {
   'subject-metadata-entered': 'Subject Metadata',
   'dataset-description-entered': 'Dataset Description',
   'defacing-attested': 'Defacing Attested',
-  'defacing-revoked': 'Defacing Revoked',
+  'defacing-revoked': 'Defacing Attestation Removed',
   'validation-run': 'Validation Run',
   'validation-issue-dismissed': 'Issue Dismissed',
-  'upload-started': 'Upload Started',
-  'upload-completed': 'Upload Complete',
-  'upload-failed': 'Upload Failed',
+  'validation-dismissals-cleared': 'Dismissals Cleared',
+  'validation-passed': 'Validation Passed',
+  'export-completed': 'Export Complete',
+  'deidentification-summary': 'De-identification',
   'audit-log-exported': 'Log Exported',
 };
 

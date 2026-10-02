@@ -225,10 +225,8 @@ function ToolPage() {
     if (!previous || previous.datasetDescription.name !== desc.name || previousAuthors?.join('\n') !== filledAuthors.join('\n')) {
       audit.logDatasetDescriptionEntered(desc.name, filledAuthors.length);
     }
-
-    if (metadata.defacingAttestation.confirmed && !previous?.defacingAttestation.confirmed) {
-      audit.logDefacingAttested();
-    }
+    // The defacing attestation is logged by MetadataStep when the box is
+    // ticked or unticked.
   }, [audit]);
 
   // ── Change structure ─────────────────────────────────────────
@@ -621,11 +619,17 @@ function ToolPage() {
             defacingAttestation={metadataOutput.defacingAttestation}
             institutionConfig={metadataOutput.institutionConfig}
             structure={datasetStructure}
-            onContinue={() => {
-              audit.addEntry('validation-passed', 'Validation passed, proceeding to export', {
-                subjectCount: metadataOutput!.subjects.length,
-                fileCount: detectionResults.length,
-              }, 'system');
+            onContinue={(dismissed) => {
+              const errors = dismissed.filter(i => i.severity === 'error').length;
+              audit.addEntry('validation-passed',
+                dismissed.length === 0
+                  ? 'Validation passed, proceeding to export'
+                  : `Validation passed with ${dismissed.length} dismissed issue${dismissed.length !== 1 ? 's' : ''} (${errors} error${errors !== 1 ? 's' : ''}), proceeding to export`,
+                {
+                  subjectCount: metadataOutput!.subjects.length,
+                  fileCount: detectionResults.length,
+                  dismissedIssues: dismissed.map(i => ({ severity: i.severity, category: i.category, title: i.title, affectedFiles: i.affectedFiles })),
+                }, 'system');
               setStep('export');
             }}
             onBack={() => setStep('metadata')}

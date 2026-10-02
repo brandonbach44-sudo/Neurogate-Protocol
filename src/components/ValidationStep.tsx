@@ -5,6 +5,7 @@ import type { SubjectMetadata, DatasetDescription, DefacingAttestation, Institut
 import type { ValidationReport, ValidationIssue, ValidationCategory, ValidationSeverity } from '../types/validation';
 import type { DatasetStructure } from '../types/sessionStructure';
 import { runValidation } from '../lib/validation';
+import { useAudit } from '../lib/audit';
 import { FolderIcon, ShieldIcon, ClipboardIcon, LinkIcon, FileIcon, TagIcon, BrainIcon, CheckCircleIcon, XCircleIcon } from './Icons';
 
 interface ValidationStepProps {
@@ -15,7 +16,8 @@ interface ValidationStepProps {
   institutionConfig: InstitutionConfig;
   /** The dataset's chosen session structure, passed through to the required-files and cross-session checkers so Single session datasets aren't flagged for lacking sessions they were never supposed to have. */
   structure: DatasetStructure;
-  onContinue: () => void;
+  /** Called with the issues the user dismissed, so the hand-off to Export can record them. */
+  onContinue: (dismissed: ValidationIssue[]) => void;
   onBack: () => void;
 }
 
@@ -47,6 +49,7 @@ export default function ValidationStep({
   onContinue,
   onBack,
 }: ValidationStepProps) {
+  const audit = useAudit();
   const [report, setReport] = useState<ValidationReport | null>(null);
   const [isRunning, setIsRunning] = useState(true);
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
@@ -83,6 +86,7 @@ export default function ValidationStep({
   // ── Rerun validation ──────────────────────────────────────
   const handleRerun = () => {
     setIsRunning(true);
+    if (dismissedIds.size > 0) audit.logDismissalsCleared(dismissedIds.size);
     setDismissedIds(new Set());
     setTimeout(() => {
       runValidation({
@@ -129,8 +133,10 @@ export default function ValidationStep({
     });
   };
 
-  const dismissIssue = (id: string) => {
-    setDismissedIds(prev => new Set(prev).add(id));
+  const dismissIssue = (issue: ValidationIssue) => {
+    if (dismissedIds.has(issue.id)) return;
+    audit.logIssueDismissed(issue);
+    setDismissedIds(prev => new Set(prev).add(issue.id));
   };
 
   // ── Loading state ─────────────────────────────────────────
@@ -242,7 +248,7 @@ export default function ValidationStep({
               issue={issue}
               expanded={expandedIds.has(issue.id)}
               onToggleExpand={() => toggleExpand(issue.id)}
-              onDismiss={issue.dismissable ? () => dismissIssue(issue.id) : undefined}
+              onDismiss={issue.dismissable ? () => dismissIssue(issue) : undefined}
             />
           ))
         )}
@@ -251,7 +257,7 @@ export default function ValidationStep({
       {/* Action buttons */}
       <div className="flex justify-between mt-8">
         <Button variant="secondary" onClick={onBack}>Back to Metadata</Button>
-        <Button variant="primary" onClick={onContinue} disabled={activeErrors > 0}>
+        <Button variant="primary" onClick={() => onContinue(report?.issues.filter(i => dismissedIds.has(i.id)) ?? [])} disabled={activeErrors > 0}>
           {activeErrors > 0
             ? `Fix ${activeErrors} Error${activeErrors !== 1 ? 's' : ''} to Continue`
             : 'Continue to Export'}

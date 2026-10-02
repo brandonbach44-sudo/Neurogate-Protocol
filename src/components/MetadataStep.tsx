@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import Button from './Button';
 import SubjectMetadataForm from './SubjectMetadataForm';
 import DatasetDescriptionForm from './DatasetDescriptionForm';
@@ -19,6 +19,7 @@ import {
 } from '../types/metadata';
 import type { ScannedFile } from '../types/files';
 import { autoFillFromDroppedFiles } from '../lib/metadata';
+import { useAudit } from '../lib/audit';
 import type { DatasetStructure } from '../types/sessionStructure';
 import { createDefaultDatasetStructure, resolveSessionIds } from '../types/sessionStructure';
 
@@ -93,6 +94,23 @@ export default function MetadataStep({
     const same = initialDraft.attestedFiles.join('\n') === defacedFileKey(detectionResults).join('\n');
     return same ? initialDraft.defacingAttestation : createDefaultAttestation();
   });
+
+  // The attestation is logged when it changes: ticked, unticked, or
+  // cleared on return because the structural MRI files changed.
+  const audit = useAudit();
+  const loggedDiscard = useRef(false);
+  useEffect(() => {
+    if (loggedDiscard.current || !initialDraft?.defacingAttestation.confirmed || attestation.confirmed) return;
+    loggedDiscard.current = true;
+    audit.logDefacingRevoked('files-changed');
+    // Runs once, on entering the step with a draft whose attestation didn't carry over.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const updateAttestation = (next: DefacingAttestationType) => {
+    if (next.confirmed && !attestation.confirmed) audit.logDefacingAttested(defacedFileKey(detectionResults).length);
+    if (!next.confirmed && attestation.confirmed) audit.logDefacingRevoked('unticked');
+    setAttestation(next);
+  };
   const [autoFilledSubjects, setAutoFilledSubjects] = useState<Set<string>>(new Set());
   const [showErrors, setShowErrors] = useState(false);
   const [autoFilledDataset, setAutoFilledDataset] = useState(false);
@@ -451,7 +469,7 @@ export default function MetadataStep({
         {activeTab === 'defacing' && (
           <DefacingAttestation
             attestation={attestation}
-            onUpdate={setAttestation}
+            onUpdate={updateAttestation}
             hasStructuralMri={hasStructuralMri}
           />
         )}
