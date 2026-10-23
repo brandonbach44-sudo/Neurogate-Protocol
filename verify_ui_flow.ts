@@ -103,6 +103,7 @@ async function openAuditPanel(): Promise<string> {
 }
 
 async function main() {
+  if (!CHROME) throw new Error('No Chrome found: set CHROME to the Chrome or Chromium executable');
   const profile = mkdtempSync(join(tmpdir(), 'ng-ui-'));
   // CI runners (Ubuntu 24.04) block Chrome's sandbox, so it's turned off there.
   const ciFlags = process.env.CI ? ['--no-sandbox'] : [];
