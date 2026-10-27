@@ -212,6 +212,18 @@ function ToolPage() {
     audit.logBulkSessionApplied(indices.length, session);
   }, [audit, datasetStructure]);
 
+  // ── Remove a single file from the mapping ────────────────────
+  const handleRemoveResult = useCallback((index: number) => {
+    setDetectionResults(prev => {
+      const removed = prev[index];
+      const next = prev.filter((_, i) => i !== index);
+      const renamed = computeBidsNames(next, undefined, datasetStructure);
+      setSummary(generateSummary(renamed, datasetStructure));
+      if (removed) audit.addEntry('file-removed', `Removed from mapping: ${removed.fileName}`);
+      return renamed;
+    });
+  }, [audit, datasetStructure]);
+
   // ── Bulk update modality for selected files ───────────────────
   const handleBulkUpdateModality = useCallback((indices: number[], modality: Modality) => {
     setDetectionResults(prev => {
@@ -621,6 +633,7 @@ function ToolPage() {
             onBulkUpdateSession={handleBulkUpdateSession}
             onBulkUpdateModality={handleBulkUpdateModality}
             onBulkUpdateTask={handleBulkUpdateTask}
+            onRemoveResult={handleRemoveResult}
             onContinue={() => setStep('metadata')}
             onBack={handleStartOver}
             onChangeStructure={requestChangeStructure}

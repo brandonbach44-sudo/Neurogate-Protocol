@@ -35,6 +35,7 @@ export type AuditAction =
   | 'bulk-modality-applied'   // User bulk-applied a modality
   | 'task-corrected'          // User changed a file's task label
   | 'bulk-task-applied'       // User bulk-applied a task label
+  | 'file-removed'            // User removed a file from the mapping (excluded from BIDS export)
   // Metadata
   | 'institution-configured'  // User set institution prefix/starting number
   | 'subject-metadata-entered' // User entered session dates/ages for a subject

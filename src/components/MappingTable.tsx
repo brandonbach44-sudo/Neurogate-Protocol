@@ -27,6 +27,8 @@ interface MappingTableProps {
   onBulkUpdateModality: (indices: number[], modality: Modality) => void;
   /** Sets the task label on the selected files that carry one (functional MRI, EEG / iEEG and their tables). */
   onBulkUpdateTask?: (indices: number[], task: string) => void;
+  /** Removes a single file from the mapping by its original index in `results`. */
+  onRemoveResult?: (index: number) => void;
   onContinue: () => void;
   onBack: () => void;
   /** Active session structure; defaults to Implant sessions if not passed. */
@@ -116,6 +118,7 @@ export default function MappingTable({
   onBulkUpdateSession,
   onBulkUpdateModality,
   onBulkUpdateTask,
+  onRemoveResult,
   onContinue,
   onBack,
   onChangeStructure,
@@ -165,6 +168,15 @@ export default function MappingTable({
   };
 
   // ── Bulk operations ───────────────────────────────────────────
+  const removeSelected = () => {
+    if (onRemoveResult && selectedIndices.size > 0) {
+      // Remove in descending index order so earlier indices stay stable
+      const sorted = Array.from(selectedIndices).sort((a, b) => b - a);
+      sorted.forEach(i => onRemoveResult(i));
+      setSelectedIndices(new Set());
+    }
+  };
+
   const applyBulkSession = () => {
     if (bulkSession && selectedIndices.size > 0) {
       onBulkUpdateSession(Array.from(selectedIndices), bulkSession as Session);
@@ -202,8 +214,8 @@ export default function MappingTable({
   // "missing" value that isn't actually missing anything.
   const isSingleSession = structure.presetId === 'single-session';
   const gridCols = isSingleSession
-    ? 'grid-cols-[40px_1fr_140px_180px_100px]'
-    : 'grid-cols-[40px_1fr_140px_160px_180px_100px]';
+    ? 'grid-cols-[40px_1fr_140px_180px_100px_36px]'
+    : 'grid-cols-[40px_1fr_140px_160px_180px_100px_36px]';
   const orderedAssignCount = Math.min(selectedIndices.size, sessionOptions.length);
   const applyOrderedAssign = () => {
     const orderedIndices = Array.from(selectedIndices).slice(0, orderedAssignCount);
@@ -404,6 +416,19 @@ export default function MappingTable({
             </div>
           )}
 
+          {onRemoveResult && (
+            <button
+              onClick={removeSelected}
+              className="text-sm px-3 py-1.5 bg-red-50 text-red-600 border border-red-200 rounded hover:bg-red-100 transition-colors flex items-center gap-1"
+              title="Remove selected files from the mapping — they will not be included in the BIDS export"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+              Remove {selectedIndices.size} file{selectedIndices.size !== 1 ? 's' : ''}
+            </button>
+          )}
+
           <button
             onClick={() => setSelectedIndices(new Set())}
             className="text-sm text-blue-600 hover:text-blue-800 ml-auto"
@@ -431,6 +456,7 @@ export default function MappingTable({
           {!isSingleSession && <span>Session</span>}
           <span>Modality</span>
           <span className="text-center">Confidence</span>
+          <span className="sr-only">Remove</span>
         </div>
 
         {/* Rows */}
@@ -597,6 +623,22 @@ export default function MappingTable({
                     >
                       {confStyle.label}
                     </span>
+                  </div>
+
+                  {/* Per-row remove button */}
+                  <div className="flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+                    {onRemoveResult && (
+                      <button
+                        onClick={() => onRemoveResult(resultIndex)}
+                        className="p-1 rounded text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                        title={`Remove ${result.fileName} from mapping`}
+                        aria-label={`Remove ${result.fileName} from mapping`}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                          <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                      </button>
+                    )}
                   </div>
                 </div>
 
