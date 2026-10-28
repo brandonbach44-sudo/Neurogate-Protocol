@@ -3,13 +3,13 @@
 | Field | Value |
 |---|---|
 | **Document ID** | SOP-BIDS-001 |
-| **Version** | 3.6 |
-| **Effective Date** | 2026-10-02 |
+| **Version** | 3.7 |
+| **Effective Date** | 2026-10-28 |
 | **Author** | Brandon Bach |
 | **Advisor** | Nishant Sinha |
 | **Status** | Draft, Pending Advisor Review |
-| **Parent Document** | GOV-001 Regulatory and Governance Framework v2.6 |
-| **Related Documents** | SOP-GUI-001 v3.5 |
+| **Parent Document** | GOV-001 Regulatory and Governance Framework v2.7 |
+| **Related Documents** | SOP-GUI-001 v3.6 |
 
 ---
 
@@ -626,7 +626,7 @@ For Custom timepoints datasets, the tool assigns a session to each file using th
 
 The Implant sessions preset uses a different, keyword-based detector (for example, `preop` or `baseline` suggest pre-implant; `monitoring` or `EMU` suggest post-implant). Every automatic assignment carries a confidence badge and a detection reason in the mapping table and should be verified.
 
-Files that are not assigned automatically must be mapped to a session manually in the tool's mapping table. When several files need to be assigned to different timepoints in sequence (for example, five T1w scans, one per visit), tick them in order and use "Assign in order to timepoints" to pair the first ticked file with the earliest timepoint, the second with the next, and so on.
+Files that are not assigned automatically must be mapped to a session manually in the tool's mapping table, or removed from the dataset there if they should not be shared (SOP-GUI-001 Section 8.4). When several files need to be assigned to different timepoints in sequence (for example, five T1w scans, one per visit), tick them in order and use "Assign in order to timepoints" to pair the first ticked file with the earliest timepoint, the second with the next, and so on.
 
 ### 8.7 Missed and Not-Yet-Acquired Visits
 
@@ -1072,6 +1072,7 @@ The tool does not issue a validation message when it routes scanner-computed der
 | 3.4 | October 2, 2026 | Brandon Bach | Updated for NeuroGate 1.5.0. Section 6.1.5: the tool fills `IntendedFor` in field-map sidecars with the session's EPI images and replaces any stale value. Section 13.7: dismissals are recorded in the audit log. Sidecars are now paired with their image by folder and name in export naming as well as detection. |
 | 3.5 | October 2, 2026 | Brandon Bach | Updated for NeuroGate 1.6.0. Sections 10.5 and 13.8: the tool now warns on channels.tsv names missing from electrodes.tsv and on unpaired Persyst `.dat`/`.lay` files, and checks a supplied sessions.tsv against the sessions with files. Section 13.11 updated to match. Traceability matrix row 10.5 updated. |
 | 3.6 | October 2, 2026 | Brandon Bach | Updated for NeuroGate 1.7.0. Sections 3, 5.3 and 6.1.3: task labels can be set per file (default `task-rest` / `task-monitor`); TaskName follows; runs are numbered per task. Section 6.2.2: tables follow their recording's task, and CSV tables are recognized and converted to TSV on export. Section 10.5 updated to match. |
+| 3.7 | October 28, 2026 | Brandon Bach | Section 8.6: files can be removed from the dataset in the mapping table. Header references updated to GOV-001 v2.7 and SOP-GUI-001 v3.6. |
 
 ---
 

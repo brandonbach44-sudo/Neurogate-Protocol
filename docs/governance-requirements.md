@@ -2,7 +2,7 @@
 
 > Internal developer notes. This file extracts the enforceable rules in GOV-001 and SOP-BIDS-001 (`public/docs/gov-001.md`, `public/docs/sop-bids.md`) and records, for each one, whether the tool implements it or whether it is a site responsibility the tool does not enforce. What the tool actually does is defined by `docs/capabilities.md`; if this file and capabilities.md disagree, capabilities.md wins and this file is wrong. Update this file whenever either governance document or capabilities.md changes.
 
-**Last sync:** 2026-10-02, against GOV-001 v2.6, SOP-BIDS-001 v3.6, `docs/capabilities.md` (updated for release 1.7.0) and the owner's policy decisions in §0. Where GOV-001 or SOP-BIDS-001 text still says otherwise, §0 governs and the document is due for revision.
+**Last sync:** 2026-10-28, against GOV-001 v2.7, SOP-BIDS-001 v3.7, `docs/capabilities.md` (updated for release 1.8.0) and the owner's policy decisions in §0. Where GOV-001 or SOP-BIDS-001 text still says otherwise, §0 governs and the document is due for revision.
 
 **How to read this file.** Every rule is tagged:
 

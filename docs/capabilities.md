@@ -2,7 +2,7 @@
 
 **This file is the single source of truth for what NeuroGate does.** Every user-facing document (GOV-001, SOP-BIDS-001, SOP-GUI-001, README) and every page in the app describes only what's listed here. When a feature is added or changed, update this file first, then the documents.
 
-It was verified line by line against the code on 2026-09-30 (version 1.0.1 plus that day's changes) and updated for each release since; this revision is for 1.7.0 (2026-10-02). File references are relative to the repo root.
+It was verified line by line against the code on 2026-09-30 (version 1.0.1 plus that day's changes) and updated for each release since; this revision is for 1.8.0 (removing files in Mapping). File references are relative to the repo root.
 
 ---
 
@@ -71,7 +71,10 @@ The stepper labels are **Structure · Drop Files · Mapping · Metadata · Valid
 - **Badges under the file name:** "Guessed: pick a modality to export" (orange), "Duplicate of …" (yellow), "Derived: …" (blue).
 - **Row detail:** clicking a row shows its Detection Reasons and File Info.
 - **Filters, with counts:** All, High, Medium, Low, Needs Review, Needs your decision.
-- **Bulk edits:** "Set session…" / "Set modality…" with **Apply**, "Set task…" (when the selection includes files that carry a task), and **Clear selection**.
+- **Bulk edits:** "Set session…" / "Set modality…" with **Apply**, "Set task…" (when the selection includes files that carry a task), **Remove N files**, and **Clear selection**.
+- **Removing files:** each row has a remove (trash) button in its last column, and **Remove N files** removes every ticked row. There is no confirmation and no undo; to get a removed file back, go Back to Drop Zone and add the folder again. A removed file leaves the mapping and the export, the BIDS names of the rest are recomputed (run numbers included), and each removal is logged (§10).
+  - Removing a data file doesn't remove its paired files: its JSON sidecar (and `.bval`/`.bvec` for diffusion) stay, and Validate then reports them as orphaned and leaves them out of the export.
+  - After a removal, the saved progress no longer matches the folder, so adding the same folder again starts a fresh mapping instead of restoring it.
 - **Task labels:** functional MRI and EEG / iEEG rows have a `task-` field under the modality (letters and digits only; anything else is dropped as you type; empty means the default, `rest` for functional MRI and `monitor` for EEG / iEEG). The change applies when the field loses focus or on Enter. A channels or events table follows its recording's task when the recordings in its source folder (then its subject + session) all have the same one, or takes a label set on the table itself; otherwise it keeps `monitor`. Runs are numbered per task. A functional run whose task isn't `rest` gets the same label as `TaskName` in its exported sidecar.
   - With Custom timepoints and 2 or more rows ticked, **Assign in order to timepoints** assigns them in the order they were ticked.
 - **Audit log:** corrections are logged (task changes once per change), and subject edits are logged per keystroke. Bulk edits are logged as a count.
@@ -317,7 +320,7 @@ No `participants.json`, `README` or `CHANGES` is generated.
 - **What's logged:**
   - **Setup:** structure selected, structure changed (from → to), files scanned, session restored.
   - **Detection:** detection completed (counts).
-  - **Mapping:** session, modality, subject and task corrections (old → new); bulk applies (count).
+  - **Mapping:** session, modality, subject and task corrections (old → new); bulk applies (count); each removed file ("Removed from mapping: <file name>").
   - **Metadata:** institution configured, subject sessions, dataset description (when leaving Metadata; after going back, only what changed).
   - **Defacing attestation** (when it changes): ticked (with the number of structural MRI files it covers), unticked, or cleared on return because the structural MRI files changed.
   - **Validation:** each dismissed issue (severity, category, title and affected files; never the description, which can quote the matched text); Re-run Checks when it brings dismissed issues back (count); validation passed (on Continue to Export, GUI, with the issues dismissed at that point); validation run (CLI).
@@ -328,7 +331,7 @@ No `participants.json`, `README` or `CHANGES` is generated.
   - User identity beyond the above.
   - A restore doesn't re-log files scanned or detection completed.
 - **⚠ The full audit log contains original file and folder names** (in corrections and subject names) and the study name. Those can identify patients. Keep it at the site; don't share it with the dataset.
-- **Shareable copy** (`src/lib/audit/auditRedaction.ts`), written with every export: each original file name and path is replaced by its exported BIDS path (or `file-N` if it wasn't exported), each subject group by its assigned `sub-` ID (or `subject-N`), and the operator by "site". Matching is word-bounded. Everything else is the same as the full log. This is the copy to send with a dataset. The audit panel's Export JSON / CSV buttons still save the full log.
+- **Shareable copy** (`src/lib/audit/auditRedaction.ts`), written with every export: each original file name and path is replaced by its exported BIDS path (or `file-N` if it wasn't exported, removed files included), each subject group by its assigned `sub-` ID (or `subject-N`), and the operator by "site". Matching is word-bounded. Everything else is the same as the full log. This is the copy to send with a dataset. The audit panel's Export JSON / CSV buttons still save the full log.
 
 ## 11. Pre-processing guidance (in-app Pre-Processing page)
 

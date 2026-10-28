@@ -66,3 +66,6 @@ _to_delete/
 *_bids_export_*
 bids_output/
 audit_log*.json
+
+# AWS course projects (stored outside this repo)
+[[]BIDSvalidation]/

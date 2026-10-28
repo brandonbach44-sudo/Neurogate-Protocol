@@ -16,7 +16,7 @@ The desktop app walks through six steps:
 
 1. **Structure:** choose one of three session-structure presets: **Single session** (no `ses-` level), **Implant sessions** (`ses-preimplant`, `ses-postimplant`, `ses-postsurgery`), or **Custom timepoints** (1–24 timepoints such as `ses-2wk`, `ses-6mo`). It can be changed later from Drop Files or Mapping, which clears the added files.
 2. **Drop Files:** drag in a folder in any layout. Files are scanned in place.
-3. **Mapping:** NeuroGate detects each file's subject, session and modality (T1w, T2w, FLAIR, PDw, T2*w, MR angiography, CT, PET, diffusion, perfusion/ASL, functional MRI, field maps, scalp EEG, iEEG, and electrodes/channels/events tables) and proposes a BIDS name, using sidecars, EDF headers and NIfTI headers (dimensions) as well as names. You can correct any of it inline.
+3. **Mapping:** NeuroGate detects each file's subject, session and modality (T1w, T2w, FLAIR, PDw, T2*w, MR angiography, CT, PET, diffusion, perfusion/ASL, functional MRI, field maps, scalp EEG, iEEG, and electrodes/channels/events tables) and proposes a BIDS name, using sidecars, EDF headers and NIfTI headers (dimensions) as well as names. You can correct any of it inline, or remove files that shouldn't be in the dataset.
 4. **Metadata:** institution prefix (for `sub-<PREFIX>001` IDs), study name, authors, and a defacing attestation when structural MRI is present. Entries are kept when you go back a step.
 5. **Validate:** checks BIDS structure, PHI in file and folder names, sidecar text, TSV table contents and NIfTI header text, required files (Implant sessions), cross-session consistency, consistency between tables and paired files (channels vs electrodes, Persyst `.dat`/`.lay`, a dropped `sessions.tsv`), PET sidecars and metadata completeness. Errors block export.
 6. **Export:** writes a `bids_output/` folder plus two JSON audit logs (the full log and a shareable copy) to a folder you choose. Files are streamed, so there's no size limit.
@@ -139,9 +139,9 @@ Separately, the **CI** workflow (`.github/workflows/ci.yml`) runs on every push 
 
 User-facing documents live in `public/docs/` and are shown on the app's Documentation page:
 
-- GOV-001 v2.2: Regulatory and Governance Framework
-- SOP-BIDS-001 v3.2: BIDS Data Structure
-- SOP-GUI-001 v3.1: NeuroGate Compliance Tool User Guide
+- GOV-001 v2.7: Regulatory and Governance Framework
+- SOP-BIDS-001 v3.7: BIDS Data Structure
+- SOP-GUI-001 v3.6: NeuroGate Compliance Tool User Guide
 
 The versions shown on the Documentation page come from `src/docVersions.ts`. When you bump a document's version (its `| **Version** |` row), update `src/docVersions.ts` too, or `npm run regression` (and so the release) fails.
 

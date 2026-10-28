@@ -65,6 +65,11 @@ function ToolPage() {
   const audit = useAudit();
   // The Metadata values last written to the audit log (see handleMetadataComplete).
   const loggedMetadata = useRef<MetadataOutput | null>(null);
+  // Files removed in the Mapping step. Their original names are in the
+  // audit log ("Removed from mapping: ..."), so the shareable copy must
+  // redact them too, even though they are no longer in detectionResults.
+  // Kept for the whole app session, like the audit log itself.
+  const removedResults = useRef<DetectionResult[]>([]);
 
   // ── Save/resume: persist on every detection-state change ──────────────
   // File mappings and detection results; the Metadata entries are saved
@@ -216,6 +221,7 @@ function ToolPage() {
   const handleRemoveResult = useCallback((index: number) => {
     setDetectionResults(prev => {
       const removed = prev[index];
+      if (removed && !removedResults.current.includes(removed)) removedResults.current.push(removed);
       const next = prev.filter((_, i) => i !== index);
       const renamed = computeBidsNames(next, undefined, datasetStructure);
       setSummary(generateSummary(renamed, datasetStructure));
@@ -710,7 +716,11 @@ function ToolPage() {
               // Browser ZIP: both download as separate files.
               const idMap = new Map(metadataOutput!.subjects.map(s => [s.subjectGroup, s.bidsSubjectId]));
               const named = computeBidsNames(detectionResults, idMap, datasetStructure);
-              const { full, shareable, throughId } = auditJsonFiles(audit, 'user', buildAuditRedactionPairs(named, metadataOutput!.subjects));
+              const { full, shareable, throughId } = auditJsonFiles(audit, 'user', buildAuditRedactionPairs(
+                // Removed files first, so an exported file with the same name keeps its BIDS name.
+                [...removedResults.current.map(r => ({ ...r, bidsPath: `unclassified/${r.fileName}` })), ...named],
+                metadataOutput!.subjects,
+              ));
               if (destination && window.neurogateDesktop) {
                 await window.neurogateDesktop.writeExportFile(destination.outputDir, full.name, full.text);
                 await window.neurogateDesktop.writeExportFile(destination.outputDir, shareable.name, shareable.text);

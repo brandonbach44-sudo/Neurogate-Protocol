@@ -3,12 +3,12 @@
 | Field | Value |
 |---|---|
 | **Document ID** | SOP-GUI-001 |
-| **Version** | 3.5 |
-| **Effective Date** | 2026-10-02 |
+| **Version** | 3.6 |
+| **Effective Date** | 2026-10-28 |
 | **Author** | Brandon Bach |
 | **Status** | Draft, Pending Advisor Review |
-| **Parent Framework** | GOV-001 Regulatory and Governance Framework v2.6 |
-| **Related Documents** | SOP-BIDS-001 v3.6 |
+| **Parent Framework** | GOV-001 Regulatory and Governance Framework v2.7 |
+| **Related Documents** | SOP-BIDS-001 v3.7 |
 
 ---
 
@@ -349,9 +349,11 @@ The filter bar shows a count for each filter: **All**, **High**, **Medium**, **L
 2. Use **Set session…** or **Set modality…**, then click **Apply**. **Set task…** appears when the selection includes files that carry a task, and applies only to those.
 3. Click **Clear selection** when done
 
+**Removing files:** to leave a file out of the dataset entirely (for example, a duplicate or a scan that should not be shared), click the remove button at the end of its row, or tick several rows and click **Remove N files**. Removal is immediate, with no confirmation and no undo; to bring a file back, use **Back to Drop Zone** and add the folder again. A removed file is not exported, and the BIDS names of the remaining files (including run numbers) are recomputed. Removing a data file does not remove its JSON sidecar or diffusion `.bval`/`.bvec` files; remove those as well, or Validate reports them as orphaned and leaves them out of the export. After a removal, adding the same folder again starts a fresh mapping instead of restoring saved progress.
+
 **Assign in order to timepoints:** with Custom timepoints and two or more rows ticked, this button assigns the ticked rows to the timepoints in the order you ticked them (first ticked to the earliest timepoint, and so on).
 
-**Audit log:** each session, modality, subject or task correction is logged with the old and new value. Subject edits are logged per keystroke. Bulk edits are logged as a count of files.
+**Audit log:** each session, modality, subject or task correction is logged with the old and new value. Subject edits are logged per keystroke. Bulk edits are logged as a count of files. Each removed file is logged by name.
 
 ### 8.5 Proceeding to Step 4
 
@@ -679,7 +681,7 @@ Events recorded:
 
 - **Setup:** structure selected; structure changed (old and new structure); files scanned; session restored
 - **Detection:** detection completed (counts)
-- **Mapping:** session, modality, subject and task corrections (old value and new value); bulk applies (count of files)
+- **Mapping:** session, modality, subject and task corrections (old value and new value); bulk applies (count of files); each removed file (by original name)
 - **Metadata** (written when you leave Metadata; after going back, only values that changed are written again): institution configured; subject sessions; dataset description
 - **Defacing attestation** (written when it changes): ticked, unticked, or cleared because the structural MRI files changed
 - **Validation:** each dismissed issue; Re-run Checks when it brings dismissed issues back; validation passed (on Continue to Export, with the issues dismissed at that point)
@@ -697,7 +699,7 @@ Events recorded:
 
 The full audit log contains original file and folder names (in corrections and subject names, including every keystroke of a subject edit) and the study name. Those can identify patients. **The full audit log stays at the site and is never shared with the dataset.** In a desktop export the logs are written next to `bids_output/`, not inside it.
 
-Every export also writes a shareable copy (`audit_log_<timestamp>_shareable.json`, or `audit_log_shareable.json` from the CLI). In it, each original file name and path is replaced by its exported BIDS path (or `file-N` if the file was not exported), each subject group by its `sub-` ID (or `subject-N`), and the operator by "site". Everything else is the same as the full log. This is the copy to send with a dataset. Share `bids_output/` and, if wanted, the shareable copy, nothing else.
+Every export also writes a shareable copy (`audit_log_<timestamp>_shareable.json`, or `audit_log_shareable.json` from the CLI). In it, each original file name and path is replaced by its exported BIDS path (or `file-N` if the file was not exported, including files removed in Mapping), each subject group by its `sub-` ID (or `subject-N`), and the operator by "site". Everything else is the same as the full log. This is the copy to send with a dataset. Share `bids_output/` and, if wanted, the shareable copy, nothing else.
 
 ### 12.5 ALCOA+ Considerations
 
@@ -847,3 +849,4 @@ Do not send the full audit log or screenshots of the Mapping table outside the s
 | 3.3 | October 2, 2026 | Brandon Bach | Updated for NeuroGate 1.5.0. Sections 5.1 and 12: the audit log survives a reload. Section 9.4: the attestation is logged when ticked, unticked or cleared. Section 10.2: dismissals and re-runs are logged, and Validation passed lists dismissed issues. Section 11.2: field-map sidecars get `IntendedFor`. Sections 12.3, 12.5 and 16 updated to match. |
 | 3.4 | October 2, 2026 | Brandon Bach | Updated for NeuroGate 1.6.0. Section 10.4: new Consistency checks (channels against electrodes, Persyst pairs, a dropped sessions.tsv), removed from Not checked. Section 9.5: session names in a dropped sessions.tsv are matched to the chosen structure. Sections 5.1 and 12.1: closing with an unsaved audit log asks first. |
 | 3.5 | October 2, 2026 | Brandon Bach | Updated for NeuroGate 1.7.0. Section 7.2: CSV tables are recognized and converted to TSV. Section 7.4: Metadata entries are saved with the mapping and survive a reload. Sections 8.1 and 8.4: task labels can be set per file and in bulk. Sections 11.2 and 12 updated to match. |
+| 3.6 | October 28, 2026 | Brandon Bach | Updated for NeuroGate 1.8.0. Section 8.4: files can be removed from the mapping (per-row button and Remove N files), with no undo; paired sidecars are not removed automatically; saved progress no longer restores after a removal. Sections 8.4 and 12.2: each removed file is logged. Section 12.4: removed files are replaced by `file-N` in the shareable audit log. Header references updated to GOV-001 v2.7 and SOP-BIDS-001 v3.7. |
