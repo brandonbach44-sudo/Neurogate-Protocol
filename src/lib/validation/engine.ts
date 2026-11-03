@@ -144,13 +144,13 @@ function validateMetadata(input: ValidationInput): ValidationIssue[] {
   }
 
   // Institution config checks
-  if (!input.institutionConfig.prefix || !/^[A-Z]{2,6}$/.test(input.institutionConfig.prefix)) {
+  if (!input.institutionConfig.prefix || !/^[A-Z]{2,}$/.test(input.institutionConfig.prefix)) {
     issues.push({
       id: nextMetaId(),
       category: 'metadata',
       severity: 'error',
       title: 'Invalid institution prefix',
-      description: 'The institution prefix must be 2-6 uppercase letters (e.g., "CHOP", "PENN", "HUP"). Go back to the Metadata step to fix this.',
+      description: 'The institution prefix must be 2 or more uppercase letters (e.g., "CHOP", "PENN", "HUP"). Go back to the Metadata step to fix this.',
       affectedFiles: [],
       dismissable: false,
     });

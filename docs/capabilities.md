@@ -2,7 +2,7 @@
 
 **This file is the single source of truth for what NeuroGate does.** Every user-facing document (GOV-001, SOP-BIDS-001, SOP-GUI-001, README) and every page in the app describes only what's listed here. When a feature is added or changed, update this file first, then the documents.
 
-It was verified line by line against the code on 2026-09-30 (version 1.0.1 plus that day's changes) and updated for each release since; this revision is for 1.8.0 (removing files in Mapping). File references are relative to the repo root.
+It was verified line by line against the code on 2026-09-30 (version 1.0.1 plus that day's changes) and updated for each release since; this revision is for 1.9.0 (no upper limit on the institution prefix). File references are relative to the repo root.
 
 ---
 
@@ -82,7 +82,7 @@ The stepper labels are **Structure · Drop Files · Mapping · Metadata · Valid
 
 ### Step 4: Metadata (`src/components/MetadataStep.tsx`)
 Four tabs, each marked complete or incomplete ("N of 4 sections complete"):
-- **Institution Setup:** a prefix of 2–6 uppercase letters and a starting number (integer ≥ 1). IDs are `sub-<PREFIX><number padded to at least 3 digits>`, e.g. `sub-PENN001`.
+- **Institution Setup:** a prefix of 2 or more uppercase letters (no upper limit) and a starting number (integer ≥ 1). IDs are `sub-<PREFIX><number padded to at least 3 digits>`, e.g. `sub-PENN001`.
 - **Subject Sessions:** read-only list of each subject's session labels.
 - **Dataset Description:**
   - **Study name and authors:** required.

@@ -113,12 +113,12 @@ async function chooseStructure(): Promise<DatasetStructure> {
 
 async function configureInstitution(): Promise<InstitutionConfig> {
   while (true) {
-    const prefix = (await askText('\nInstitution prefix (2-6 uppercase letters, e.g. PENN, HUP)')).toUpperCase();
-    if (/^[A-Z]{2,6}$/.test(prefix)) {
+    const prefix = (await askText('\nInstitution prefix (2 or more uppercase letters, e.g. PENN, HUP)')).toUpperCase();
+    if (/^[A-Z]{2,}$/.test(prefix)) {
       const startingNumber = await askNumber('Starting subject number', 1);
       return { prefix, startingNumber };
     }
-    log('  Prefix must be 2-6 uppercase letters. Try again.');
+    log('  Prefix must be 2 or more uppercase letters. Try again.');
   }
 }
 

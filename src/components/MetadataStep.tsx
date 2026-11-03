@@ -132,9 +132,11 @@ export default function MetadataStep({
     // Look for known patterns: sub-XXX, HUP###, or leading uppercase word
     for (const name of names) {
       // BIDS sub- prefix: sub-SITE### -> extract SITE
-      const bids = name.match(/sub-([A-Z]{2,6})\d*/);
+      const bids = name.match(/sub-([A-Z]{2,})\d*/);
       if (bids) return bids[1];
       // Bare institution code at start of filename: HUP282, CHOP001, etc.
+      // Kept at 2-6 letters on purpose: a longer bare uppercase word before
+      // digits is more likely a scan name than a site code. Only a suggestion.
       const bare = name.match(/(?:^|\/)([A-Z]{2,6})\d+/);
       if (bare) return bare[1];
     }
@@ -264,8 +266,8 @@ export default function MetadataStep({
   const validationErrors = useMemo(() => {
     const errors: string[] = [];
 
-    if (!institutionConfig.prefix || !/^[A-Z]{2,6}$/.test(institutionConfig.prefix)) {
-      errors.push('Institution prefix must be 2-6 uppercase letters');
+    if (!institutionConfig.prefix || !/^[A-Z]{2,}$/.test(institutionConfig.prefix)) {
+      errors.push('Institution prefix must be 2 or more uppercase letters');
     }
 
     if (!datasetDescription.name.trim()) {
@@ -298,7 +300,7 @@ export default function MetadataStep({
   // in Institution Setup, pressing Continue, and not realizing there were
   // 3 more sections reachable only via these tabs. ──────────────────
   const tabComplete: Record<TabId, boolean> = {
-    institution: !!institutionConfig.prefix && /^[A-Z]{2,6}$/.test(institutionConfig.prefix),
+    institution: !!institutionConfig.prefix && /^[A-Z]{2,}$/.test(institutionConfig.prefix),
     subjects: subjects.length > 0,
     dataset: !!datasetDescription.name.trim() && datasetDescription.authors.some(a => a.trim()),
     defacing: !hasStructuralMri || attestation.confirmed,
@@ -385,15 +387,14 @@ export default function MetadataStep({
                   value={institutionConfig.prefix}
                   onChange={(e) => setInstitutionConfig(prev => ({
                     ...prev,
-                    prefix: e.target.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 6),
+                    prefix: e.target.value.toUpperCase().replace(/[^A-Z]/g, ''),
                   }))}
                   placeholder={inferredPrefix ? `e.g., ${inferredPrefix}` : 'Institution prefix'}
-                  maxLength={6}
                   className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2
                     hover:border-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none
                     uppercase tracking-wider"
                 />
-                <p className="text-xs text-gray-500 mt-1">2-6 uppercase letters identifying your institution</p>
+                <p className="text-xs text-gray-500 mt-1">2 or more uppercase letters identifying your institution</p>
               </div>
 
               <div className="w-40">

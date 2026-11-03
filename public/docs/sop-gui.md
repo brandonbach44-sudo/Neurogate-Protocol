@@ -3,12 +3,12 @@
 | Field | Value |
 |---|---|
 | **Document ID** | SOP-GUI-001 |
-| **Version** | 3.6 |
-| **Effective Date** | 2026-10-28 |
+| **Version** | 3.7 |
+| **Effective Date** | 2026-11-03 |
 | **Author** | Brandon Bach |
 | **Status** | Draft, Pending Advisor Review |
-| **Parent Framework** | GOV-001 Regulatory and Governance Framework v2.7 |
-| **Related Documents** | SOP-BIDS-001 v3.7 |
+| **Parent Framework** | GOV-001 Regulatory and Governance Framework v2.8 |
+| **Related Documents** | SOP-BIDS-001 v3.8 |
 
 ---
 
@@ -77,7 +77,7 @@ Before opening NeuroGate, the following must be complete:
 |---|---|
 | DICOM conversion | All imaging files must be NIfTI. Uncompressed `.nii` is accepted and is gzipped to `.nii.gz` on export. DICOM (`.dcm`, `.dicom`, `.ima`) and ECAT PET (`.v`, `.v.gz`) files are flagged with a warning and are not exported. |
 | Defacing | All structural MRI (T1w, T2w, FLAIR, PDw, T2*w) must be defaced. The tool does not deface and cannot verify defacing. An attestation checkbox is required before the workflow can continue when any of these modalities is present. PET is exempt from defacing. |
-| Institution prefix | A 2 to 6 letter uppercase code used in BIDS subject IDs (for example, PENN, CHOP, HUP). Sites choose their own prefix. |
+| Institution prefix | An uppercase code of 2 or more letters used in BIDS subject IDs (for example, PENN, CHOP, HUP). Sites choose their own prefix. |
 | Starting subject number | A whole number of 1 or more for the first subject in this batch. It is padded to at least three digits in the ID. Coordinate with any collaborators sharing the same prefix to avoid ID collisions. |
 | Source data organization | Per-subject folders are recommended. Any folder layout is accepted, but descriptive folder and file names (containing session or modality keywords) improve automatic detection. |
 
@@ -374,7 +374,7 @@ The Metadata step has four tabs. The header shows "N of 4 sections complete", an
 
 | Field | Description | Example |
 |---|---|---|
-| Institution Prefix | 2 to 6 uppercase letters (required) | `PENN` |
+| Institution Prefix | 2 or more uppercase letters (required) | `PENN` |
 | Starting Number | A whole number of 1 or more | `1` |
 
 Subject IDs are `sub-<PREFIX><number padded to at least 3 digits>`. A prefix of `PENN` with starting number 1 gives `sub-PENN001`, `sub-PENN002`, and so on. The tab shows a Subject ID Preview. Subjects are numbered in the order they were detected.
@@ -850,3 +850,4 @@ Do not send the full audit log or screenshots of the Mapping table outside the s
 | 3.4 | October 2, 2026 | Brandon Bach | Updated for NeuroGate 1.6.0. Section 10.4: new Consistency checks (channels against electrodes, Persyst pairs, a dropped sessions.tsv), removed from Not checked. Section 9.5: session names in a dropped sessions.tsv are matched to the chosen structure. Sections 5.1 and 12.1: closing with an unsaved audit log asks first. |
 | 3.5 | October 2, 2026 | Brandon Bach | Updated for NeuroGate 1.7.0. Section 7.2: CSV tables are recognized and converted to TSV. Section 7.4: Metadata entries are saved with the mapping and survive a reload. Sections 8.1 and 8.4: task labels can be set per file and in bulk. Sections 11.2 and 12 updated to match. |
 | 3.6 | October 28, 2026 | Brandon Bach | Updated for NeuroGate 1.8.0. Section 8.4: files can be removed from the mapping (per-row button and Remove N files), with no undo; paired sidecars are not removed automatically; saved progress no longer restores after a removal. Sections 8.4 and 12.2: each removed file is logged. Section 12.4: removed files are replaced by `file-N` in the shareable audit log. Header references updated to GOV-001 v2.7 and SOP-BIDS-001 v3.7. |
+| 3.7 | November 3, 2026 | Brandon Bach | Updated for NeuroGate 1.9.0. Sections 4.2 and 9.1: the institution prefix is 2 or more uppercase letters, with no upper limit (previously 2 to 6). Header references updated to GOV-001 v2.8 and SOP-BIDS-001 v3.8. |

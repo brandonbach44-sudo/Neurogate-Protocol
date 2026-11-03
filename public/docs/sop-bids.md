@@ -3,13 +3,13 @@
 | Field | Value |
 |---|---|
 | **Document ID** | SOP-BIDS-001 |
-| **Version** | 3.7 |
-| **Effective Date** | 2026-10-28 |
+| **Version** | 3.8 |
+| **Effective Date** | 2026-11-03 |
 | **Author** | Brandon Bach |
 | **Advisor** | Nishant Sinha |
 | **Status** | Draft, Pending Advisor Review |
-| **Parent Document** | GOV-001 Regulatory and Governance Framework v2.7 |
-| **Related Documents** | SOP-GUI-001 v3.6 |
+| **Parent Document** | GOV-001 Regulatory and Governance Framework v2.8 |
+| **Related Documents** | SOP-GUI-001 v3.7 |
 
 ---
 
@@ -66,7 +66,7 @@ All subjects are identified using a BIDS-style ID with the format:
 
 `sub-{INSTITUTION_PREFIX}{NNN}`
 
-Where `{INSTITUTION_PREFIX}` is 2 to 6 uppercase letters assigned to the site, and `{NNN}` is the subject number, zero-padded to at least three digits and scoped per institution. Examples: `sub-CHOP016`, `sub-PENN042`, `sub-HUP003`.
+Where `{INSTITUTION_PREFIX}` is 2 or more uppercase letters assigned to the site, and `{NNN}` is the subject number, zero-padded to at least three digits and scoped per institution. Examples: `sub-CHOP016`, `sub-PENN042`, `sub-HUP003`.
 
 NeuroGate builds these IDs from the prefix and a starting number (an integer of 1 or more) entered in its Metadata step, numbering subjects consecutively from that starting number. Subject IDs therefore contain only uppercase letters and digits after the `sub-` prefix. The key linking subject IDs to real patient identifiers must be stored only at the originating institution in a secure, access-controlled system per GOV-001 Section 2.3. It is never entered into the tool, uploaded to any data infrastructure, or shared externally.
 
@@ -88,7 +88,7 @@ Install scripts for dcm2niix and pydeface are in the NeuroGate repository's `too
 
 Before organizing a batch of subjects, confirm the following with the project lead or site coordinator:
 
-- Institution prefix (2 to 6 uppercase letters)
+- Institution prefix (2 or more uppercase letters)
 - Starting subject number for this batch, to avoid ID collisions with prior batches or other collaborators at the same institution
 
 ---
@@ -1073,6 +1073,7 @@ The tool does not issue a validation message when it routes scanner-computed der
 | 3.5 | October 2, 2026 | Brandon Bach | Updated for NeuroGate 1.6.0. Sections 10.5 and 13.8: the tool now warns on channels.tsv names missing from electrodes.tsv and on unpaired Persyst `.dat`/`.lay` files, and checks a supplied sessions.tsv against the sessions with files. Section 13.11 updated to match. Traceability matrix row 10.5 updated. |
 | 3.6 | October 2, 2026 | Brandon Bach | Updated for NeuroGate 1.7.0. Sections 3, 5.3 and 6.1.3: task labels can be set per file (default `task-rest` / `task-monitor`); TaskName follows; runs are numbered per task. Section 6.2.2: tables follow their recording's task, and CSV tables are recognized and converted to TSV on export. Section 10.5 updated to match. |
 | 3.7 | October 28, 2026 | Brandon Bach | Section 8.6: files can be removed from the dataset in the mapping table. Header references updated to GOV-001 v2.7 and SOP-GUI-001 v3.6. |
+| 3.8 | November 3, 2026 | Brandon Bach | Sections 4.1 and 4.3: the institution prefix is 2 or more uppercase letters, with no upper limit (previously 2 to 6). Header references updated to GOV-001 v2.8 and SOP-GUI-001 v3.7. |
 
 ---
 

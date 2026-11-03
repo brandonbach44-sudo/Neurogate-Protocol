@@ -77,7 +77,7 @@ export function createDefaultAttestation(): DefacingAttestation {
 // Needed for generating subject IDs
 
 export interface InstitutionConfig {
-  /** Institution prefix for subject IDs (2-6 uppercase letters, e.g., "CHOP", "PENN") */
+  /** Institution prefix for subject IDs (2 or more uppercase letters, e.g., "CHOP", "PENN") */
   prefix: string;
   /** Starting counter for subject numbering (e.g., 1 → sub-CHOP001) */
   startingNumber: number;
