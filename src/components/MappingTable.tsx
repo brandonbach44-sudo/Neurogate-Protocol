@@ -137,6 +137,9 @@ export default function MappingTable({
   // Confirmation dialog: null = no pending removal, otherwise the indices waiting for confirm.
   const [pendingRemoval, setPendingRemoval] = useState<number[] | null>(null);
   const [skipConfirm, setSkipConfirm] = useState(false);
+  // The dialog's "Don't ask again" box. Applied only when Remove is clicked,
+  // so ticking it and then cancelling doesn't silence later confirmations.
+  const [dontAskChecked, setDontAskChecked] = useState(false);
   const sessionOptions = useMemo(() => getSessionOptions(structure), [structure]);
 
   const decisionCount = useMemo(
@@ -181,6 +184,7 @@ export default function MappingTable({
       onRemoveResults(indices);
       setSelectedIndices(new Set());
     } else {
+      setDontAskChecked(false);
       setPendingRemoval(indices);
     }
   };
@@ -729,18 +733,16 @@ export default function MappingTable({
             </h2>
             <p className="text-sm text-gray-600 mb-4">
               {pendingRemoval.length === 1
-                ? 'This file will be excluded from the BIDS export. Paired companions (JSON sidecar, TSV, gradient tables) will be removed with it.'
-                : 'These files will be excluded from the BIDS export. Paired companions (JSON sidecars, TSV, gradient tables) will be removed with their primaries.'}
-              {' '}This action cannot be undone within the current session.
+                ? 'This file will be left out of the export. If it is a data file, its JSON sidecar and diffusion gradient tables (.bval, .bvec) are removed with it.'
+                : 'These files will be left out of the export. The JSON sidecars and diffusion gradient tables (.bval, .bvec) of any data files are removed with them.'}
+              {' '}This cannot be undone. To get a file back, go Back to Drop Zone and add the folder again.
             </p>
             <label className="flex items-center gap-2 text-sm text-gray-600 mb-5 cursor-pointer select-none">
               <input
                 type="checkbox"
                 className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                onChange={(e) => {
-                  if (e.target.checked) setSkipConfirm(true);
-                  else setSkipConfirm(false);
-                }}
+                checked={dontAskChecked}
+                onChange={(e) => setDontAskChecked(e.target.checked)}
               />
               Don't ask again this session
             </label>
@@ -749,7 +751,7 @@ export default function MappingTable({
                 Cancel
               </Button>
               <button
-                onClick={() => confirmRemove(skipConfirm)}
+                onClick={() => confirmRemove(dontAskChecked)}
                 className="px-4 py-2 text-sm font-medium bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
               >
                 Remove

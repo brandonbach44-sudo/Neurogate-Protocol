@@ -13,6 +13,9 @@
  *  - Only companion modalities are auto-included; a same-stem file with a
  *    data modality (e.g. a second NIfTI) is NOT removed
  *
+ *  - DWI .bval/.bvec removed with their scan; companions never cascade;
+ *    dotted names pair by full base name
+ *
  * Usage: npx tsx regression_paired_removal.ts   (non-zero exit on failure)
  */
 import { removeResults } from './src/lib/mapping/removeResults';
@@ -153,6 +156,50 @@ console.log('empty indices → no-op');
   const { kept, removed } = removeResults(results, []);
   check(kept === results, 'should return the same array reference');
   check(removed.length === 0, `removed=${removed.length}`);
+}
+
+// ── 8. DWI scan: .bval and .bvec (classified as dwi) go with it ─────────────
+console.log('dwi scan removes its .json, .bval and .bvec');
+{
+  const results = [
+    mk('S/dwi/DWI_1.nii.gz', 'dwi'),
+    mk('S/dwi/DWI_1.bval', 'dwi'),
+    mk('S/dwi/DWI_1.bvec', 'dwi'),
+    mk('S/dwi/DWI_1.json', 'sidecar-json'),
+    mk('S/dwi/DWI_2.bval', 'dwi'),      // other scan's table, must stay
+    mk('S/other/DWI_1.bval', 'dwi'),    // same name, different folder, must stay
+  ];
+  const { kept, removed } = removeResults(results, [0]);
+  check(removed.length === 4, `removed=${removed.length}, want 4`);
+  check(kept.map(r => r.relativePath).join(',') === 'S/dwi/DWI_2.bval,S/other/DWI_1.bval',
+    `kept=${kept.map(r => r.relativePath).join(',')}`);
+}
+
+// ── 9. Removing a companion alone never cascades ────────────────────────────
+console.log('removing a bare sidecar or gradient table removes only that file');
+{
+  const results = [
+    mk('S/dwi/DWI_1.nii.gz', 'dwi'),
+    mk('S/dwi/DWI_1.bval', 'dwi'),
+    mk('S/dwi/DWI_1.bvec', 'dwi'),
+    mk('S/dwi/DWI_1.json', 'sidecar-json'),
+  ];
+  const a = removeResults(results, [3]);
+  check(a.removed.length === 1 && a.removed[0].fileName === 'DWI_1.json', `json alone: removed=${a.removed.map(r => r.fileName)}`);
+  const b = removeResults(results, [1]);
+  check(b.removed.length === 1 && b.removed[0].fileName === 'DWI_1.bval', `bval alone: removed=${b.removed.map(r => r.fileName)}`);
+}
+
+// ── 10. Dotted names pair by full base name ─────────────────────────────────
+console.log('dotted names pair by full base name');
+{
+  const results = [
+    mk('S/anat/T1_1.0mm.nii.gz', 'T1w'),
+    mk('S/anat/T1_1.0mm.json', 'sidecar-json'),
+    mk('S/anat/T1_1.2mm.json', 'sidecar-json'),   // different scan, must stay
+  ];
+  const { kept } = removeResults(results, [0]);
+  check(kept.length === 1 && kept[0].fileName === 'T1_1.2mm.json', `kept=${kept.map(r => r.fileName)}`);
 }
 
 if (failures > 0) {

@@ -1,16 +1,19 @@
 /**
  * Detection Engine — Main Orchestrator
  *
- * Combines all 5 detection layers into a single pipeline:
- *   1. Extension detector  → file type (highest reliability)
- *   2. Filename keywords   → modality + session
- *   3. Folder path keywords → session + modality
- *   4. Neighbor inference  → context from nearby files
- *   5. Subject grouping    → which patient this file belongs to
+ * Classifies every file by subject, session and modality from weighted
+ * evidence. Each detector adds reasons (weight 0 to 0.9, tagged with what
+ * they support). Signals, strongest first: sidecar DICOM fields (which
+ * overrule name-based evidence), sidecar ImageType, EDF channel labels,
+ * sidecar scan names, filename keywords, folder names, neighboring files,
+ * subject grouping, and for Custom timepoints date and folder clusters.
+ * NIfTI headers add dimension checks but never pick a modality alone.
  *
- * Each layer produces partial results with confidence weights.
- * The engine merges them, resolves conflicts, and assigns a
- * final confidence level to each file.
+ * Confidence (calculateConfidence below): a file whose modality evidence
+ * is 0.15 or less is graded low and marked as a guess; otherwise the total
+ * weight is compared with thresholds. Export is gated separately (guesses,
+ * missing sessions and non-exported modalities are left out).
+ * docs/capabilities.md section 6 lists the signals and weights.
  *
  * The output is an array of DetectionResult objects, one per file,
  * ready to be displayed in the mapping table.

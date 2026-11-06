@@ -3,12 +3,12 @@
 | Field | Value |
 |---|---|
 | **Document ID** | SOP-GUI-001 |
-| **Version** | 3.7 |
-| **Effective Date** | 2026-11-03 |
+| **Version** | 3.8 |
+| **Effective Date** | 2026-11-06 |
 | **Author** | Brandon Bach |
 | **Status** | Draft, Pending Advisor Review |
-| **Parent Framework** | GOV-001 Regulatory and Governance Framework v2.8 |
-| **Related Documents** | SOP-BIDS-001 v3.8 |
+| **Parent Framework** | GOV-001 Regulatory and Governance Framework v2.9 |
+| **Related Documents** | SOP-BIDS-001 v3.9 |
 
 ---
 
@@ -349,7 +349,7 @@ The filter bar shows a count for each filter: **All**, **High**, **Medium**, **L
 2. Use **Set session…** or **Set modality…**, then click **Apply**. **Set task…** appears when the selection includes files that carry a task, and applies only to those.
 3. Click **Clear selection** when done
 
-**Removing files:** to leave a file out of the dataset entirely (for example, a duplicate or a scan that should not be shared), click the remove button at the end of its row, or tick several rows and click **Remove N files**. Removal is immediate, with no confirmation and no undo; to bring a file back, use **Back to Drop Zone** and add the folder again. A removed file is not exported, and the BIDS names of the remaining files (including run numbers) are recomputed. Removing a data file does not remove its JSON sidecar or diffusion `.bval`/`.bvec` files; remove those as well, or Validate reports them as orphaned and leaves them out of the export. After a removal, adding the same folder again starts a fresh mapping instead of restoring saved progress.
+**Removing files:** to leave a file out of the dataset entirely (for example, a duplicate or a scan that should not be shared), click the remove button at the end of its row, or tick several rows and click **Remove N files**. A confirmation dialog appears first; click **Remove** to continue or **Cancel** to keep the files. Ticking **Don't ask again this session** before clicking Remove skips the dialog for later removals. There is no undo; to bring a file back, use **Back to Drop Zone** and add the folder again. A removed file is not exported, and the BIDS names of the remaining files (including run numbers) are recomputed. Removing a data file also removes its JSON sidecar and, for diffusion scans, its `.bval` and `.bvec` files from the same folder. Removing a sidecar or gradient file on its own removes only that file. After a removal, adding the same folder again starts a fresh mapping instead of restoring saved progress.
 
 **Assign in order to timepoints:** with Custom timepoints and two or more rows ticked, this button assigns the ticked rows to the timepoints in the order you ticked them (first ticked to the earliest timepoint, and so on).
 
@@ -491,7 +491,7 @@ A subject with fewer than 4 imaging, EEG or table files gets these as warnings i
 
 - Implant sessions, when dates were auto-filled: sessions out of chronological order (error)
 - Duplicate subject ID (error)
-- Same file name in several sessions (warning)
+- Same file name in several sessions (info; a warning when two copies are the same size, which suggests one file was copied into two sessions)
 - iEEG without electrodes.tsv in that session (warning)
 - Single-session subject (info)
 
@@ -738,7 +738,7 @@ In the desktop app, every file with no session must be resolved before export; t
 
 ### 13.3 Repeated Scan Names Across Visits
 
-The same protocol run at every visit produces files with identical names in each visit folder. The full folder path keeps them apart, and Validate shows a "same filename in several sessions" warning. No action is needed if the sessions are correct.
+The same protocol run at every visit produces files with identical names in each visit folder. The full folder path keeps them apart, and Validate notes this as information ("same filename in several sessions"). It becomes a warning only when two copies are the same size, which suggests one file was copied into two sessions; check those. No action is needed otherwise.
 
 ---
 
@@ -851,3 +851,4 @@ Do not send the full audit log or screenshots of the Mapping table outside the s
 | 3.5 | October 2, 2026 | Brandon Bach | Updated for NeuroGate 1.7.0. Section 7.2: CSV tables are recognized and converted to TSV. Section 7.4: Metadata entries are saved with the mapping and survive a reload. Sections 8.1 and 8.4: task labels can be set per file and in bulk. Sections 11.2 and 12 updated to match. |
 | 3.6 | October 28, 2026 | Brandon Bach | Updated for NeuroGate 1.8.0. Section 8.4: files can be removed from the mapping (per-row button and Remove N files), with no undo; paired sidecars are not removed automatically; saved progress no longer restores after a removal. Sections 8.4 and 12.2: each removed file is logged. Section 12.4: removed files are replaced by `file-N` in the shareable audit log. Header references updated to GOV-001 v2.7 and SOP-BIDS-001 v3.7. |
 | 3.7 | November 3, 2026 | Brandon Bach | Updated for NeuroGate 1.9.0. Sections 4.2 and 9.1: the institution prefix is 2 or more uppercase letters, with no upper limit (previously 2 to 6). Header references updated to GOV-001 v2.8 and SOP-BIDS-001 v3.8. |
+| 3.8 | November 6, 2026 | Brandon Bach | Updated for NeuroGate 1.9.0. Section 8.4: removing a data file also removes its sidecar and gradient files; a confirmation dialog appears before removal. Sections 10.4 and 13.3: the same filename in several sessions is information, or a warning when two copies are the same size. Header references updated to GOV-001 v2.9 and SOP-BIDS-001 v3.9. |

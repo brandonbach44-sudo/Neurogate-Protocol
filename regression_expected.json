@@ -339,9 +339,9 @@
           {
             "id": "cross-1",
             "category": "cross-session",
-            "severity": "warning",
+            "severity": "info",
             "title": "Same filename in multiple sessions",
-            "description": "\"channels_001.tsv\" appears in 2 different sessions for subject \"001\" (ses-postimplant, ses-preimplant). This might be the same file accidentally assigned to multiple sessions. Verify each copy is actually from a different session.",
+            "description": "\"channels_001.tsv\" appears in 2 different sessions for subject \"001\" (ses-postimplant, ses-preimplant). This is normal for longitudinal data that reuses scan names at each visit; the copies differ in size.",
             "affectedFiles": [
               "Patient_001/Session_implant/ieeg/channels_001.tsv",
               "Patient_001/Session_preimplant/eeg/channels_001.tsv"
@@ -705,9 +705,9 @@
           {
             "id": "cross-1",
             "category": "cross-session",
-            "severity": "warning",
+            "severity": "info",
             "title": "Same filename in multiple sessions",
-            "description": "\"channels_002.tsv\" appears in 2 different sessions for subject \"002\" (ses-postimplant, ses-preimplant). This might be the same file accidentally assigned to multiple sessions. Verify each copy is actually from a different session.",
+            "description": "\"channels_002.tsv\" appears in 2 different sessions for subject \"002\" (ses-postimplant, ses-preimplant). This is normal for longitudinal data that reuses scan names at each visit; the copies differ in size.",
             "affectedFiles": [
               "Patient_002/Session_implant/ieeg/channels_002.tsv",
               "Patient_002/Session_preimplant/eeg/channels_002.tsv"
@@ -1071,9 +1071,9 @@
           {
             "id": "cross-1",
             "category": "cross-session",
-            "severity": "warning",
+            "severity": "info",
             "title": "Same filename in multiple sessions",
-            "description": "\"channels_003.tsv\" appears in 2 different sessions for subject \"003\" (ses-postimplant, ses-preimplant). This might be the same file accidentally assigned to multiple sessions. Verify each copy is actually from a different session.",
+            "description": "\"channels_003.tsv\" appears in 2 different sessions for subject \"003\" (ses-postimplant, ses-preimplant). This is normal for longitudinal data that reuses scan names at each visit; the copies differ in size.",
             "affectedFiles": [
               "Patient_003/Session_implant/ieeg/channels_003.tsv",
               "Patient_003/Session_preimplant/eeg/channels_003.tsv"
@@ -1437,9 +1437,9 @@
           {
             "id": "cross-1",
             "category": "cross-session",
-            "severity": "warning",
+            "severity": "info",
             "title": "Same filename in multiple sessions",
-            "description": "\"channels_004.tsv\" appears in 2 different sessions for subject \"004\" (ses-postimplant, ses-preimplant). This might be the same file accidentally assigned to multiple sessions. Verify each copy is actually from a different session.",
+            "description": "\"channels_004.tsv\" appears in 2 different sessions for subject \"004\" (ses-postimplant, ses-preimplant). This is normal for longitudinal data that reuses scan names at each visit; the copies differ in size.",
             "affectedFiles": [
               "Patient_004/Session_implant/ieeg/channels_004.tsv",
               "Patient_004/Session_preimplant/eeg/channels_004.tsv"
@@ -1803,9 +1803,9 @@
           {
             "id": "cross-1",
             "category": "cross-session",
-            "severity": "warning",
+            "severity": "info",
             "title": "Same filename in multiple sessions",
-            "description": "\"channels_005.tsv\" appears in 2 different sessions for subject \"005\" (ses-postimplant, ses-preimplant). This might be the same file accidentally assigned to multiple sessions. Verify each copy is actually from a different session.",
+            "description": "\"channels_005.tsv\" appears in 2 different sessions for subject \"005\" (ses-postimplant, ses-preimplant). This is normal for longitudinal data that reuses scan names at each visit; the copies differ in size.",
             "affectedFiles": [
               "Patient_005/Session_implant/ieeg/channels_005.tsv",
               "Patient_005/Session_preimplant/eeg/channels_005.tsv"

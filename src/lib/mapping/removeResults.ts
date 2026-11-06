@@ -1,78 +1,72 @@
 /**
  * Pure helper for removing files from the mapping table.
  *
- * A single remove may bring companions along: a JSON sidecar, a TSV
- * sidecar, or a gradient table (.bval / .bvec) is always removed with its
- * paired data file. The pairing rule mirrors bidsNaming.ts:
- *   same folder AND same base name (everything before the first dot).
+ * Removing a data file also removes its paired files: its JSON or TSV
+ * sidecar and, for diffusion scans, its .bval / .bvec gradient tables.
+ * Pairing uses the same rule as sidecar lookup (sidecarReader.ts): same
+ * folder and same base name, with .nii.gz, .json and other extensions
+ * stripped.
  *
- * Bulk removal resolves ALL primaries and their companions in one pass so
- * indices never shift mid-loop.
+ * Only data files bring companions along. Removing a sidecar or a
+ * gradient table on its own removes just that file, so it can never pull
+ * an image (or another companion) out of the mapping.
+ *
+ * Bulk removal resolves every selected file and its companions in one
+ * pass, so indices never shift mid-loop.
  */
 
 import type { DetectionResult } from '../../types/detection';
 import { getEffectiveModality } from '../../types/detection';
+import { getSidecarBaseName } from '../detection/sidecarReader';
 
-/** Files that travel with a primary when it is removed. */
-const COMPANION_MODALITIES = new Set(['sidecar-json', 'sidecar-tsv', 'gradient-bval', 'gradient-bvec']);
+const GRADIENT_TABLE = /\.(bval|bvec)$/i;
+
+/** A file that travels with its data file: a sidecar or a gradient table. */
+function isCompanionFile(r: DetectionResult): boolean {
+  const m = getEffectiveModality(r);
+  // .bval / .bvec are classified as dwi, so they are recognized by extension.
+  return m === 'sidecar-json' || m === 'sidecar-tsv' || GRADIENT_TABLE.test(r.fileName);
+}
 
 function folderOf(relativePath: string): string {
   const slash = relativePath.lastIndexOf('/');
   return slash === -1 ? '' : relativePath.slice(0, slash);
 }
 
-function baseName(fileName: string): string {
-  const dot = fileName.indexOf('.');
-  return dot === -1 ? fileName : fileName.slice(0, dot);
-}
-
-/** True when `candidate` is a companion of `primary` (same folder, same base name, companion modality). */
-function isCompanionOf(candidate: DetectionResult, primary: DetectionResult): boolean {
-  return (
-    COMPANION_MODALITIES.has(getEffectiveModality(candidate)) &&
-    folderOf(candidate.relativePath) === folderOf(primary.relativePath) &&
-    baseName(candidate.fileName) === baseName(primary.fileName)
-  );
+function pairKey(r: DetectionResult): string {
+  return `${folderOf(r.relativePath)}/${getSidecarBaseName(r.fileName)}`;
 }
 
 export interface RemoveResultsOutput {
   /** Results that remain after removal. */
   kept: DetectionResult[];
-  /** Results that were removed (primaries + their companions). */
+  /** Results that were removed (selected files plus their companions). */
   removed: DetectionResult[];
 }
 
 /**
- * Remove the results at `indices` from `results`, together with any
- * companions of those primaries.  Works in one pass — indices never shift.
- *
- * Passing a single-element array is equivalent to the old per-file remove,
- * but companion collection is now guaranteed even in bulk.
+ * Remove the results at `indices` from `results`, together with the
+ * companions of any selected data files. Works in one pass.
  */
 export function removeResults(
   results: DetectionResult[],
   indices: number[],
 ): RemoveResultsOutput {
-  if (indices.length === 0) return { kept: results, removed: [] };
+  const selected = new Set(indices.filter(i => i >= 0 && i < results.length));
+  if (selected.size === 0) return { kept: results, removed: [] };
 
-  // Collect the primaries first.
-  const primarySet = new Set(indices);
-  const primaryItems = new Set(indices.map(i => results[i]).filter(Boolean));
-
-  // Build the full set of indices to drop (primaries + their companions).
-  const dropSet = new Set<number>(primarySet);
-  results.forEach((r, i) => {
-    if (!dropSet.has(i) && [...primaryItems].some(p => isCompanionOf(r, p))) {
-      dropSet.add(i);
-    }
-  });
+  // Pair keys of the selected data files (not of selected companions).
+  const dataKeys = new Set<string>();
+  for (const i of selected) {
+    const r = results[i];
+    if (!isCompanionFile(r)) dataKeys.add(pairKey(r));
+  }
 
   const kept: DetectionResult[] = [];
   const removed: DetectionResult[] = [];
   results.forEach((r, i) => {
-    if (dropSet.has(i)) removed.push(r);
-    else kept.push(r);
+    const drop = selected.has(i) || (isCompanionFile(r) && dataKeys.has(pairKey(r)));
+    (drop ? removed : kept).push(r);
   });
-
   return { kept, removed };
 }

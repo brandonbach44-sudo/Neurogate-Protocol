@@ -135,7 +135,7 @@ export function checkCrossSessionConsistency(
 
   // ── Check: Duplicate files across sessions ────────────────
   // (same filename appearing in multiple sessions for one subject)
-  const fileSessionMap = new Map<string, { session: string; path: string }[]>();
+  const fileSessionMap = new Map<string, { session: string; path: string; size: number }[]>();
 
   for (const result of results) {
     const group = getEffectiveSubjectGroup(result);
@@ -146,7 +146,7 @@ export function checkCrossSessionConsistency(
     if (!fileSessionMap.has(key)) {
       fileSessionMap.set(key, []);
     }
-    fileSessionMap.get(key)!.push({ session, path: result.relativePath });
+    fileSessionMap.get(key)!.push({ session, path: result.relativePath, size: result.fileSize });
   }
 
   for (const [key, entries] of fileSessionMap) {
@@ -156,12 +156,21 @@ export function checkCrossSessionConsistency(
         const group = key.split('::')[0];
         const fileName = key.split('::')[1];
 
+        // Longitudinal data normally reuses scan names at every visit, so
+        // that alone is only informational. Two copies of identical size are
+        // more likely one file copied into two sessions, so that stays a
+        // warning.
+        const sizes = entries.map(e => e.size);
+        const possibleCopy = new Set(sizes).size < sizes.length;
+
         issues.push({
           id: nextId(),
           category: 'cross-session',
-          severity: 'warning',
+          severity: possibleCopy ? 'warning' : 'info',
           title: `Same filename in multiple sessions`,
-          description: `"${fileName}" appears in ${sessions.size} different sessions for subject "${group}" (${Array.from(sessions).join(', ')}). This might be the same file accidentally assigned to multiple sessions. Verify each copy is actually from a different session.`,
+          description: possibleCopy
+            ? `"${fileName}" appears in ${sessions.size} different sessions for subject "${group}" (${Array.from(sessions).join(', ')}), and at least two copies are the same size. This might be the same file copied into more than one session. Verify each copy is actually from a different session.`
+            : `"${fileName}" appears in ${sessions.size} different sessions for subject "${group}" (${Array.from(sessions).join(', ')}). This is normal for longitudinal data that reuses scan names at each visit; the copies differ in size.`,
           affectedFiles: entries.map(e => e.path),
           subjectGroup: group,
           dismissable: true,

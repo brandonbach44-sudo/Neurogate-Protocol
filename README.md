@@ -139,9 +139,9 @@ Separately, the **CI** workflow (`.github/workflows/ci.yml`) runs on every push 
 
 User-facing documents live in `public/docs/` and are shown on the app's Documentation page:
 
-- GOV-001 v2.8: Regulatory and Governance Framework
-- SOP-BIDS-001 v3.8: BIDS Data Structure
-- SOP-GUI-001 v3.7: NeuroGate Compliance Tool User Guide
+- GOV-001 v2.9: Regulatory and Governance Framework
+- SOP-BIDS-001 v3.9: BIDS Data Structure
+- SOP-GUI-001 v3.8: NeuroGate Compliance Tool User Guide
 
 The versions shown on the Documentation page come from `src/docVersions.ts`. When you bump a document's version (its `| **Version** |` row), update `src/docVersions.ts` too, or `npm run regression` (and so the release) fails.
 

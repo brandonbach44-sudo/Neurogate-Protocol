@@ -3,13 +3,13 @@
 | Field | Value |
 |---|---|
 | **Document ID** | SOP-BIDS-001 |
-| **Version** | 3.8 |
-| **Effective Date** | 2026-11-03 |
+| **Version** | 3.9 |
+| **Effective Date** | 2026-11-06 |
 | **Author** | Brandon Bach |
 | **Advisor** | Nishant Sinha |
 | **Status** | Draft, Pending Advisor Review |
-| **Parent Document** | GOV-001 Regulatory and Governance Framework v2.8 |
-| **Related Documents** | SOP-GUI-001 v3.7 |
+| **Parent Document** | GOV-001 Regulatory and Governance Framework v2.9 |
+| **Related Documents** | SOP-GUI-001 v3.8 |
 
 ---
 
@@ -997,8 +997,8 @@ Custom timepoints and Single session datasets have no required-file checks.
 ### 13.4 Cross-File and Cross-Session Consistency
 
 - **Errors:** duplicate BIDS subject ID; under the Implant sessions preset, session dates out of chronological order (`preimplant` before `postimplant` before `postsurgery`), checked only when dates were auto-filled
-- **Warnings:** the same filename appears in more than one session; an iEEG recording in a session with no `electrodes.tsv`
-- **Information:** a subject with only a single session
+- **Warnings:** the same filename appears in more than one session with two copies of the same size (possibly one file copied into two sessions); an iEEG recording in a session with no `electrodes.tsv`
+- **Information:** a subject with only a single session; the same filename in more than one session with copies of different sizes (normal for longitudinal data)
 
 ### 13.5 PET Sidecar Completeness
 
@@ -1074,6 +1074,7 @@ The tool does not issue a validation message when it routes scanner-computed der
 | 3.6 | October 2, 2026 | Brandon Bach | Updated for NeuroGate 1.7.0. Sections 3, 5.3 and 6.1.3: task labels can be set per file (default `task-rest` / `task-monitor`); TaskName follows; runs are numbered per task. Section 6.2.2: tables follow their recording's task, and CSV tables are recognized and converted to TSV on export. Section 10.5 updated to match. |
 | 3.7 | October 28, 2026 | Brandon Bach | Section 8.6: files can be removed from the dataset in the mapping table. Header references updated to GOV-001 v2.7 and SOP-GUI-001 v3.6. |
 | 3.8 | November 3, 2026 | Brandon Bach | Sections 4.1 and 4.3: the institution prefix is 2 or more uppercase letters, with no upper limit (previously 2 to 6). Header references updated to GOV-001 v2.8 and SOP-GUI-001 v3.7. |
+| 3.9 | November 6, 2026 | Brandon Bach | Section 13.4: the same filename in several sessions is information unless two copies are the same size. Header references updated to GOV-001 v2.9 and SOP-GUI-001 v3.8. |
 
 ---
 

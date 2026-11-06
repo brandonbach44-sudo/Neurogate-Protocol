@@ -2,7 +2,7 @@
 
 **This file is the single source of truth for what NeuroGate does.** Every user-facing document (GOV-001, SOP-BIDS-001, SOP-GUI-001, README) and every page in the app describes only what's listed here. When a feature is added or changed, update this file first, then the documents.
 
-It was verified line by line against the code on 2026-09-30 (version 1.0.1 plus that day's changes) and updated for each release since; this revision is for 1.9.0 (no upper limit on the institution prefix). File references are relative to the repo root.
+It was verified line by line against the code on 2026-09-30 (version 1.0.1 plus that day's changes) and updated for each release since; this revision is for 1.9.0 (no upper limit on the institution prefix; paired files removed with their data file). File references are relative to the repo root.
 
 ---
 
@@ -72,8 +72,8 @@ The stepper labels are **Structure · Drop Files · Mapping · Metadata · Valid
 - **Row detail:** clicking a row shows its Detection Reasons and File Info.
 - **Filters, with counts:** All, High, Medium, Low, Needs Review, Needs your decision.
 - **Bulk edits:** "Set session…" / "Set modality…" with **Apply**, "Set task…" (when the selection includes files that carry a task), **Remove N files**, and **Clear selection**.
-- **Removing files:** each row has a remove (trash) button in its last column, and **Remove N files** removes every ticked row. There is no confirmation and no undo; to get a removed file back, go Back to Drop Zone and add the folder again. A removed file leaves the mapping and the export, the BIDS names of the rest are recomputed (run numbers included), and each removal is logged (§10).
-  - Removing a data file doesn't remove its paired files: its JSON sidecar (and `.bval`/`.bvec` for diffusion) stay, and Validate then reports them as orphaned and leaves them out of the export.
+- **Removing files:** each row has a remove (trash) button in its last column, and **Remove N files** removes every ticked row. A confirmation dialog appears first (**Cancel** / **Remove**), with a "Don't ask again this session" box that takes effect only when **Remove** is clicked. There is no undo; to get a removed file back, go Back to Drop Zone and add the folder again. A removed file leaves the mapping and the export, the BIDS names of the rest are recomputed (run numbers included), and each removed file is logged (§10).
+  - **Paired files** (`src/lib/mapping/removeResults.ts`): removing a data file also removes its JSON or TSV sidecar and its `.bval`/`.bvec` gradient tables, matched by folder and base name like sidecar pairing. Removing a sidecar or gradient table on its own removes only that file. A bulk removal works out every file and companion in one pass.
   - After a removal, the saved progress no longer matches the folder, so adding the same folder again starts a fresh mapping instead of restoring it.
 - **Task labels:** functional MRI and EEG / iEEG rows have a `task-` field under the modality (letters and digits only; anything else is dropped as you type; empty means the default, `rest` for functional MRI and `monitor` for EEG / iEEG). The change applies when the field loses focus or on Enter. A channels or events table follows its recording's task when the recordings in its source folder (then its subject + session) all have the same one, or takes a label set on the table itself; otherwise it keeps `monitor`. Runs are numbered per task. A functional run whose task isn't `rest` gets the same label as `TaskName` in its exported sidecar.
   - With Custom timepoints and 2 or more rows ticked, **Assign in order to timepoints** assigns them in the order they were ticked.
@@ -238,7 +238,7 @@ No per-file corrections are possible in the CLI.
 
 **Cross-session:**
 - **Implant, when dates were auto-filled:** sessions out of chronological order (error).
-- **Other checks:** single-session subject (info); same filename in several sessions (warning); duplicate subject ID (error); iEEG without electrodes.tsv in that session (warning).
+- **Other checks:** single-session subject (info); same filename in several sessions (info, or a warning when two copies are the same size, which suggests one file copied into two sessions); duplicate subject ID (error); iEEG without electrodes.tsv in that session (warning).
 
 **PET:** a warning, which can be dismissed, when a PET image has no sidecar or its sidecar lacks BIDS-required PET fields. It never blocks export.
 
