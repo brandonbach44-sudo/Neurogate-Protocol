@@ -16,6 +16,7 @@ import type { DetectionResult, DetectionSummary, Session, Modality } from '../ty
 import { getEffectiveSession, getEffectiveModality, taskInBidsName } from '../types/detection';
 import { runDetection, generateSummary, readJsonSidecars, readEdfHeaders, readNiftiHeaders } from '../lib/detection';
 import { computeBidsNames } from '../lib/bids/bidsNaming';
+import { removeResults } from '../lib/mapping/removeResults';
 import { useAudit, auditJsonFiles, buildAuditRedactionPairs, downloadFile } from '../lib/audit';
 import type { DatasetStructure } from '../types/sessionStructure';
 import { createDefaultDatasetStructure, resolveSessionIds } from '../types/sessionStructure';
@@ -217,18 +218,21 @@ function ToolPage() {
     audit.logBulkSessionApplied(indices.length, session);
   }, [audit, datasetStructure]);
 
-  // ── Remove a single file from the mapping ────────────────────
-  const handleRemoveResult = useCallback((index: number) => {
-    setDetectionResults(prev => {
-      const removed = prev[index];
-      if (removed && !removedResults.current.includes(removed)) removedResults.current.push(removed);
-      const next = prev.filter((_, i) => i !== index);
-      const renamed = computeBidsNames(next, undefined, datasetStructure);
-      setSummary(generateSummary(renamed, datasetStructure));
-      if (removed) audit.addEntry('file-removed', `Removed from mapping: ${removed.fileName}`);
-      return renamed;
-    });
-  }, [audit, datasetStructure]);
+  // ── Remove one or more files from the mapping ────────────────
+  // Removal is computed from the current detectionResults value OUTSIDE the
+  // updater so React Strict Mode's double-invoke of updater functions does not
+  // duplicate side effects (audit log entries, setSummary calls).
+  const handleRemoveResults = useCallback((indices: number[]) => {
+    if (indices.length === 0) return;
+    const { kept, removed } = removeResults(detectionResults, indices);
+    const renamed = computeBidsNames(kept, undefined, datasetStructure);
+    setDetectionResults(renamed);
+    for (const r of removed) {
+      if (!removedResults.current.includes(r)) removedResults.current.push(r);
+      audit.addEntry('file-removed', `Removed from mapping: ${r.fileName}`);
+    }
+    setSummary(generateSummary(renamed, datasetStructure));
+  }, [detectionResults, audit, datasetStructure]);
 
   // ── Bulk update modality for selected files ───────────────────
   const handleBulkUpdateModality = useCallback((indices: number[], modality: Modality) => {
@@ -639,7 +643,7 @@ function ToolPage() {
             onBulkUpdateSession={handleBulkUpdateSession}
             onBulkUpdateModality={handleBulkUpdateModality}
             onBulkUpdateTask={handleBulkUpdateTask}
-            onRemoveResult={handleRemoveResult}
+            onRemoveResults={handleRemoveResults}
             onContinue={() => setStep('metadata')}
             onBack={handleStartOver}
             onChangeStructure={requestChangeStructure}

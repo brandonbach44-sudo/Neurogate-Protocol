@@ -27,8 +27,12 @@ interface MappingTableProps {
   onBulkUpdateModality: (indices: number[], modality: Modality) => void;
   /** Sets the task label on the selected files that carry one (functional MRI, EEG / iEEG and their tables). */
   onBulkUpdateTask?: (indices: number[], task: string) => void;
-  /** Removes a single file from the mapping by its original index in `results`. */
-  onRemoveResult?: (index: number) => void;
+  /**
+   * Removes one or more files (plus their companions) from the mapping.
+   * Called with all selected indices at once so companion resolution and
+   * index shifting happen in a single pass.
+   */
+  onRemoveResults?: (indices: number[]) => void;
   onContinue: () => void;
   onBack: () => void;
   /** Active session structure; defaults to Implant sessions if not passed. */
@@ -118,7 +122,7 @@ export default function MappingTable({
   onBulkUpdateSession,
   onBulkUpdateModality,
   onBulkUpdateTask,
-  onRemoveResult,
+  onRemoveResults,
   onContinue,
   onBack,
   onChangeStructure,
@@ -130,6 +134,9 @@ export default function MappingTable({
   const [bulkSession, setBulkSession] = useState<Session | ''>('');
   const [bulkModality, setBulkModality] = useState<Modality | ''>('');
   const [bulkTask, setBulkTask] = useState('');
+  // Confirmation dialog: null = no pending removal, otherwise the indices waiting for confirm.
+  const [pendingRemoval, setPendingRemoval] = useState<number[] | null>(null);
+  const [skipConfirm, setSkipConfirm] = useState(false);
   const sessionOptions = useMemo(() => getSessionOptions(structure), [structure]);
 
   const decisionCount = useMemo(
@@ -167,13 +174,30 @@ export default function MappingTable({
     setSelectedIndices(next);
   };
 
+  // ── Remove helper: show confirm dialog or execute immediately ────
+  const triggerRemove = (indices: number[]) => {
+    if (!onRemoveResults || indices.length === 0) return;
+    if (skipConfirm) {
+      onRemoveResults(indices);
+      setSelectedIndices(new Set());
+    } else {
+      setPendingRemoval(indices);
+    }
+  };
+
+  const confirmRemove = (dontAskAgain: boolean) => {
+    if (pendingRemoval && onRemoveResults) {
+      if (dontAskAgain) setSkipConfirm(true);
+      onRemoveResults(pendingRemoval);
+      setSelectedIndices(new Set());
+    }
+    setPendingRemoval(null);
+  };
+
   // ── Bulk operations ───────────────────────────────────────────
   const removeSelected = () => {
-    if (onRemoveResult && selectedIndices.size > 0) {
-      // Remove in descending index order so earlier indices stay stable
-      const sorted = Array.from(selectedIndices).sort((a, b) => b - a);
-      sorted.forEach(i => onRemoveResult(i));
-      setSelectedIndices(new Set());
+    if (onRemoveResults && selectedIndices.size > 0) {
+      triggerRemove(Array.from(selectedIndices));
     }
   };
 
@@ -416,10 +440,11 @@ export default function MappingTable({
             </div>
           )}
 
-          {onRemoveResult && (
+          {onRemoveResults && (
             <button
               onClick={removeSelected}
-              className="text-sm px-3 py-1.5 bg-red-50 text-red-600 border border-red-200 rounded hover:bg-red-100 transition-colors flex items-center gap-1"
+              disabled={selectedIndices.size === 0}
+              className="text-sm px-3 py-1.5 bg-red-50 text-red-600 border border-red-200 rounded hover:bg-red-100 transition-colors flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed"
               title="Remove the selected files from the mapping. They will not be exported."
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -627,9 +652,9 @@ export default function MappingTable({
 
                   {/* Per-row remove button */}
                   <div className="flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
-                    {onRemoveResult && (
+                    {onRemoveResults && (
                       <button
-                        onClick={() => onRemoveResult(resultIndex)}
+                        onClick={() => triggerRemove([resultIndex])}
                         className="p-1 rounded text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
                         title={`Remove ${result.fileName} from mapping`}
                         aria-label={`Remove ${result.fileName} from mapping`}
@@ -689,6 +714,50 @@ export default function MappingTable({
         </div>
         <Button variant="primary" onClick={onContinue}>Continue to Metadata</Button>
       </div>
+
+      {/* ── Remove confirmation dialog ───────────────────────── */}
+      {pendingRemoval !== null && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="remove-dialog-title"
+        >
+          <div className="bg-white rounded-xl shadow-xl p-6 max-w-sm w-full mx-4">
+            <h2 id="remove-dialog-title" className="text-base font-semibold text-gray-900 mb-2">
+              Remove {pendingRemoval.length === 1 ? 'file' : `${pendingRemoval.length} files`} from mapping?
+            </h2>
+            <p className="text-sm text-gray-600 mb-4">
+              {pendingRemoval.length === 1
+                ? 'This file will be excluded from the BIDS export. Paired companions (JSON sidecar, TSV, gradient tables) will be removed with it.'
+                : 'These files will be excluded from the BIDS export. Paired companions (JSON sidecars, TSV, gradient tables) will be removed with their primaries.'}
+              {' '}This action cannot be undone within the current session.
+            </p>
+            <label className="flex items-center gap-2 text-sm text-gray-600 mb-5 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                onChange={(e) => {
+                  if (e.target.checked) setSkipConfirm(true);
+                  else setSkipConfirm(false);
+                }}
+              />
+              Don't ask again this session
+            </label>
+            <div className="flex gap-3 justify-end">
+              <Button variant="secondary" onClick={() => setPendingRemoval(null)}>
+                Cancel
+              </Button>
+              <button
+                onClick={() => confirmRemove(skipConfirm)}
+                className="px-4 py-2 text-sm font-medium bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
