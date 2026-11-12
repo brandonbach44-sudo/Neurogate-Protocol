@@ -13,10 +13,10 @@ import StructureSetupStep from '../components/StructureSetupStep';
 import type { MetadataOutput, MetadataDraft } from '../components/MetadataStep';
 import type { ScannedFile } from '../types/files';
 import type { DetectionResult, DetectionSummary, Session, Modality } from '../types/detection';
-import { getEffectiveSession, getEffectiveModality, taskInBidsName } from '../types/detection';
 import { runDetection, generateSummary, readJsonSidecars, readEdfHeaders, readNiftiHeaders } from '../lib/detection';
 import { computeBidsNames } from '../lib/bids/bidsNaming';
-import { removeResults } from '../lib/mapping/removeResults';
+import { updateResult, bulkUpdateTask, bulkUpdateSession, bulkUpdateModality, removeFromMapping } from '../lib/mapping/detectionEdits';
+import type { DetectionEditContext } from '../lib/mapping/detectionEdits';
 import { useAudit, auditJsonFiles, buildAuditRedactionPairs, downloadFile } from '../lib/audit';
 import type { DatasetStructure } from '../types/sessionStructure';
 import { createDefaultDatasetStructure, resolveSessionIds } from '../types/sessionStructure';
@@ -71,6 +71,16 @@ function ToolPage() {
   // redact them too, even though they are no longer in detectionResults.
   // Kept for the whole app session, like the audit log itself.
   const removedResults = useRef<DetectionResult[]>([]);
+  // The latest detection results, updated synchronously on every change.
+  // Edit handlers read this instead of the render's detectionResults, so two
+  // edits fired before a re-render chain instead of the second dropping the
+  // first. Always change detection results through commitDetectionResults,
+  // never setDetectionResults directly, so this ref never goes stale.
+  const detectionResultsRef = useRef<DetectionResult[]>(detectionResults);
+  const commitDetectionResults = useCallback((next: DetectionResult[]) => {
+    detectionResultsRef.current = next;
+    setDetectionResults(next);
+  }, []);
 
   // ── Save/resume: persist on every detection-state change ──────────────
   // File mappings and detection results; the Metadata entries are saved
@@ -102,7 +112,7 @@ function ToolPage() {
     if (savedSession) {
       const restored = trySessionRestore(files, savedSession);
       if (restored) {
-        setDetectionResults(computeBidsNames(restored, undefined, savedSession.structure ?? datasetStructure));
+        commitDetectionResults(computeBidsNames(restored, undefined, savedSession.structure ?? datasetStructure));
         setSummary(savedSession.summary);
         if (savedSession.structure) {
           setDatasetStructure(savedSession.structure);
@@ -145,7 +155,7 @@ function ToolPage() {
       ]);
       const results = runDetection(files, sidecarMap, edfHeaderMap, datasetStructure, niftiHeaderMap);
       const sum = generateSummary(results, datasetStructure);
-      setDetectionResults(results);
+      commitDetectionResults(results);
       setSummary(sum);
       setStep('mapping');
 
@@ -159,90 +169,41 @@ function ToolPage() {
         sum.subjectGroups,
       );
     }, 500);
-  }, [audit, savedSession, datasetStructure]);
+  }, [audit, savedSession, datasetStructure, commitDetectionResults]);
 
-  // ── Update a single detection result (user correction) ────────
-  // The update handlers below compute the new array from the current
-  // detectionResults value OUTSIDE the state updater, then fire audit logging
-  // and setSummary once. Side effects inside a setDetectionResults(prev => ...)
-  // updater run twice under React Strict Mode, duplicating audit entries.
+  // ── Mapping edits ────────────────────────────────────────────
+  // The edit logic lives in lib/mapping/detectionEdits.ts. Each edit reads
+  // detectionResultsRef (not the render's detectionResults), commits the new
+  // array, then logs and updates the summary once, outside any state updater
+  // (React Strict Mode runs updaters twice, which duplicated audit entries).
+  const editContext = useCallback((): DetectionEditContext => ({
+    results: detectionResultsRef,
+    commit: commitDetectionResults,
+    setSummary,
+    audit,
+    structure: datasetStructure,
+  }), [commitDetectionResults, audit, datasetStructure]);
+
   const handleUpdateResult = useCallback((index: number, updates: Partial<DetectionResult>) => {
-    const next = [...detectionResults];
-    const old = next[index];
-    next[index] = { ...old, ...updates };
+    updateResult(editContext(), index, updates);
+  }, [editContext]);
 
-    // Recompute BIDS names so the preview, run- entities, and sidecar
-    // pairing stay correct after the change.
-    const renamed = computeBidsNames(next, undefined, datasetStructure);
-    setDetectionResults(renamed);
-
-    // Log corrections
-    if (updates.userSession && updates.userSession !== getEffectiveSession(old)) {
-      audit.logSessionCorrected(old.fileName, getEffectiveSession(old), updates.userSession);
-    }
-    if (updates.userModality && updates.userModality !== getEffectiveModality(old)) {
-      audit.logModalityCorrected(old.fileName, getEffectiveModality(old), updates.userModality);
-    }
-    if (updates.userSubjectGroup && updates.userSubjectGroup !== old.subjectGroup) {
-      audit.logSubjectCorrected(old.fileName, old.subjectGroup, updates.userSubjectGroup);
-    }
-    if ('userTask' in updates) {
-      const from = taskInBidsName(old.bidsFilename);
-      const to = taskInBidsName(renamed[index].bidsFilename);
-      if (to && from !== to) audit.logTaskCorrected(old.fileName, from, to);
-    }
-    setSummary(generateSummary(renamed, datasetStructure));
-  }, [detectionResults, audit, datasetStructure]);
-
-  // ── Bulk set the task label ──────────────────────────────────
   const handleBulkUpdateTask = useCallback((indices: number[], task: string) => {
-    const next = [...detectionResults];
-    for (const i of indices) next[i] = { ...next[i], userTask: task };
-    const renamed = computeBidsNames(next, undefined, datasetStructure);
-    setDetectionResults(renamed);
-    setSummary(generateSummary(renamed, datasetStructure));
-    audit.logBulkTaskApplied(indices.length, task);
-  }, [detectionResults, audit, datasetStructure]);
+    bulkUpdateTask(editContext(), indices, task);
+  }, [editContext]);
 
-  // ── Bulk update session for selected files ────────────────────
   const handleBulkUpdateSession = useCallback((indices: number[], session: Session) => {
-    const next = [...detectionResults];
-    for (const i of indices) {
-      next[i] = { ...next[i], userSession: session };
-    }
-    const renamed = computeBidsNames(next, undefined, datasetStructure);
-    setDetectionResults(renamed);
-    setSummary(generateSummary(renamed, datasetStructure));
-    audit.logBulkSessionApplied(indices.length, session);
-  }, [detectionResults, audit, datasetStructure]);
+    bulkUpdateSession(editContext(), indices, session);
+  }, [editContext]);
 
-  // ── Remove one or more files from the mapping ────────────────
-  // Removal is computed from the current detectionResults value OUTSIDE the
-  // updater so React Strict Mode's double-invoke of updater functions does not
-  // duplicate side effects (audit log entries, setSummary calls).
+  // Removing a data file also removes its sidecars and gradient tables.
   const handleRemoveResults = useCallback((indices: number[]) => {
-    if (indices.length === 0) return;
-    const { kept, removed } = removeResults(detectionResults, indices);
-    const renamed = computeBidsNames(kept, undefined, datasetStructure);
-    setDetectionResults(renamed);
-    for (const r of removed) {
-      if (!removedResults.current.includes(r)) removedResults.current.push(r);
-      audit.addEntry('file-removed', `Removed from mapping: ${r.fileName}`);
-    }
-    setSummary(generateSummary(renamed, datasetStructure));
-  }, [detectionResults, audit, datasetStructure]);
+    removeFromMapping(editContext(), indices, removedResults.current);
+  }, [editContext]);
 
-  // ── Bulk update modality for selected files ───────────────────
   const handleBulkUpdateModality = useCallback((indices: number[], modality: Modality) => {
-    const next = [...detectionResults];
-    for (const i of indices) {
-      next[i] = { ...next[i], userModality: modality };
-    }
-    const renamed = computeBidsNames(next, undefined, datasetStructure);
-    setDetectionResults(renamed);
-    setSummary(generateSummary(renamed, datasetStructure));
-    audit.logBulkModalityApplied(indices.length, modality);
-  }, [detectionResults, audit, datasetStructure]);
+    bulkUpdateModality(editContext(), indices, modality);
+  }, [editContext]);
 
   // ── Handle metadata completion ────────────────────────────────
   const handleMetadataComplete = useCallback((metadata: MetadataOutput) => {
@@ -288,7 +249,7 @@ function ToolPage() {
     setConfirmingChange(false);
     setChangingFrom(datasetStructure);
     setScannedFiles([]);
-    setDetectionResults([]);
+    commitDetectionResults([]);
     setSummary(null);
     setMetadataOutput(null);
     setMetadataDraft(null);
@@ -296,7 +257,7 @@ function ToolPage() {
     clearToolSession();
     setSavedSession(null);
     setStep('structure');
-  }, [datasetStructure]);
+  }, [datasetStructure, commitDetectionResults]);
 
   const requestChangeStructure = useCallback(() => {
     if (scannedFiles.length > 0) setConfirmingChange(true);
@@ -321,14 +282,14 @@ function ToolPage() {
   const handleStartOver = useCallback(() => {
     setStep('drop');
     setScannedFiles([]);
-    setDetectionResults([]);
+    commitDetectionResults([]);
     setSummary(null);
     setMetadataOutput(null);
     setMetadataDraft(null);
     loggedMetadata.current = null;
     clearToolSession();
     setSavedSession(null);
-  }, []);
+  }, [commitDetectionResults]);
 
   // ── Get current step number for the indicator ─────────────────
   const stepNumber = (s: AppStep): number => {

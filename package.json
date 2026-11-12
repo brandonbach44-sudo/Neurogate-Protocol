@@ -14,7 +14,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "regression": "tsx tests/regression.ts && tsx tests/regression_deidentify.ts && tsx tests/regression_flywheel.ts && tsx tests/regression_generalization.ts && tsx tests/regression_pet.ts && tsx tests/regression_edf_annotations.ts && tsx tests/regression_nifti.ts && tsx tests/regression_audit.ts && tsx tests/regression_fmap.ts && tsx tests/regression_consistency.ts && tsx tests/regression_csv.ts && tsx tests/regression_tasks.ts && tsx tests/regression_docs.ts && tsx tests/regression_paired_removal.ts && tsx tests/regression_updater_side_effects.ts",
+    "regression": "tsx tests/regression.ts && tsx tests/regression_deidentify.ts && tsx tests/regression_flywheel.ts && tsx tests/regression_generalization.ts && tsx tests/regression_pet.ts && tsx tests/regression_edf_annotations.ts && tsx tests/regression_nifti.ts && tsx tests/regression_audit.ts && tsx tests/regression_fmap.ts && tsx tests/regression_consistency.ts && tsx tests/regression_csv.ts && tsx tests/regression_tasks.ts && tsx tests/regression_docs.ts && tsx tests/regression_paired_removal.ts && tsx tests/regression_updater_side_effects.ts && tsx tests/regression_detection_edits.ts",
     "regression:update": "tsx tests/regression.ts --update && tsx tests/regression_deidentify.ts --update && tsx tests/regression_flywheel.ts --update",
     "verify:adapter": "tsx tests/verify_adapter.ts",
     "verify:export": "tsx tests/verify_export_writer.ts",
