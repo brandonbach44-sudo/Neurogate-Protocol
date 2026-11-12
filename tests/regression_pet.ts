@@ -18,23 +18,26 @@
  *   Patient_102/AV45_amyloid_PET        tracer ID not a subject        -> trc-florbetapir
  *
  * Assertions are explicit (not a snapshot), so a failure says what broke.
- * Usage: npx tsx regression_pet.ts   (non-zero exit on failure)
+ * Usage: npx tsx tests/regression_pet.ts   (non-zero exit on failure)
  */
 import { readdirSync, statSync, readFileSync } from 'fs';
 import { join, relative, basename } from 'path';
-import { runDetection, readJsonSidecars, readEdfHeaders } from './src/lib/detection';
-import { runValidation } from './src/lib/validation';
-import { buildFileEntries } from './src/lib/bids/exporter';
-import { deidentifyJsonSidecar } from './src/lib/deidentify/jsonSidecarDeidentifier';
-import type { ScannedFile } from './src/types/files';
-import type { SubjectMetadata } from './src/types/metadata';
+import { runDetection, readJsonSidecars, readEdfHeaders } from '../src/lib/detection';
+import { runValidation } from '../src/lib/validation';
+import { buildFileEntries } from '../src/lib/bids/exporter';
+import { deidentifyJsonSidecar } from '../src/lib/deidentify/jsonSidecarDeidentifier';
+import type { ScannedFile } from '../src/types/files';
+import type { SubjectMetadata } from '../src/types/metadata';
 import {
   createDefaultDatasetDescription,
   createDefaultAttestation,
   createDefaultInstitutionConfig,
-} from './src/types/metadata';
+} from '../src/types/metadata';
+import { fileURLToPath } from 'node:url';
 
-const ROOT = join(process.cwd(), 'demo-data', 'PET_Raw');
+const REPO_ROOT = fileURLToPath(new URL('..', import.meta.url));
+
+const ROOT = join(REPO_ROOT, 'demo-data', 'PET_Raw');
 
 let failures = 0;
 function check(ok: boolean, detail: string) {

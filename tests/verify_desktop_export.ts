@@ -13,8 +13,8 @@
  *   - a path that tries to escape bids_output/ is refused.
  *
  * Usage:
- *   npm run desktop:bundle && npx tsx verify_desktop_export.ts
- *   npx tsx verify_desktop_export.ts --large   # 600 MB EDF (the old 500 MB browser limit)
+ *   npm run desktop:bundle && npx tsx tests/verify_desktop_export.ts
+ *   npx tsx tests/verify_desktop_export.ts --large   # 600 MB EDF (the old 500 MB browser limit)
  */
 import { createRequire } from 'node:module';
 import { createHash } from 'node:crypto';
@@ -22,9 +22,12 @@ import { createReadStream, createWriteStream, existsSync } from 'node:fs';
 import { mkdtemp, readFile, rm, stat, mkdir, writeFile, open } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const REPO_ROOT = fileURLToPath(new URL('..', import.meta.url));
 
 const require = createRequire(import.meta.url);
-const BUNDLE = join(process.cwd(), 'electron', 'desktop-export.cjs');
+const BUNDLE = join(REPO_ROOT, 'electron', 'desktop-export.cjs');
 
 const PAYLOAD_BYTES = process.argv.includes('--large') ? 600 * 1024 * 1024 : 8 * 1024 * 1024;
 const PATIENT_ID = 'HUP900 M 01-JAN-1980 Doe_Jane';

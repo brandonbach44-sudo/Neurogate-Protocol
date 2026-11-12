@@ -16,7 +16,7 @@
  * EDF outputs are the right size with a de-identified header, and JSON
  * sidecars are valid JSON.
  *
- * Usage: npx tsx verify_export_writer.ts
+ * Usage: npx tsx tests/verify_export_writer.ts
  */
 import { readFileSync, writeFileSync, mkdtempSync, rmSync, createReadStream, createWriteStream } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -24,18 +24,21 @@ import { join } from 'node:path';
 import { createGzip, gunzipSync } from 'node:zlib';
 import { pipeline } from 'node:stream/promises';
 
-import { scanDirectory } from './src/lib/adapters/scanDirectory';
-import { NodeFileAdapter } from './src/lib/adapters/nodeFileAdapter';
-import { deidentifyEdf } from './src/lib/deidentify/edfDeidentifier';
-import { deidentifyEdfStream } from './src/lib/adapters/nodeEdfDeidentifyStream';
-import { writeFileEntriesToDisk } from './src/lib/adapters/nodeExportWriter';
-import { buildFileEntries } from './src/lib/bids/exporter';
-import { runDetection, generateSummary, readJsonSidecars, readEdfHeaders } from './src/lib/detection';
-import { generateSubjectDateShifts } from './src/lib/deidentify/edfDeidentifier';
-import type { SubjectMetadata } from './src/types/metadata';
-import { createDefaultDatasetDescription } from './src/types/metadata';
+import { scanDirectory } from '../src/lib/adapters/scanDirectory';
+import { NodeFileAdapter } from '../src/lib/adapters/nodeFileAdapter';
+import { deidentifyEdf } from '../src/lib/deidentify/edfDeidentifier';
+import { deidentifyEdfStream } from '../src/lib/adapters/nodeEdfDeidentifyStream';
+import { writeFileEntriesToDisk } from '../src/lib/adapters/nodeExportWriter';
+import { buildFileEntries } from '../src/lib/bids/exporter';
+import { runDetection, generateSummary, readJsonSidecars, readEdfHeaders } from '../src/lib/detection';
+import { generateSubjectDateShifts } from '../src/lib/deidentify/edfDeidentifier';
+import type { SubjectMetadata } from '../src/types/metadata';
+import { createDefaultDatasetDescription } from '../src/types/metadata';
+import { fileURLToPath } from 'node:url';
 
-const PATIENT_ROOT = join(process.cwd(), 'demo-data', 'EpilepsyStudy_Raw', 'Patient_001');
+const REPO_ROOT = fileURLToPath(new URL('..', import.meta.url));
+
+const PATIENT_ROOT = join(REPO_ROOT, 'demo-data', 'EpilepsyStudy_Raw', 'Patient_001');
 
 /**
  * Build a synthetic-but-realistic EDF file: a proper 256-byte global

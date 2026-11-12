@@ -3,13 +3,13 @@
  * and NIfTI-2, either byte order) and what detection and validation do
  * with them.
  *
- * Usage: npx tsx regression_nifti.ts   (non-zero exit on failure)
+ * Usage: npx tsx tests/regression_nifti.ts   (non-zero exit on failure)
  */
 import { gzipSync } from 'node:zlib';
-import { runDetection, readJsonSidecars, readEdfHeaders, readNiftiHeaders } from './src/lib/detection';
-import { parseNiftiHeader } from './src/lib/detection/niftiHeaderReader';
-import { scanNiftiHeadersForPhi } from './src/lib/validation/phiScanner';
-import type { ScannedFile } from './src/types/files';
+import { runDetection, readJsonSidecars, readEdfHeaders, readNiftiHeaders } from '../src/lib/detection';
+import { parseNiftiHeader } from '../src/lib/detection/niftiHeaderReader';
+import { scanNiftiHeadersForPhi } from '../src/lib/validation/phiScanner';
+import type { ScannedFile } from '../src/types/files';
 
 let failures = 0;
 function check(ok: boolean, detail: string) {

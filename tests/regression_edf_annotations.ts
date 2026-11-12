@@ -15,15 +15,15 @@
  * birth date, phone number and a full date must not. Timestamps, signal
  * data and file size must be unchanged.
  *
- * Usage: npx tsx regression_edf_annotations.ts   (non-zero exit on failure)
+ * Usage: npx tsx tests/regression_edf_annotations.ts   (non-zero exit on failure)
  */
 import { mkdtemp, writeFile, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { deidentifyEdf } from './src/lib/deidentify/edfDeidentifier';
-import { deidentifyEdfStream } from './src/lib/adapters/nodeEdfDeidentifyStream';
-import { readEdfHeaders } from './src/lib/detection';
-import type { ScannedFile } from './src/types/files';
+import { deidentifyEdf } from '../src/lib/deidentify/edfDeidentifier';
+import { deidentifyEdfStream } from '../src/lib/adapters/nodeEdfDeidentifyStream';
+import { readEdfHeaders } from '../src/lib/detection';
+import type { ScannedFile } from '../src/types/files';
 
 let failures = 0;
 function check(ok: boolean, detail: string) {

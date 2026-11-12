@@ -19,25 +19,25 @@
  *   - "T1"/"T2" briefly read as timepoint labels while fixing that, which
  *     would have mistaken modality folders for visits.
  *
- * Usage: npx tsx regression_generalization.ts   (non-zero exit on failure)
+ * Usage: npx tsx tests/regression_generalization.ts   (non-zero exit on failure)
  */
-import { detectFromFilename } from './src/lib/detection/filenameDetector';
-import { detectCustomSession, looksLikeTimepointFolder } from './src/lib/detection/customSessionDetector';
-import { resolveSessionIds } from './src/types/sessionStructure';
-import type { DatasetStructure } from './src/types/sessionStructure';
-import { groupIntoSubject } from './src/lib/detection/subjectGrouping';
-import { isOsJunkFile } from './src/lib/detection/extensionDetector';
-import type { ScannedFile } from './src/types/files';
-import { DEFACING_MODALITIES } from './src/types/detection';
-import { runDetection, readJsonSidecars, readEdfHeaders } from './src/lib/detection';
-import { scanSidecarContentForPhi, scanTsvContentForPhi } from './src/lib/validation/phiScanner';
-import { buildFileEntries, generateZip } from './src/lib/bids/exporter';
-import { computeBidsNames } from './src/lib/bids/bidsNaming';
-import { validateBidsStructure } from './src/lib/validation/bidsValidator';
-import { checkRequiredFiles } from './src/lib/validation/requiredFilesChecker';
-import { createDefaultDatasetDescription } from './src/types/metadata';
-import type { SubjectMetadata } from './src/types/metadata';
-import type { Modality } from './src/types/detection';
+import { detectFromFilename } from '../src/lib/detection/filenameDetector';
+import { detectCustomSession, looksLikeTimepointFolder } from '../src/lib/detection/customSessionDetector';
+import { resolveSessionIds } from '../src/types/sessionStructure';
+import type { DatasetStructure } from '../src/types/sessionStructure';
+import { groupIntoSubject } from '../src/lib/detection/subjectGrouping';
+import { isOsJunkFile } from '../src/lib/detection/extensionDetector';
+import type { ScannedFile } from '../src/types/files';
+import { DEFACING_MODALITIES } from '../src/types/detection';
+import { runDetection, readJsonSidecars, readEdfHeaders } from '../src/lib/detection';
+import { scanSidecarContentForPhi, scanTsvContentForPhi } from '../src/lib/validation/phiScanner';
+import { buildFileEntries, generateZip } from '../src/lib/bids/exporter';
+import { computeBidsNames } from '../src/lib/bids/bidsNaming';
+import { validateBidsStructure } from '../src/lib/validation/bidsValidator';
+import { checkRequiredFiles } from '../src/lib/validation/requiredFilesChecker';
+import { createDefaultDatasetDescription } from '../src/types/metadata';
+import type { SubjectMetadata } from '../src/types/metadata';
+import type { Modality } from '../src/types/detection';
 
 let failures = 0;
 function report(section: string, ok: boolean, detail: string) {

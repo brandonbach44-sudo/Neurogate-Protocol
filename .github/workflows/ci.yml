@@ -44,7 +44,7 @@ jobs:
       - name: Desktop export check (bundled writer)
         run: |
           npm run desktop:bundle
-          npx tsx verify_desktop_export.ts
+          npx tsx tests/verify_desktop_export.ts
 
   # The app's step flow in a real browser, and the desktop app's close
   # prompt in real Electron. Node 22 for its built-in WebSocket (the test
@@ -75,7 +75,7 @@ jobs:
         run: |
           npx vite --port 5199 --strictPort > vite.log 2>&1 &
           for i in $(seq 1 60); do curl -sf http://localhost:5199/tool > /dev/null && break; sleep 1; done
-          CHROME=$(command -v google-chrome) npx tsx verify_ui_flow.ts
+          CHROME=$(command -v google-chrome) npx tsx tests/verify_ui_flow.ts
 
       - name: Desktop close prompt in Electron
-        run: xvfb-run -a npx tsx verify_desktop_close.ts
+        run: xvfb-run -a npx tsx tests/verify_desktop_close.ts

@@ -2,12 +2,12 @@
  * Audit log regression: dismissals, attestation changes, and keeping the
  * log across a reload (save to tab storage, restore, continue numbering).
  *
- * Usage: npx tsx regression_audit.ts   (non-zero exit on failure)
+ * Usage: npx tsx tests/regression_audit.ts   (non-zero exit on failure)
  */
-import { createAuditLogger } from './src/lib/audit/auditLogger';
-import { saveAuditLog, loadAuditLog } from './src/lib/audit/auditPersistence';
-import { redactAuditValue } from './src/lib/audit/auditRedaction';
-import type { ValidationIssue } from './src/types/validation';
+import { createAuditLogger } from '../src/lib/audit/auditLogger';
+import { saveAuditLog, loadAuditLog } from '../src/lib/audit/auditPersistence';
+import { redactAuditValue } from '../src/lib/audit/auditRedaction';
+import type { ValidationIssue } from '../src/types/validation';
 
 let failures = 0;
 function check(ok: boolean, detail: string) {

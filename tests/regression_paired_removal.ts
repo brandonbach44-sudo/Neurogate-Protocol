@@ -16,10 +16,10 @@
  *  - DWI .bval/.bvec removed with their scan; companions never cascade;
  *    dotted names pair by full base name
  *
- * Usage: npx tsx regression_paired_removal.ts   (non-zero exit on failure)
+ * Usage: npx tsx tests/regression_paired_removal.ts   (non-zero exit on failure)
  */
-import { removeResults } from './src/lib/mapping/removeResults';
-import type { DetectionResult } from './src/types/detection';
+import { removeResults } from '../src/lib/mapping/removeResults';
+import type { DetectionResult } from '../src/types/detection';
 
 let failures = 0;
 function check(ok: boolean, detail: string) {

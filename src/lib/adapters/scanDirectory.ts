@@ -25,7 +25,7 @@ import type { ScannedFile } from '../../types/files';
  * "Patient_001/...") -- this matches the browser's webkitRelativePath
  * convention exactly (FileDropZone.tsx's readEntry() includes the
  * top-level dropped folder's own name as the first path segment, and
- * regression.ts's toScannedFiles() replicates the same convention via
+ * tests/regression.ts's toScannedFiles() replicates the same convention via
  * `join(basename(root), relative(root, full))`).
  *
  * This match matters beyond cosmetics: lib/detection/subjectGrouping.ts
@@ -37,7 +37,7 @@ import type { ScannedFile } from '../../types/files';
  * produces -- which silently misgroups each session subfolder as a
  * separate "subject" instead of one patient with multiple sessions.
  * Found via CLI pipeline verification against real demo data
- * (verify_cli_pipeline.ts): scanning Patient_001 directly produced three
+ * (tests/verify_cli_pipeline.ts): scanning Patient_001 directly produced three
  * fake subjects (one per Session_* folder) instead of one.
  */
 export async function scanDirectory(rootPath: string): Promise<ScannedFile[]> {

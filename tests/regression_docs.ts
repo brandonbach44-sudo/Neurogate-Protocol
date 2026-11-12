@@ -6,15 +6,18 @@
  * listed must exist. Catches the drift where the Documentation page said
  * v1.15 / v2.9 / v1.9 while the files said 2.0 / 3.0 / 2.0.
  *
- * Usage: npx tsx regression_docs.ts   (non-zero exit on failure)
+ * Usage: npx tsx tests/regression_docs.ts   (non-zero exit on failure)
  */
 import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
-import { DOCUMENTS } from './src/docVersions';
+import { DOCUMENTS } from '../src/docVersions';
+import { fileURLToPath } from 'node:url';
+
+const REPO_ROOT = fileURLToPath(new URL('..', import.meta.url));
 
 let failures = 0;
 for (const doc of DOCUMENTS) {
-  const path = join(process.cwd(), 'public', 'docs', `${doc.slug}.md`);
+  const path = join(REPO_ROOT, 'public', 'docs', `${doc.slug}.md`);
   if (!existsSync(path)) {
     failures++;
     console.log(`  FAIL  ${doc.id}: ${path} does not exist`);

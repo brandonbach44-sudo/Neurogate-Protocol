@@ -11,7 +11,7 @@
  * once the prompt is reached.
  *
  * Needs a build and Node 22+ (built-in WebSocket):
- *   npm run build && npm run desktop:bundle && npx tsx verify_desktop_close.ts
+ *   npm run build && npm run desktop:bundle && npx tsx tests/verify_desktop_close.ts
  * On Linux without a display, run it under xvfb-run (as CI's "ui" job does).
  */
 import { spawn, type ChildProcess } from 'node:child_process';
@@ -20,6 +20,9 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
+
+const REPO_ROOT = fileURLToPath(new URL('..', import.meta.url));
 // The Electron binary itself (node_modules/.bin/electron is a wrapper
 // script, and killing the wrapper would leave the app running).
 const ELECTRON = createRequire(import.meta.url)('electron') as unknown as string;
@@ -37,7 +40,7 @@ async function launch(userData: string): Promise<App> {
   let out = '';
   // CI runners (Ubuntu 24.04) block Chromium's sandbox, so it's turned off there.
   const ciFlags = process.env.CI ? ['--no-sandbox'] : [];
-  const proc = spawn(ELECTRON, ['.', ...ciFlags, `--remote-debugging-port=${PORT}`, `--user-data-dir=${userData}`], { stdio: ['ignore', 'pipe', 'pipe'] });
+  const proc = spawn(ELECTRON, ['.', ...ciFlags, `--remote-debugging-port=${PORT}`, `--user-data-dir=${userData}`], { cwd: REPO_ROOT, stdio: ['ignore', 'pipe', 'pipe'] });
   proc.stdout!.on('data', d => { out += d; });
   proc.stderr!.on('data', d => { out += d; });
   let target: { webSocketDebuggerUrl: string } | undefined;
@@ -116,7 +119,7 @@ async function main() {
     check(!app.log().includes('[audit] unsaved entries: true'), 'choosing a structure alone does not count as unsaved work');
     const doc = await app.send('DOM.getDocument', { depth: -1 });
     const q = await app.send('DOM.querySelector', { nodeId: (doc.result!.root as { nodeId: number }).nodeId, selector: 'input[type=file][multiple]' });
-    await app.send('DOM.setFileInputFiles', { nodeId: q.result!.nodeId, files: walk(join(process.cwd(), 'demo-data', 'EpilepsyStudy_Raw', 'Patient_001')) });
+    await app.send('DOM.setFileInputFiles', { nodeId: q.result!.nodeId, files: walk(join(REPO_ROOT, 'demo-data', 'EpilepsyStudy_Raw', 'Patient_001')) });
     await waitFor(app, `document.body.innerText.includes('Continue to Metadata')`, 15000);
     check(await waitForLog(app, '[audit] unsaved entries: true'), 'renderer reported unsaved audit entries to the main process');
     app.proc.kill('SIGTERM'); // Electron quits the app normally on SIGTERM, closing its window

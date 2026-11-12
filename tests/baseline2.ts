@@ -3,7 +3,7 @@
  * Runs current detection + validation engines against demo_patient_data
  * samples and writes results to baseline_results.json.
  *
- * Run with: npx tsx baseline.ts
+ * Run with: npx tsx tests/baseline.ts
  */
 import { readdirSync, statSync, readFileSync, writeFileSync, openSync, readSync, closeSync } from 'fs';
 import { join, relative, basename } from 'path';
@@ -25,15 +25,15 @@ function readCapped(path: string, size: number): Buffer {
   }
   return buf;
 }
-import { runDetection, generateSummary, readJsonSidecars, readEdfHeaders } from './src/lib/detection';
-import { runValidation } from './src/lib/validation';
-import type { ScannedFile } from './src/types/files';
-import type { SubjectMetadata } from './src/types/metadata';
+import { runDetection, generateSummary, readJsonSidecars, readEdfHeaders } from '../src/lib/detection';
+import { runValidation } from '../src/lib/validation';
+import type { ScannedFile } from '../src/types/files';
+import type { SubjectMetadata } from '../src/types/metadata';
 import {
   createDefaultDatasetDescription,
   createDefaultAttestation,
   createDefaultInstitutionConfig,
-} from './src/types/metadata';
+} from '../src/types/metadata';
 
 const DEMO_ROOT = process.argv[2] || '../demo_patient_data';
 

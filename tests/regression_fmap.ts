@@ -6,20 +6,20 @@
  * both export paths: the browser ZIP and the streaming writer used by the
  * desktop app and CLI.
  *
- * Usage: npx tsx regression_fmap.ts   (non-zero exit on failure)
+ * Usage: npx tsx tests/regression_fmap.ts   (non-zero exit on failure)
  */
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import JSZip from 'jszip';
-import { runDetection, readJsonSidecars, readEdfHeaders, readNiftiHeaders } from './src/lib/detection';
-import { buildFileEntries, generateZip } from './src/lib/bids/exporter';
-import { computeIntendedFor } from './src/lib/bids/intendedFor';
-import { writeFileEntriesToDisk } from './src/lib/adapters/nodeExportWriter';
-import { scanDirectory } from './src/lib/adapters/scanDirectory';
-import { createDefaultDatasetDescription } from './src/types/metadata';
-import type { SubjectMetadata } from './src/types/metadata';
-import type { ScannedFile } from './src/types/files';
+import { runDetection, readJsonSidecars, readEdfHeaders, readNiftiHeaders } from '../src/lib/detection';
+import { buildFileEntries, generateZip } from '../src/lib/bids/exporter';
+import { computeIntendedFor } from '../src/lib/bids/intendedFor';
+import { writeFileEntriesToDisk } from '../src/lib/adapters/nodeExportWriter';
+import { scanDirectory } from '../src/lib/adapters/scanDirectory';
+import { createDefaultDatasetDescription } from '../src/types/metadata';
+import type { SubjectMetadata } from '../src/types/metadata';
+import type { ScannedFile } from '../src/types/files';
 
 let failures = 0;
 function check(ok: boolean, detail: string) {

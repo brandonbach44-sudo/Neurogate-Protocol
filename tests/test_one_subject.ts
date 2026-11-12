@@ -1,11 +1,14 @@
 import { join } from 'node:path';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { runNeuroGatePipeline } from './src/cli/pipeline';
-import { createDefaultDatasetDescription } from './src/types/metadata';
+import { runNeuroGatePipeline } from '../src/cli/pipeline';
+import { createDefaultDatasetDescription } from '../src/types/metadata';
+import { fileURLToPath } from 'node:url';
+
+const REPO_ROOT = fileURLToPath(new URL('..', import.meta.url));
 
 // Test against single subject to see how detection handles Scitran/DICOM structure
-const SUBJECT_PATH = join(process.cwd(), '..', '..', 'neurogate_test_data',
+const SUBJECT_PATH = join(REPO_ROOT, '..', '..', 'neurogate_test_data',
   'Phase2_MRI', '01_1204', 'scitran', 'phase2_mri', 'Phase2_MRI', '01_1204');
 
 async function main() {

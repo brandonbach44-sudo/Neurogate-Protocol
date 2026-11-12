@@ -4,16 +4,16 @@
  * sessions that have files. Also the session-label matching used by
  * auto-fill, which must follow the chosen structure.
  *
- * Usage: npx tsx regression_consistency.ts   (non-zero exit on failure)
+ * Usage: npx tsx tests/regression_consistency.ts   (non-zero exit on failure)
  */
-import { runDetection, readJsonSidecars, readEdfHeaders } from './src/lib/detection';
-import { computeBidsNames } from './src/lib/bids/bidsNaming';
-import { checkConsistency } from './src/lib/validation/consistencyChecker';
-import { extractSessionMetadata, resolveSessionLabel } from './src/lib/metadata';
-import type { ScannedFile } from './src/types/files';
-import type { DatasetStructure } from './src/types/sessionStructure';
-import { createDefaultDatasetStructure } from './src/types/sessionStructure';
-import type { ValidationIssue } from './src/types/validation';
+import { runDetection, readJsonSidecars, readEdfHeaders } from '../src/lib/detection';
+import { computeBidsNames } from '../src/lib/bids/bidsNaming';
+import { checkConsistency } from '../src/lib/validation/consistencyChecker';
+import { extractSessionMetadata, resolveSessionLabel } from '../src/lib/metadata';
+import type { ScannedFile } from '../src/types/files';
+import type { DatasetStructure } from '../src/types/sessionStructure';
+import { createDefaultDatasetStructure } from '../src/types/sessionStructure';
+import type { ValidationIssue } from '../src/types/validation';
 
 let failures = 0;
 function check(ok: boolean, detail: string) {

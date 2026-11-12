@@ -1,10 +1,13 @@
 import { join } from 'node:path';
 import { existsSync } from 'node:fs';
-import { scanDirectory } from './src/lib/adapters/scanDirectory';
-import { runDetection, readJsonSidecars } from './src/lib/detection';
-import { computeBidsNames } from './src/lib/bids/bidsNaming';
+import { scanDirectory } from '../src/lib/adapters/scanDirectory';
+import { runDetection, readJsonSidecars } from '../src/lib/detection';
+import { computeBidsNames } from '../src/lib/bids/bidsNaming';
+import { fileURLToPath } from 'node:url';
 
-const DATA_ROOT = join(process.cwd(), '..', '..', 'ng_test_nifti_only');
+const REPO_ROOT = fileURLToPath(new URL('..', import.meta.url));
+
+const DATA_ROOT = join(REPO_ROOT, '..', '..', 'ng_test_nifti_only');
 
 const STRUCTURE = {
   presetId: 'custom-timepoints' as const,

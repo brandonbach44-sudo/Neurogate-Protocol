@@ -1,8 +1,11 @@
 import { join } from 'node:path';
 import { mkdtempSync, rmSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { runNeuroGatePipeline } from './src/cli/pipeline';
-import { createDefaultDatasetDescription } from './src/types/metadata';
+import { runNeuroGatePipeline } from '../src/cli/pipeline';
+import { createDefaultDatasetDescription } from '../src/types/metadata';
+import { fileURLToPath } from 'node:url';
+
+const REPO_ROOT = fileURLToPath(new URL('..', import.meta.url));
 
 // ── NIfTI-ready subjects (nii.gz >= 3) ─────────────────────────────────
 // Inner path = [base]/[cohort]/[subj]/scitran/phase2_mri/[cohort]/[subj]
@@ -10,7 +13,7 @@ import { createDefaultDatasetDescription } from './src/types/metadata';
 //   - 2weeks cohorts  → custom-timepoints ses-2wk
 //   - date cohorts    → single-session (date folder won't resolve to a label)
 
-const DATA_ROOT = join(process.cwd(), '..', '..', 'ng_test_nifti_only');
+const DATA_ROOT = join(REPO_ROOT, '..', '..', 'ng_test_nifti_only');
 
 function innerPath(cohort: string, subj: string): string {
   // Try Flywheel-wrapped structure first (scitran/phase2_mri/cohort/subj)

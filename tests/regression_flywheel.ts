@@ -26,18 +26,22 @@
  * names. No patient data is committed.
  *
  * Usage:
- *   npx tsx regression_flywheel.ts            # fail on drift
- *   npx tsx regression_flywheel.ts --update   # rewrite the snapshot
+ *   npx tsx tests/regression_flywheel.ts            # fail on drift
+ *   npx tsx tests/regression_flywheel.ts --update   # rewrite the snapshot
  */
 import { readdirSync, statSync, readFileSync, writeFileSync, existsSync } from 'fs';
 import { join, relative, basename } from 'path';
-import { runDetection, generateSummary, readJsonSidecars } from './src/lib/detection';
-import { computeBidsNames } from './src/lib/bids/bidsNaming';
-import type { ScannedFile } from './src/types/files';
-import type { DatasetStructure } from './src/types/sessionStructure';
+import { runDetection, generateSummary, readJsonSidecars } from '../src/lib/detection';
+import { computeBidsNames } from '../src/lib/bids/bidsNaming';
+import type { ScannedFile } from '../src/types/files';
+import type { DatasetStructure } from '../src/types/sessionStructure';
+import { fileURLToPath } from 'node:url';
 
-const ROOT = join(process.cwd(), 'demo-data', 'FlywheelLongitudinal_Raw');
-const EXPECTED_PATH = join(process.cwd(), 'regression_flywheel_expected.json');
+const REPO_ROOT = fileURLToPath(new URL('..', import.meta.url));
+const TESTS_DIR = fileURLToPath(new URL('.', import.meta.url));
+
+const ROOT = join(REPO_ROOT, 'demo-data', 'FlywheelLongitudinal_Raw');
+const EXPECTED_PATH = join(TESTS_DIR, 'regression_flywheel_expected.json');
 const UPDATE_MODE = process.argv.includes('--update');
 
 /** Both fixture subjects are two-timepoint longitudinal studies. */

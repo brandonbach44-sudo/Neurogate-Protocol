@@ -15,7 +15,7 @@
  *   2. Bundle src/cli/pipeline.ts (the actual scan/detect/validate/
  *      export logic, no readline/stdin dependency) separately, require()
  *      the bundled output, and run it against real demo data -- the
- *      same check verify_cli_pipeline.ts runs against the TypeScript
+ *      same check tests/verify_cli_pipeline.ts runs against the TypeScript
  *      source via tsx. If this produces the same result (files written,
  *      correct subject count), the bundling process preserves behavior,
  *      not just syntax.

@@ -6,12 +6,13 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  // dist/: build output. The root scripts listed here are local-only
+  // dist/: build output. The tests/ scripts listed here are local-only
   // experiments that read data outside the repo (see SETUP.md); they're not
   // part of the app, the CLI or the test suite.
   globalIgnores([
     'dist', 'dist-cli', 'release', 'electron/desktop-export.cjs',
-    'baseline.ts', 'baseline2.ts', 'baseline_run.ts', 'simulate.ts', 'audit_modality.ts', 'test_*.ts',
+    'tests/baseline.ts', 'tests/baseline2.ts', 'tests/baseline_run.ts', 'tests/simulate.ts',
+    'tests/audit_modality.ts', 'tests/test_*.ts',
   ]),
   {
     files: ['**/*.{ts,tsx}'],

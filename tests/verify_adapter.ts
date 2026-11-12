@@ -15,22 +15,26 @@
  * to Node's built-in File/Blob (which would eagerly buffer, defeating
  * the large-EDF-file memory goal this exists for).
  *
- * Usage: npx tsx verify_adapter.ts
+ * Usage: npx tsx tests/verify_adapter.ts
  */
 import { readdirSync, statSync, readFileSync } from 'fs';
 import { join } from 'path';
-import { scanDirectory } from './src/lib/adapters/scanDirectory';
-import { runDetection, generateSummary, readJsonSidecars, readEdfHeaders } from './src/lib/detection';
-import { runValidation } from './src/lib/validation';
-import type { SubjectMetadata } from './src/types/metadata';
+import { scanDirectory } from '../src/lib/adapters/scanDirectory';
+import { runDetection, generateSummary, readJsonSidecars, readEdfHeaders } from '../src/lib/detection';
+import { runValidation } from '../src/lib/validation';
+import type { SubjectMetadata } from '../src/types/metadata';
 import {
   createDefaultDatasetDescription,
   createDefaultAttestation,
   createDefaultInstitutionConfig,
-} from './src/types/metadata';
+} from '../src/types/metadata';
+import { fileURLToPath } from 'node:url';
 
-const DEMO_ROOT = join(process.cwd(), 'demo-data', 'EpilepsyStudy_Raw');
-const EXPECTED_PATH = join(process.cwd(), 'regression_expected.json');
+const REPO_ROOT = fileURLToPath(new URL('..', import.meta.url));
+const TESTS_DIR = fileURLToPath(new URL('.', import.meta.url));
+
+const DEMO_ROOT = join(REPO_ROOT, 'demo-data', 'EpilepsyStudy_Raw');
+const EXPECTED_PATH = join(TESTS_DIR, 'regression_expected.json');
 
 async function runSample(sampleName: string) {
   const root = join(DEMO_ROOT, sampleName);

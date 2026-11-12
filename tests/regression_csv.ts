@@ -4,23 +4,23 @@
  * to tab-separated text (through both the browser ZIP and the streaming
  * writer), and Validate reads them correctly.
  *
- * Usage: npx tsx regression_csv.ts   (non-zero exit on failure)
+ * Usage: npx tsx tests/regression_csv.ts   (non-zero exit on failure)
  */
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import JSZip from 'jszip';
-import { runDetection, readJsonSidecars, readEdfHeaders } from './src/lib/detection';
-import { computeBidsNames } from './src/lib/bids/bidsNaming';
-import { buildFileEntries, generateZip } from './src/lib/bids/exporter';
-import { csvToTsv, parseDelimited, detectCsvDelimiter } from './src/lib/bids/delimitedText';
-import { writeFileEntriesToDisk } from './src/lib/adapters/nodeExportWriter';
-import { scanDirectory } from './src/lib/adapters/scanDirectory';
-import { checkConsistency } from './src/lib/validation/consistencyChecker';
-import { scanTsvContentForPhi } from './src/lib/validation/phiScanner';
-import { createDefaultDatasetDescription } from './src/types/metadata';
-import type { SubjectMetadata } from './src/types/metadata';
-import type { ScannedFile } from './src/types/files';
+import { runDetection, readJsonSidecars, readEdfHeaders } from '../src/lib/detection';
+import { computeBidsNames } from '../src/lib/bids/bidsNaming';
+import { buildFileEntries, generateZip } from '../src/lib/bids/exporter';
+import { csvToTsv, parseDelimited, detectCsvDelimiter } from '../src/lib/bids/delimitedText';
+import { writeFileEntriesToDisk } from '../src/lib/adapters/nodeExportWriter';
+import { scanDirectory } from '../src/lib/adapters/scanDirectory';
+import { checkConsistency } from '../src/lib/validation/consistencyChecker';
+import { scanTsvContentForPhi } from '../src/lib/validation/phiScanner';
+import { createDefaultDatasetDescription } from '../src/types/metadata';
+import type { SubjectMetadata } from '../src/types/metadata';
+import type { ScannedFile } from '../src/types/files';
 
 let failures = 0;
 function check(ok: boolean, detail: string) {

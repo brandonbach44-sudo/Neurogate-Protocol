@@ -1,6 +1,6 @@
 /**
  * The documents shipped with the app (public/docs/*.md) and their current
- * versions, shown on the Documentation page. regression_docs.ts fails if
+ * versions, shown on the Documentation page. tests/regression_docs.ts fails if
  * a version here disagrees with the "| **Version** |" row in the
  * document itself, so bump both together.
  */

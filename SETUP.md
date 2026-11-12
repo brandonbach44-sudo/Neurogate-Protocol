@@ -37,10 +37,11 @@ The update check is skipped in dev builds (it only runs in a packaged app).
 ## 4. Run the tests
 
 ```bash
-npm run regression       # regression.ts, regression_deidentify.ts, regression_flywheel.ts,
+npm run regression       # every tests/regression*.ts suite: regression.ts,
+                         # regression_deidentify.ts, regression_flywheel.ts,
                          # regression_generalization.ts, regression_pet.ts,
                          # regression_edf_annotations.ts, regression_nifti.ts,
-                         # regression_docs.ts;
+                         # regression_docs.ts and the rest;
                          # CI and the release workflow run this
 npm run verify:export    # streaming export writer and EDF de-identifier
 npm run verify:cli       # CLI pipeline end to end on demo data
@@ -48,23 +49,23 @@ npm run verify:adapter   # NodeFileAdapter vs. the browser File path
 npm run verify:cli-bundle  # the esbuild CLI bundle builds and still exports correctly
 
 npm run desktop:bundle
-npx tsx verify_desktop_export.ts           # desktop folder export, against the bundled file
-npx tsx verify_desktop_export.ts --large   # with a 600 MB EDF
+npx tsx tests/verify_desktop_export.ts           # desktop folder export, against the bundled file
+npx tsx tests/verify_desktop_export.ts --large   # with a 600 MB EDF
 
-npx vite --port 5199 &                     # then, with Google Chrome installed:
-npx tsx verify_ui_flow.ts                  # drives the tool page in headless Chrome: Metadata kept
-                                           # on Back, no repeated audit entries, Change structure
-npx tsx verify_desktop_close.ts            # after npm run build + desktop:bundle: the unsaved audit
-                                           # log prompt in the real Electron app
+npx vite --port 5199 &                           # then, with Google Chrome installed:
+npx tsx tests/verify_ui_flow.ts                  # drives the tool page in headless Chrome: Metadata kept
+                                                 # on Back, no repeated audit entries, Change structure
+npx tsx tests/verify_desktop_close.ts            # after npm run build + desktop:bundle: the unsaved audit
+                                                 # log prompt in the real Electron app
 ```
 
 Both need Node 22 or newer (they use its built-in WebSocket); CI's `ui` job runs them.
 
-After an intended change to detection, validation or de-identification output, run `npm run regression:update` (it rewrites the `regression.ts`, `regression_deidentify.ts` and `regression_flywheel.ts` snapshots) and review the snapshot diff before committing it.
+After an intended change to detection, validation or de-identification output, run `npm run regression:update` (it rewrites the `tests/regression.ts`, `tests/regression_deidentify.ts` and `tests/regression_flywheel.ts` snapshots) and review the snapshot diff before committing it.
 
-`regression_docs.ts` checks that each version in `src/docVersions.ts` matches the `| **Version** |` row of its `public/docs/*.md` file. When you bump a document's version, update `src/docVersions.ts` in the same commit.
+`tests/regression_docs.ts` checks that each version in `src/docVersions.ts` matches the `| **Version** |` row of its `public/docs/*.md` file. When you bump a document's version, update `src/docVersions.ts` in the same commit.
 
-All fixtures are synthetic (`demo-data/` or built in memory). Never commit real patient data. `baseline*.ts`, `test_*.ts`, `simulate.ts` and `audit_modality.ts` point at local-only data outside the repo and aren't part of the test suite.
+All fixtures are synthetic (`demo-data/` or built in memory). Never commit real patient data. `tests/baseline*.ts`, `tests/test_*.ts`, `tests/simulate.ts` and `tests/audit_modality.ts` point at local-only data outside the repo and aren't part of the test suite.
 
 `npm run lint` runs ESLint.
 
@@ -81,9 +82,10 @@ All fixtures are synthetic (`demo-data/` or built in memory). Never commit real 
 | `src/lib/adapters/` | Node-only code: `NodeFileAdapter`, directory scan, streaming export writer, desktop export entry point. |
 | `src/cli/` | CLI (`index.ts` prompts, `pipeline.ts` does the work). |
 | `src/version.ts` | App version, read from `package.json` at build time; the single source for the footer, `dataset_description.json` and the audit log. |
-| `src/docVersions.ts` | Versions of the `public/docs/` documents shown on the Documentation page (checked by `regression_docs.ts`). |
+| `src/docVersions.ts` | Versions of the `public/docs/` documents shown on the Documentation page (checked by `tests/regression_docs.ts`). |
 | `electron/` | Electron main process (`main.cjs`), preload bridge (`preload.cjs`), icons. `desktop-export.cjs` is generated. |
 | `server/` | Express server the desktop app runs in-process to serve the built frontend. It has no upload or processing routes. |
+| `tests/` | Regression suites, `verify_*` scripts and their golden snapshots (`*_expected.json`), plus the local-only experiments. Run them from the repo root with `npm run` or `npx tsx tests/<file>.ts`. |
 | `scripts/` | Build scripts (CLI bundle and binary, desktop bundle, fast dev loop, macOS ad-hoc signing). |
 | `public/docs/` | GOV-001, SOP-BIDS-001, SOP-GUI-001 and the DICOM conversion helper script, shown in the app. |
 | `docs/` | Internal notes. `docs/capabilities.md` is the source of truth for behavior; update it first whenever behavior changes. |

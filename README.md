@@ -97,24 +97,25 @@ npm run cli -- <folder>    # CLI from the TypeScript source
 Tests (all run on synthetic fixtures in `demo-data/` or on in-memory data):
 
 ```bash
-npm run regression       # regression.ts, regression_deidentify.ts, regression_flywheel.ts,
+npm run regression       # every tests/regression*.ts suite: regression.ts,
+                         # regression_deidentify.ts, regression_flywheel.ts,
                          # regression_generalization.ts, regression_pet.ts,
                          # regression_edf_annotations.ts, regression_nifti.ts,
-                         # regression_docs.ts
+                         # regression_docs.ts and the rest
 npm run verify:export    # streaming export writer and EDF de-identifier
 npm run verify:cli       # CLI pipeline end to end
 npm run verify:adapter   # NodeFileAdapter scans identically to the browser File path
 
 npm run desktop:bundle
-npx tsx verify_desktop_export.ts           # desktop folder export, against the bundled file
-npx tsx verify_desktop_export.ts --large   # same, with a 600 MB EDF
+npx tsx tests/verify_desktop_export.ts           # desktop folder export, against the bundled file
+npx tsx tests/verify_desktop_export.ts --large   # same, with a 600 MB EDF
 
-npx vite --port 5199 &                     # then, with Google Chrome installed:
-npx tsx verify_ui_flow.ts                  # the tool page's step flow in headless Chrome
-npx tsx verify_desktop_close.ts            # after npm run build + desktop:bundle: the unsaved-log prompt in Electron
+npx vite --port 5199 &                           # then, with Google Chrome installed:
+npx tsx tests/verify_ui_flow.ts                  # the tool page's step flow in headless Chrome
+npx tsx tests/verify_desktop_close.ts            # after npm run build + desktop:bundle: the unsaved-log prompt in Electron
 ```
 
-`regression_docs.ts` checks that each version in `src/docVersions.ts` matches the `| **Version** |` row of its `public/docs/*.md` file. `npm run regression:update` rewrites the golden snapshots (detection, de-identification, Flywheel suites) after an intended behavior change.
+`tests/regression_docs.ts` checks that each version in `src/docVersions.ts` matches the `| **Version** |` row of its `public/docs/*.md` file. `npm run regression:update` rewrites the golden snapshots (detection, de-identification, Flywheel suites) after an intended behavior change.
 
 ## Releasing
 

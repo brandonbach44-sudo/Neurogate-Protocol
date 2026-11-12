@@ -1,10 +1,13 @@
 import { join } from 'node:path';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { runNeuroGatePipeline } from './src/cli/pipeline';
-import { createDefaultDatasetDescription } from './src/types/metadata';
+import { runNeuroGatePipeline } from '../src/cli/pipeline';
+import { createDefaultDatasetDescription } from '../src/types/metadata';
+import { fileURLToPath } from 'node:url';
 
-const DATA_ROOT = join(process.cwd(), '..', '..', 'neurogate_test_data');
+const REPO_ROOT = fileURLToPath(new URL('..', import.meta.url));
+
+const DATA_ROOT = join(REPO_ROOT, '..', '..', 'neurogate_test_data');
 const STRUCTURE_2WK = { presetId: 'custom-timepoints' as const, timepoints: [{ number: 2, unit: 'week' as const }] };
 const STRUCTURE_SINGLE = { presetId: 'single-session' as const };
 

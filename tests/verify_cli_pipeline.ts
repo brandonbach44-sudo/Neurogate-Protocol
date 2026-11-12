@@ -17,17 +17,20 @@
  *      shortcut.
  *   4. Audit log was written and contains the expected entries.
  *
- * Usage: npx tsx verify_cli_pipeline.ts
+ * Usage: npx tsx tests/verify_cli_pipeline.ts
  */
 import { existsSync, readFileSync, mkdtempSync, rmSync, readdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { runNeuroGatePipeline, type NeuroGateRunOptions } from './src/cli/pipeline';
-import { createDefaultDatasetDescription } from './src/types/metadata';
+import { runNeuroGatePipeline, type NeuroGateRunOptions } from '../src/cli/pipeline';
+import { createDefaultDatasetDescription } from '../src/types/metadata';
+import { fileURLToPath } from 'node:url';
 
-const PATIENT_ROOT = join(process.cwd(), 'demo-data', 'EpilepsyStudy_Raw', 'Patient_001');
-const STUDY_ROOT = join(process.cwd(), 'demo-data', 'EpilepsyStudy_Raw');
+const REPO_ROOT = fileURLToPath(new URL('..', import.meta.url));
+
+const PATIENT_ROOT = join(REPO_ROOT, 'demo-data', 'EpilepsyStudy_Raw', 'Patient_001');
+const STUDY_ROOT = join(REPO_ROOT, 'demo-data', 'EpilepsyStudy_Raw');
 
 function baseOptions(outputDir: string): NeuroGateRunOptions {
   const datasetDescription = createDefaultDatasetDescription();

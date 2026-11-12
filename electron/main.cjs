@@ -56,8 +56,8 @@ const { promisify } = require('node:util');
 const execFileAsync = promisify(execFile);
 
 // app.getName() (and therefore app.getPath('userData')) defaults to
-// package.json's top-level "name" field ("epilepsy-app" -- an old
-// internal name, not the product's actual branding), NOT
+// package.json's top-level "name" field ("neurogate"; through 1.9.0 it was
+// the old internal name "epilepsy-app"), NOT
 // electron-builder's "productName" ("NeuroGate") used for the
 // installer/shortcuts/window title. Without this, "Install CLI" would
 // silently install to %APPDATA%\epilepsy-app\bin instead of

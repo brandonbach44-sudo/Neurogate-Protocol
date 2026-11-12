@@ -54,7 +54,7 @@ Download page: <https://github.com/brandonbach44-sudo/Neurogate-Protocol/release
    - **build** (matrix: `windows-latest`, `macos-latest`, `ubuntu-latest`, Node 20):
      1. Fail if the tag isn't `v` + `package.json` version (electron-builder names the release from `package.json`, not the tag).
      2. `npm ci`
-     3. `npm run regression` (must pass, or nothing ships): `regression.ts`, `regression_deidentify.ts`, `regression_flywheel.ts`, `regression_generalization.ts`, `regression_pet.ts`, `regression_edf_annotations.ts`, `regression_docs.ts`. The last one fails if a version in `src/docVersions.ts` doesn't match its `public/docs/*.md` document's `| **Version** |` row, so a document version bump must update `src/docVersions.ts` too.
+     3. `npm run regression` (must pass, or nothing ships): `tests/regression.ts`, `tests/regression_deidentify.ts`, `tests/regression_flywheel.ts`, `tests/regression_generalization.ts`, `tests/regression_pet.ts`, `tests/regression_edf_annotations.ts`, `tests/regression_docs.ts`. The last one fails if a version in `src/docVersions.ts` doesn't match its `public/docs/*.md` document's `| **Version** |` row, so a document version bump must update `src/docVersions.ts` too.
      4. `npm run build` (frontend)
      5. `npm run cli:sea` (standalone CLI binary for that OS)
      6. `npm run desktop:bundle` (`electron/desktop-export.cjs`)
@@ -68,7 +68,7 @@ Because electron-updater ignores drafts, installed apps are never offered a rele
 
 ## CI
 
-`.github/workflows/ci.yml` runs on every push (any branch) and every pull request, on `ubuntu-latest` with Node 20: `npm ci`, `npm run lint`, `npm run build`, `npm run regression`, then `npm run verify:export`, `verify:cli` and `verify:adapter`, then `npm run desktop:bundle` and `npx tsx verify_desktop_export.ts`. A second job, `ui` (Node 22), runs `verify_ui_flow.ts` in Chrome and `verify_desktop_close.ts` in Electron under `xvfb-run`. CI builds no installers and publishes nothing. Vercel deploys `main` to the website without waiting for it, so a red CI run on `main` means the website may already be serving the broken commit. Check that CI is green before tagging a release.
+`.github/workflows/ci.yml` runs on every push (any branch) and every pull request, on `ubuntu-latest` with Node 20: `npm ci`, `npm run lint`, `npm run build`, `npm run regression`, then `npm run verify:export`, `verify:cli` and `verify:adapter`, then `npm run desktop:bundle` and `npx tsx tests/verify_desktop_export.ts`. A second job, `ui` (Node 22), runs `tests/verify_ui_flow.ts` in Chrome and `tests/verify_desktop_close.ts` in Electron under `xvfb-run`. CI builds no installers and publishes nothing. Vercel deploys `main` to the website without waiting for it, so a red CI run on `main` means the website may already be serving the broken commit. Check that CI is green before tagging a release.
 
 ---
 

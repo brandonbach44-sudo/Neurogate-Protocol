@@ -11,19 +11,22 @@
  * real-ish patient data, and no dependency on files outside this repo.
  *
  * Usage:
- *   npx tsx regression_deidentify.ts            # compare, exit 1 on drift
- *   npx tsx regression_deidentify.ts --update    # (re)write golden snapshot
+ *   npx tsx tests/regression_deidentify.ts            # compare, exit 1 on drift
+ *   npx tsx tests/regression_deidentify.ts --update    # (re)write golden snapshot
  */
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { join } from 'path';
-import { deidentifyJsonSidecar } from './src/lib/deidentify/jsonSidecarDeidentifier';
-import { deidentifyEdf, generateSubjectDateShifts } from './src/lib/deidentify/edfDeidentifier';
-import { deidentifyPersystLay } from './src/lib/deidentify/persystLayDeidentifier';
-import { buildFileEntries } from './src/lib/bids/exporter';
-import type { SubjectMetadata, DatasetDescription } from './src/types/metadata';
-import type { DetectionResult } from './src/types/detection';
+import { deidentifyJsonSidecar } from '../src/lib/deidentify/jsonSidecarDeidentifier';
+import { deidentifyEdf, generateSubjectDateShifts } from '../src/lib/deidentify/edfDeidentifier';
+import { deidentifyPersystLay } from '../src/lib/deidentify/persystLayDeidentifier';
+import { buildFileEntries } from '../src/lib/bids/exporter';
+import type { SubjectMetadata, DatasetDescription } from '../src/types/metadata';
+import type { DetectionResult } from '../src/types/detection';
+import { fileURLToPath } from 'node:url';
 
-const EXPECTED_PATH = join(process.cwd(), 'regression_deidentify_expected.json');
+const TESTS_DIR = fileURLToPath(new URL('.', import.meta.url));
+
+const EXPECTED_PATH = join(TESTS_DIR, 'regression_deidentify_expected.json');
 const UPDATE_MODE = process.argv.includes('--update');
 
 // ── JSON sidecar fixtures ──────────────────────────────────────────
@@ -257,7 +260,7 @@ async function main() {
   if (diffs.length > 0) {
     console.error(`\nDE-IDENTIFICATION REGRESSION DETECTED -- ${diffs.length} field(s) changed vs regression_deidentify_expected.json:\n`);
     for (const d of diffs) console.error(`  ${d}\n`);
-    console.error('If this change is intentional, run `npx tsx regression_deidentify.ts --update` and commit the updated snapshot.');
+    console.error('If this change is intentional, run `npx tsx tests/regression_deidentify.ts --update` and commit the updated snapshot.');
     process.exit(1);
   }
 

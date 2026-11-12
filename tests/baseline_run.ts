@@ -1,26 +1,18 @@
-/**
- * Phase 0 baseline capture script.
- * Runs current detection + validation engines against demo_patient_data
- * samples and writes results to baseline_results.json.
- *
- * Run with: npx tsx baseline.ts
- */
 import { readdirSync, statSync, readFileSync, writeFileSync, openSync, readSync, closeSync } from 'fs';
 import { join, relative, basename } from 'path';
-import { runDetection, generateSummary, readJsonSidecars, readEdfHeaders } from './src/lib/detection';
-import { runValidation } from './src/lib/validation';
-import type { ScannedFile } from './src/types/files';
-import type { SubjectMetadata } from './src/types/metadata';
+import { runDetection, generateSummary, readJsonSidecars, readEdfHeaders } from '../src/lib/detection';
+import { runValidation } from '../src/lib/validation';
+import type { ScannedFile } from '../src/types/files';
+import type { SubjectMetadata } from '../src/types/metadata';
 import {
   createDefaultDatasetDescription,
   createDefaultAttestation,
   createDefaultInstitutionConfig,
-} from './src/types/metadata';
+} from '../src/types/metadata';
+import { fileURLToPath } from 'node:url';
 
-// Detection/validation only inspect file headers and text content, never
-// full binary bodies. Cap what we buffer into memory per file so large
-// imaging/EEG files (multi-GB) don't OOM this Node harness. The real size
-// is still reported via ScannedFile.size.
+const TESTS_DIR = fileURLToPath(new URL('.', import.meta.url));
+
 const READ_CAP = 25 * 1024 * 1024; // 25 MB
 
 function readCapped(path: string, size: number): Buffer {
@@ -87,7 +79,6 @@ async function runSample(sampleName: string) {
   const detectionResults = runDetection(scanned, sidecarMap, edfHeaderMap);
   const summary = generateSummary(detectionResults);
 
-  // Minimal synthetic metadata so validation can run end to end.
   const groups = summary.subjectGroups;
   const subjects: SubjectMetadata[] = groups.map((g, i) => ({
     subjectGroup: g,
@@ -108,7 +99,7 @@ async function runSample(sampleName: string) {
   const institutionConfig = createDefaultInstitutionConfig();
   institutionConfig.prefix = 'BASE';
 
-  const validationReport = runValidation({
+  const validationReport = await runValidation({
     detectionResults,
     subjects,
     datasetDescription,
@@ -141,7 +132,7 @@ async function main() {
   const results: unknown[] = [];
   for (const sample of SAMPLES) {
     try {
-      const r = await runSample(sample);
+      const r: any = await runSample(sample);
       results.push(r);
       console.log(`OK   ${sample}: ${r.fileCount} files, ${r.detectionSummary.unclassified} unclassified, ${r.validationSummary.issueCount} validation issues`);
     } catch (err) {
@@ -151,7 +142,7 @@ async function main() {
   }
 
   writeFileSync(
-    'baseline_results.json',
+    join(TESTS_DIR, 'baseline_results.json'),
     JSON.stringify({ capturedAt: new Date().toISOString(), results }, null, 2),
   );
   console.log('\nWrote baseline_results.json');

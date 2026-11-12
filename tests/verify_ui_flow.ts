@@ -17,7 +17,7 @@
  *      and not after it's saved.
  *
  * Needs a dev server, Chrome and Node 22+ (built-in WebSocket):
- *   npx vite --port 5199 &   then   npx tsx verify_ui_flow.ts
+ *   npx vite --port 5199 &   then   npx tsx tests/verify_ui_flow.ts
  * CI runs it in the "ui" job (.github/workflows/ci.yml).
  * CHROME=/path/to/chrome overrides the browser; UI_URL the page.
  */
@@ -25,6 +25,9 @@ import { spawn } from 'node:child_process';
 import { mkdtempSync, rmSync, readdirSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const REPO_ROOT = fileURLToPath(new URL('..', import.meta.url));
 
 const CHROME = process.env.CHROME ?? (process.platform === 'darwin'
   ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
@@ -138,7 +141,7 @@ async function main() {
 
     // Drop files: one demo patient, without its events table, so Validate
     // has a dismissable warning (events.tsv missing in ses-postimplant).
-    const demoFiles = walk(join(process.cwd(), 'demo-data', 'EpilepsyStudy_Raw', 'Patient_001')).filter(f => !f.endsWith('events_001.tsv'));
+    const demoFiles = walk(join(REPO_ROOT, 'demo-data', 'EpilepsyStudy_Raw', 'Patient_001')).filter(f => !f.endsWith('events_001.tsv'));
     await addFiles(demoFiles);
     check(await waitFor(hasText('Continue to Metadata'), 'mapping', 15000), 'files added, mapping shown');
 

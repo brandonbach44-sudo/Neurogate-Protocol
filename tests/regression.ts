@@ -12,25 +12,29 @@
  * the repo, so it is safe to run on every push.
  *
  * Usage:
- *   npx tsx regression.ts            # compare against regression_expected.json, exit 1 on drift
- *   npx tsx regression.ts --update   # (re)write regression_expected.json from current output
+ *   npx tsx tests/regression.ts            # compare against regression_expected.json, exit 1 on drift
+ *   npx tsx tests/regression.ts --update   # (re)write regression_expected.json from current output
  *
- * Run with: npx tsx regression.ts
+ * Run with: npx tsx tests/regression.ts
  */
 import { readdirSync, statSync, readFileSync, writeFileSync, existsSync } from 'fs';
 import { join, relative, basename } from 'path';
-import { runDetection, generateSummary, readJsonSidecars, readEdfHeaders } from './src/lib/detection';
-import { runValidation } from './src/lib/validation';
-import type { ScannedFile } from './src/types/files';
-import type { SubjectMetadata } from './src/types/metadata';
+import { runDetection, generateSummary, readJsonSidecars, readEdfHeaders } from '../src/lib/detection';
+import { runValidation } from '../src/lib/validation';
+import type { ScannedFile } from '../src/types/files';
+import type { SubjectMetadata } from '../src/types/metadata';
 import {
   createDefaultDatasetDescription,
   createDefaultAttestation,
   createDefaultInstitutionConfig,
-} from './src/types/metadata';
+} from '../src/types/metadata';
+import { fileURLToPath } from 'node:url';
 
-const DEMO_ROOT = join(process.cwd(), 'demo-data', 'EpilepsyStudy_Raw');
-const EXPECTED_PATH = join(process.cwd(), 'regression_expected.json');
+const REPO_ROOT = fileURLToPath(new URL('..', import.meta.url));
+const TESTS_DIR = fileURLToPath(new URL('.', import.meta.url));
+
+const DEMO_ROOT = join(REPO_ROOT, 'demo-data', 'EpilepsyStudy_Raw');
+const EXPECTED_PATH = join(TESTS_DIR, 'regression_expected.json');
 const UPDATE_MODE = process.argv.includes('--update');
 
 function walk(dir: string, out: string[] = []): string[] {
@@ -178,7 +182,7 @@ async function main() {
   if (diffs.length > 0) {
     console.error(`\nREGRESSION DETECTED — ${diffs.length} field(s) changed vs regression_expected.json:\n`);
     for (const d of diffs) console.error(`  ${d}\n`);
-    console.error('If this change is intentional, run `npx tsx regression.ts --update` and commit the updated regression_expected.json.');
+    console.error('If this change is intentional, run `npx tsx tests/regression.ts --update` and commit the updated regression_expected.json.');
     process.exit(1);
   }
 

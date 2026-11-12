@@ -4,17 +4,17 @@
  * tables follow their recording, runs are numbered per task, and labels
  * are letters and digits only.
  *
- * Usage: npx tsx regression_tasks.ts   (non-zero exit on failure)
+ * Usage: npx tsx tests/regression_tasks.ts   (non-zero exit on failure)
  */
-import { runDetection, readJsonSidecars, readEdfHeaders } from './src/lib/detection';
-import { computeBidsNames } from './src/lib/bids/bidsNaming';
-import { sanitizeTaskLabel, taskInBidsName } from './src/types/detection';
-import type { DetectionResult } from './src/types/detection';
-import type { ScannedFile } from './src/types/files';
+import { runDetection, readJsonSidecars, readEdfHeaders } from '../src/lib/detection';
+import { computeBidsNames } from '../src/lib/bids/bidsNaming';
+import { sanitizeTaskLabel, taskInBidsName } from '../src/types/detection';
+import type { DetectionResult } from '../src/types/detection';
+import type { ScannedFile } from '../src/types/files';
 import JSZip from 'jszip';
-import { buildFileEntries, generateZip } from './src/lib/bids/exporter';
-import { createDefaultDatasetDescription } from './src/types/metadata';
-import type { SubjectMetadata } from './src/types/metadata';
+import { buildFileEntries, generateZip } from '../src/lib/bids/exporter';
+import { createDefaultDatasetDescription } from '../src/types/metadata';
+import type { SubjectMetadata } from '../src/types/metadata';
 
 let failures = 0;
 function check(ok: boolean, detail: string) {

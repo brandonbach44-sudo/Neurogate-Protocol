@@ -162,61 +162,59 @@ function ToolPage() {
   }, [audit, savedSession, datasetStructure]);
 
   // ── Update a single detection result (user correction) ────────
+  // The update handlers below compute the new array from the current
+  // detectionResults value OUTSIDE the state updater, then fire audit logging
+  // and setSummary once. Side effects inside a setDetectionResults(prev => ...)
+  // updater run twice under React Strict Mode, duplicating audit entries.
   const handleUpdateResult = useCallback((index: number, updates: Partial<DetectionResult>) => {
-    setDetectionResults(prev => {
-      const next = [...prev];
-      const old = next[index];
-      next[index] = { ...old, ...updates };
+    const next = [...detectionResults];
+    const old = next[index];
+    next[index] = { ...old, ...updates };
 
-      // Log corrections
-      if (updates.userSession && updates.userSession !== getEffectiveSession(old)) {
-        audit.logSessionCorrected(old.fileName, getEffectiveSession(old), updates.userSession);
-      }
-      if (updates.userModality && updates.userModality !== getEffectiveModality(old)) {
-        audit.logModalityCorrected(old.fileName, getEffectiveModality(old), updates.userModality);
-      }
-      if (updates.userSubjectGroup && updates.userSubjectGroup !== old.subjectGroup) {
-        audit.logSubjectCorrected(old.fileName, old.subjectGroup, updates.userSubjectGroup);
-      }
+    // Recompute BIDS names so the preview, run- entities, and sidecar
+    // pairing stay correct after the change.
+    const renamed = computeBidsNames(next, undefined, datasetStructure);
+    setDetectionResults(renamed);
 
-      // Recompute BIDS names so the preview, run- entities, and sidecar
-      // pairing stay correct after the change.
-      const renamed = computeBidsNames(next, undefined, datasetStructure);
-      if ('userTask' in updates) {
-        const from = taskInBidsName(old.bidsFilename);
-        const to = taskInBidsName(renamed[index].bidsFilename);
-        if (to && from !== to) audit.logTaskCorrected(old.fileName, from, to);
-      }
-      setSummary(generateSummary(renamed, datasetStructure));
-      return renamed;
-    });
-  }, [audit, datasetStructure]);
+    // Log corrections
+    if (updates.userSession && updates.userSession !== getEffectiveSession(old)) {
+      audit.logSessionCorrected(old.fileName, getEffectiveSession(old), updates.userSession);
+    }
+    if (updates.userModality && updates.userModality !== getEffectiveModality(old)) {
+      audit.logModalityCorrected(old.fileName, getEffectiveModality(old), updates.userModality);
+    }
+    if (updates.userSubjectGroup && updates.userSubjectGroup !== old.subjectGroup) {
+      audit.logSubjectCorrected(old.fileName, old.subjectGroup, updates.userSubjectGroup);
+    }
+    if ('userTask' in updates) {
+      const from = taskInBidsName(old.bidsFilename);
+      const to = taskInBidsName(renamed[index].bidsFilename);
+      if (to && from !== to) audit.logTaskCorrected(old.fileName, from, to);
+    }
+    setSummary(generateSummary(renamed, datasetStructure));
+  }, [detectionResults, audit, datasetStructure]);
 
   // ── Bulk set the task label ──────────────────────────────────
   const handleBulkUpdateTask = useCallback((indices: number[], task: string) => {
-    setDetectionResults(prev => {
-      const next = [...prev];
-      for (const i of indices) next[i] = { ...next[i], userTask: task };
-      const renamed = computeBidsNames(next, undefined, datasetStructure);
-      setSummary(generateSummary(renamed, datasetStructure));
-      return renamed;
-    });
+    const next = [...detectionResults];
+    for (const i of indices) next[i] = { ...next[i], userTask: task };
+    const renamed = computeBidsNames(next, undefined, datasetStructure);
+    setDetectionResults(renamed);
+    setSummary(generateSummary(renamed, datasetStructure));
     audit.logBulkTaskApplied(indices.length, task);
-  }, [audit, datasetStructure]);
+  }, [detectionResults, audit, datasetStructure]);
 
   // ── Bulk update session for selected files ────────────────────
   const handleBulkUpdateSession = useCallback((indices: number[], session: Session) => {
-    setDetectionResults(prev => {
-      const next = [...prev];
-      for (const i of indices) {
-        next[i] = { ...next[i], userSession: session };
-      }
-      const renamed = computeBidsNames(next, undefined, datasetStructure);
-      setSummary(generateSummary(renamed, datasetStructure));
-      return renamed;
-    });
+    const next = [...detectionResults];
+    for (const i of indices) {
+      next[i] = { ...next[i], userSession: session };
+    }
+    const renamed = computeBidsNames(next, undefined, datasetStructure);
+    setDetectionResults(renamed);
+    setSummary(generateSummary(renamed, datasetStructure));
     audit.logBulkSessionApplied(indices.length, session);
-  }, [audit, datasetStructure]);
+  }, [detectionResults, audit, datasetStructure]);
 
   // ── Remove one or more files from the mapping ────────────────
   // Removal is computed from the current detectionResults value OUTSIDE the
@@ -236,17 +234,15 @@ function ToolPage() {
 
   // ── Bulk update modality for selected files ───────────────────
   const handleBulkUpdateModality = useCallback((indices: number[], modality: Modality) => {
-    setDetectionResults(prev => {
-      const next = [...prev];
-      for (const i of indices) {
-        next[i] = { ...next[i], userModality: modality };
-      }
-      const renamed = computeBidsNames(next, undefined, datasetStructure);
-      setSummary(generateSummary(renamed, datasetStructure));
-      return renamed;
-    });
+    const next = [...detectionResults];
+    for (const i of indices) {
+      next[i] = { ...next[i], userModality: modality };
+    }
+    const renamed = computeBidsNames(next, undefined, datasetStructure);
+    setDetectionResults(renamed);
+    setSummary(generateSummary(renamed, datasetStructure));
     audit.logBulkModalityApplied(indices.length, modality);
-  }, [audit, datasetStructure]);
+  }, [detectionResults, audit, datasetStructure]);
 
   // ── Handle metadata completion ────────────────────────────────
   const handleMetadataComplete = useCallback((metadata: MetadataOutput) => {
